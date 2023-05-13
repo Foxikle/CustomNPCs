@@ -1,0 +1,60 @@
+name: CustomNPCs
+version: '${project.version}'
+main: dev.foxikle.customnpcs.CustomNPCs
+api-version: 1.19
+prefix: CNPC
+authors: [ Foxikle ]
+website: https://foxikle.dev/plugins.html
+commands:
+  npc:
+    description: The core command for Custom NPCs
+permissions:
+  customnpcs.*:
+    description: A wildcard permission for CustomNPCs
+    default: op
+    children:
+    - customnpcs.edit
+    - customnpcs.create
+    - customnpcs.delete
+    - customnpcs.commands.*
+    - customnpcs.commands.manage
+    - customnpcs.commands.help
+    - customnpcs.commands.reload
+    - customnpcs.commands.list
+  customnpcs.commands.*:
+    description: A wildcard permission for all command permissions
+    default: false
+    children:
+      - customnpcs.commands.manage
+      - customnpcs.commands.help
+      - customnpcs.commands.reload
+      - customnpcs.commands.list
+  customnpcs.commands.manage:
+    description: A permission required to manage npcs with the /npc manage command.
+    default: op
+    children:
+      - customnpcs.edit
+      - customnpcs.create
+      - customnpcs.delete
+  customnpcs.commands.help:
+    description: A permission required for the /npc help or /npc command
+    default: op
+  customnpcs.commands.reload:
+    description: A permission required for the /npc reload command
+    default: op
+  customnpcs.edit:
+    description: A permission required to edit NPCs
+    default: false
+  customnpcs.create:
+    description: A permission required to create NPCs
+    default: false
+  customnpcs.delete:
+    description: A permission required to delete NPCs
+    default: false
+  customnpcs.commands.list:
+    description: A permission required to manage NPCs
+    default: false
+
+
+
+
