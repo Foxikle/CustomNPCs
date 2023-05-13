@@ -38,22 +38,6 @@ public class Listeners implements Listener {
         }
     }
 
-    @EventHandler
-    public void onPlayerAttack(EntityDamageByEntityEvent e) {
-        if (e.getDamager() instanceof Player player) {
-            if (e.getEntity().getType() == EntityType.PLAYER) {
-                Player rightClicked = (Player) e.getEntity();
-                ServerPlayer sp = ((CraftPlayer) rightClicked).getHandle();
-                NPC npc = CustomNPCs.getInstance().getNPCByID(sp.getUUID());
-                if (npc.isClickable()) {
-                    if (npc.getPlayer() == sp) {
-                        player.performCommand(npc.getCommand());
-                    }
-                }
-            }
-        }
-    }
-
     @EventHandler (priority = EventPriority.HIGHEST)
     public void onChat(PlayerChatEvent e) {
         if (CustomNPCs.getInstance().waiting.contains(e.getPlayer())) {
