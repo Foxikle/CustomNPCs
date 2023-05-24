@@ -16,7 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.Map;
+import java.util.*;
 
 import static org.bukkit.Material.*;
 
@@ -26,19 +26,22 @@ public class NPCMenuListeners implements Listener {
 
     private void OpenAnvil(Player p) {
         new AnvilGUI.Builder()
-            .onClose(player -> player.sendMessage(""))
-            .onComplete((player, text) -> {
-                map.get(p).getNpc().setName(ChatColor.translateAlternateColorCodes('&', text));
-                Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> player.openInventory(map.get(p).getMainMenu()), 1);
-                player.sendMessage(ChatColor.GREEN + "The NPC's name was set to: " + ChatColor.BOLD + text);
-                return AnvilGUI.Response.close();
-            })
-            .preventClose()
-            .text("Type here")
-            .itemLeft(new ItemStack(Material.NAME_TAG))
-            .title(ChatColor.BLACK + "" + ChatColor.BOLD + "  Enter a Name")
-            .plugin(CustomNPCs.getInstance())
-            .open(p);
+                .onClose(stateSnapshot -> stateSnapshot.getPlayer().sendMessage("You closed the inventory."))
+                .onClick((slot, stateSnapshot) -> {
+                    if(slot != AnvilGUI.Slot.OUTPUT) {
+                        return new ArrayList<>();
+                    }
+                    String text = stateSnapshot.getText();
+                    map.get(p).getNpc().setName(ChatColor.translateAlternateColorCodes('&', text));
+                    Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> p.openInventory(map.get(p).getMainMenu()), 1);
+                    p.sendMessage(ChatColor.GREEN + "The NPC's name was set to: " + ChatColor.BOLD + text);
+                    return List.of(AnvilGUI.ResponseAction.close());
+                })
+                .preventClose()
+                .text("Type here")
+                .title(ChatColor.BLACK + "" + ChatColor.BOLD + "  Enter a Name")
+                .plugin(CustomNPCs.getInstance())
+                .open(p);
     }
 
 
