@@ -16,14 +16,11 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.List;
 
-import static dev.foxikle.customnpcs.menu.MenuUtils.addBorder;
-import static dev.foxikle.customnpcs.menu.MenuUtils.getSkinIcon;
-
 public class MenuCore {
 
     private NPC npc;
 
-    public MenuCore (NPC npc) {
+    public MenuCore(NPC npc) {
         this.npc = npc;
     }
 
@@ -240,7 +237,7 @@ public class MenuCore {
         cancelMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "Cancel");
         cancelMeta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "CANCEL");
         cancelButton.setItemMeta(cancelMeta);
-        inv.setItem(13, getSkinIcon(key, "changeSkin", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9"));
+        inv.setItem(13, MenuUtils.getSkinIcon(key, "changeSkin", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9"));
         inv.setItem(16, nametag);
         inv.setItem(10, positionsItem);
         inv.setItem(22, resilientItem);
@@ -258,7 +255,7 @@ public class MenuCore {
         ItemStack boots = npc.getBootsItem();
         ItemStack hand = npc.getHandItem();
         ItemStack offhand = npc.getItemInOffhand();
-        Inventory inv = addBorder(Bukkit.createInventory(null, 54, ChatColor.BLACK + "" + ChatColor.BOLD + "     Edit NPC Equipment"));
+        Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 54, ChatColor.BLACK + "" + ChatColor.BOLD + "     Edit NPC_1_19_1_R1 Equipment"));
         NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "EquipmentInv");
 
         ItemStack item1 = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
@@ -476,6 +473,7 @@ public class MenuCore {
 
         return inv;
     }
+
     public NPC getNpc(){
         return this.npc;
     }
