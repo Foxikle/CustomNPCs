@@ -255,7 +255,7 @@ public class MenuCore {
         ItemStack boots = npc.getBootsItem();
         ItemStack hand = npc.getHandItem();
         ItemStack offhand = npc.getItemInOffhand();
-        Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 54, ChatColor.BLACK + "" + ChatColor.BOLD + "     Edit NPC_1_19_1_R1 Equipment"));
+        Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 54, ChatColor.BLACK + "" + ChatColor.BOLD + "     Edit NPC Equipment"));
         NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "EquipmentInv");
 
         ItemStack item1 = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
