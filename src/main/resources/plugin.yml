@@ -51,10 +51,3 @@ permissions:
   customnpcs.delete:
     description: A permission required to delete NPCs
     default: false
-  customnpcs.commands.list:
-    description: A permission required to manage NPCs
-    default: false
-
-
-
-
