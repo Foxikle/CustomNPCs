@@ -26,12 +26,20 @@ public final class CustomNPCs extends JavaPlugin {
     public Map<UUID, NPC> npcs = new HashMap<>();
     public Map<Player, MenuCore> menus = new HashMap<>();
 
+    private String sversion;
+
     public static CustomNPCs getInstance() {
         return instance;
     }
 
     @Override
     public void onEnable() {
+
+        if(!setup()){
+            Bukkit.getLogger().severe("Incompatible server version! Please use 1.19.4. Shutting down plugin.");
+            Bukkit.getPluginManager().disablePlugin(this);
+        }
+
         try {
             Team team = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam("npc");
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
@@ -42,18 +50,33 @@ public final class CustomNPCs extends JavaPlugin {
             team.setPrefix(ChatColor.DARK_GRAY + "[NPC] ");
         }
         instance = this;
+
         this.getServer().getPluginManager().registerEvents(new NPCMenuListeners(), this);
         this.getServer().getPluginManager().registerEvents(new Listeners(), this);
         getCommand("npc").setExecutor(new CommandCore());
         this.fileManager = new FileManager();
         fileManager.createFiles();
-        System.out.println("Loading npcs!");
+        Bukkit.getLogger().info("Loading NPCs!");
         for (UUID uuid : fileManager.getNPCIds()) {
             fileManager.loadNPC(uuid);
         }
         Bukkit.getScheduler().runTaskLater(this, () -> Bukkit.getOnlinePlayers().forEach(player -> npcs.values().forEach(npc -> Bukkit.getScheduler().runTaskLaterAsynchronously(CustomNPCs.getInstance(), () -> npc.injectPlayer(player), 5))), 20);
         Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> invs = MenuUtils.getCatalogueInventories(), 20);
 
+    }
+
+    public boolean setup(){
+        sversion = "N/A";
+        try{
+            sversion = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+        } catch (ArrayIndexOutOfBoundsException ex){
+            return false;
+        }
+
+       if(sversion.equals("v1_19_R3")){
+            return true;
+        }
+        return false;
     }
 
     @Override
