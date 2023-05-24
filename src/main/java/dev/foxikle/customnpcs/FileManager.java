@@ -7,8 +7,8 @@ import net.minecraft.server.level.ServerLevel;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +22,7 @@ public class FileManager {
         if (!new File("plugins/CustomNPCs/npcs.yml").exists()) {
             CustomNPCs.getInstance().saveResource("npcs.yml", false);
         } else if (!new File("plugins/CustomNPCs/config.yml").exists()) {
-        CustomNPCs.getInstance().saveResource("config.yml", false);
+            CustomNPCs.getInstance().saveResource("config.yml", false);
         }
     }
 
@@ -64,7 +64,7 @@ public class FileManager {
         profile.getProperties().put("textures", new Property("textures", section.getString("value"), section.getString("signature")));
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
         ServerLevel nmsWorld = ((CraftWorld) section.getLocation("location").getWorld()).getHandle();
-        NPC npc = new NPC(nmsServer, nmsWorld, profile, null, section.getLocation("location"), section.getItemStack("handItem"), section.getItemStack("offhandItem"), section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getBoolean("clickable"), true, section.getString("command"), section.getString("name"), uuid, section.getString("value"), section.getString("signature"), section.getString("skin"), section.getDouble("direction"));
+        NPC npc = new NPC(nmsServer, nmsWorld, profile, section.getLocation("location"), section.getItemStack("handItem"), section.getItemStack("offhandItem"), section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getBoolean("clickable"), true, section.getString("command"), section.getString("name"), uuid, section.getString("value"), section.getString("signature"), section.getString("skin"), section.getDouble("direction"));
         npc.createNPC();
     }
 
