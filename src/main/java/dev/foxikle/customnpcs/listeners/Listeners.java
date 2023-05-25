@@ -43,12 +43,7 @@ public class Listeners implements Listener {
             CustomNPCs.getInstance().waiting.remove(e.getPlayer());
             CustomNPCs.getInstance().menus.get(e.getPlayer()).getNpc().setCommand(e.getMessage());
             e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set command to be '" + e.getMessage().replace("/", "") + "'");
-            Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), new Runnable() {
-                @Override
-                public void run() {
-                    e.getPlayer().openInventory(CustomNPCs.getInstance().menus.get(e.getPlayer()).getMainMenu());
-                }
-            });
+            Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> e.getPlayer().openInventory(CustomNPCs.getInstance().menus.get(e.getPlayer()).getMainMenu()));
             e.setCancelled(true);
         }
     }
@@ -69,7 +64,7 @@ public class Listeners implements Listener {
     public void onMove(PlayerMoveEvent e) {
         Player player = e.getPlayer();
         for (NPC npc : CustomNPCs.getInstance().npcs.values()) {
-            if (getDistance(e.getPlayer().getLocation(), npc.getLocation()) <= 5) { // should be 5
+            if (getDistance(e.getPlayer().getLocation(), npc.getLocation()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
             } else if (getDistance(e.getFrom(), npc.getLocation()) >= 48 && getDistance(e.getTo(), npc.getLocation()) <= 48) {
                 npc.injectPlayer(player);
@@ -79,6 +74,8 @@ public class Listeners implements Listener {
                 entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
                 for (Entity en : entities) {
                     if (en.getType() == EntityType.PLAYER) {
+                        Player p = (Player) en;
+                        npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) p).getHandle(), EntityAnchorArgument.Anchor.EYES);
                         return;
                     }
                 }
