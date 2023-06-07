@@ -7,7 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -39,10 +39,16 @@ public class Listeners implements Listener {
 
     @EventHandler (priority = EventPriority.HIGHEST)
     public void onChat(AsyncPlayerChatEvent e) {
-        if (CustomNPCs.getInstance().waiting.contains(e.getPlayer())) {
-            CustomNPCs.getInstance().waiting.remove(e.getPlayer());
+        if (CustomNPCs.getInstance().commandWaiting.contains(e.getPlayer())) {
+            CustomNPCs.getInstance().commandWaiting.remove(e.getPlayer());
             CustomNPCs.getInstance().menus.get(e.getPlayer()).getNpc().setCommand(e.getMessage());
             e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set command to be '" + e.getMessage().replace("/", "") + "'");
+            Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> e.getPlayer().openInventory(CustomNPCs.getInstance().menus.get(e.getPlayer()).getMainMenu()));
+            e.setCancelled(true);
+        } else if (CustomNPCs.getInstance().nameWaiting.contains(e.getPlayer())) {
+            CustomNPCs.getInstance().nameWaiting.remove(e.getPlayer());
+            CustomNPCs.getInstance().menus.get(e.getPlayer()).getNpc().setName(e.getMessage());
+            e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set name to be '" + ChatColor.translateAlternateColorCodes('&', e.getMessage()));
             Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> e.getPlayer().openInventory(CustomNPCs.getInstance().menus.get(e.getPlayer()).getMainMenu()));
             e.setCancelled(true);
         }

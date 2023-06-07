@@ -1,11 +1,11 @@
 package dev.foxikle.customnpcs.listeners;
 
-import dev.foxikle.customnpcs.ChatRunnable;
+import dev.foxikle.customnpcs.runnables.CommandRunnable;
 import dev.foxikle.customnpcs.CustomNPCs;
 import dev.foxikle.customnpcs.NPC;
 import dev.foxikle.customnpcs.menu.MenuCore;
 import dev.foxikle.customnpcs.menu.MenuUtils;
-import net.wesjd.anvilgui.AnvilGUI;
+import dev.foxikle.customnpcs.runnables.NameRunnable;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,27 +24,6 @@ public class NPCMenuListeners implements Listener {
 
     Map<Player, MenuCore> map = CustomNPCs.getInstance().menus;
 
-    private void OpenAnvil(Player p) {
-        new AnvilGUI.Builder()
-                .onClose(stateSnapshot -> stateSnapshot.getPlayer().sendMessage("You closed the inventory."))
-                .onClick((slot, stateSnapshot) -> {
-                    if(slot != AnvilGUI.Slot.OUTPUT) {
-                        return new ArrayList<>();
-                    }
-                    String text = stateSnapshot.getText();
-                    map.get(p).getNpc().setName(ChatColor.translateAlternateColorCodes('&', text));
-                    Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> p.openInventory(map.get(p).getMainMenu()), 1);
-                    p.sendMessage(ChatColor.GREEN + "The NPC's name was set to: " + ChatColor.BOLD + text);
-                    return List.of(AnvilGUI.ResponseAction.close());
-                })
-                .preventClose()
-                .text("Type here")
-                .title(ChatColor.BLACK + "" + ChatColor.BOLD + "  Enter a Name")
-                .plugin(CustomNPCs.getInstance())
-                .open(p);
-    }
-
-
     @EventHandler
     public void OnInventoryClick(InventoryClickEvent e) {
         if (e.getCurrentItem() == null) return;
@@ -57,8 +36,11 @@ public class NPCMenuListeners implements Listener {
         NPC npc = mc.getNpc();
         if (tagContainer.get(key, PersistentDataType.STRING) != null) {
             if (tagContainer.get(key, PersistentDataType.STRING).equals("NameTag")) {
+                CustomNPCs.getInstance().nameWaiting.add(player);
+                player.sendMessage(ChatColor.GREEN + "Type the NPC name the chat.");
+                new NameRunnable(player).runTaskTimer(CustomNPCs.getInstance(), 1, 15);
+                player.closeInventory();
                 e.setCancelled(true);
-                OpenAnvil(player);
             } else if (tagContainer.get(key, PersistentDataType.STRING).equals("direction")) {
                 double dir = npc.getFacingDirection();
                 if(e.getAction() == InventoryAction.PICKUP_ALL) {
@@ -198,9 +180,9 @@ public class NPCMenuListeners implements Listener {
                 player.closeInventory();
                 e.setCancelled(true);
             } else if (tagContainer.get(key, PersistentDataType.STRING).equals("command")) {
-                CustomNPCs.getInstance().waiting.add(player);
+                CustomNPCs.getInstance().commandWaiting.add(player);
                 player.sendMessage(ChatColor.RED + "Type in chat the command that should be executed. Do not include the slash.");
-               new ChatRunnable(player).runTaskTimer(CustomNPCs.getInstance(), 1, 15);
+               new CommandRunnable(player).runTaskTimer(CustomNPCs.getInstance(), 1, 15);
                 player.closeInventory();
                 e.setCancelled(true);
             }
