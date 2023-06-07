@@ -20,7 +20,8 @@ public final class CustomNPCs extends JavaPlugin {
     //TODO: NPCaction command to deal with new npc actions.
     public static CustomNPCs instance;
     public List<Inventory> invs;
-    public List<Player> waiting = new ArrayList<>();
+    public List<Player> commandWaiting = new ArrayList<>();
+    public List<Player> nameWaiting = new ArrayList<>();
     public List<TextDisplay> armorStands = new ArrayList<>();
     public FileManager fileManager;
     public Map<Player, Integer> pages = new HashMap<>();
@@ -74,10 +75,7 @@ public final class CustomNPCs extends JavaPlugin {
             return false;
         }
 
-       if(sversion.equals("v1_19_R3")){
-            return true;
-        }
-        return false;
+        return sversion.equals("v1_20_R1");
     }
 
     @Override
