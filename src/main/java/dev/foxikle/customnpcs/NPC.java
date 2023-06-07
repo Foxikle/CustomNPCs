@@ -19,9 +19,9 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
@@ -45,7 +45,7 @@ public class NPC extends ServerPlayer {
     private Location location;
     private String name;
     private World world;
-    private ArmorStand hologram;
+    private TextDisplay hologram;
     private String signature;
     private String value;
     private boolean resilient;
@@ -118,13 +118,11 @@ public class NPC extends ServerPlayer {
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, bitmask);
     }
 
-    private ArmorStand setupHologram(Location loc, String name) {
-        ArmorStand hologram = (ArmorStand) loc.getWorld().spawnEntity(new Location(loc.getWorld(), loc.getX(), clickable ? loc.getY() + 2.05 : loc.getY() + 1.8, loc.getZ()), EntityType.ARMOR_STAND);
-        hologram.setVisible(false);
+    private TextDisplay setupHologram(Location loc, String name) {
+        TextDisplay hologram = (TextDisplay) loc.getWorld().spawnEntity(new Location(loc.getWorld(), loc.getX(), clickable ? loc.getY() + 2.05 : loc.getY() + 1.8, loc.getZ()), EntityType.TEXT_DISPLAY);
         hologram.setInvulnerable(true);
         hologram.setGravity(true);
         hologram.setCustomNameVisible(true);
-        hologram.setMarker(true);
         hologram.setCustomName(ChatColor.translateAlternateColorCodes('&', name));
         hologram.addScoreboardTag("npcHologram");
         return hologram;
@@ -226,7 +224,7 @@ public class NPC extends ServerPlayer {
         return name;
     }
 
-    public ArmorStand getHologram() {
+    public TextDisplay getHologram() {
         return hologram;
     }
 

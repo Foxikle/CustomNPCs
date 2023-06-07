@@ -7,8 +7,8 @@ import dev.foxikle.customnpcs.menu.MenuCore;
 import dev.foxikle.customnpcs.menu.MenuUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Team;
@@ -17,10 +17,11 @@ import java.util.*;
 
 public final class CustomNPCs extends JavaPlugin {
 
+    //TODO: NPCaction command to deal with new npc actions.
     public static CustomNPCs instance;
     public List<Inventory> invs;
     public List<Player> waiting = new ArrayList<>();
-    public List<ArmorStand> armorStands = new ArrayList<>();
+    public List<TextDisplay> armorStands = new ArrayList<>();
     public FileManager fileManager;
     public Map<Player, Integer> pages = new HashMap<>();
     public Map<UUID, NPC> npcs = new HashMap<>();
@@ -93,7 +94,7 @@ public final class CustomNPCs extends JavaPlugin {
         return npcs.values().stream().toList();
     }
 
-    public void addNPC(NPC npc, ArmorStand hologram) {
+    public void addNPC(NPC npc, TextDisplay hologram) {
         armorStands.add(hologram);
         npcs.put(npc.getUUID(), npc);
     }

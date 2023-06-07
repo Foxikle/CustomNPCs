@@ -24,6 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.bukkit.ChatColor.RED;
 
@@ -43,7 +44,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     player.sendMessage(ChatColor.translateAlternateColorCodes('§', """
-                            §2§m                         §r§3§l Custom NPCs §r§7[§8v0.1§7] §r§2§m                          \s
+                            §2§m                         §r§3§l Custom NPCs §r§7[§8v1.1§7] §r§2§m                          \s
                             §r                                 §r§6By Foxikle \n
                             
                             """));
@@ -53,8 +54,10 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     ComponentBuilder create = new ComponentBuilder("\n  -  /npc create").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Displays a menu to create an NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Displays a menu to create an NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create());
                     ComponentBuilder delete = new ComponentBuilder("\n  -  /npc delete <UUID>").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Deletes the specified NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Deletes the specified NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create());
                     ComponentBuilder edit   = new ComponentBuilder("\n  -  /npc edit <UUID>").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Displays a menu to edit the NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Displays a menu to edit the NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create());
+                    ComponentBuilder remove   = new ComponentBuilder("\n  -  /npc clear_holograms").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Forcibly removes NPC holograms.").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Forcibly removes NPC holograms.").color(net.md_5.bungee.api.ChatColor.AQUA).create());
+
                     ComponentBuilder close  = new ComponentBuilder("\n§2§m                                                                                ");
-                    help.append(manage.create()).append(create.create()).append(delete.create()).append(edit.create()).append(close.create());
+                    help.append(manage.create()).append(create.create()).append(delete.create()).append(edit.create()).append(remove.create()).append(close.create());
                     player.spigot().sendMessage(help.create());
                 } else if (args[0].equalsIgnoreCase("manage")) {
                     if(!player.hasPermission("customnpcs.commands.manage")){
@@ -87,6 +90,21 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     player.performCommand("npc create");
                 } else if (args[0].equalsIgnoreCase("list")) {
                     player.performCommand("npc manage");
+                } else if (args[0].equalsIgnoreCase("clear_holograms")) {
+                    if(player.hasPermission("customnpcs.commands.removeHolograms")){
+                        AtomicInteger stands = new AtomicInteger();
+                        player.getWorld().getEntities().forEach(entity -> {
+                            if(entity.getScoreboardTags().contains("npcHologram")){
+                                entity.remove();
+                                stands.getAndIncrement();
+                            }
+                        });
+                        player.sendMessage((stands.get() == 1) ? ChatColor.GREEN + "Successfully removed " + stands.get() + " npc hologram." : ChatColor.GREEN + "Successfully removed " + stands.get() + " npc holograms.");
+                        return true;
+                    } else {
+                        player.sendMessage(RED + "You lack the propper permissions to remove npc holograms.");
+                        return true;
+                    }
                 } else if (args[0].equalsIgnoreCase("create")) {
                     if(!player.hasPermission("customnpcs.create")){
                         player.sendMessage(RED + "You lack the propper permissions to create npcs.");
@@ -183,6 +201,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             list.add("delete");
             list.add("edit");
             list.add("reload");
+            list.add("clear_holograms");
         } else if (args.length == 2) {
             CustomNPCs.getInstance().npcs.keySet().forEach(uuid -> list.add(uuid.toString()));
         }
