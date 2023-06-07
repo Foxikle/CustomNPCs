@@ -17,8 +17,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
@@ -91,7 +92,8 @@ public class NPC extends ServerPlayer {
         setPosRot(this, location);
         this.getBukkitEntity().setInvulnerable(true);
         this.getBukkitEntity().setNoDamageTicks(Integer.MAX_VALUE);
-        super.getLevel().addNewPlayer(this);
+        //super.level().addNewPlayer(this);
+        super.getCommandSenderWorld().addFreshEntity(this);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HAND, handItem, true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.OFF_HAND, offhandItem, true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HEAD, headItem, true);
@@ -119,11 +121,10 @@ public class NPC extends ServerPlayer {
     }
 
     private TextDisplay setupHologram(Location loc, String name) {
-        TextDisplay hologram = (TextDisplay) loc.getWorld().spawnEntity(new Location(loc.getWorld(), loc.getX(), clickable ? loc.getY() + 2.05 : loc.getY() + 1.8, loc.getZ()), EntityType.TEXT_DISPLAY);
+        TextDisplay hologram = (TextDisplay) loc.getWorld().spawnEntity(new Location(loc.getWorld(), loc.getX(), clickable ? loc.getY() + 2.33 : loc.getY() + 2.05, loc.getZ()), EntityType.TEXT_DISPLAY);
         hologram.setInvulnerable(true);
-        hologram.setGravity(true);
-        hologram.setCustomNameVisible(true);
-        hologram.setCustomName(ChatColor.translateAlternateColorCodes('&', name));
+        hologram.setBillboard(Display.Billboard.CENTER);
+        hologram.setText(ChatColor.translateAlternateColorCodes('&', name));
         hologram.addScoreboardTag("npcHologram");
         return hologram;
     }
