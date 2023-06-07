@@ -15,8 +15,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.*;
-import org.bukkit.craftbukkit.v1_19_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
@@ -44,7 +44,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     player.sendMessage(ChatColor.translateAlternateColorCodes('§', """
-                            §2§m                         §r§3§l Custom NPCs §r§7[§8v1.1§7] §r§2§m                          \s
+                            §2§m                         §r§3§l Custom NPCs §r§7[§8v1.3-PRE§7] §r§2§m                          \s
                             §r                                 §r§6By Foxikle \n
                             
                             """));
