@@ -7,9 +7,6 @@ plugins {
 
 repositories {
     mavenLocal()
-    maven {
-        url = uri("https://maven.pkg.github.com/Foxikle/MainProxy")
-    }
 }
 
 dependencies {
