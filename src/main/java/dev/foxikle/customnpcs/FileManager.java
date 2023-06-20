@@ -12,9 +12,7 @@ import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class FileManager {
 
@@ -31,12 +29,16 @@ public class FileManager {
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         yml.createSection(npc.getUUID().toString());
         ConfigurationSection section = yml.getConfigurationSection(npc.getUUID().toString());
+
+        List<String> actions = new ArrayList<>();
+        npc.getActions().forEach(action -> actions.add(action.toString()));
+
         section.addDefault("value", npc.getValue());
         section.addDefault("signature", npc.getSignature());
         section.addDefault("skin", npc.getSkinName());
         section.addDefault("clickable", npc.isClickable());
-        section.addDefault("location", npc.getLocation());
-        section.addDefault("command", npc.getCommand());
+        section.addDefault("location", npc.getSpawnLoc());
+        section.addDefault("actions", actions);
         section.addDefault("handItem", npc.getHandItem());
         section.addDefault("offhandItem", npc.getItemInOffhand());
         section.addDefault("headItem", npc.getHeadItem());
@@ -59,12 +61,32 @@ public class FileManager {
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection section = yml.getConfigurationSection(uuid.toString());
 
+        List<Action> actions = new ArrayList<>();
+
+        if(section.getConfigurationSection("actions") == null) { // meaning it does not exist
+            if (section.getString("command") != null) { // if there is a legacy command
+                Bukkit.getLogger().info("Converting legacy commands to Actions.");
+                String command = section.getString("command");
+                Action action = new Action("RUN_COMMAND", new ArrayList<>(Arrays.stream(command.split(" ")).toList()));
+                actions.add(action);
+                List<String> actionsStrs = new ArrayList<>();
+                actions.forEach(action1 -> actionsStrs.add(action1.toString()));
+                section.set("actions", actionsStrs);
+                try {
+                    yml.save(file);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        section.getStringList("actions").forEach(s -> actions.add(Action.of(s)));
         GameProfile profile = new GameProfile(uuid, section.getBoolean("clickable") ? "§e§lClick" : "nothing");
         profile.getProperties().removeAll("textures");
         profile.getProperties().put("textures", new Property("textures", section.getString("value"), section.getString("signature")));
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
         ServerLevel nmsWorld = ((CraftWorld) section.getLocation("location").getWorld()).getHandle();
-        NPC npc = new NPC(nmsServer, nmsWorld, profile, section.getLocation("location"), section.getItemStack("handItem"), section.getItemStack("offhandItem"), section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getBoolean("clickable"), true, section.getString("command"), section.getString("name"), uuid, section.getString("value"), section.getString("signature"), section.getString("skin"), section.getDouble("direction"));
+        NPC npc = new NPC(nmsServer, nmsWorld, profile, section.getLocation("location"), section.getItemStack("handItem"), section.getItemStack("offhandItem"), section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getBoolean("clickable"), true, section.getString("name"), uuid, section.getString("value"), section.getString("signature"), section.getString("skin"), section.getDouble("direction"), null, actions);
         npc.createNPC();
     }
 
