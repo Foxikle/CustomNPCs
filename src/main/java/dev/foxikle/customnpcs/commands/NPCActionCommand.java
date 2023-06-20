@@ -66,7 +66,7 @@ public class NPCActionCommand implements CommandExecutor {
                     }
                     case "SEND_MESSAGE" -> {
                         if (args.size() >= 1) {
-                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', args.toString()));
+                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', String.join(" ", args)));
                         }
                     }
                     case "PLAY_SOUND" -> {
@@ -80,7 +80,7 @@ public class NPCActionCommand implements CommandExecutor {
                         }
                     }
                     case "RUN_COMMAND" -> player.performCommand(args.toString());
-                    case "ACTION_BAR" -> player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&', args.toString())).create());
+                    case "ACTION_BAR" -> player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&', String.join(" ", args))).create());
                     case "TELEPORT" -> {
                         if(args.size() >= 5) {
                             double x = Double.parseDouble(args.get(0));
