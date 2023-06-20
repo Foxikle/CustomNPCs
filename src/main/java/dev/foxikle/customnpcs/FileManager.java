@@ -69,9 +69,8 @@ public class FileManager {
                 String command = section.getString("command");
                 Action action = new Action("RUN_COMMAND", new ArrayList<>(Arrays.stream(command.split(" ")).toList()));
                 actions.add(action);
-                List<String> actionsStrs = new ArrayList<>();
-                actions.forEach(action1 -> actionsStrs.add(action1.toString()));
-                section.set("actions", actionsStrs);
+                section.set("actions", new ArrayList<>());
+                section.set("command", null);
                 try {
                     yml.save(file);
                 } catch (IOException e) {
