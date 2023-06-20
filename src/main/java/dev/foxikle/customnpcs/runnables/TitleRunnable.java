@@ -5,17 +5,18 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-public class NameRunnable extends BukkitRunnable {
+public class TitleRunnable extends BukkitRunnable {
+
     private Player player;
 
-    public NameRunnable(Player player){
+    public TitleRunnable(Player player){
         this.player = player;
     }
 
     @Override
     public void run() {
-        if(!CustomNPCs.getInstance().nameWaiting.contains(player))
+        if(!CustomNPCs.getInstance().titleWaiting.contains(player))
             this.cancel();
-        player.sendTitle(ChatColor.GOLD + "Type NPC name in chat", ChatColor.YELLOW + "Supports & colors.", 0, 20, 0);
+        player.sendTitle(ChatColor.GOLD + "Type title in chat", ChatColor.YELLOW + "Supports & colors.", 0, 20, 0);
     }
 }
