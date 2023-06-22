@@ -2,6 +2,7 @@ package dev.foxikle.customnpcs.commands;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import dev.foxikle.customnpcs.Action;
 import dev.foxikle.customnpcs.CustomNPCs;
 import dev.foxikle.customnpcs.menu.MenuCore;
 import dev.foxikle.customnpcs.NPC;
@@ -14,6 +15,7 @@ import net.minecraft.server.level.ServerLevel;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.command.*;
 import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
@@ -22,6 +24,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,15 +39,13 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             if (args.length == 0) {
                 player.performCommand("npc help");
             } else if (args.length == 1) {
-                //TODO: npc manage OR npc create OR npc help
-                //TODO: npc reload command
                 if (args[0].equalsIgnoreCase("help")) {
                     if(!player.hasPermission("customnpcs.commands.help")){
                         player.sendMessage(RED + "You lack the propper permissions to execute this.");
                         return true;
                     }
                     player.sendMessage(ChatColor.translateAlternateColorCodes('§', """
-                            §2§m                         §r§3§l Custom NPCs §r§7[§8v1.3-PRE2§7] §r§2§m                          \s
+                            §2§m                     §r§3§l Custom NPCs §r§7[§8v1.3-PRE3§7] §r§2§m                      \s
                             §r                                 §r§6By Foxikle \n
                             
                             """));
@@ -55,9 +56,10 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     ComponentBuilder delete = new ComponentBuilder("\n  -  /npc delete <UUID>").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Deletes the specified NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Deletes the specified NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create());
                     ComponentBuilder edit   = new ComponentBuilder("\n  -  /npc edit <UUID>").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Displays a menu to edit the NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Displays a menu to edit the NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create());
                     ComponentBuilder remove   = new ComponentBuilder("\n  -  /npc clear_holograms").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Forcibly removes NPC holograms.").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Forcibly removes NPC holograms.").color(net.md_5.bungee.api.ChatColor.AQUA).create());
+                    ComponentBuilder reload   = new ComponentBuilder("\n  -  /npc reload").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Reloads the plugin.").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Reloads the NPCs and plugin.").color(net.md_5.bungee.api.ChatColor.AQUA).create());
 
                     ComponentBuilder close  = new ComponentBuilder("\n§2§m                                                                                ");
-                    help.append(manage.create()).append(create.create()).append(delete.create()).append(edit.create()).append(remove.create()).append(close.create());
+                    help.append(manage.create()).append(create.create()).append(delete.create()).append(edit.create()).append(remove.create()).append(reload.create()).append(close.create());
                     player.spigot().sendMessage(help.create());
                 } else if (args[0].equalsIgnoreCase("manage")) {
                     if(!player.hasPermission("customnpcs.commands.manage")){
@@ -136,56 +138,118 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         npc.remove();
                     }
                     CustomNPCs.getInstance().npcs.clear();
-                    CustomNPCs.getInstance().armorStands.clear();
+                    CustomNPCs.getInstance().holograms.clear();
                     CustomNPCs.getInstance().onEnable();
                     player.sendMessage(ChatColor.GREEN + "NPCs successfully reloaded.");
                 }
-            } else {
-                UUID uuid;
-                try {
-                    uuid = UUID.fromString(args[1]);
-                } catch (IllegalArgumentException ignored){
-                    player.sendMessage(RED + "Invalid UUID provided.");
-                    return false;
-                }
-                //TODO: npc delete <UUID> OR npc edit <UUID>
-                if(args[0].equalsIgnoreCase("delete")){
-                    if(!player.hasPermission("customnpcs.delete")){
-                        player.sendMessage(RED + "You lack the propper permissions to delete npcs.");
-                        return true;
-                    }
-                    if(CustomNPCs.getInstance().npcs.keySet().contains(uuid)){
-                        CustomNPCs.getInstance().getNPCByID(uuid).remove();
-                        CustomNPCs.getInstance().getNPCByID(uuid).delete();
-                        player.sendMessage(ChatColor.GREEN + "Successfully deleted the NPC: " + CustomNPCs.getInstance().getNPCByID(uuid).getHologramName());
+            } else if (args.length >= 2) {
+                if (args[0].equalsIgnoreCase("setsound")) {
+                    if(CustomNPCs.getInstance().soundWaiting.contains(player)) {
+                        try{
+                            Sound.valueOf(args[1]);
+                        } catch (IllegalArgumentException ex) {
+                            player.sendMessage(RED + "Unrecognised sound, please use tab completions.");
+                            return true;
+                        }
+                        Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> {
+                            CustomNPCs.getInstance().soundWaiting.remove(player);
+                            List<String> argsCopy = CustomNPCs.getInstance().editingActions.get(player).getArgsCopy();
+                            Action action = CustomNPCs.getInstance().editingActions.get(player);
+                            List<String> currentArgs = action.getArgs();
+                            currentArgs.clear();
+                            currentArgs.add(0, argsCopy.get(0));
+                            currentArgs.add(1, argsCopy.get(1));
+                            currentArgs.add(2, args[1]);
+                            player.sendMessage(ChatColor.GREEN + "Successfully set sound to be '" + ChatColor.RESET + args[1] + ChatColor.GREEN + "'");
+                            Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> player.openInventory(CustomNPCs.getInstance().menuCores.get(player).getActionCustomizerMenu(action)));
+                        });
                     } else {
-                        player.sendMessage(RED + "The UUID provided does not match any NPC.");
-                    }
-                } else if (args[0].equalsIgnoreCase("edit")) {
-                    if(!player.hasPermission("customnpcs.edit")){
-                        player.sendMessage(RED + "You lack the propper permissions to edit npcs.");
-                        return true;
-                    }
-                    if(CustomNPCs.getInstance().npcs.containsKey(uuid)){
-                        NPC npc = CustomNPCs.getInstance().getNPCByID(uuid);
-                        Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> {
-                            GameProfile profile = new GameProfile(uuid, npc.isClickable() ? "§e§lClick" : "noclick");
-                            profile.getProperties().removeAll("textures");
-                            profile.getProperties().put("textures", new Property("textures", null, null));
-                            MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
-                            ServerLevel nmsWorld = ((CraftWorld) player.getWorld()).getHandle();
-                            NPC newNpc = new NPC(nmsServer, nmsWorld, profile, npc.getSpawnLoc(), npc.getHandItem(), npc.getItemInOffhand(), npc.getHeadItem(), npc.getChestItem(), npc.getLegsItem(), npc.getBootsItem(), npc.isClickable(), npc.isResilient(), npc.getHologramName(), uuid, npc.getValue(), npc.getSignature(), npc.getSkinName(), npc.getFacingDirection(), null, npc.getActions());
-                            MenuCore mc = new MenuCore(newNpc);
-                            CustomNPCs.getInstance().menuCores.put(player, mc);
-                            CustomNPCs.getInstance().pages.put(player, 0);
-                            player.openInventory(mc.getMainMenu());
-                        }, 1);
-                    } else {
-                        player.sendMessage(RED + "The UUID provided does not match any NPC.");
+                        player.sendMessage(ChatColor.RED + "Unccessfully set NPC sound. I wasn't waiting for a response. Please contact Foxikle if you think this is a mistake.");
                     }
                 } else {
-                    sender.sendMessage(RED + "Unrecognised sub-command. Use '/npc help' for a list of supported commands.");
+                    UUID uuid;
+                    try {
+                        uuid = UUID.fromString(args[1]);
+                    } catch (IllegalArgumentException ignored) {
+                        player.sendMessage(RED + "Invalid UUID provided.");
+                        return false;
+                    }
+                    if (args[0].equalsIgnoreCase("delete")) {
+                        if (!player.hasPermission("customnpcs.delete")) {
+                            player.sendMessage(RED + "You lack the propper permissions to delete npcs.");
+                            return true;
+                        }
+                        if (CustomNPCs.getInstance().npcs.keySet().contains(uuid)) {
+                            NPC npc = CustomNPCs.getInstance().getNPCByID(uuid);
+                            npc.remove();
+                            npc.delete();
+                            CustomNPCs.getInstance().npcs.remove(npc.getUUID());
+                            player.sendMessage(ChatColor.GREEN + "Successfully deleted the NPC: " + npc.getHologramName());
+
+                        } else {
+                            player.sendMessage(RED + "The UUID provided does not match any NPC.");
+                        }
+                    } else if (args[0].equalsIgnoreCase("edit")) {
+                        if (!player.hasPermission("customnpcs.edit")) {
+                            player.sendMessage(RED + "You lack the propper permissions to edit npcs.");
+                            return true;
+                        }
+                        if (CustomNPCs.getInstance().npcs.containsKey(uuid)) {
+                            NPC npc = CustomNPCs.getInstance().getNPCByID(uuid);
+                            Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> {
+                                GameProfile profile = new GameProfile(uuid, npc.isClickable() ? "§e§lClick" : "noclick");
+                                profile.getProperties().removeAll("textures");
+                                profile.getProperties().put("textures", new Property("textures", null, null));
+                                MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
+                                ServerLevel nmsWorld = ((CraftWorld) player.getWorld()).getHandle();
+                                List<String> actionStrs = new ArrayList<>();
+                                npc.getActions().forEach(action -> actionStrs.add(action.serialize()));
+                                NPC newNpc = new NPC(nmsServer, nmsWorld, profile, npc.getSpawnLoc(), npc.getHandItem(), npc.getItemInOffhand(), npc.getHeadItem(), npc.getChestItem(), npc.getLegsItem(), npc.getBootsItem(), npc.isClickable(), npc.isResilient(), npc.getHologramName(), uuid, npc.getValue(), npc.getSignature(), npc.getSkinName(), npc.getFacingDirection(), null, actionStrs);
+                                MenuCore mc = new MenuCore(newNpc);
+                                CustomNPCs.getInstance().menuCores.put(player, mc);
+                                CustomNPCs.getInstance().pages.put(player, 0);
+                                player.openInventory(mc.getMainMenu());
+                            }, 1);
+                        } else {
+                            player.sendMessage(RED + "The UUID provided does not match any NPC.");
+                        }
+                    } else {
+                        sender.sendMessage(RED + "Unrecognised sub-command. Use '/npc help' for a list of supported commands.");
+                    }
                 }
+            }
+        } else if(args[0].equalsIgnoreCase("reload")) {
+            if(args.length >= 2) {
+                if (args[1].equalsIgnoreCase("silent")) {
+                    try {
+                        Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                    HandlerList.unregisterAll(CustomNPCs.getInstance());
+                    List<NPC> npcs = new ArrayList<>(CustomNPCs.getInstance().npcs.values());
+                    for (NPC npc : npcs) {
+                        CustomNPCs.getInstance().npcs.remove(npc.getUUID());
+                        npc.remove();
+                    }
+                    CustomNPCs.getInstance().npcs.clear();
+                    CustomNPCs.getInstance().holograms.clear();
+                    CustomNPCs.getInstance().onEnable();
+                }
+            } else {
+                sender.sendMessage(ChatColor.YELLOW + "Reloading NPCs!");
+                try {
+                    Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
+                } catch (IllegalArgumentException ignored) {}
+                HandlerList.unregisterAll(CustomNPCs.getInstance());
+                List<NPC> npcs = new ArrayList<>(CustomNPCs.getInstance().npcs.values());
+                for (NPC npc : npcs) {
+                    CustomNPCs.getInstance().npcs.remove(npc.getUUID());
+                    npc.remove();
+                }
+                CustomNPCs.getInstance().npcs.clear();
+                CustomNPCs.getInstance().holograms.clear();
+                CustomNPCs.getInstance().onEnable();
+                sender.sendMessage(ChatColor.GREEN + "NPCs successfully reloaded.");
             }
         }
         return false;
@@ -202,7 +266,14 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             list.add("edit");
             list.add("reload");
             list.add("clear_holograms");
+            if(CustomNPCs.getInstance().soundWaiting.contains((Player) sender)) list.add("setsound");
         } else if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("setsound")) {
+                for (Sound sound : Sound.values()) {
+                    list.add(sound.name());
+                }
+                return list;
+            }
             CustomNPCs.getInstance().npcs.keySet().forEach(uuid -> list.add(uuid.toString()));
         }
         return list;
