@@ -50,9 +50,9 @@ public class NPC extends ServerPlayer {
     private String skinName;
     private double direction;
     private Player target;
-    private ArrayList<Action> actions;
+    private ArrayList<String> actions;
 
-    public NPC(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean clickable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, Player target, Collection<Action> actions) {
+    public NPC(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean clickable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, Player target, List<String> actions) {
         super(minecraftServer, worldServer, gameProfile);
         this.spawnLoc = spawnLoc;
         this.offhandItem = offhandItem;
@@ -105,6 +105,15 @@ public class NPC extends ServerPlayer {
         super.detectEquipmentUpdates();
         if(!clickable){
             Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").addPlayer(this.getBukkitEntity());
+        }
+
+        GameProfile gameProfile = super.getGameProfile();
+        try {
+            Field field = gameProfile.getClass().getDeclaredField("name");
+            field.setAccessible(true);
+            field.set(gameProfile, clickable ? "§e§lClick" : "nothing");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         if (resilient) CustomNPCs.getInstance().getFileManager().addNPC(this);
@@ -240,12 +249,18 @@ public class NPC extends ServerPlayer {
         this.world = world;
     }
 
-    public ArrayList<Action> getActions(){
-        return actions;
+    public List<Action> getActions(){
+        List<Action> actionList = new ArrayList<>();
+        actions.forEach(s -> actionList.add(Action.of(s)));
+        return actionList;
     }
 
     public void addAction(Action action){
-        actions.add(action);
+        actions.add(action.serialize());
+    }
+
+    public boolean removeAction(Action action){
+        return actions.remove(action.serialize());
     }
 
 

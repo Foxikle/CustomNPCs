@@ -31,7 +31,7 @@ public class FileManager {
         ConfigurationSection section = yml.getConfigurationSection(npc.getUUID().toString());
 
         List<String> actions = new ArrayList<>();
-        npc.getActions().forEach(action -> actions.add(action.toString()));
+        npc.getActions().forEach(action -> actions.add(action.serialize()));
 
         section.addDefault("value", npc.getValue());
         section.addDefault("signature", npc.getSignature());
@@ -79,13 +79,13 @@ public class FileManager {
             }
         }
 
-        section.getStringList("actions").forEach(s -> actions.add(Action.of(s)));
+
         GameProfile profile = new GameProfile(uuid, section.getBoolean("clickable") ? "§e§lClick" : "nothing");
         profile.getProperties().removeAll("textures");
         profile.getProperties().put("textures", new Property("textures", section.getString("value"), section.getString("signature")));
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
         ServerLevel nmsWorld = ((CraftWorld) section.getLocation("location").getWorld()).getHandle();
-        NPC npc = new NPC(nmsServer, nmsWorld, profile, section.getLocation("location"), section.getItemStack("handItem"), section.getItemStack("offhandItem"), section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getBoolean("clickable"), true, section.getString("name"), uuid, section.getString("value"), section.getString("signature"), section.getString("skin"), section.getDouble("direction"), null, actions);
+        NPC npc = new NPC(nmsServer, nmsWorld, profile, section.getLocation("location"), section.getItemStack("handItem"), section.getItemStack("offhandItem"), section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getBoolean("clickable"), true, section.getString("name"), uuid, section.getString("value"), section.getString("signature"), section.getString("skin"), section.getDouble("direction"), null,  section.getStringList("actions"));
         npc.createNPC();
     }
 
