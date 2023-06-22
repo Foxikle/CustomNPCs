@@ -1,7 +1,6 @@
 package dev.foxikle.customnpcs;
 
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,7 +42,7 @@ public class Action {
         return new Action(sub, split);
     }
 
-    public String toString(){
+    public String serialize(){
         return subCommand + "%::%" + String.join("%::%", args);
     }
 }
