@@ -70,17 +70,17 @@ public class NPCActionCommand implements CommandExecutor {
                         }
                     }
                     case "PLAY_SOUND" -> {
-                        if (args.size() >= 3) { // volume, pitch, sound
-                            float volume = Float.parseFloat(args.get(0));
-                            args.remove(0);
+                        if (args.size() >= 3) { // pitch, volume, sound
                             float pitch = Float.parseFloat(args.get(0));
+                            args.remove(0);
+                            float volume = Float.parseFloat(args.get(0));
                             args.remove(0);
                             Sound sound = Sound.valueOf(Sound.class, args.get(0));
                             player.playSound(player.getLocation(), sound, volume, pitch);
                         }
                     }
                     case "RUN_COMMAND" -> player.performCommand(args.toString());
-                    case "ACTION_BAR" -> player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&', String.join(" ", args))).create());
+                    case "ACTION_BAR" -> player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', String.join(" ", args))).create());
                     case "TELEPORT" -> {
                         if(args.size() >= 5) {
                             double x = Double.parseDouble(args.get(0));
