@@ -140,13 +140,11 @@ public class Listeners implements Listener {
                         return;
                     }
                 }
-
-                    npc.setYBodyRot((float) npc.getFacingDirection());
-                    npc.setYRot((float) npc.getFacingDirection());
-                    npc.setYHeadRot((float) npc.getFacingDirection());
+                 npc.setYBodyRot((float) npc.getFacingDirection());
+                 npc.setYRot((float) npc.getFacingDirection());
+                 npc.setYHeadRot((float) npc.getFacingDirection());
             }
         }
-
     }
     @EventHandler
     public void onTeleport(PlayerTeleportEvent e) {
@@ -165,6 +163,15 @@ public class Listeners implements Listener {
         for (NPC npc : CustomNPCs.getInstance().npcs.values()) {
             if(npc.getPlayer().getBukkitEntity().getPlayer() == e.getPlayer()){
                 e.setQuitMessage("");
+            }
+        }
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent e){
+        for (NPC npc : CustomNPCs.getInstance().npcs.values()) {
+            if(e.getRespawnLocation().distance(npc.getCurrentLocation()) <= 48){
+                npc.injectPlayer(e.getPlayer());
             }
         }
     }
