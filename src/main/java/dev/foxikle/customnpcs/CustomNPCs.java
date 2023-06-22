@@ -28,7 +28,8 @@ public final class CustomNPCs extends JavaPlugin {
     public List<Player> messageWaiting = new ArrayList<>();
     public List<Player> commandWaiting = new ArrayList<>();
     public List<Player> nameWaiting = new ArrayList<>();
-    public List<TextDisplay> armorStands = new ArrayList<>();
+    public List<Player> soundWaiting = new ArrayList<>();
+    public List<TextDisplay> holograms = new ArrayList<>();
     public FileManager fileManager;
     public Map<Player, Integer> pages = new HashMap<>();
     public Map<UUID, NPC> npcs = new HashMap<>();
@@ -100,7 +101,7 @@ public final class CustomNPCs extends JavaPlugin {
     }
 
     public void addNPC(NPC npc, TextDisplay hologram) {
-        armorStands.add(hologram);
+        holograms.add(hologram);
         npcs.put(npc.getUUID(), npc);
     }
 
