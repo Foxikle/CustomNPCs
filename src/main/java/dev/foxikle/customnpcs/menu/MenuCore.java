@@ -488,7 +488,6 @@ public class MenuCore {
                 case "DISPLAY_TITLE" -> {
                     item.setType(Material.OAK_SIGN);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bDisplay Title"));
-                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "DISPLAY_TITLE");
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current title is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
@@ -496,7 +495,6 @@ public class MenuCore {
                 case "SEND_MESSAGE" -> {
                     item.setType(Material.PAPER);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Message"));
-                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "SEND_MESSAGE");
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current message is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
@@ -504,7 +502,6 @@ public class MenuCore {
                 case "PLAY_SOUND" -> {
                     item.setType(Material.BELL);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePlay Sound"));
-                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "PLAY_SOUND");
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current sound is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
@@ -512,7 +509,6 @@ public class MenuCore {
                 case "RUN_COMMAND" -> {
                     item.setType(Material.ANVIL);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRun Command"));
-                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "RUN_COMMAND");
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe command is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
@@ -520,7 +516,6 @@ public class MenuCore {
                 case "ACTION_BAR" -> {
                     item.setType(Material.IRON_INGOT);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Actionbar"));
-                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "ACTION_BAR");
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current actionbar is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
@@ -528,7 +523,6 @@ public class MenuCore {
                 case "TELEPORT" -> {
                     item.setType(Material.ENDER_PEARL);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bTeleport Player"));
-                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "TELEPORT");
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current Teleport location is: '" + String.join(", ", action.getArgs()) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
@@ -536,15 +530,18 @@ public class MenuCore {
                 case "SEND_TO_SERVER" -> {
                     item.setType(Material.GRASS_BLOCK);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend To Bungeecord Server"));
-                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "SEND_TO_SERVER");
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe server is called: '" + String.join(" ", action.getArgs()) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
             }
+            NamespacedKey actionKey = new NamespacedKey(CustomNPCs.getInstance(), "SerializedAction");
+            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "actionDisplay");
+            meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action.serialize());
             meta.setLore(lore);
             item.setItemMeta(meta);
-            inv.addItem(item);
+            if(!inv.contains(item))
+                inv.addItem(item);
         }
 
         List<String> lore = new ArrayList<>();
@@ -696,6 +693,7 @@ public class MenuCore {
 
                 ItemStack displayIn = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayIn = displayIn.getItemMeta();
+                metaDisplayIn.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
                 metaDisplayIn.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eFade in: " + args.get(0)));
                 args.remove(0);
                 metaDisplayIn.setLore(displayLore);
@@ -704,6 +702,7 @@ public class MenuCore {
 
                 ItemStack displayStay = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayStay = displayStay.getItemMeta();
+                metaDisplayStay.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
                 metaDisplayStay.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDisplay time: " + args.get(0)));
                 args.remove(0);
                 metaDisplayStay.setLore(displayLore);
@@ -712,6 +711,7 @@ public class MenuCore {
 
                 ItemStack displayOut = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayOut = displayOut.getItemMeta();
+                metaDisplayOut.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
                 metaDisplayOut.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eFade out: " + args.get(0)));
                 args.remove(0);
                 metaDisplayOut.setLore(displayLore);
@@ -762,6 +762,78 @@ public class MenuCore {
                  - E = Sound played
                  - # = empty space
                 */
+
+
+                List<String> incLore = new ArrayList<>();
+                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8CLick to add .1"));
+
+                ItemStack incPitch = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncPitch = incPitch.getItemMeta();
+                metaIncPitch.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease pitch."));
+                metaIncPitch.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_sound_pitch");
+                metaIncPitch.setLore(incLore);
+                incPitch.setItemMeta(metaIncPitch);
+                inv.setItem(10, incPitch);
+
+                ItemStack incVolume = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncVolume = incVolume.getItemMeta();
+                metaIncVolume.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease volume"));
+                metaIncVolume.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_volume");
+                metaIncVolume.setLore(incLore);
+                incVolume.setItemMeta(metaIncVolume);
+                inv.setItem(12, incVolume);
+
+                //decrements
+
+                List<String> decLore = new ArrayList<>();
+                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to remove .1"));
+
+                ItemStack decPitch = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecPitch = decPitch.getItemMeta();
+                metaDecPitch.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease pitch"));
+                metaDecPitch.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_sound_pitch");
+                metaDecPitch.setLore(decLore);
+                decPitch.setItemMeta(metaDecPitch);
+                inv.setItem(28, decPitch);
+
+                ItemStack decVolume = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecVolume = decVolume.getItemMeta();
+                metaDecVolume.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease volume"));
+                metaDecVolume.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_volume");
+                metaDecVolume.setLore(decLore);
+                decVolume.setItemMeta(metaDecVolume);
+                inv.setItem(30, decVolume);
+
+
+                // Displays
+
+                List<String> displayLore = new ArrayList<>();
+
+                ItemStack displayPitch = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayPitch = displayPitch.getItemMeta();
+                metaDisplayPitch.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
+                metaDisplayPitch.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePitch: " + args.get(0)));
+                args.remove(0);
+                metaDisplayPitch.setLore(displayLore);
+                displayPitch.setItemMeta(metaDisplayPitch);
+                inv.setItem(19, displayPitch);
+
+                ItemStack displayVolume = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayVolume = displayVolume.getItemMeta();
+                metaDisplayVolume.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
+                metaDisplayVolume.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eVolume: " + args.get(0)));
+                args.remove(0);
+                metaDisplayVolume.setLore(displayLore);
+                displayVolume.setItemMeta(metaDisplayVolume);
+                inv.setItem(21, displayVolume);
+
+                ItemStack sound = new ItemStack(Material.BELL);
+                ItemMeta metaDisplaySound = sound.getItemMeta();
+                metaDisplaySound.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eSound: " + args.get(0)));
+                metaDisplaySound.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_sound");
+                sound.setItemMeta(metaDisplaySound);
+                inv.setItem(24, sound);
+
             }
             case "ACTION_BAR" -> {
                 /* 1 button to edit message
@@ -803,7 +875,7 @@ public class MenuCore {
 
 
                 List<String> incLore = new ArrayList<>();
-                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to add 1"));
+                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left Click to add 1"));
                 incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Right Click to add 5"));
                 incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Shift + Right Click to add 20"));
 
@@ -901,32 +973,37 @@ public class MenuCore {
                 displayLore.add(ChatColor.translateAlternateColorCodes('&', "&8In blocks"));
 
 
-                ItemStack displayIn = new ItemStack(Material.CLOCK);
-                ItemMeta metaDisplayIn = displayIn.getItemMeta();
-                metaDisplayIn.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eX: " + args.get(0)));
+                ItemStack displayX = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayX = displayX.getItemMeta();
+                metaDisplayX.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
+                metaDisplayX.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
+                metaDisplayX.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eX: " + args.get(0)));
                 args.remove(0);
-                metaDisplayIn.setLore(displayLore);
-                displayIn.setItemMeta(metaDisplayIn);
-                inv.setItem(19, displayIn);
+                metaDisplayX.setLore(displayLore);
+                displayX.setItemMeta(metaDisplayX);
+                inv.setItem(19, displayX);
 
-                ItemStack displayStay = new ItemStack(Material.CLOCK);
-                ItemMeta metaDisplayStay = displayStay.getItemMeta();
-                metaDisplayStay.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eY: " + args.get(0)));
+                ItemStack displayY = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayY = displayY.getItemMeta();
+                metaDisplayY.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
+                metaDisplayY.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eY: " + args.get(0)));
                 args.remove(0);
-                metaDisplayStay.setLore(displayLore);
-                displayStay.setItemMeta(metaDisplayStay);
-                inv.setItem(20, displayStay);
+                metaDisplayY.setLore(displayLore);
+                displayY.setItemMeta(metaDisplayY);
+                inv.setItem(20, displayY);
 
-                ItemStack displayOut = new ItemStack(Material.CLOCK);
-                ItemMeta metaDisplayOut = displayOut.getItemMeta();
-                metaDisplayOut.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eZ: " + args.get(0)));
+                ItemStack displayZ = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayZ = displayZ.getItemMeta();
+                metaDisplayZ.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
+                metaDisplayZ.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eZ: " + args.get(0)));
                 args.remove(0);
-                metaDisplayOut.setLore(displayLore);
-                displayOut.setItemMeta(metaDisplayOut);
-                inv.setItem(21, displayOut);
+                metaDisplayZ.setLore(displayLore);
+                displayZ.setItemMeta(metaDisplayZ);
+                inv.setItem(21, displayZ);
 
                 ItemStack displayYaw = new ItemStack(Material.COMPASS);
                 ItemMeta displayYawMeta = displayYaw.getItemMeta();
+                displayYawMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
                 displayYawMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eYaw: " + args.get(0)));
                 args.remove(0);
                 displayYaw.setItemMeta(displayYawMeta);
@@ -934,6 +1011,7 @@ public class MenuCore {
 
                 ItemStack displayPitch = new ItemStack(Material.COMPASS);
                 ItemMeta displayPitchMeta = displayPitch.getItemMeta();
+                displayPitchMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
                 displayPitchMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePitch: " + args.get(0)));
                 args.remove(0);
                 displayPitch.setItemMeta(displayPitchMeta);
