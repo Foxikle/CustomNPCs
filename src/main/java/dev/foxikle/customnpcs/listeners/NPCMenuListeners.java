@@ -18,7 +18,6 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import static org.bukkit.Material.*;
@@ -38,9 +37,11 @@ public class NPCMenuListeners implements Listener {
         MenuCore mc = map.get(player);
         if(mc == null) return;
         NPC npc = mc.getNpc();
+        if(npc.getActions() == null) return;
         if (tagContainer.get(key, PersistentDataType.STRING) != null) {
             if (tagContainer.get(key, PersistentDataType.STRING).equals("NameTag")) {
                 CustomNPCs.getInstance().nameWaiting.add(player);
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 player.sendMessage(ChatColor.GREEN + "Type the NPC name the chat.");
                 new NameRunnable(player).runTaskTimer(CustomNPCs.getInstance(), 1, 15);
                 player.closeInventory();
@@ -145,6 +146,7 @@ public class NPCMenuListeners implements Listener {
                     }
                 }
             } else if (tagContainer.get(key, PersistentDataType.STRING).equals("resilience")) {
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 e.setCancelled(true);
                 if (e.getCurrentItem().getItemMeta().getLore().contains(ChatColor.RED + "" + ChatColor.BOLD + "NOT RESILIENT")) {
                     npc.setResilient(true);
@@ -156,6 +158,7 @@ public class NPCMenuListeners implements Listener {
                     player.sendMessage(ChatColor.AQUA + "The NPC is now " + ChatColor.RED + "" + ChatColor.BOLD + "NOT RESILIENT");
                 }
             } else if (tagContainer.get(key, PersistentDataType.STRING).equals("clickable")) {
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 e.setCancelled(true);
                 if (e.getCurrentItem().getItemMeta().getLore().contains(ChatColor.RED + "" + ChatColor.BOLD + "NOT CLICKABLE")) {
                     npc.setClickable(true);
@@ -167,27 +170,34 @@ public class NPCMenuListeners implements Listener {
                     player.sendMessage(ChatColor.AQUA + "The NPC is now " + ChatColor.RED + "" + ChatColor.BOLD + "NOT CLICKABLE");
                 }
             } else if (tagContainer.get(key, PersistentDataType.STRING).equals("changeSkin")) {
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 player.sendMessage("You're changing the NPC's Skin.");
                 e.setCancelled(true);
                 player.openInventory(CustomNPCs.getInstance().invs.get(0));
 
             } else if (tagContainer.get(key, PersistentDataType.STRING).equals("equipment")) {
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 e.setCancelled(true);
                 player.openInventory(mc.getArmorMenu());
             } else if (tagContainer.get(key, PersistentDataType.STRING).equals("Confirm")) {
+                Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1), 1);
+                Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1), 3);
                 Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), npc::createNPC, 1);
                 player.sendMessage(npc.isResilient() ? ChatColor.GREEN + "Reslilient NPC created!" : ChatColor.GREEN + "Temporary NPC created!");
                 player.closeInventory();
                 e.setCancelled(true);
             } else if (tagContainer.get(key, PersistentDataType.STRING).equals("Cancel")) {
+                player.playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
                 player.sendMessage(ChatColor.RED + "NPC aborted");
                 player.closeInventory();
                 e.setCancelled(true);
             } else if (tagContainer.get(key, PersistentDataType.STRING).equals("actions")) {
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 player.openInventory(mc.getActionMenu());
                 e.setCancelled(true);
             }
         } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "SkinButton"))) {
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             e.setCancelled(true);
             String name = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(CustomNPCs.getInstance(), "SkinButton"), PersistentDataType.STRING);
             npc.setValue(MenuUtils.getValue(name));
@@ -200,14 +210,21 @@ public class NPCMenuListeners implements Listener {
         } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "NoClickey"))) {
             e.setCancelled(true);
             String tag = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(CustomNPCs.getInstance(), "NoClickey"), PersistentDataType.STRING);
-            if (tag.equals("prev")) {
-                player.openInventory(CustomNPCs.getInstance().invs.get(CustomNPCs.instance.getPage(player) - 1));
-                CustomNPCs.getInstance().setPage(player, CustomNPCs.getInstance().getPage(player) - 1);
-            } else if (tag.equals("next")) {
-                player.openInventory(CustomNPCs.getInstance().invs.get(CustomNPCs.instance.getPage(player) + 1));
-                CustomNPCs.getInstance().setPage(player, CustomNPCs.getInstance().getPage(player) + 1);
-            } else if (tag.equals("close")) {
-                player.openInventory(mc.getMainMenu());
+            switch (tag) {
+                case "prev" -> {
+                    player.playSound(player.getLocation(), Sound.ITEM_BUNDLE_DROP_CONTENTS, 1, 1);
+                    player.openInventory(CustomNPCs.getInstance().invs.get(CustomNPCs.instance.getPage(player) - 1));
+                    CustomNPCs.getInstance().setPage(player, CustomNPCs.getInstance().getPage(player) - 1);
+                }
+                case "next" -> {
+                    player.playSound(player.getLocation(), Sound.ITEM_BUNDLE_DROP_CONTENTS, 1, 1);
+                    player.openInventory(CustomNPCs.getInstance().invs.get(CustomNPCs.instance.getPage(player) + 1));
+                    CustomNPCs.getInstance().setPage(player, CustomNPCs.getInstance().getPage(player) + 1);
+                }
+                case "close" -> {
+                    player.openInventory(mc.getMainMenu());
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                }
             }
         } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "EquipmentInv"))) {
             String button = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(CustomNPCs.getInstance(), "EquipmentInv"), PersistentDataType.STRING);
@@ -318,163 +335,46 @@ public class NPCMenuListeners implements Listener {
                         }
                     }
                 }
-                case "close" -> player.openInventory(mc.getMainMenu());
-            }
-            e.setCancelled(true);
-        } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "ActionButton"))) {
-            String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(CustomNPCs.getInstance(), "ActionButton"), PersistentDataType.STRING);
-            if (e.getAction() == InventoryAction.PICKUP_HALF) {
-                switch (itemData) {
-                    case "RUN_COMMAND" -> npc.getActions().forEach(action -> {
-                        if (action.getSubCommand().equals("RUN_COMMAND")) {
-                            npc.getActions().remove(action);
-                        }
-                    });
-                    case "DISPLAY_TITLE" -> npc.getActions().forEach(action -> {
-                        if (action.getSubCommand().equals("DISPLAY_TITLE")) {
-                            npc.getActions().remove(action);
-                        }
-                    });
-                    case "SEND_MESSAGE" -> npc.getActions().forEach(action -> {
-                        if (action.getSubCommand().equals("SEND_MESSAGE")) {
-                            npc.getActions().remove(action);
-                        }
-                    });
-                    case "PLAY_SOUND" -> npc.getActions().forEach(action -> {
-                        if (action.getSubCommand().equals("PLAY_SOUND")) {
-                            npc.getActions().remove(action);
-                        }
-                    });
-                    case "ACTION_BAR" -> npc.getActions().forEach(action -> {
-                        if (action.getSubCommand().equals("ACTION_BAR")) {
-                            npc.getActions().remove(action);
-                        }
-                    });
-                    case "TELEPORT" -> npc.getActions().forEach(action -> {
-                        if (action.getSubCommand().equals("TELEPORT")) {
-                            npc.getActions().remove(action);
-                        }
-                    });
-                    case "SEND_TO_SERVER" -> npc.getActions().forEach(action -> {
-                        if (action.getSubCommand().equals("SEND_TO_SERVER")) {
-                            npc.getActions().remove(action);
-                        }
-                    });
+                case "close" -> {
+                    player.openInventory(mc.getMainMenu());
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }
             }
+            e.setCancelled(true);
         } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "ActionInv"))) {
             String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(CustomNPCs.getInstance(), "ActionInv"), PersistentDataType.STRING);
-            List<Action> actionList = new ArrayList<>(npc.getActions());
             if (itemData.equals("new_action")) {
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 player.openInventory(mc.getNewActionMenu());
             } else if (itemData.equals("go_back")) {
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 player.openInventory(mc.getMainMenu());
-            } else {
+            } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "SerializedAction"))){
+                Action action = Action.of(e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(CustomNPCs.getInstance(), "SerializedAction"), PersistentDataType.STRING));
                 if (e.getAction() == InventoryAction.PICKUP_HALF) {
-                    switch (itemData) {
-                        case "RUN_COMMAND" -> actionList.forEach(action -> {
-                            if (action.getSubCommand().equals("RUN_COMMAND")) {
-                                npc.getActions().remove(action);
-                            }
-                        });
-                        case "DISPLAY_TITLE" -> actionList.forEach(action -> {
-                            if (action.getSubCommand().equals("DISPLAY_TITLE")) {
-                                npc.getActions().remove(action);
-                            }
-                        });
-                        case "SEND_MESSAGE" -> actionList.forEach(action -> {
-                            if (action.getSubCommand().equals("SEND_MESSAGE")) {
-                                npc.getActions().remove(action);
-                            }
-                        });
-                        case "PLAY_SOUND" -> actionList.forEach(action -> {
-                            if (action.getSubCommand().equals("PLAY_SOUND")) {
-                                npc.getActions().remove(action);
-                            }
-                        });
-                        case "ACTION_BAR" -> actionList.forEach(action -> {
-                            if (action.getSubCommand().equals("ACTION_BAR")) {
-                                npc.getActions().remove(action);
-                            }
-                        });
-                        case "TELEPORT" -> actionList.forEach(action -> {
-                            if (action.getSubCommand().equals("TELEPORT")) {
-                                npc.getActions().remove(action);
-                            }
-                        });
-                        case "SEND_TO_SERVER" -> actionList.forEach(action -> {
-                            if (action.getSubCommand().equals("SEND_TO_SERVER")) {
-                                npc.getActions().remove(action);
-                            }
-                        });
-                    }
-                    e.setCancelled(true);
+                    player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                    npc.removeAction(action);
                     player.openInventory(mc.getActionMenu());
+                    e.setCancelled(true);
                 } else {
-                    // Editing
-                    switch (itemData) {
-                        case "RUN_COMMAND" -> npc.getActions().forEach(action -> {
-                            if (action.getSubCommand().equals("RUN_COMMAND")) {
-                                player.openInventory(mc.getActionCustomizerMenu(action));
-                            }
-                        });
-                        case "DISPLAY_TITLE" -> npc.getActions().forEach(action -> {
-                            if (action.getSubCommand().equals("DISPLAY_TITLE")) {
-                                player.openInventory(mc.getActionCustomizerMenu(action));
-                            }
-                        });
-                        case "SEND_MESSAGE" -> npc.getActions().forEach(action -> {
-                            if (action.getSubCommand().equals("SEND_MESSAGE")) {
-                                player.openInventory(mc.getActionCustomizerMenu(action));
-                            }
-                        });
-                        case "PLAY_SOUND" -> npc.getActions().forEach(action -> {
-                            if (action.getSubCommand().equals("PLAY_SOUND")) {
-                                player.openInventory(mc.getActionCustomizerMenu(action));
-                            }
-                        });
-                        case "ACTION_BAR" -> npc.getActions().forEach(action -> {
-                            if (action.getSubCommand().equals("ACTION_BAR")) {
-                                player.openInventory(mc.getActionCustomizerMenu(action));
-                            }
-                        });
-                        case "TELEPORT" -> npc.getActions().forEach(action -> {
-                            if (action.getSubCommand().equals("TELEPORT")) {
-                                player.openInventory(mc.getActionCustomizerMenu(action));
-                            }
-                        });
-                        case "SEND_TO_SERVER" -> npc.getActions().forEach(action -> {
-                            if (action.getSubCommand().equals("SEND_TO_SERVER")) {
-                                player.openInventory(mc.getActionCustomizerMenu(action));
-                            }
-                        });
-                    }
+                    CustomNPCs.getInstance().editingActions.put(player, action);
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }
             }
         } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "NewActionButton"))) {
             String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(CustomNPCs.getInstance(), "NewActionButton"), PersistentDataType.STRING);
-
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = null;
 
             switch (itemData) {
-                case "RUN_COMMAND" ->
-                        action = new Action("RUN_COMMAND", new ArrayList<>(Arrays.asList("command", "to", "be", "run")));
-                case "DISPLAY_TITLE" ->
-                        action = new Action("DISPLAY_TITLE", new ArrayList<>(Arrays.asList("10", "20", "10", "title!")));
-                case "SEND_MESSAGE" ->
-                        action = new Action("SEND_MESSAGE", new ArrayList<>(Arrays.asList("message", "to", "be", "sent")));
-                case "PLAY_SOUND" -> {
-                    //action = new Action("PLAY_SOUND", new ArrayList<>(Arrays.asList("1", "1", "sound", "to", "be", "played")));
-                    player.sendMessage(ChatColor.RED + "This is currently not implemented yet. Please nudge Foxikle about getting it done sooner.");
-                    e.setCancelled(true);
-                    return;
-                }
-                case "ACTION_BAR" ->
-                        action = new Action("ACTION_BAR", new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")));
-                case "TELEPORT" ->
-                        action = new Action("TELEPORT", new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")));
-                case "SEND_TO_SERVER" ->
-                        action = new Action("SEND_TO_SERVER", new ArrayList<>(Arrays.asList("server", "to", "be", "sent", "to")));
+                case "RUN_COMMAND" -> action = new Action("RUN_COMMAND", new ArrayList<>(Arrays.asList("command", "to", "be", "run")));
+                case "DISPLAY_TITLE" -> action = new Action("DISPLAY_TITLE", new ArrayList<>(Arrays.asList("10", "20", "10", "title!")));
+                case "SEND_MESSAGE" -> action = new Action("SEND_MESSAGE", new ArrayList<>(Arrays.asList("message", "to", "be", "sent")));
+                case "PLAY_SOUND" -> action = new Action("PLAY_SOUND", new ArrayList<>(Arrays.asList("1", "1", Sound.UI_BUTTON_CLICK.name())));
+                case "ACTION_BAR" -> action = new Action("ACTION_BAR", new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")));
+                case "TELEPORT" -> action = new Action("TELEPORT", new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")));
+                case "SEND_TO_SERVER" -> action = new Action("SEND_TO_SERVER", new ArrayList<>(Arrays.asList("server", "to", "be", "sent", "to")));
                 case "go_back" -> player.openInventory(mc.getActionMenu());
             }
             if(action != null) {
@@ -484,6 +384,7 @@ public class NPCMenuListeners implements Listener {
         } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "CustomizeActionButton"))) {
             String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(CustomNPCs.getInstance(), "CustomizeActionButton"), PersistentDataType.STRING);
             Action action = CustomNPCs.getInstance().editingActions.get(player);
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             switch (itemData) {
                 // RUN_COMMAND
                 case "edit_command" -> {
@@ -577,10 +478,61 @@ public class NPCMenuListeners implements Listener {
                     e.setCancelled(true);
                     return;
                 }
-                    // use a runnable
-                case "PLAY_SOUND" -> // not done yet.
-                        //player.openInventory(mc.getActionCustomizerMenu(new Action("PLAY_SOUND", new ArrayList<>(Arrays.asList("1", "1", "sound", "to", "be", "played")))));
-                        player.sendMessage(ChatColor.RED + "How in the kentucky fried flip flop did you get this menu?!");
+
+                // PLAY_SOUND  (pitch / volume / sound)
+                case "edit_sound" -> {
+                    player.closeInventory();
+                    CustomNPCs.getInstance().soundWaiting.add(player);
+                    new SoundRunnable(player).runTaskTimer(CustomNPCs.getInstance(), 0, 10);
+                    e.setCancelled(true);
+                    return;
+                }
+
+                case "increment_sound_pitch" -> {
+                    if (action.getSubCommand().equalsIgnoreCase("PLAY_SOUND")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) {
+                            if (Double.parseDouble(action.getArgs().get(0))+.1 > 1) {
+                                player.sendMessage(ChatColor.RED + "The pitch cannot be greater than 1!");
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Double.parseDouble(action.getArgs().get(0)) + .1));
+                            }
+                        }
+                    }
+                }
+                case "increment_volume" -> {
+                    if (action.getSubCommand().equalsIgnoreCase("PLAY_SOUND")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) {
+                            if (Double.parseDouble(action.getArgs().get(1))+.1 > 1) {
+                                player.sendMessage(ChatColor.RED + "The volume cannot be greater than 1!");
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Double.parseDouble(action.getArgs().get(1)) + .1));
+                            }
+                        }
+                    }
+                }
+                case "decrement_sound_pitch" -> {
+                    if (action.getSubCommand().equalsIgnoreCase("PLAY_SOUND")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) {
+                            if (Double.parseDouble(action.getArgs().get(0))-.1 <= .1) {
+                                player.sendMessage(ChatColor.RED + "The pitch cannot be less than or equal 0!");
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Double.parseDouble(action.getArgs().get(0)) - .1));
+                            }
+                        }
+                    }
+                }
+                case "decrement_volume" -> {
+                    if (action.getSubCommand().equalsIgnoreCase("PLAY_SOUND")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) {
+                            if (Double.parseDouble(action.getArgs().get(1))-.1 <= 0) {
+                                player.sendMessage(ChatColor.RED + "The volume cannot be less than or equal 0!");
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Double.parseDouble(action.getArgs().get(1)) - .1));
+                            }
+                        }
+                    }
+                }
+
                 // ACTION_BAR
                 case "edit_actionbar" -> {
                     player.closeInventory();
