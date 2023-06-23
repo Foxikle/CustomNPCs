@@ -536,7 +536,7 @@ public class MenuCore {
                 }
                 case "TOGGLE_FOLLOWING" -> {
                     item.setType(Material.LEAD);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bStart / Stop Following"));
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&d&l[WIP] &bStart / Stop Following"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                 }
             }
