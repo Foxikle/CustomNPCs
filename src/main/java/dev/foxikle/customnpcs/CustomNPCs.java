@@ -119,7 +119,7 @@ public final class CustomNPCs extends JavaPlugin {
 
     public NPC getNPCByID(UUID uuid) {
         if (uuid == null) throw new NullPointerException("uuid cannot be null");
-        if (!npcs.containsKey(uuid)) throw new IllegalArgumentException("NPC does not exist");
+        if (!npcs.containsKey(uuid)) throw new IllegalArgumentException("An NPC with the uuid '" + uuid + "' does not exist");
         return npcs.get(uuid);
     }
 }
