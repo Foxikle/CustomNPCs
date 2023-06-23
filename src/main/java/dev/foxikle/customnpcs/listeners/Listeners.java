@@ -5,6 +5,7 @@ import dev.foxikle.customnpcs.CustomNPCs;
 import dev.foxikle.customnpcs.NPC;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -125,6 +126,7 @@ public class Listeners implements Listener {
     public void onMove(PlayerMoveEvent e) {
         Player player = e.getPlayer();
         for (NPC npc : CustomNPCs.getInstance().npcs.values()) {
+            if(npc.getTarget() != null) return;
             if (getDistance(e.getPlayer().getLocation(), npc.getCurrentLocation()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
             } else if (getDistance(e.getFrom(), npc.getCurrentLocation()) >= 48 && getDistance(e.getTo(), npc.getCurrentLocation()) <= 48) {
@@ -146,6 +148,24 @@ public class Listeners implements Listener {
             }
         }
     }
+
+
+    @EventHandler
+    public void followHandler(PlayerMoveEvent e) {
+        Player player = e.getPlayer();
+        for (NPC npc : CustomNPCs.getInstance().npcs.values()) {
+            if(npc.getTarget() == player){
+                npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
+                if(npc.getCurrentLocation().distance(e.getTo()) >= .5){
+                    Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> {
+                        if(e.getTo().distance(player.getLocation()) >= 1)
+                            npc.moveTo(new Vec3(e.getTo().x(), e.getTo().y(), e.getTo().z()));
+                    }, 30);
+                }
+            }
+        }
+    }
+
     @EventHandler
     public void onTeleport(PlayerTeleportEvent e) {
         Player player = e.getPlayer();
