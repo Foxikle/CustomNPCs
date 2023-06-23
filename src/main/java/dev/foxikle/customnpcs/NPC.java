@@ -27,6 +27,7 @@ import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -52,7 +53,7 @@ public class NPC extends ServerPlayer {
     private Player target;
     private ArrayList<String> actions;
 
-    public NPC(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean clickable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, Player target, List<String> actions) {
+    public NPC(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean clickable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions) {
         super(minecraftServer, worldServer, gameProfile);
         this.spawnLoc = spawnLoc;
         this.offhandItem = offhandItem;
@@ -225,8 +226,15 @@ public class NPC extends ServerPlayer {
         return target;
     }
 
-    public void setTarget(Player target) {
-        this.target = target;
+    public void setTarget(@Nullable Player target) {
+        if(target == null){
+            if(this.target != null)
+                this.target.sendMessage(ChatColor.translateAlternateColorCodes('&', getHologramName()) + ChatColor.RESET + ChatColor.GREEN + " is no longer following you.");
+            this.target = null;
+        } else {
+            this.target = target;
+            this.target.sendMessage(ChatColor.translateAlternateColorCodes('&', getHologramName()) + ChatColor.RESET + ChatColor.GREEN + " is now following you.");
+        }
     }
 
     public void setSpawnLoc(Location spawnLoc) {
@@ -309,6 +317,7 @@ public class NPC extends ServerPlayer {
 
     @Override
     public void moveTo(Vec3 v){
+        Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> this.hologram.teleport(new Location(getWorld(), v.x(), clickable ? v.y() + 2.33 :v.y() + 2.05, v.z())), 3);
         moveTo(v.x(), v.y(), v.z());
     }
 
