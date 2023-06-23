@@ -534,13 +534,18 @@ public class MenuCore {
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
+                case "TOGGLE_FOLLOWING" -> {
+                    item.setType(Material.LEAD);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bStart / Stop Following"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                }
             }
             NamespacedKey actionKey = new NamespacedKey(CustomNPCs.getInstance(), "SerializedAction");
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "actionDisplay");
             meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action.serialize());
             meta.setLore(lore);
             item.setItemMeta(meta);
-            if(!inv.contains(item))
+            if (!inv.contains(item))
                 inv.addItem(item);
         }
 
@@ -620,7 +625,7 @@ public class MenuCore {
                  - E = title displayed
                  - # = empty space
                 */
-                
+
                 // Increments
 
                 List<String> incLore = new ArrayList<>();
@@ -652,8 +657,7 @@ public class MenuCore {
                 incOut.setItemMeta(metaIncOut);
                 inv.setItem(14, incOut);
 
-    
-                
+
                 //decrements
 
                 List<String> decLore = new ArrayList<>();
@@ -1018,7 +1022,6 @@ public class MenuCore {
                 inv.setItem(23, displayPitch);
 
 
-
             }
             case "SEND_TO_SERVER" -> {
                 /* 1 button to edit message
@@ -1040,13 +1043,17 @@ public class MenuCore {
                 message.setItemMeta(titleMeta);
                 inv.setItem(22, message);
             }
+            case "TOGGLE_FOLLOWING" -> {
+                npc.addAction(action);
+                return getActionMenu();
+            }
         }
 
         return inv;
     }
 
-    public Inventory getNewActionMenu(){
-        Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 27, ChatColor.BLACK + "" + ChatColor.BOLD + "       New NPC Action"));
+    public Inventory getNewActionMenu() {
+        Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "       New NPC Action"));
         NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "NewActionButton");
 
         ItemStack goBack = new ItemStack(Material.ARROW);
@@ -1054,80 +1061,88 @@ public class MenuCore {
         goBackMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
         goBackMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&6Go Back"));
         goBack.setItemMeta(goBackMeta);
-        inv.setItem(18, goBack);
+        inv.setItem(27, goBack);
 
         // make and add the npc action types.
 
         ItemStack item = new ItemStack(Material.BEDROCK);
-        ItemMeta  meta = item.getItemMeta();
+        ItemMeta meta = item.getItemMeta();
         List<String> lore = new ArrayList<>();
 
 
-            item.setType(Material.OAK_SIGN);
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bDisplay Title"));
-            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "DISPLAY_TITLE");
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&eDisplays a title for the player."));
-            meta.setLore(lore);
-            item.setItemMeta(meta);
-            lore.clear();
-            inv.addItem(item);
+        item.setType(Material.OAK_SIGN);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bDisplay Title"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "DISPLAY_TITLE");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eDisplays a title for the player."));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
 
-            item.setType(Material.PAPER);
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Message"));
-            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "SEND_MESSAGE");
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&eSends the player a message."));
-            meta.setLore(lore);
-            item.setItemMeta(meta);
-            lore.clear();
-            inv.addItem(item);
+        item.setType(Material.PAPER);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Message"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "SEND_MESSAGE");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eSends the player a message."));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
 
-            item.setType(Material.BELL);
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePlay Sound"));
-            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "PLAY_SOUND");
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&ePlays a sound for the player."));
-            meta.setLore(lore);
-            item.setItemMeta(meta);
-            lore.clear();
-            inv.addItem(item);
+        item.setType(Material.BELL);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePlay Sound"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "PLAY_SOUND");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&ePlays a sound for the player."));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
 
-            item.setType(Material.ANVIL);
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRun Command"));
-            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "RUN_COMMAND");
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&eRuns a command as the player."));
-            meta.setLore(lore);
-            item.setItemMeta(meta);
-            lore.clear();
-            inv.addItem(item);
+        item.setType(Material.ANVIL);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRun Command"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "RUN_COMMAND");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eRuns a command as the player."));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
 
-            item.setType(Material.IRON_INGOT);
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Actionbar"));
-            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "ACTION_BAR");
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&e Sends the player an actionbar."));
-            meta.setLore(lore);
-            item.setItemMeta(meta);
-            lore.clear();
-            inv.addItem(item);
+        item.setType(Material.IRON_INGOT);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Actionbar"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "ACTION_BAR");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&e Sends the player an actionbar."));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
 
-            item.setType(Material.ENDER_PEARL);
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bTeleport Player"));
-            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "TELEPORT");
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&eTeleports a player upon interacting."));
-            meta.setLore(lore);
-            item.setItemMeta(meta);
-            lore.clear();
-            inv.addItem(item);
+        item.setType(Material.ENDER_PEARL);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bTeleport Player"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "TELEPORT");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eTeleports a player upon interacting."));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
 
-            item.setType(Material.GRASS_BLOCK);
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend To Bungeecord Server"));
-            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "SEND_TO_SERVER");
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&eSends a player to a bungeecord"));
+        item.setType(Material.GRASS_BLOCK);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend To Bungeecord Server"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "SEND_TO_SERVER");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eSends a player to a bungeecord"));
         lore.add(ChatColor.translateAlternateColorCodes('&', "&eserver upon interacting."));
-            meta.setLore(lore);
-            item.setItemMeta(meta);
-            lore.clear();
-            inv.addItem(item);
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
 
-
+        item.setType(Material.LEAD);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bStart/Stop Following"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "TOGGLE_FOLLOWING");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eToggles wether or not the "));
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eNPC follows this player."));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
 
 
         return inv;

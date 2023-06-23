@@ -18,6 +18,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.bukkit.Material.*;
@@ -375,6 +376,7 @@ public class NPCMenuListeners implements Listener {
                 case "ACTION_BAR" -> action = new Action("ACTION_BAR", new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")));
                 case "TELEPORT" -> action = new Action("TELEPORT", new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")));
                 case "SEND_TO_SERVER" -> action = new Action("SEND_TO_SERVER", new ArrayList<>(Arrays.asList("server", "to", "be", "sent", "to")));
+                case "TOGGLE_FOLLOWING" -> action = new Action("TOGGLE_FOLLOWING", new ArrayList<>(Arrays.asList(npc.getUUID().toString())));
                 case "go_back" -> player.openInventory(mc.getActionMenu());
             }
             if(action != null) {

@@ -3,6 +3,7 @@ package dev.foxikle.customnpcs.commands;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import dev.foxikle.customnpcs.CustomNPCs;
+import dev.foxikle.customnpcs.NPC;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.Bukkit;
@@ -102,6 +103,19 @@ public class NPCActionCommand implements CommandExecutor {
                         out.writeUTF("Connect");
                         out.writeUTF(args.get(0));
                         player.sendPluginMessage(CustomNPCs.getInstance(), "Bungeecord", out.toByteArray());
+                    }
+                    case "TOGGLE_FOLLOWING" -> { //UUID of NPC
+                        if(args.size() >= 1) {
+                            if (CustomNPCs.getInstance().npcs.containsKey(UUID.fromString(args.get(0)))) {
+                                UUID npcId = UUID.fromString(args.get(0));
+                                NPC npc = CustomNPCs.getInstance().getNPCByID(npcId);
+                                if(npc.getTarget() == player){
+                                    npc.setTarget(null);
+                                } else {
+                                    npc.setTarget(player);
+                                }
+                            }
+                        }
                     }
                 }
             }
