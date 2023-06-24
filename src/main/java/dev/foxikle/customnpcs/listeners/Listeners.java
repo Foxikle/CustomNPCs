@@ -30,7 +30,12 @@ public class Listeners implements Listener {
                 Player player = e.getPlayer();
                 Player rightClicked = (Player) e.getRightClicked();
                 ServerPlayer sp = ((CraftPlayer) rightClicked).getHandle();
-                NPC npc = CustomNPCs.getInstance().getNPCByID(sp.getUUID());
+                NPC npc;
+                try {
+                    npc = CustomNPCs.getInstance().getNPCByID(sp.getUUID());
+                } catch (IllegalArgumentException ignored){
+                    return;
+                }
                 if (player.hasPermission("customnpcs.edit") && player.isSneaking()) {
                     player.performCommand("npc edit " + npc.getUUID());
                 } else if (npc.isClickable()) {
