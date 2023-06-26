@@ -3,6 +3,7 @@ package dev.foxikle.customnpcs.listeners;
 import dev.foxikle.customnpcs.Action;
 import dev.foxikle.customnpcs.CustomNPCs;
 import dev.foxikle.customnpcs.NPC;
+import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
@@ -19,6 +20,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -150,6 +152,67 @@ public class Listeners implements Listener {
                  npc.setYBodyRot((float) npc.getFacingDirection());
                  npc.setYRot((float) npc.getFacingDirection());
                  npc.setYHeadRot((float) npc.getFacingDirection());
+            }
+        }
+    }
+
+    @EventHandler
+    public void onEntityMove(EntityMoveEvent e) {
+        Entity et = e.getEntity();
+        List<Player> players = new ArrayList<>();
+        et.getPassengers().forEach(entity1 -> {
+            if(entity1 instanceof Player player) players.add(player);
+        });
+        for (Player player : players) {
+            for (NPC npc : CustomNPCs.getInstance().npcs.values()) {
+                if(npc.getTarget() != null) return;
+                if (getDistance(player.getLocation(), npc.getCurrentLocation()) <= 5) {
+                    npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
+                } else if (getDistance(e.getFrom(), npc.getCurrentLocation()) >= 48 && getDistance(e.getTo(), npc.getCurrentLocation()) <= 48) {
+                    npc.injectPlayer(player);
+                }
+                if (getDistance(player.getLocation(), npc.getCurrentLocation()) > 5) {
+                    Collection<Entity> entities = npc.getWorld().getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
+                    entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
+                    for (Entity en : entities) {
+                        if (en.getType() == EntityType.PLAYER) {
+                            Player p = (Player) en;
+                            npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) p).getHandle(), EntityAnchorArgument.Anchor.EYES);
+                            return;
+                        }
+                    }
+                    npc.setYBodyRot((float) npc.getFacingDirection());
+                    npc.setYRot((float) npc.getFacingDirection());
+                    npc.setYHeadRot((float) npc.getFacingDirection());
+                }
+            }
+        }
+
+    }
+
+    @EventHandler
+    public void onVelocity(PlayerVelocityEvent e) {
+        Player player = e.getPlayer();
+        for (NPC npc : CustomNPCs.getInstance().npcs.values()) {
+            if(npc.getTarget() != null) return;
+            if (getDistance(e.getPlayer().getLocation(), npc.getCurrentLocation()) <= 5) {
+                npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
+            } else if (player.getLocation().distance(npc.getCurrentLocation()) >= 48) {
+                npc.injectPlayer(player);
+            }
+            if (getDistance(e.getPlayer().getLocation(), npc.getCurrentLocation()) > 5) {
+                Collection<Entity> entities = npc.getWorld().getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
+                entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
+                for (Entity en : entities) {
+                    if (en.getType() == EntityType.PLAYER) {
+                        Player p = (Player) en;
+                        npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) p).getHandle(), EntityAnchorArgument.Anchor.EYES);
+                        return;
+                    }
+                }
+                npc.setYBodyRot((float) npc.getFacingDirection());
+                npc.setYRot((float) npc.getFacingDirection());
+                npc.setYHeadRot((float) npc.getFacingDirection());
             }
         }
     }
