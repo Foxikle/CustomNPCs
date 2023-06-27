@@ -741,10 +741,37 @@ public class NPCMenuListeners implements Listener {
                     e.setCancelled(true);
                     return;
                 }
-                    // runnable things
-                case "go_back" -> {
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(mc.getActionMenu()), 1);
+                case "decrement_delay" -> {
+                    if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click (1)
+                        if(!(action.getDelay() - 1 <= 0)){
+                            action.setDelay(action.getDelay()-1);
+                        } else {
+                            // fail
+                        }
+                    } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click (5)
+                        if(!(action.getDelay() - 5 <= 0)){
+                            action.setDelay(action.getDelay()-5);
+                        } else {
+                            // fail
+                        }
+                    } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click (20)
+                        if(!(action.getDelay() - 20 <= 0)){
+                            action.setDelay(action.getDelay()-20);
+                        } else {
+                            // fail
+                        }
+                    }
                 }
+                case "increment_delay" -> {
+                    if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click (1)
+                        action.setDelay(action.getDelay() + 1);
+                    } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click (5)
+                        action.setDelay(action.getDelay() + 5);
+                    } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click (20)
+                        action.setDelay(action.getDelay() + 20);
+                    }
+                }
+                case "go_back" -> Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(mc.getActionMenu()), 1);
                 case "confirm" -> {
                     npc.addAction(action);
                     Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(mc.getActionMenu()), 1);
