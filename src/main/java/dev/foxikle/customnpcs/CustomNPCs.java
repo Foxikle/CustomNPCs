@@ -12,11 +12,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public final class CustomNPCs extends JavaPlugin {
+public final class CustomNPCs extends JavaPlugin implements @NotNull PluginMessageListener {
 
     public List<Inventory> invs;
 
@@ -57,6 +59,9 @@ public final class CustomNPCs extends JavaPlugin {
 
         this.getServer().getPluginManager().registerEvents(new NPCMenuListeners(this), this);
         this.getServer().getPluginManager().registerEvents(new Listeners(this), this);
+        this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
+
         getCommand("npc").setExecutor(new CommandCore(this));
         getCommand("npcaction").setExecutor(new NPCActionCommand(this));
         this.fileManager = new FileManager(this);
@@ -83,6 +88,8 @@ public final class CustomNPCs extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
+        this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
         try {
             Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
         } catch (IllegalArgumentException | NullPointerException ignored) {}
@@ -120,4 +127,7 @@ public final class CustomNPCs extends JavaPlugin {
     public MenuUtils getMenuUtils(){
         return mu;
     }
+
+    @Override
+    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {}
 }

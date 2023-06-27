@@ -109,11 +109,11 @@ public class NPCActionCommand implements CommandExecutor {
                         }
                     }
                     case "SEND_TO_SERVER" -> {
-                        plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, "BungeeCord");
                         ByteArrayDataOutput out = ByteStreams.newDataOutput();
-                        out.writeUTF("Connect");
+                        out.writeUTF("ConnectOther");
+                        out.writeUTF(player.getName());
                         out.writeUTF(args.get(0));
-                        player.sendPluginMessage(plugin, "Bungeecord", out.toByteArray());
+                        player.sendPluginMessage(plugin, "BungeeCord", out.toByteArray());
                     }
                     case "TOGGLE_FOLLOWING" -> { //UUID of NPC
                         if(args.size() >= 1) {
