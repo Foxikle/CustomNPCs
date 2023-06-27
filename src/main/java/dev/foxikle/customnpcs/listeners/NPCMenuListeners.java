@@ -743,22 +743,22 @@ public class NPCMenuListeners implements Listener {
                 }
                 case "decrement_delay" -> {
                     if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click (1)
-                        if(!(action.getDelay() - 1 <= 0)){
+                        if(!(action.getDelay() - 1 < 0)){
                             action.setDelay(action.getDelay()-1);
                         } else {
-                            // fail
+                            player.sendMessage(ChatColor.RED + "The delay cannot be negative!");
                         }
                     } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click (5)
-                        if(!(action.getDelay() - 5 <= 0)){
+                        if(!(action.getDelay() - 5 < 0)){
                             action.setDelay(action.getDelay()-5);
                         } else {
-                            // fail
+                            player.sendMessage(ChatColor.RED + "The delay cannot be negative!");
                         }
                     } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click (20)
-                        if(!(action.getDelay() - 20 <= 0)){
+                        if(!(action.getDelay() - 20 < 0)){
                             action.setDelay(action.getDelay()-20);
                         } else {
-                            // fail
+                            player.sendMessage(ChatColor.RED + "The delay cannot be negative!");
                         }
                     }
                 }
