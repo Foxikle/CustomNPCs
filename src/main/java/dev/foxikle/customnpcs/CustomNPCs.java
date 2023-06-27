@@ -17,6 +17,7 @@ import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 
 public final class CustomNPCs extends JavaPlugin implements @NotNull PluginMessageListener {
 
@@ -74,7 +75,15 @@ public final class CustomNPCs extends JavaPlugin implements @NotNull PluginMessa
         }
         Bukkit.getScheduler().runTaskLater(this, () -> Bukkit.getOnlinePlayers().forEach(player -> npcs.values().forEach(npc -> Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> npc.injectPlayer(player), 5))), 20);
         Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> invs = this.getMenuUtils().getCatalogueInventories(), 20);
-
+        // setup bstats
+        Metrics metrics = new Metrics(this, 18898);
+        // Optional: Add custom charts
+        metrics.addCustomChart(new Metrics.MultiLineChart("players_and_servers", () -> {
+            Map<String, Integer> valueMap = new HashMap<>();
+            valueMap.put("servers", 1);
+            valueMap.put("players", Bukkit.getOnlinePlayers().size());
+            return valueMap;
+        }));
     }
 
     public boolean setup(){
