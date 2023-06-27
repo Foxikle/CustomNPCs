@@ -366,6 +366,7 @@ public class NPCMenuListeners implements Listener {
                     e.setCancelled(true);
                 } else {
                     plugin.editingActions.put(player, action);
+                    plugin.originalEditingActions.put(player, action.serialize());
                     player.openInventory(mc.getActionCustomizerMenu(action));
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }
@@ -773,6 +774,8 @@ public class NPCMenuListeners implements Listener {
                 }
                 case "go_back" -> Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(mc.getActionMenu()), 1);
                 case "confirm" -> {
+                    if(plugin.originalEditingActions.get(player) != null)
+                        npc.removeAction(Action.of(plugin.originalEditingActions.remove(player)));
                     npc.addAction(action);
                     Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(mc.getActionMenu()), 1);
                 }

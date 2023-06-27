@@ -35,6 +35,7 @@ public final class CustomNPCs extends JavaPlugin implements @NotNull PluginMessa
     public Map<UUID, NPC> npcs = new HashMap<>();
     public Map<Player, MenuCore> menuCores = new HashMap<>();
     public Map<Player, Action> editingActions = new HashMap<>();
+    public Map<Player, String> originalEditingActions = new HashMap<>();
 
     private MenuUtils mu;
     private String sversion;
