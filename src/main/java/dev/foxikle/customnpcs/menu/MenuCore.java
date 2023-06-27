@@ -19,16 +19,18 @@ import java.util.List;
 
 public class MenuCore {
 
-    private NPC npc;
+    private final NPC npc;
+    private final CustomNPCs plugin;
 
-    public MenuCore(NPC npc) {
+    public MenuCore(NPC npc, CustomNPCs plugin) {
         this.npc = npc;
+        this.plugin = plugin;
     }
 
     public Inventory getMainMenu() {
         List<String> lore = new ArrayList<>();
-        Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "     Create a New NPC"));
-        NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "MenuButtonTag");
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "     Create a New NPC"));
+        NamespacedKey key = new NamespacedKey(plugin, "MenuButtonTag");
 
         ItemStack nametag = new ItemStack(Material.NAME_TAG);
         ItemMeta nameMeta = nametag.getItemMeta();
@@ -255,13 +257,13 @@ public class MenuCore {
         ItemStack boots = npc.getBootsItem();
         ItemStack hand = npc.getHandItem();
         ItemStack offhand = npc.getItemInOffhand();
-        Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 54, ChatColor.BLACK + "" + ChatColor.BOLD + "     Edit NPC Equipment"));
-        NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "EquipmentInv");
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 54, ChatColor.BLACK + "" + ChatColor.BOLD + "     Edit NPC Equipment"));
+        NamespacedKey key = new NamespacedKey(plugin, "EquipmentInv");
 
         ItemStack item1 = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta meta1 = item1.getItemMeta();
         List<String> lore1 = new ArrayList<>();
-        NamespacedKey key1 = new NamespacedKey(CustomNPCs.getInstance(), "NoClickey");
+        NamespacedKey key1 = new NamespacedKey(plugin, "NoClickey");
         meta1.getCustomTagContainer().setCustomTag(key1, ItemTagType.STRING, "PANE");
         meta1.setDisplayName(" ");
         lore1.add("");
@@ -475,8 +477,8 @@ public class MenuCore {
     }
 
     public Inventory getActionMenu() {
-        Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Actions"));
-        NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "ActionInv");
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Actions"));
+        NamespacedKey key = new NamespacedKey(plugin, "ActionInv");
 
         List<Action> actions = npc.getActions();
 
@@ -540,7 +542,7 @@ public class MenuCore {
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                 }
             }
-            NamespacedKey actionKey = new NamespacedKey(CustomNPCs.getInstance(), "SerializedAction");
+            NamespacedKey actionKey = new NamespacedKey(plugin, "SerializedAction");
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "actionDisplay");
             meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action.serialize());
             meta.setLore(lore);
@@ -574,8 +576,8 @@ public class MenuCore {
     }
 
     public Inventory getActionCustomizerMenu(Action action) {
-        Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Action"));
-        NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "CustomizeActionButton");
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Action"));
+        NamespacedKey key = new NamespacedKey(plugin, "CustomizeActionButton");
 
         // Go back to actions menu
         ItemStack goBack = new ItemStack(Material.ARROW);
@@ -1053,8 +1055,8 @@ public class MenuCore {
     }
 
     public Inventory getNewActionMenu() {
-        Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "       New NPC Action"));
-        NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "NewActionButton");
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "       New NPC Action"));
+        NamespacedKey key = new NamespacedKey(plugin, "NewActionButton");
 
         ItemStack goBack = new ItemStack(Material.ARROW);
         ItemMeta goBackMeta = goBack.getItemMeta();

@@ -21,6 +21,12 @@ import java.util.List;
 import java.util.UUID;
 
 public class NPCActionCommand implements CommandExecutor {
+    
+    private final CustomNPCs plugin;
+
+    public NPCActionCommand(CustomNPCs plugin) {
+        this.plugin = plugin;
+    }
 
     /*
     *  ------- EXAMPLE NPC ACTION COMMAND -------
@@ -98,17 +104,17 @@ public class NPCActionCommand implements CommandExecutor {
                         }
                     }
                     case "SEND_TO_SERVER" -> {
-                        CustomNPCs.getInstance().getServer().getMessenger().registerOutgoingPluginChannel(CustomNPCs.getInstance(), "BungeeCord");
+                        plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, "BungeeCord");
                         ByteArrayDataOutput out = ByteStreams.newDataOutput();
                         out.writeUTF("Connect");
                         out.writeUTF(args.get(0));
-                        player.sendPluginMessage(CustomNPCs.getInstance(), "Bungeecord", out.toByteArray());
+                        player.sendPluginMessage(plugin, "Bungeecord", out.toByteArray());
                     }
                     case "TOGGLE_FOLLOWING" -> { //UUID of NPC
                         if(args.size() >= 1) {
-                            if (CustomNPCs.getInstance().npcs.containsKey(UUID.fromString(args.get(0)))) {
+                            if (plugin.npcs.containsKey(UUID.fromString(args.get(0)))) {
                                 UUID npcId = UUID.fromString(args.get(0));
-                                NPC npc = CustomNPCs.getInstance().getNPCByID(npcId);
+                                NPC npc = plugin.getNPCByID(npcId);
                                 if(npc.getTarget() == player){
                                     npc.setTarget(null);
                                 } else {

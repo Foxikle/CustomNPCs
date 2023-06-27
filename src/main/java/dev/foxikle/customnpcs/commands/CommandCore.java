@@ -24,7 +24,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,6 +31,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.bukkit.ChatColor.RED;
 
 public class CommandCore implements CommandExecutor, TabCompleter {
+    
+    private final CustomNPCs plugin;
+
+    public CommandCore(CustomNPCs plugin) {
+        this.plugin = plugin;
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(!label.equalsIgnoreCase("npc")) return false;
@@ -66,7 +72,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         player.sendMessage(RED + "You lack the propper permissions to manage npcs.");
                         return true;
                     }
-                    if(CustomNPCs.getInstance().getNPCs().isEmpty()) {
+                    if(plugin.getNPCs().isEmpty()) {
                         player.sendMessage(RED + "There are no npcs to manage!");
                         return true;
                     }
@@ -76,7 +82,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             
                             """));
                     ComponentBuilder message = new ComponentBuilder();
-                    for (NPC npc : CustomNPCs.getInstance().getNPCs()) {
+                    for (NPC npc : plugin.getNPCs()) {
                         if (npc.isResilient()) {
                             ComponentBuilder name = new ComponentBuilder("  " + npc.getHologramName() + " §r▸").event(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, npc.getUUID().toString())).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to copy UUID").color(net.md_5.bungee.api.ChatColor.YELLOW).create())).append(new ComponentBuilder(" ").color(net.md_5.bungee.api.ChatColor.WHITE).bold(false).create())
                                     .append(new ComponentBuilder(" [EDIT]").color(net.md_5.bungee.api.ChatColor.YELLOW).bold(true).event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc edit " + npc.getUUID().toString())).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to edit npc").color(net.md_5.bungee.api.ChatColor.YELLOW).create())).create()).append(new ComponentBuilder(" ").color(net.md_5.bungee.api.ChatColor.WHITE).bold(false).create())
@@ -102,11 +108,10 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             }
                         });
                         player.sendMessage((stands.get() == 1) ? ChatColor.GREEN + "Successfully removed " + stands.get() + " npc hologram." : ChatColor.GREEN + "Successfully removed " + stands.get() + " npc holograms.");
-                        return true;
                     } else {
                         player.sendMessage(RED + "You lack the propper permissions to remove npc holograms.");
-                        return true;
                     }
+                    return true;
                 } else if (args[0].equalsIgnoreCase("create")) {
                     if(!player.hasPermission("customnpcs.create")){
                         player.sendMessage(RED + "You lack the propper permissions to create npcs.");
@@ -117,10 +122,10 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     profile.getProperties().put("textures", new Property("textures", null, null));
                     MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
                     ServerLevel nmsWorld = ((CraftWorld) player.getWorld()).getHandle();
-                    NPC npc = new NPC(nmsServer, nmsWorld, profile,  player.getLocation(), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), true, true,  "not set", UUID.randomUUID(), "", "", "not set", 180, null, new ArrayList<>());
-                    MenuCore mc = new MenuCore(npc);
-                    CustomNPCs.getInstance().menuCores.put(player, mc);
-                    CustomNPCs.getInstance().pages.put(player, 0);
+                    NPC npc = new NPC(plugin, nmsServer, nmsWorld, profile,  player.getLocation(), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), true, true,  "not set", UUID.randomUUID(), "", "", "not set", 180, null, new ArrayList<>());
+                    MenuCore mc = new MenuCore(npc, plugin);
+                    plugin.menuCores.put(player, mc);
+                    plugin.pages.put(player, 0);
                     player.openInventory(mc.getMainMenu());
                 } else if (args[0].equalsIgnoreCase("reload")) {
                     if(!player.hasPermission("customnpcs.commands.reload")){
@@ -131,37 +136,37 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     try {
                         Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
                     } catch (IllegalArgumentException ignored) {}
-                    HandlerList.unregisterAll(CustomNPCs.getInstance());
-                    List<NPC> npcs = new ArrayList<>(CustomNPCs.getInstance().npcs.values());
+                    HandlerList.unregisterAll(plugin);
+                    List<NPC> npcs = new ArrayList<>(plugin.npcs.values());
                     for (NPC npc : npcs) {
-                        CustomNPCs.getInstance().npcs.remove(npc.getUUID());
+                        plugin.npcs.remove(npc.getUUID());
                         npc.remove();
                     }
-                    CustomNPCs.getInstance().npcs.clear();
-                    CustomNPCs.getInstance().holograms.clear();
-                    CustomNPCs.getInstance().onEnable();
+                    plugin.npcs.clear();
+                    plugin.holograms.clear();
+                    plugin.onEnable();
                     player.sendMessage(ChatColor.GREEN + "NPCs successfully reloaded.");
                 }
             } else if (args.length >= 2) {
                 if (args[0].equalsIgnoreCase("setsound")) {
-                    if(CustomNPCs.getInstance().soundWaiting.contains(player)) {
+                    if(plugin.soundWaiting.contains(player)) {
                         try{
                             Sound.valueOf(args[1]);
                         } catch (IllegalArgumentException ex) {
                             player.sendMessage(RED + "Unrecognised sound, please use tab completions.");
                             return true;
                         }
-                        Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> {
-                            CustomNPCs.getInstance().soundWaiting.remove(player);
-                            List<String> argsCopy = CustomNPCs.getInstance().editingActions.get(player).getArgsCopy();
-                            Action action = CustomNPCs.getInstance().editingActions.get(player);
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            plugin.soundWaiting.remove(player);
+                            List<String> argsCopy = plugin.editingActions.get(player).getArgsCopy();
+                            Action action = plugin.editingActions.get(player);
                             List<String> currentArgs = action.getArgs();
                             currentArgs.clear();
                             currentArgs.add(0, argsCopy.get(0));
                             currentArgs.add(1, argsCopy.get(1));
                             currentArgs.add(2, args[1]);
                             player.sendMessage(ChatColor.GREEN + "Successfully set sound to be '" + ChatColor.RESET + args[1] + ChatColor.GREEN + "'");
-                            Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> player.openInventory(CustomNPCs.getInstance().menuCores.get(player).getActionCustomizerMenu(action)));
+                            Bukkit.getScheduler().runTask(plugin, () -> player.openInventory(plugin.menuCores.get(player).getActionCustomizerMenu(action)));
                         });
                     } else {
                         player.sendMessage(ChatColor.RED + "Unccessfully set NPC sound. I wasn't waiting for a response. Please contact Foxikle if you think this is a mistake.");
@@ -179,11 +184,11 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             player.sendMessage(RED + "You lack the propper permissions to delete npcs.");
                             return true;
                         }
-                        if (CustomNPCs.getInstance().npcs.keySet().contains(uuid)) {
-                            NPC npc = CustomNPCs.getInstance().getNPCByID(uuid);
+                        if (plugin.npcs.keySet().contains(uuid)) {
+                            NPC npc = plugin.getNPCByID(uuid);
                             npc.remove();
                             npc.delete();
-                            CustomNPCs.getInstance().npcs.remove(npc.getUUID());
+                            plugin.npcs.remove(npc.getUUID());
                             player.sendMessage(ChatColor.GREEN + "Successfully deleted the NPC: " + npc.getHologramName());
 
                         } else {
@@ -194,9 +199,9 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             player.sendMessage(RED + "You lack the propper permissions to edit npcs.");
                             return true;
                         }
-                        if (CustomNPCs.getInstance().npcs.containsKey(uuid)) {
-                            NPC npc = CustomNPCs.getInstance().getNPCByID(uuid);
-                            Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> {
+                        if (plugin.npcs.containsKey(uuid)) {
+                            NPC npc = plugin.getNPCByID(uuid);
+                            Bukkit.getScheduler().runTaskLater(plugin, () -> {
                                 GameProfile profile = new GameProfile(uuid, npc.isClickable() ? "§e§lClick" : "noclick");
                                 profile.getProperties().removeAll("textures");
                                 profile.getProperties().put("textures", new Property("textures", null, null));
@@ -204,10 +209,10 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                                 ServerLevel nmsWorld = ((CraftWorld) player.getWorld()).getHandle();
                                 List<String> actionStrs = new ArrayList<>();
                                 npc.getActions().forEach(action -> actionStrs.add(action.serialize()));
-                                NPC newNpc = new NPC(nmsServer, nmsWorld, profile, npc.getSpawnLoc(), npc.getHandItem(), npc.getItemInOffhand(), npc.getHeadItem(), npc.getChestItem(), npc.getLegsItem(), npc.getBootsItem(), npc.isClickable(), npc.isResilient(), npc.getHologramName(), uuid, npc.getValue(), npc.getSignature(), npc.getSkinName(), npc.getFacingDirection(), null, actionStrs);
-                                MenuCore mc = new MenuCore(newNpc);
-                                CustomNPCs.getInstance().menuCores.put(player, mc);
-                                CustomNPCs.getInstance().pages.put(player, 0);
+                                NPC newNpc = new NPC(plugin, nmsServer, nmsWorld, profile, npc.getSpawnLoc(), npc.getHandItem(), npc.getItemInOffhand(), npc.getHeadItem(), npc.getChestItem(), npc.getLegsItem(), npc.getBootsItem(), npc.isClickable(), npc.isResilient(), npc.getHologramName(), uuid, npc.getValue(), npc.getSignature(), npc.getSkinName(), npc.getFacingDirection(), null, actionStrs);
+                                MenuCore mc = new MenuCore(newNpc, plugin);
+                                plugin.menuCores.put(player, mc);
+                                plugin.pages.put(player, 0);
                                 player.openInventory(mc.getMainMenu());
                             }, 1);
                         } else {
@@ -225,30 +230,30 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
                     } catch (IllegalArgumentException ignored) {
                     }
-                    HandlerList.unregisterAll(CustomNPCs.getInstance());
-                    List<NPC> npcs = new ArrayList<>(CustomNPCs.getInstance().npcs.values());
+                    HandlerList.unregisterAll(plugin);
+                    List<NPC> npcs = new ArrayList<>(plugin.npcs.values());
                     for (NPC npc : npcs) {
-                        CustomNPCs.getInstance().npcs.remove(npc.getUUID());
+                        plugin.npcs.remove(npc.getUUID());
                         npc.remove();
                     }
-                    CustomNPCs.getInstance().npcs.clear();
-                    CustomNPCs.getInstance().holograms.clear();
-                    CustomNPCs.getInstance().onEnable();
+                    plugin.npcs.clear();
+                    plugin.holograms.clear();
+                    plugin.onEnable();
                 }
             } else {
                 sender.sendMessage(ChatColor.YELLOW + "Reloading NPCs!");
                 try {
                     Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
                 } catch (IllegalArgumentException ignored) {}
-                HandlerList.unregisterAll(CustomNPCs.getInstance());
-                List<NPC> npcs = new ArrayList<>(CustomNPCs.getInstance().npcs.values());
+                HandlerList.unregisterAll(plugin);
+                List<NPC> npcs = new ArrayList<>(plugin.npcs.values());
                 for (NPC npc : npcs) {
-                    CustomNPCs.getInstance().npcs.remove(npc.getUUID());
+                    plugin.npcs.remove(npc.getUUID());
                     npc.remove();
                 }
-                CustomNPCs.getInstance().npcs.clear();
-                CustomNPCs.getInstance().holograms.clear();
-                CustomNPCs.getInstance().onEnable();
+                plugin.npcs.clear();
+                plugin.holograms.clear();
+                plugin.onEnable();
                 sender.sendMessage(ChatColor.GREEN + "NPCs successfully reloaded.");
             }
         }
@@ -266,7 +271,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             list.add("edit");
             list.add("reload");
             list.add("clear_holograms");
-            if(CustomNPCs.getInstance().soundWaiting.contains((Player) sender)) list.add("setsound");
+            if(plugin.soundWaiting.contains((Player) sender)) list.add("setsound");
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("setsound")) {
                 for (Sound sound : Sound.values()) {
@@ -274,7 +279,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 }
                 return list;
             }
-            CustomNPCs.getInstance().npcs.keySet().forEach(uuid -> list.add(uuid.toString()));
+            plugin.npcs.keySet().forEach(uuid -> list.add(uuid.toString()));
         }
         return list;
     }

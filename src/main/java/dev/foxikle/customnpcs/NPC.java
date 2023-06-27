@@ -33,6 +33,7 @@ import java.util.*;
 
 public class NPC extends ServerPlayer {
     private UUID uuid;
+    private CustomNPCs plugin;
     private GameProfile profile;
     private ItemStack handItem;
     private ItemStack offhandItem;
@@ -53,7 +54,7 @@ public class NPC extends ServerPlayer {
     private Player target;
     private ArrayList<String> actions;
 
-    public NPC(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean clickable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions) {
+    public NPC(CustomNPCs plugin, MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean clickable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions) {
         super(minecraftServer, worldServer, gameProfile);
         this.spawnLoc = spawnLoc;
         this.offhandItem = offhandItem;
@@ -75,6 +76,7 @@ public class NPC extends ServerPlayer {
         this.target = target;
         this.actions = new ArrayList<>(actions);
         super.connection = new NetworkHandler(minecraftServer, new NetworkManager(PacketFlow.CLIENTBOUND), this);
+        this.plugin = plugin;
     }
 
     private static void setPosRot(ServerPlayer test, Location location) {
@@ -84,10 +86,10 @@ public class NPC extends ServerPlayer {
     }
 
     public void createNPC() {
-        Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> this.hologram = setupHologram(this.getSpawnLoc(), name));
-        if (CustomNPCs.getInstance().npcs.containsKey(uuid)) {
-            CustomNPCs.getInstance().getNPCByID(uuid).remove();
-            CustomNPCs.getInstance().getNPCByID(uuid).delete();
+        Bukkit.getScheduler().runTask(plugin, () -> this.hologram = setupHologram(this.getSpawnLoc(), name));
+        if (plugin.npcs.containsKey(uuid)) {
+            plugin.getNPCByID(uuid).remove();
+            plugin.getNPCByID(uuid).delete();
         }
         setSkin();
         setPosRot(this, spawnLoc);
@@ -117,8 +119,8 @@ public class NPC extends ServerPlayer {
             e.printStackTrace();
         }
 
-        if (resilient) CustomNPCs.getInstance().getFileManager().addNPC(this);
-        CustomNPCs.getInstance().addNPC(this, hologram);
+        if (resilient) plugin.getFileManager().addNPC(this);
+        plugin.addNPC(this, hologram);
         Bukkit.getOnlinePlayers().forEach(this::injectPlayer);
     }
 
@@ -295,7 +297,7 @@ public class NPC extends ServerPlayer {
         connection.send(equipmentPacket);
         connection.send(rotation);
 
-        Bukkit.getScheduler().runTaskLaterAsynchronously(CustomNPCs.getInstance(), () -> connection.send(playerInforemove),30);
+        Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> connection.send(playerInforemove),30);
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
     }
 
@@ -317,7 +319,7 @@ public class NPC extends ServerPlayer {
 
     @Override
     public void moveTo(Vec3 v){
-        Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> this.hologram.teleport(new Location(getWorld(), v.x(), clickable ? v.y() + 2.33 :v.y() + 2.05, v.z())), 3);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> this.hologram.teleport(new Location(getWorld(), v.x(), clickable ? v.y() + 2.33 :v.y() + 2.05, v.z())), 3);
         moveTo(v.x(), v.y(), v.z());
     }
 
@@ -366,6 +368,6 @@ public class NPC extends ServerPlayer {
     }
 
     public void delete(){
-        CustomNPCs.getInstance().getFileManager().remove(this.uuid);
+        plugin.getFileManager().remove(this.uuid);
     }
 }
