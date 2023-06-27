@@ -1,6 +1,7 @@
 package dev.foxikle.customnpcs;
 
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +42,12 @@ public class Action {
         this.delay = delay;
     }
 
-    public String getCommand(Player player){
+    /**
+     *
+     * @param player the action is targeted at
+     * @return String representing the command. The arguments are: player's uuid, sub command, delay (in ticks), command specific arguments
+     */
+    public String getCommand(@NotNull Player player){
         return "npcaction " + player.getUniqueId() + " " + subCommand + " " + delay + " " + String.join(" ", args);
     }
 
