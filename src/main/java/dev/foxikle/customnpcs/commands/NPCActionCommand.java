@@ -54,13 +54,18 @@ public class NPCActionCommand implements CommandExecutor {
             if(arguments.length > 0){
                 String subCommand = arguments[1];
                 Player player = Bukkit.getPlayer(UUID.fromString(arguments[0]));
+                int delay = Integer.parseInt(arguments[2]);
                 assert player != null;
                 List<String> args = new ArrayList<>(List.of(arguments));
-                args.remove(0);
-                args.remove(0);
+                args.remove(0); // remove player
+                args.remove(0); // remove sub command
+                args.remove(0); // remove delay
+                Bukkit.getScheduler().runTaskLater(plugin, () ->{
+
+
                 switch (subCommand) {
                     case "DISPLAY_TITLE" -> {
-                        if (args.size() >= 4) { // fade in, time, fade out, title, subtitle //TODO: somehow differentiate title from subtitle
+                        if (args.size() >= 4) { // fade in, time, fade out, title, subtitle  //TODO: somehow differentiate title from subtitle
                             int in = Integer.parseInt(args.get(0));
                             args.remove(0);
                             int stay = Integer.parseInt(args.get(0));
@@ -124,6 +129,7 @@ public class NPCActionCommand implements CommandExecutor {
                         }
                     }
                 }
+                }, delay);
             }
         } else {
             sender.sendPlainMessage(ChatColor.RED + "You cannot do this!");
