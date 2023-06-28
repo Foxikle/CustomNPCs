@@ -144,6 +144,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     }
                     plugin.npcs.clear();
                     plugin.holograms.clear();
+                    plugin.onDisable();
                     plugin.onEnable();
                     player.sendMessage(ChatColor.GREEN + "NPCs successfully reloaded.");
                 }

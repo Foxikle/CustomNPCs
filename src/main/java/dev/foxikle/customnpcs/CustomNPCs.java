@@ -14,6 +14,7 @@ import io.netty.util.internal.UnstableApi;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import org.bstats.bukkit.Metrics;
+import org.bstats.charts.DrilldownPie;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -92,7 +93,6 @@ public final class CustomNPCs extends JavaPlugin implements @NotNull PluginMessa
         // setup bstats
         Metrics metrics = new Metrics(this, 18898);
 
-
         // setup service manager for the API
         Bukkit.getServer().getServicesManager().register(CustomNPCs.class, this, this, ServicePriority.Normal);
     }
@@ -111,6 +111,7 @@ public final class CustomNPCs extends JavaPlugin implements @NotNull PluginMessa
     public void onDisable() {
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
+        Bukkit.getServicesManager().unregister(this);
         try {
             Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
         } catch (IllegalArgumentException | NullPointerException ignored) {}
