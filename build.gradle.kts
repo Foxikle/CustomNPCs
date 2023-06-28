@@ -25,10 +25,15 @@ java.sourceCompatibility = JavaVersion.VERSION_16
 
 
 publishing {
-    repositories.mavenLocal()
-    publications.create<MavenPublication>("maven") {
-        from(components["java"])
+    repositories{
+        mavenLocal()
     }
+    publications{
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+
 }
 
 tasks {
