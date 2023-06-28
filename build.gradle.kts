@@ -7,16 +7,22 @@ plugins {
 
 repositories {
     mavenLocal()
+    mavenCentral()
 }
 
 dependencies {
     paperweight.paperDevBundle("1.20-R0.1-SNAPSHOT")
+    implementation("org.bstats:bstats-bukkit:3.0.2")
 }
 
 group = "dev.foxikle"
-version = "1.3-pre3"
+version = "1.3-pre4"
 description = "CustomNPCs"
 java.sourceCompatibility = JavaVersion.VERSION_16
+
+
+
+
 
 publishing {
     publications.create<MavenPublication>("maven") {
@@ -51,7 +57,7 @@ tasks {
     }
 
     reobfJar {
-        outputJar.set(layout.buildDirectory.file("C:/Users/tscal/Desktop/testserver/plugins/CustomNPCs-${project.version}.jar"))
+        outputJar.set(layout.buildDirectory.file("C:/Users/tscal/Desktop/bungeeserver/Etheria/plugins/CustomNPCs-${project.version}.jar"))
     }
 }
 

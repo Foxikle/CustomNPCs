@@ -13,7 +13,13 @@ public class Action {
     private ArrayList<String> args;
     private int delay;
 
-    public Action(String subCommand, ArrayList<String> args, int delay){
+    public Action(ActionType actionType, ArrayList<String> args, int delay){
+        this.subCommand = actionType.name();
+        this.args = args;
+        this.delay = delay;
+    }
+
+    private Action(String subCommand, ArrayList<String> args, int delay){
         this.subCommand = subCommand;
         this.args = args;
         this.delay = delay;

@@ -121,6 +121,9 @@ public class NPC extends ServerPlayer {
 
         if (resilient) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
+
+
+        //TODO: change this V
         Bukkit.getOnlinePlayers().forEach(this::injectPlayer);
     }
 
@@ -369,5 +372,11 @@ public class NPC extends ServerPlayer {
 
     public void delete(){
         plugin.getFileManager().remove(this.uuid);
+    }
+
+    public void setActions(Collection<Action> actions) {
+        List<String> strs = new ArrayList<>();
+        actions.forEach(action -> strs.add(action.serialize()));
+        this.actions = new ArrayList<>(strs);
     }
 }

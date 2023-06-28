@@ -1,10 +1,10 @@
 package dev.foxikle.customnpcs.listeners;
 
 import dev.foxikle.customnpcs.Action;
+import dev.foxikle.customnpcs.ActionType;
 import dev.foxikle.customnpcs.CustomNPCs;
 import dev.foxikle.customnpcs.NPC;
 import dev.foxikle.customnpcs.menu.MenuCore;
-import dev.foxikle.customnpcs.menu.MenuUtils;
 import dev.foxikle.customnpcs.runnables.*;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -377,14 +377,14 @@ public class NPCMenuListeners implements Listener {
             Action action = null;
 
             switch (itemData) {
-                case "RUN_COMMAND" -> action = new Action("RUN_COMMAND", new ArrayList<>(Arrays.asList("command", "to", "be", "run")), 0);
-                case "DISPLAY_TITLE" -> action = new Action("DISPLAY_TITLE", new ArrayList<>(Arrays.asList("10", "20", "10", "title!")), 0);
-                case "SEND_MESSAGE" -> action = new Action("SEND_MESSAGE", new ArrayList<>(Arrays.asList("message", "to", "be", "sent")), 0);
-                case "PLAY_SOUND" -> action = new Action("PLAY_SOUND", new ArrayList<>(Arrays.asList("1", "1", Sound.UI_BUTTON_CLICK.name())), 0);
-                case "ACTION_BAR" -> action = new Action("ACTION_BAR", new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")), 0);
-                case "TELEPORT" -> action = new Action("TELEPORT", new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")), 0);
-                case "SEND_TO_SERVER" -> action = new Action("SEND_TO_SERVER", new ArrayList<>(Arrays.asList("server", "to", "be", "sent", "to")), 0);
-                case "TOGGLE_FOLLOWING" -> action = new Action("TOGGLE_FOLLOWING", new ArrayList<>(Arrays.asList(npc.getUUID().toString())), 0);
+                case "RUN_COMMAND" -> action = new Action(ActionType.RUN_COMMAND, new ArrayList<>(Arrays.asList("command", "to", "be", "run")), 0);
+                case "DISPLAY_TITLE" -> action = new Action(ActionType.DISPLAY_TITLE, new ArrayList<>(Arrays.asList("10", "20", "10", "title!")), 0);
+                case "SEND_MESSAGE" -> action = new Action(ActionType.SEND_MESSAGE, new ArrayList<>(Arrays.asList("message", "to", "be", "sent")), 0);
+                case "PLAY_SOUND" -> action = new Action(ActionType.PLAY_SOUND, new ArrayList<>(Arrays.asList("1", "1", Sound.UI_BUTTON_CLICK.name())), 0);
+                case "ACTION_BAR" -> action = new Action(ActionType.ACTION_BAR, new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")), 0);
+                case "TELEPORT" -> action = new Action(ActionType.TELEPORT, new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")), 0);
+                case "SEND_TO_SERVER" -> action = new Action(ActionType.SEND_TO_SERVER, new ArrayList<>(Arrays.asList("server", "to", "be", "sent", "to")), 0);
+                case "TOGGLE_FOLLOWING" -> action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Arrays.asList(npc.getUUID().toString())), 0);
                 case "go_back" -> player.openInventory(mc.getActionMenu());
             }
             if(action != null) {
