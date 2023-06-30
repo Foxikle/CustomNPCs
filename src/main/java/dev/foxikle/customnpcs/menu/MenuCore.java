@@ -17,16 +17,30 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Handles menu creation
+ */
 public class MenuCore {
 
     private final NPC npc;
     private final CustomNPCs plugin;
 
+    /**
+     * <p> The constructor to make a menu factory
+     * </p>
+     * @param npc The NPC to edit
+     * @param plugin The instance of the Main class
+     */
     public MenuCore(NPC npc, CustomNPCs plugin) {
         this.npc = npc;
         this.plugin = plugin;
     }
 
+    /**
+     * <p>Gets the main menu
+     * </p>
+     * @return The Inventory representing the Main NPC menu
+     */
     public Inventory getMainMenu() {
         List<String> lore = new ArrayList<>();
         Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "     Create a New NPC"));
@@ -239,7 +253,7 @@ public class MenuCore {
         cancelMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "Cancel");
         cancelMeta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "CANCEL");
         cancelButton.setItemMeta(cancelMeta);
-        inv.setItem(13, MenuUtils.getSkinIcon(key, "changeSkin", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9"));
+        inv.setItem(13, plugin.getMenuUtils().getSkinIcon(key, "changeSkin", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9"));
         inv.setItem(16, nametag);
         inv.setItem(10, positionsItem);
         inv.setItem(22, resilientItem);
@@ -250,6 +264,11 @@ public class MenuCore {
         return inv;
     }
 
+    /**
+     * <p>Gets the menu displaying the NPC's current armor
+     * </p>
+     * @return The Inventory representing the Armor menu
+     */
     public Inventory getArmorMenu() {
         ItemStack helm = npc.getHeadItem();
         ItemStack cp = npc.getChestItem();
@@ -476,6 +495,11 @@ public class MenuCore {
         return inv;
     }
 
+    /**
+     * <p>Gets the menu displaying all curent actions
+     * </p>
+     * @return The Inventory representing the Actions menu
+     */
     public Inventory getActionMenu() {
         Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Actions"));
         NamespacedKey key = new NamespacedKey(plugin, "ActionInv");
@@ -579,6 +603,12 @@ public class MenuCore {
         return inv;
     }
 
+    /**
+     * <p>Gets the menu to customize an action
+     * </p>
+     * @param action The Action to customize
+     * @return The Inventory representing the action to customize
+     */
     public Inventory getActionCustomizerMenu(Action action) {
         Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Action"));
         NamespacedKey key = new NamespacedKey(plugin, "CustomizeActionButton");
@@ -1070,6 +1100,11 @@ public class MenuCore {
         return inv;
     }
 
+    /**
+     * <p>Gets the menu to create a new action
+     * </p>
+     * @return The Inventory representing the new Action menu
+     */
     public Inventory getNewActionMenu() {
         Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "       New NPC Action"));
         NamespacedKey key = new NamespacedKey(plugin, "NewActionButton");
@@ -1165,7 +1200,11 @@ public class MenuCore {
 
         return inv;
     }
-
+    /**
+     * <p> Gets the NPC object associated with the Menus
+     * </p>
+     * @return The npc
+     */
     public NPC getNpc() {
         return this.npc;
     }

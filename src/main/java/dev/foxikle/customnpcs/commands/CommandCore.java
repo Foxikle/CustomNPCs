@@ -29,15 +29,32 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.bukkit.ChatColor.RED;
-
+/**
+ * The class to handle the core command
+ */
 public class CommandCore implements CommandExecutor, TabCompleter {
-    
+    /**
+     * The instance of the main class
+     */
     private final CustomNPCs plugin;
 
+    /**
+     * Creates the command handler
+     * @param plugin the instance of the Main Class
+     */
     public CommandCore(CustomNPCs plugin) {
         this.plugin = plugin;
     }
-
+    /**
+     * <p>The generic handler for any command
+     * </p>
+     * @param command The command used
+     * @param sender The sender of the command
+     * @param label The label of the command (/label args[])
+     * @param args The arguments of the commands
+     * @return if the command was handled
+     * @since 1.3-pre5
+     */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(!label.equalsIgnoreCase("npc")) return false;
@@ -261,6 +278,16 @@ public class CommandCore implements CommandExecutor, TabCompleter {
         return false;
     }
 
+    /**
+     * <p>The generic handler for any tab completion
+     * </p>
+     * @param command The command used
+     * @param sender The sender of the command
+     * @param label The label of the command (/label args[])
+     * @param args The arguments of the commands
+     * @return the options to tab-complete
+     * @since 1.3-pre5
+     */
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> list = new ArrayList<>();

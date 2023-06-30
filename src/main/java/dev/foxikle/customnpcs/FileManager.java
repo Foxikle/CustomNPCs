@@ -14,14 +14,26 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * The class that deals with all file related things
+ */
 public class FileManager {
 
     private final CustomNPCs plugin;
 
+    /**
+     * <p> Gets the file manager object.
+     * </p>
+     * @param plugin The instance of the Main class
+     */
     public FileManager (CustomNPCs plugin){
         this.plugin = plugin;
     }
 
+    /**
+     * <p> Creates the files the plugin needs to run
+     * </p>
+     */
     public void createFiles(){
         if (!new File("plugins/CustomNPCs/npcs.yml").exists()) {
             plugin.saveResource("npcs.yml", false);
@@ -30,6 +42,11 @@ public class FileManager {
         }
     }
 
+    /**
+     * <p> Adds an NPC to the `npcs.yml` file.
+     * </p>
+     * @param npc The NPC to store
+     */
     public void addNPC(NPC npc){
         File file = new File("plugins/CustomNPCs/npcs.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
@@ -63,6 +80,11 @@ public class FileManager {
         }
     }
 
+    /**
+     * <p> Gets the NPC of the specified UUID
+     * </p>
+     * @param uuid The NPC to load from the file
+     */
     public void loadNPC(UUID uuid){
         File file = new File("plugins/CustomNPCs/npcs.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
@@ -131,6 +153,11 @@ public class FileManager {
         npc.createNPC();
     }
 
+    /**
+     * <p> Gets the set of stored UUIDs.
+     * </p>
+     * @return the set of stored NPC uuids.
+     */
     public Set<UUID> getNPCIds(){
         File file = new File("plugins/CustomNPCs/npcs.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
@@ -142,6 +169,11 @@ public class FileManager {
         return uuids;
     }
 
+    /**
+     * <p> Removes the specified NPC from storage
+     * </p>
+     * @param uuid The NPC uuid to remove
+     */
     public void remove(UUID uuid){
         File file = new File("plugins/CustomNPCs/npcs.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);

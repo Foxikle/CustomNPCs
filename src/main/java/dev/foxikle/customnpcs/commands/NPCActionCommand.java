@@ -20,10 +20,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * The handler for the Action command
+ */
 public class NPCActionCommand implements CommandExecutor {
-    
+    /**
+     * The instance of the main class
+     */
     private final CustomNPCs plugin;
 
+    /**
+     * The constructor for the action command handler
+     * @param plugin main class instance
+     */
     public NPCActionCommand(CustomNPCs plugin) {
         this.plugin = plugin;
     }
@@ -46,7 +55,16 @@ public class NPCActionCommand implements CommandExecutor {
     *   Stop following
     *   Action bar
     */
-
+    /**
+     * <p>The generic handler for any command
+     * </p>
+     * @param command The command used
+     * @param sender The sender of the command
+     * @param label The label of the command (/label args[])
+     * @param arguments The arguments of the commands
+     * @return if the command was handled
+     * @since 1.3-pre5
+     */
     @Override
     @SuppressWarnings("deprecated")
     public boolean onCommand(CommandSender sender, Command command, String label, String[] arguments) {

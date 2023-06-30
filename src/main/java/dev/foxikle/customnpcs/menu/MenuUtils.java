@@ -21,22 +21,50 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Provides menu utilites
+ */
 public class MenuUtils {
-    
+
+    /**
+     * The instance of the main class
+     */
     private final CustomNPCs plugin;
 
+    /**
+     * <p> The constructor for the MenuUtils class
+     * </p>
+     * @param plugin The instance of the Main class
+     */
     public MenuUtils(CustomNPCs plugin) {
         this.plugin = plugin;
     }
 
-    public  String getValue(String name){
+    /**
+     * <p> Gets the Value of a stored Skin
+     * </p>
+     * @param name The name of the skin to get the value from.
+     * @return The encoded value of a skin
+     */
+    public String getValue(String name){
         return plugin.getConfig().getConfigurationSection("Skins").getString(name+".value");
     }
 
-    public  String getSignature(String name){
+    /**
+     * <p> Gets the Signature of a stored Skin
+     * </p>
+     * @param name The name of the skin to get the value from.
+     * @return The encoded signature of a skin
+     */
+    public String getSignature(String name){
         return plugin.getConfig().getConfigurationSection("Skins").getString(name+".signature");
     }
 
+    /**
+     * <p> Gets the list of inventories that display all of the available skins in the config.
+     * </p>
+     * @return The list of inventories displaying the skin options
+     */
     public List<Inventory> getCatalogueInventories() {
         List<Inventory> invs = new ArrayList<>();
         List<ItemStack> items = makeIcons();
@@ -85,6 +113,12 @@ public class MenuUtils {
         return invs;
     }
 
+    /**
+     * <p> Returns an inventory of with a border of grey stained glass panes.
+     * </p>
+     * @param inv The inventory to put a border in.
+     * @return The inventory with a border.
+     */
     public Inventory addBorder(Inventory inv) {
         ItemStack item = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta meta = item.getItemMeta();
@@ -104,6 +138,11 @@ public class MenuUtils {
         return inv;
     }
 
+    /**
+     * <p> Gets the items that represent skins
+     * </p>
+     * @return The list of skins to put into an inventory
+     */
     private List<ItemStack> makeIcons(){
         final FileConfiguration config = plugin.getConfig();
         ConfigurationSection section = config.getConfigurationSection("Skins");
@@ -117,11 +156,25 @@ public class MenuUtils {
         return returnme;
     }
 
-    public static ItemStack getSkinIcon(NamespacedKey key, String keyName, String name, ChatColor nameColor, ChatColor loreColor, String Ll1, String Ll2, String Ll3, String texture) {
+    /**
+     * <p> Gets the icon for a skin
+     * </p>
+     * @param key the namespaced key to add data to the item
+     * @param keyValue The data to associate with the key
+     * @param name The name of the item
+     * @param texture The texture of the skull
+     * @param loreColor The color to make the lore
+     * @param nameColor The color to make the name
+     * @param Ll1 The lore line 1
+     * @param Ll2 The lore line 2
+     * @param Ll3 The lore line 3
+     * @return The encoded value of a skin
+     */
+    public ItemStack getSkinIcon(NamespacedKey key, String keyValue, String name, ChatColor nameColor, ChatColor loreColor, String Ll1, String Ll2, String Ll3, String texture) {
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
 
         ItemMeta headMeta = head.getItemMeta();
-        headMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, keyName);
+        headMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, keyValue);
         headMeta.setDisplayName(nameColor + name);
 
         GameProfile profile = new GameProfile(UUID.randomUUID(), null);

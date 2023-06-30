@@ -23,17 +23,35 @@ import java.util.Objects;
 
 import static org.bukkit.Material.*;
 
+/**
+ * Handlers for clicks in Menus
+ */
 public class NPCMenuListeners implements Listener {
-
+    /**
+     * The instance of the main class
+     */
     private final CustomNPCs plugin;
+
+    /**
+     * The map of MenuCores
+     */
     private Map<Player, MenuCore> map;
+
+    /**
+     * Creates the handler for NPC menu clicks
+     * @param plugin the main class instance
+     */
     public NPCMenuListeners(CustomNPCs plugin){
         this.plugin = plugin;
         map = plugin.menuCores;
     }
-    
-     
 
+    /**
+     * <p>The generic handler npc menu clicks
+     * </p>
+     * @param e The callback event object
+     * @since 1.3-pre5
+     */
     @EventHandler
     public void OnInventoryClick(InventoryClickEvent e) {
         if (e.getCurrentItem() == null) return;
@@ -181,7 +199,7 @@ public class NPCMenuListeners implements Listener {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 player.sendMessage("You're changing the NPC's Skin.");
                 e.setCancelled(true);
-                player.openInventory(plugin.invs.get(0));
+                player.openInventory(plugin.catalogueInventories.get(0));
 
             } else if (tagContainer.get(key, PersistentDataType.STRING).equals("equipment")) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -221,12 +239,12 @@ public class NPCMenuListeners implements Listener {
             switch (tag) {
                 case "prev" -> {
                     player.playSound(player.getLocation(), Sound.ITEM_BUNDLE_DROP_CONTENTS, 1, 1);
-                    player.openInventory(plugin.invs.get(plugin.getPage(player) - 1));
+                    player.openInventory(plugin.catalogueInventories.get(plugin.getPage(player) - 1));
                     plugin.setPage(player, plugin.getPage(player) - 1);
                 }
                 case "next" -> {
                     player.playSound(player.getLocation(), Sound.ITEM_BUNDLE_DROP_CONTENTS, 1, 1);
-                    player.openInventory(plugin.invs.get(plugin.getPage(player) + 1));
+                    player.openInventory(plugin.catalogueInventories.get(plugin.getPage(player) + 1));
                     plugin.setPage(player, plugin.getPage(player) + 1);
                 }
                 case "close" -> {
