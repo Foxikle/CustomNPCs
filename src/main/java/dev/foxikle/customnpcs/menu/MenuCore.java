@@ -17,16 +17,30 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Handles menu creation
+ */
 public class MenuCore {
 
     private final NPC npc;
     private final CustomNPCs plugin;
 
+    /**
+     * <p> The constructor to make a menu factory
+     * </p>
+     * @param npc The NPC to edit
+     * @param plugin The instance of the Main class
+     */
     public MenuCore(NPC npc, CustomNPCs plugin) {
         this.npc = npc;
         this.plugin = plugin;
     }
 
+    /**
+     * <p>Gets the main menu
+     * </p>
+     * @return The Inventory representing the Main NPC menu
+     */
     public Inventory getMainMenu() {
         List<String> lore = new ArrayList<>();
         Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "     Create a New NPC"));
@@ -239,7 +253,7 @@ public class MenuCore {
         cancelMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "Cancel");
         cancelMeta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "CANCEL");
         cancelButton.setItemMeta(cancelMeta);
-        inv.setItem(13, MenuUtils.getSkinIcon(key, "changeSkin", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9"));
+        inv.setItem(13, plugin.getMenuUtils().getSkinIcon(key, "changeSkin", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9"));
         inv.setItem(16, nametag);
         inv.setItem(10, positionsItem);
         inv.setItem(22, resilientItem);
@@ -250,6 +264,11 @@ public class MenuCore {
         return inv;
     }
 
+    /**
+     * <p>Gets the menu displaying the NPC's current armor
+     * </p>
+     * @return The Inventory representing the Armor menu
+     */
     public Inventory getArmorMenu() {
         ItemStack helm = npc.getHeadItem();
         ItemStack cp = npc.getChestItem();
@@ -476,6 +495,11 @@ public class MenuCore {
         return inv;
     }
 
+    /**
+     * <p>Gets the menu displaying all curent actions
+     * </p>
+     * @return The Inventory representing the Actions menu
+     */
     public Inventory getActionMenu() {
         Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Actions"));
         NamespacedKey key = new NamespacedKey(plugin, "ActionInv");
@@ -486,53 +510,56 @@ public class MenuCore {
             ItemStack item = new ItemStack(Material.BEDROCK);
             ItemMeta meta = item.getItemMeta();
             List<String> lore = new ArrayList<>();
+            List<String> args = action.getArgsCopy();
             switch (action.getSubCommand()) {
                 case "DISPLAY_TITLE" -> {
                     item.setType(Material.OAK_SIGN);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bDisplay Title"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current title is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current title is: '" + String.join(" ", args) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
                 case "SEND_MESSAGE" -> {
                     item.setType(Material.PAPER);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Message"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current message is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current message is: '" + String.join(" ", args) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
                 case "PLAY_SOUND" -> {
                     item.setType(Material.BELL);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePlay Sound"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current sound is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
+                    args.remove(0);
+                    args.remove(0);
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current sound is: '" + String.join(" ", args) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
                 case "RUN_COMMAND" -> {
                     item.setType(Material.ANVIL);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRun Command"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe command is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe command is: '" + String.join(" ", args) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
                 case "ACTION_BAR" -> {
                     item.setType(Material.IRON_INGOT);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Actionbar"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current actionbar is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current actionbar is: '" + String.join(" ", args) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
                 case "TELEPORT" -> {
                     item.setType(Material.ENDER_PEARL);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bTeleport Player"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current Teleport location is: '" + String.join(", ", action.getArgs()) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current Teleport location is: '" + String.join(", ", args) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
                 case "SEND_TO_SERVER" -> {
                     item.setType(Material.GRASS_BLOCK);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend To Bungeecord Server"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe server is called: '" + String.join(" ", action.getArgs()) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe server is called: '" + String.join(" ", args) + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
@@ -542,6 +569,7 @@ public class MenuCore {
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                 }
             }
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&eDelay Ticks: " + action.getDelay()));
             NamespacedKey actionKey = new NamespacedKey(plugin, "SerializedAction");
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "actionDisplay");
             meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action.serialize());
@@ -575,9 +603,48 @@ public class MenuCore {
         return inv;
     }
 
+    /**
+     * <p>Gets the menu to customize an action
+     * </p>
+     * @param action The Action to customize
+     * @return The Inventory representing the action to customize
+     */
     public Inventory getActionCustomizerMenu(Action action) {
         Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Action"));
         NamespacedKey key = new NamespacedKey(plugin, "CustomizeActionButton");
+
+        // lores
+        List<String> incLore = new ArrayList<>();
+        incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to add 1"));
+        incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Right Click to add 5"));
+        incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Shift + Right Click to add 20"));
+
+        List<String> decLore = new ArrayList<>();
+        decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to remove 1"));
+        decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Right Click to remove 5"));
+        decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Shift + Click to remove 20"));
+
+        // Go back to actions menu
+        ItemStack decDelay = new ItemStack(Material.RED_DYE);
+        ItemMeta decDelayItemMeta = decDelay.getItemMeta();
+        decDelayItemMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_delay");
+        decDelayItemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrement Delay"));
+        decDelay.setItemMeta(decDelayItemMeta);
+        inv.setItem(3, decDelay);// Go back to actions menu
+
+        ItemStack displayDelay = new ItemStack(Material.CLOCK);
+        ItemMeta delayMeta = displayDelay.getItemMeta();
+        delayMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
+        delayMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDelay ticks: " + action.getDelay()));
+        displayDelay.setItemMeta(delayMeta);
+        inv.setItem(4, displayDelay);// Go back to actions menu
+
+        ItemStack incDelay = new ItemStack(Material.LIME_DYE);
+        ItemMeta incDelayItemMeta = incDelay.getItemMeta();
+        incDelayItemMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_delay");
+        incDelayItemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrement Delay"));
+        incDelay.setItemMeta(incDelayItemMeta);
+        inv.setItem(5, incDelay);
 
         // Go back to actions menu
         ItemStack goBack = new ItemStack(Material.ARROW);
@@ -630,11 +697,6 @@ public class MenuCore {
 
                 // Increments
 
-                List<String> incLore = new ArrayList<>();
-                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to add 1"));
-                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Right Click to add 5"));
-                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Shift + Right Click to add 20"));
-
                 ItemStack incIn = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncIn = incIn.getItemMeta();
                 metaIncIn.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease fade in duration"));
@@ -661,11 +723,6 @@ public class MenuCore {
 
 
                 //decrements
-
-                List<String> decLore = new ArrayList<>();
-                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to remove 1"));
-                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Right Click to remove 5"));
-                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Shift + Click to remove 20"));
 
                 ItemStack decIn = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecIn = decIn.getItemMeta();
@@ -770,14 +827,14 @@ public class MenuCore {
                 */
 
 
-                List<String> incLore = new ArrayList<>();
-                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8CLick to add .1"));
+                List<String> smallIncLore = new ArrayList<>();
+                smallIncLore.add(ChatColor.translateAlternateColorCodes('&', "&8CLick to add .1"));
 
                 ItemStack incPitch = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncPitch = incPitch.getItemMeta();
                 metaIncPitch.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease pitch."));
                 metaIncPitch.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_sound_pitch");
-                metaIncPitch.setLore(incLore);
+                metaIncPitch.setLore(smallIncLore);
                 incPitch.setItemMeta(metaIncPitch);
                 inv.setItem(10, incPitch);
 
@@ -785,20 +842,20 @@ public class MenuCore {
                 ItemMeta metaIncVolume = incVolume.getItemMeta();
                 metaIncVolume.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease volume"));
                 metaIncVolume.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_volume");
-                metaIncVolume.setLore(incLore);
+                metaIncVolume.setLore(smallIncLore);
                 incVolume.setItemMeta(metaIncVolume);
                 inv.setItem(12, incVolume);
 
                 //decrements
 
-                List<String> decLore = new ArrayList<>();
-                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to remove .1"));
+                List<String> smalldecLore = new ArrayList<>();
+                smalldecLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to remove .1"));
 
                 ItemStack decPitch = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecPitch = decPitch.getItemMeta();
                 metaDecPitch.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease pitch"));
                 metaDecPitch.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_sound_pitch");
-                metaDecPitch.setLore(decLore);
+                metaDecPitch.setLore(smalldecLore);
                 decPitch.setItemMeta(metaDecPitch);
                 inv.setItem(28, decPitch);
 
@@ -806,7 +863,7 @@ public class MenuCore {
                 ItemMeta metaDecVolume = decVolume.getItemMeta();
                 metaDecVolume.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease volume"));
                 metaDecVolume.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_volume");
-                metaDecVolume.setLore(decLore);
+                metaDecVolume.setLore(smalldecLore);
                 decVolume.setItemMeta(metaDecVolume);
                 inv.setItem(30, decVolume);
 
@@ -879,12 +936,6 @@ public class MenuCore {
                  - # = empty space
                 */
 
-
-                List<String> incLore = new ArrayList<>();
-                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left Click to add 1"));
-                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Right Click to add 5"));
-                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Shift + Right Click to add 20"));
-
                 ItemStack incX = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncX = incX.getItemMeta();
                 metaIncX.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease X coordinate"));
@@ -927,11 +978,6 @@ public class MenuCore {
 
 
                 //decrements
-
-                List<String> decLore = new ArrayList<>();
-                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to remove 1"));
-                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Right Click to remove 5"));
-                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Shift + Right Click to remove 20"));
 
                 ItemStack decX = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecX = decX.getItemMeta();
@@ -1054,6 +1100,11 @@ public class MenuCore {
         return inv;
     }
 
+    /**
+     * <p>Gets the menu to create a new action
+     * </p>
+     * @return The Inventory representing the new Action menu
+     */
     public Inventory getNewActionMenu() {
         Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "       New NPC Action"));
         NamespacedKey key = new NamespacedKey(plugin, "NewActionButton");
@@ -1149,7 +1200,11 @@ public class MenuCore {
 
         return inv;
     }
-
+    /**
+     * <p> Gets the NPC object associated with the Menus
+     * </p>
+     * @return The npc
+     */
     public NPC getNpc() {
         return this.npc;
     }

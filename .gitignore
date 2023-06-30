@@ -18,7 +18,6 @@ out/
 *.ctxt
 
 # Package Files #
-*.jar
 *.war
 *.nar
 *.ear
@@ -108,6 +107,11 @@ buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
 .flattened-pom.xml
+
+# my gradle key?
+gradle.properties
+.gradle
+build
 
 # Common working directory
 run/

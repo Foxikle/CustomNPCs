@@ -1,10 +1,10 @@
 package dev.foxikle.customnpcs.listeners;
 
 import dev.foxikle.customnpcs.Action;
+import dev.foxikle.customnpcs.ActionType;
 import dev.foxikle.customnpcs.CustomNPCs;
 import dev.foxikle.customnpcs.NPC;
 import dev.foxikle.customnpcs.menu.MenuCore;
-import dev.foxikle.customnpcs.menu.MenuUtils;
 import dev.foxikle.customnpcs.runnables.*;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -23,17 +23,35 @@ import java.util.Objects;
 
 import static org.bukkit.Material.*;
 
+/**
+ * Handlers for clicks in Menus
+ */
 public class NPCMenuListeners implements Listener {
-
+    /**
+     * The instance of the main class
+     */
     private final CustomNPCs plugin;
+
+    /**
+     * The map of MenuCores
+     */
     private Map<Player, MenuCore> map;
+
+    /**
+     * Creates the handler for NPC menu clicks
+     * @param plugin the main class instance
+     */
     public NPCMenuListeners(CustomNPCs plugin){
         this.plugin = plugin;
         map = plugin.menuCores;
     }
-    
-     
 
+    /**
+     * <p>The generic handler npc menu clicks
+     * </p>
+     * @param e The callback event object
+     * @since 1.3-pre5
+     */
     @EventHandler
     public void OnInventoryClick(InventoryClickEvent e) {
         if (e.getCurrentItem() == null) return;
@@ -181,7 +199,7 @@ public class NPCMenuListeners implements Listener {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 player.sendMessage("You're changing the NPC's Skin.");
                 e.setCancelled(true);
-                player.openInventory(plugin.invs.get(0));
+                player.openInventory(plugin.catalogueInventories.get(0));
 
             } else if (tagContainer.get(key, PersistentDataType.STRING).equals("equipment")) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -221,12 +239,12 @@ public class NPCMenuListeners implements Listener {
             switch (tag) {
                 case "prev" -> {
                     player.playSound(player.getLocation(), Sound.ITEM_BUNDLE_DROP_CONTENTS, 1, 1);
-                    player.openInventory(plugin.invs.get(plugin.getPage(player) - 1));
+                    player.openInventory(plugin.catalogueInventories.get(plugin.getPage(player) - 1));
                     plugin.setPage(player, plugin.getPage(player) - 1);
                 }
                 case "next" -> {
                     player.playSound(player.getLocation(), Sound.ITEM_BUNDLE_DROP_CONTENTS, 1, 1);
-                    player.openInventory(plugin.invs.get(plugin.getPage(player) + 1));
+                    player.openInventory(plugin.catalogueInventories.get(plugin.getPage(player) + 1));
                     plugin.setPage(player, plugin.getPage(player) + 1);
                 }
                 case "close" -> {
@@ -366,6 +384,7 @@ public class NPCMenuListeners implements Listener {
                     e.setCancelled(true);
                 } else {
                     plugin.editingActions.put(player, action);
+                    plugin.originalEditingActions.put(player, action.serialize());
                     player.openInventory(mc.getActionCustomizerMenu(action));
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }
@@ -376,14 +395,14 @@ public class NPCMenuListeners implements Listener {
             Action action = null;
 
             switch (itemData) {
-                case "RUN_COMMAND" -> action = new Action("RUN_COMMAND", new ArrayList<>(Arrays.asList("command", "to", "be", "run")), 0);
-                case "DISPLAY_TITLE" -> action = new Action("DISPLAY_TITLE", new ArrayList<>(Arrays.asList("10", "20", "10", "title!")), 0);
-                case "SEND_MESSAGE" -> action = new Action("SEND_MESSAGE", new ArrayList<>(Arrays.asList("message", "to", "be", "sent")), 0);
-                case "PLAY_SOUND" -> action = new Action("PLAY_SOUND", new ArrayList<>(Arrays.asList("1", "1", Sound.UI_BUTTON_CLICK.name())), 0);
-                case "ACTION_BAR" -> action = new Action("ACTION_BAR", new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")), 0);
-                case "TELEPORT" -> action = new Action("TELEPORT", new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")), 0);
-                case "SEND_TO_SERVER" -> action = new Action("SEND_TO_SERVER", new ArrayList<>(Arrays.asList("server", "to", "be", "sent", "to")), 0);
-                case "TOGGLE_FOLLOWING" -> action = new Action("TOGGLE_FOLLOWING", new ArrayList<>(Arrays.asList(npc.getUUID().toString())), 0);
+                case "RUN_COMMAND" -> action = new Action(ActionType.RUN_COMMAND, new ArrayList<>(Arrays.asList("command", "to", "be", "run")), 0);
+                case "DISPLAY_TITLE" -> action = new Action(ActionType.DISPLAY_TITLE, new ArrayList<>(Arrays.asList("10", "20", "10", "title!")), 0);
+                case "SEND_MESSAGE" -> action = new Action(ActionType.SEND_MESSAGE, new ArrayList<>(Arrays.asList("message", "to", "be", "sent")), 0);
+                case "PLAY_SOUND" -> action = new Action(ActionType.PLAY_SOUND, new ArrayList<>(Arrays.asList("1", "1", Sound.UI_BUTTON_CLICK.name())), 0);
+                case "ACTION_BAR" -> action = new Action(ActionType.ACTION_BAR, new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")), 0);
+                case "TELEPORT" -> action = new Action(ActionType.TELEPORT, new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")), 0);
+                case "SEND_TO_SERVER" -> action = new Action(ActionType.SEND_TO_SERVER, new ArrayList<>(Arrays.asList("server", "to", "be", "sent", "to")), 0);
+                case "TOGGLE_FOLLOWING" -> action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Arrays.asList(npc.getUUID().toString())), 0);
                 case "go_back" -> player.openInventory(mc.getActionMenu());
             }
             if(action != null) {
@@ -741,11 +760,40 @@ public class NPCMenuListeners implements Listener {
                     e.setCancelled(true);
                     return;
                 }
-                    // runnable things
-                case "go_back" -> {
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(mc.getActionMenu()), 1);
+                case "decrement_delay" -> {
+                    if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click (1)
+                        if(!(action.getDelay() - 1 < 0)){
+                            action.setDelay(action.getDelay()-1);
+                        } else {
+                            player.sendMessage(ChatColor.RED + "The delay cannot be negative!");
+                        }
+                    } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click (5)
+                        if(!(action.getDelay() - 5 < 0)){
+                            action.setDelay(action.getDelay()-5);
+                        } else {
+                            player.sendMessage(ChatColor.RED + "The delay cannot be negative!");
+                        }
+                    } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click (20)
+                        if(!(action.getDelay() - 20 < 0)){
+                            action.setDelay(action.getDelay()-20);
+                        } else {
+                            player.sendMessage(ChatColor.RED + "The delay cannot be negative!");
+                        }
+                    }
                 }
+                case "increment_delay" -> {
+                    if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click (1)
+                        action.setDelay(action.getDelay() + 1);
+                    } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click (5)
+                        action.setDelay(action.getDelay() + 5);
+                    } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click (20)
+                        action.setDelay(action.getDelay() + 20);
+                    }
+                }
+                case "go_back" -> Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(mc.getActionMenu()), 1);
                 case "confirm" -> {
+                    if(plugin.originalEditingActions.get(player) != null)
+                        npc.removeAction(Action.of(plugin.originalEditingActions.remove(player)));
                     npc.addAction(action);
                     Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(mc.getActionMenu()), 1);
                 }

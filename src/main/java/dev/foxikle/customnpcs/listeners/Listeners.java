@@ -24,15 +24,29 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * The class that deals with misc listeners
+ */
 public class Listeners implements Listener {
-    
+    /**
+     * The instance of the main Class
+     */
     private final CustomNPCs plugin;
 
+    /**
+     * Constructor for generic listners class
+     * @param plugin The instance of the main class
+     */
     public Listeners(CustomNPCs plugin) {
         this.plugin = plugin;
     }
 
-
+    /**
+     * <p>The npc interaction handler
+     * </p>
+     * @param e The event callback
+     * @since 1.0
+     */
     @EventHandler
     public void onPlayerInteract(PlayerInteractEntityEvent e) {
         if (e.getHand() == EquipmentSlot.HAND) {
@@ -55,6 +69,12 @@ public class Listeners implements Listener {
         }
     }
 
+    /**
+     * <p>The handler for text input
+     * </p>
+     * @param e The event callback
+     * @since 1.0
+     */
     @EventHandler (priority = EventPriority.HIGHEST)
     public void onChat(AsyncPlayerChatEvent e) {
         if (plugin.commandWaiting.contains(e.getPlayer())) {
@@ -125,6 +145,12 @@ public class Listeners implements Listener {
         }
     }
 
+    /**
+     * <p>The npc injection handler on join
+     * </p>
+     * @param e The event callback
+     * @since 1.3-pre5
+     */
     @EventHandler
     public void onPlayerLogin(PlayerJoinEvent e) {
             for (NPC npc : plugin.getNPCs()) {
@@ -137,17 +163,23 @@ public class Listeners implements Listener {
         }, 10);
     }
 
+    /**
+     * <p>The npc look handler
+     * </p>
+     * @param e The event callback
+     * @since 1.0
+     */
     @EventHandler
     public void onMove(PlayerMoveEvent e) {
         Player player = e.getPlayer();
         for (NPC npc : plugin.npcs.values()) {
             if(npc.getTarget() != null) return;
-            if (getDistance(e.getPlayer().getLocation(), npc.getCurrentLocation()) <= 5) {
+            if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
-            } else if (getDistance(e.getFrom(), npc.getCurrentLocation()) >= 48 && getDistance(e.getTo(), npc.getCurrentLocation()) <= 48) {
+            } else if (e.getFrom().distance(npc.getCurrentLocation()) >= 48 && e.getTo().distance(npc.getCurrentLocation()) <= 48) {
                 npc.injectPlayer(player);
             }
-            if (getDistance(e.getPlayer().getLocation(), npc.getCurrentLocation()) > 5) {
+            if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) > 5) {
                 Collection<Entity> entities = npc.getWorld().getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
                 entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
                 for (Entity en : entities) {
@@ -164,6 +196,12 @@ public class Listeners implements Listener {
         }
     }
 
+    /**
+     * <p>The npc interaction handler while mounted on an entity
+     * </p>
+     * @param e The event callback
+     * @since 1.3-pre4
+     */
     @EventHandler
     public void onEntityMove(EntityMoveEvent e) {
         Entity et = e.getEntity();
@@ -174,12 +212,12 @@ public class Listeners implements Listener {
         for (Player player : players) {
             for (NPC npc : plugin.npcs.values()) {
                 if(npc.getTarget() != null) return;
-                if (getDistance(player.getLocation(), npc.getCurrentLocation()) <= 5) {
+                if (player.getLocation().distance(npc.getCurrentLocation()) <= 5) {
                     npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
-                } else if (getDistance(e.getFrom(), npc.getCurrentLocation()) >= 48 && getDistance(e.getTo(), npc.getCurrentLocation()) <= 48) {
+                } else if (e.getFrom().distance(npc.getCurrentLocation()) >= 48 && e.getTo().distance(npc.getCurrentLocation()) <= 48) {
                     npc.injectPlayer(player);
                 }
-                if (getDistance(player.getLocation(), npc.getCurrentLocation()) > 5) {
+                if (player.getLocation().distance(npc.getCurrentLocation()) > 5) {
                     Collection<Entity> entities = npc.getWorld().getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
                     entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
                     for (Entity en : entities) {
@@ -198,17 +236,23 @@ public class Listeners implements Listener {
 
     }
 
+    /**
+     * <p>The npc injection handler on velocity
+     * </p>
+     * @param e The event callback
+     * @since 1.3-pre4
+     */
     @EventHandler
     public void onVelocity(PlayerVelocityEvent e) {
         Player player = e.getPlayer();
         for (NPC npc : plugin.npcs.values()) {
             if(npc.getTarget() != null) return;
-            if (getDistance(e.getPlayer().getLocation(), npc.getCurrentLocation()) <= 5) {
+            if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
             } else if (player.getLocation().distance(npc.getCurrentLocation()) >= 48) {
                 npc.injectPlayer(player);
             }
-            if (getDistance(e.getPlayer().getLocation(), npc.getCurrentLocation()) > 5) {
+            if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) > 5) {
                 Collection<Entity> entities = npc.getWorld().getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
                 entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
                 for (Entity en : entities) {
@@ -225,7 +269,12 @@ public class Listeners implements Listener {
         }
     }
 
-
+    /**
+     * <p>The npc follow handler
+     * </p>
+     * @param e The event callback
+     * @since 1.3-pre2
+     */
     @EventHandler
     public void followHandler(PlayerMoveEvent e) {
         Player player = e.getPlayer();
@@ -242,18 +291,30 @@ public class Listeners implements Listener {
         }
     }
 
+    /**
+     * <p>The npc injection handler
+     * </p>
+     * @param e The event callback
+     * @since 1.0
+     */
     @EventHandler
     public void onTeleport(PlayerTeleportEvent e) {
         Player player = e.getPlayer();
         for (NPC npc : plugin.npcs.values()) {
-            if (getDistance(e.getPlayer().getLocation(), npc.getSpawnLoc()) <= 5) {
+            if (e.getPlayer().getLocation().distance(npc.getSpawnLoc()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
-            } else if (getDistance(e.getFrom(), npc.getSpawnLoc()) >= 48 && getDistance(e.getTo(), npc.getSpawnLoc()) <= 48) {
+            } else if (e.getFrom().distance(npc.getSpawnLoc()) >= 48 && e.getTo().distance(npc.getSpawnLoc()) <= 48) {
                 npc.injectPlayer(player);
             }
         }
     }
 
+    /**
+     * <p>The npc leave message handler. Cancles the leave message.
+     * </p>
+     * @param e The event callback
+     * @since 1.0
+     */
     @EventHandler
     public void onLeave(PlayerQuitEvent e){
         for (NPC npc : plugin.npcs.values()) {
@@ -263,6 +324,12 @@ public class Listeners implements Listener {
         }
     }
 
+    /**
+     * <p>The npc interaction handler
+     * </p>
+     * @param e The event callback
+     * @since 1.2
+     */
     @EventHandler
     public void onRespawn(PlayerRespawnEvent e){
         for (NPC npc : plugin.npcs.values()) {
@@ -270,9 +337,5 @@ public class Listeners implements Listener {
                 npc.injectPlayer(e.getPlayer());
             }
         }
-    }
-
-    private double getDistance(Location loc1, Location loc2) {
-        return loc2.distance(loc1);
     }
 }
