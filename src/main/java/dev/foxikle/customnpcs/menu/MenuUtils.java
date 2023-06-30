@@ -22,16 +22,22 @@ import java.util.Set;
 import java.util.UUID;
 
 public class MenuUtils {
+    
+    private final CustomNPCs plugin;
 
-    public static String getValue(String name){
-        return CustomNPCs.getInstance().getConfig().getConfigurationSection("Skins").getString(name+".value");
+    public MenuUtils(CustomNPCs plugin) {
+        this.plugin = plugin;
     }
 
-    public static String getSignature(String name){
-        return CustomNPCs.getInstance().getConfig().getConfigurationSection("Skins").getString(name+".signature");
+    public  String getValue(String name){
+        return plugin.getConfig().getConfigurationSection("Skins").getString(name+".value");
     }
 
-    public static List<Inventory> getCatalogueInventories() {
+    public  String getSignature(String name){
+        return plugin.getConfig().getConfigurationSection("Skins").getString(name+".signature");
+    }
+
+    public List<Inventory> getCatalogueInventories() {
         List<Inventory> invs = new ArrayList<>();
         List<ItemStack> items = makeIcons();
 
@@ -39,7 +45,7 @@ public class MenuUtils {
         ItemStack next = new ItemStack(Material.ARROW);
         ItemMeta nextMeta = next.getItemMeta();
         nextMeta.setDisplayName(ChatColor.translateAlternateColorCodes('§', "§eNext Page"));
-        NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "NoClickey");
+        NamespacedKey key = new NamespacedKey(plugin, "NoClickey");
         nextMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "next");
         next.setItemMeta(nextMeta);
 
@@ -79,11 +85,11 @@ public class MenuUtils {
         return invs;
     }
 
-    public static Inventory addBorder(Inventory inv) {
+    public Inventory addBorder(Inventory inv) {
         ItemStack item = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta meta = item.getItemMeta();
         List<String> lore = new ArrayList<>();
-        NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "NoClickey");
+        NamespacedKey key = new NamespacedKey(plugin, "NoClickey");
         meta.getCustomTagContainer().setCustomTag(key, ItemTagType.STRING, "PANE");
         meta.setDisplayName(" ");
         lore.add("");
@@ -98,12 +104,12 @@ public class MenuUtils {
         return inv;
     }
 
-    private static List<ItemStack> makeIcons(){
-        final FileConfiguration config = CustomNPCs.getInstance().getConfig();
+    private List<ItemStack> makeIcons(){
+        final FileConfiguration config = plugin.getConfig();
         ConfigurationSection section = config.getConfigurationSection("Skins");
         Set<String> names = section.getKeys(false);
         List<ItemStack> returnme = new ArrayList<>();
-        NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "SkinButton");
+        NamespacedKey key = new NamespacedKey(plugin, "SkinButton");
         for(String str: names){
             String value = section.getString(str+".value");
             returnme.add(getSkinIcon(key, str, str.replace("_", " "), ChatColor.AQUA, ChatColor.YELLOW, "The " + str.replace("_", " ") + " Skin", "", "Click to select!", value));

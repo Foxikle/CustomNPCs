@@ -18,8 +18,6 @@ import java.util.*;
 
 public final class CustomNPCs extends JavaPlugin {
 
-    //TODO: NPCaction command to deal with new npc actions.
-    public static CustomNPCs instance;
     public List<Inventory> invs;
 
     public List<Player> titleWaiting = new ArrayList<>();
@@ -28,18 +26,16 @@ public final class CustomNPCs extends JavaPlugin {
     public List<Player> messageWaiting = new ArrayList<>();
     public List<Player> commandWaiting = new ArrayList<>();
     public List<Player> nameWaiting = new ArrayList<>();
-    public List<TextDisplay> armorStands = new ArrayList<>();
+    public List<Player> soundWaiting = new ArrayList<>();
+    public List<TextDisplay> holograms = new ArrayList<>();
     public FileManager fileManager;
     public Map<Player, Integer> pages = new HashMap<>();
     public Map<UUID, NPC> npcs = new HashMap<>();
     public Map<Player, MenuCore> menuCores = new HashMap<>();
     public Map<Player, Action> editingActions = new HashMap<>();
 
+    private MenuUtils mu;
     private String sversion;
-
-    public static CustomNPCs getInstance() {
-        return instance;
-    }
 
     @Override
     public void onEnable() {
@@ -58,20 +54,20 @@ public final class CustomNPCs extends JavaPlugin {
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
             team.setPrefix(ChatColor.DARK_GRAY + "[NPC] ");
         }
-        instance = this;
 
-        this.getServer().getPluginManager().registerEvents(new NPCMenuListeners(), this);
-        this.getServer().getPluginManager().registerEvents(new Listeners(), this);
-        getCommand("npc").setExecutor(new CommandCore());
-        getCommand("npcaction").setExecutor(new NPCActionCommand());
-        this.fileManager = new FileManager();
+        this.getServer().getPluginManager().registerEvents(new NPCMenuListeners(this), this);
+        this.getServer().getPluginManager().registerEvents(new Listeners(this), this);
+        getCommand("npc").setExecutor(new CommandCore(this));
+        getCommand("npcaction").setExecutor(new NPCActionCommand(this));
+        this.fileManager = new FileManager(this);
+        this.mu = new MenuUtils(this);
         fileManager.createFiles();
         Bukkit.getLogger().info("Loading NPCs!");
         for (UUID uuid : fileManager.getNPCIds()) {
             fileManager.loadNPC(uuid);
         }
-        Bukkit.getScheduler().runTaskLater(this, () -> Bukkit.getOnlinePlayers().forEach(player -> npcs.values().forEach(npc -> Bukkit.getScheduler().runTaskLaterAsynchronously(CustomNPCs.getInstance(), () -> npc.injectPlayer(player), 5))), 20);
-        Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> invs = MenuUtils.getCatalogueInventories(), 20);
+        Bukkit.getScheduler().runTaskLater(this, () -> Bukkit.getOnlinePlayers().forEach(player -> npcs.values().forEach(npc -> Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> npc.injectPlayer(player), 5))), 20);
+        Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> invs = this.getMenuUtils().getCatalogueInventories(), 20);
 
     }
 
@@ -100,7 +96,7 @@ public final class CustomNPCs extends JavaPlugin {
     }
 
     public void addNPC(NPC npc, TextDisplay hologram) {
-        armorStands.add(hologram);
+        holograms.add(hologram);
         npcs.put(npc.getUUID(), npc);
     }
 
@@ -118,7 +114,10 @@ public final class CustomNPCs extends JavaPlugin {
 
     public NPC getNPCByID(UUID uuid) {
         if (uuid == null) throw new NullPointerException("uuid cannot be null");
-        if (!npcs.containsKey(uuid)) throw new IllegalArgumentException("NPC does not exist");
+        if (!npcs.containsKey(uuid)) throw new IllegalArgumentException("An NPC with the uuid '" + uuid + "' does not exist");
         return npcs.get(uuid);
+    }
+    public MenuUtils getMenuUtils(){
+        return mu;
     }
 }
