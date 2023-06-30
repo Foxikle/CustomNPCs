@@ -1,5 +1,6 @@
 package dev.foxikle.customnpcs.listeners;
 
+import dev.foxikle.customnpcs.Action;
 import dev.foxikle.customnpcs.CustomNPCs;
 import dev.foxikle.customnpcs.NPC;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -7,7 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -18,6 +19,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 
 import java.util.Collection;
+import java.util.List;
 
 public class Listeners implements Listener {
     @EventHandler
@@ -31,7 +33,7 @@ public class Listeners implements Listener {
                 if (player.hasPermission("customnpcs.edit") && player.isSneaking()) {
                     player.performCommand("npc edit " + npc.getUUID());
                 } else if (npc.isClickable()) {
-                    if (npc.getPlayer() == sp) player.performCommand(npc.getCommand());
+                    npc.getActions().forEach(action -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), action.getCommand(e.getPlayer())));
                 }
             }
         }
@@ -39,11 +41,70 @@ public class Listeners implements Listener {
 
     @EventHandler (priority = EventPriority.HIGHEST)
     public void onChat(AsyncPlayerChatEvent e) {
-        if (CustomNPCs.getInstance().waiting.contains(e.getPlayer())) {
-            CustomNPCs.getInstance().waiting.remove(e.getPlayer());
-            CustomNPCs.getInstance().menus.get(e.getPlayer()).getNpc().setCommand(e.getMessage());
-            e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set command to be '" + e.getMessage().replace("/", "") + "'");
-            Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> e.getPlayer().openInventory(CustomNPCs.getInstance().menus.get(e.getPlayer()).getMainMenu()));
+        if (CustomNPCs.getInstance().commandWaiting.contains(e.getPlayer())) {
+            Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> {
+                CustomNPCs.getInstance().commandWaiting.remove(e.getPlayer());
+                Action action = CustomNPCs.getInstance().editingActions.get(e.getPlayer());
+                List<String> currentArgs = action.getArgs();
+                currentArgs.clear();
+                currentArgs.addAll(List.of(e.getMessage().split(" ")));
+                e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set command to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
+                Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> e.getPlayer().openInventory(CustomNPCs.getInstance().menuCores.get(e.getPlayer()).getActionCustomizerMenu(action)));
+            });
+            e.setCancelled(true);
+        } else if (CustomNPCs.getInstance().nameWaiting.contains(e.getPlayer())) {
+            CustomNPCs.getInstance().nameWaiting.remove(e.getPlayer());
+            CustomNPCs.getInstance().menuCores.get(e.getPlayer()).getNpc().setName(e.getMessage());
+            e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set name to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + ChatColor.GREEN + "'");
+            Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> e.getPlayer().openInventory(CustomNPCs.getInstance().menuCores.get(e.getPlayer()).getMainMenu()));
+            e.setCancelled(true);
+        } else if (CustomNPCs.getInstance().titleWaiting.contains(e.getPlayer())) {
+            Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> {
+                CustomNPCs.getInstance().titleWaiting.remove(e.getPlayer());
+                List<String> args = CustomNPCs.getInstance().editingActions.get(e.getPlayer()).getArgsCopy();
+                Action action = CustomNPCs.getInstance().editingActions.get(e.getPlayer());
+                List<String> currentArgs = action.getArgs();
+                currentArgs.clear();
+                currentArgs.add(0, args.get(0));
+                currentArgs.add(1, args.get(1));
+                currentArgs.add(2, args.get(2));
+                currentArgs.addAll(List.of(e.getMessage().split(" ")));
+                e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set title to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
+                Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> e.getPlayer().openInventory(CustomNPCs.getInstance().menuCores.get(e.getPlayer()).getActionCustomizerMenu(action)));
+            });
+            e.setCancelled(true);
+        } else if (CustomNPCs.getInstance().messageWaiting.contains(e.getPlayer())) {
+            Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> {
+                CustomNPCs.getInstance().messageWaiting.remove(e.getPlayer());
+                Action action = CustomNPCs.getInstance().editingActions.get(e.getPlayer());
+                List<String> currentArgs = action.getArgs();
+                currentArgs.clear();
+                currentArgs.addAll(List.of(e.getMessage().split(" ")));
+                e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set message to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
+                Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> e.getPlayer().openInventory(CustomNPCs.getInstance().menuCores.get(e.getPlayer()).getActionCustomizerMenu(action)));
+            });
+            e.setCancelled(true);
+        } else if (CustomNPCs.getInstance().serverWaiting.contains(e.getPlayer())) {
+            Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> {
+                CustomNPCs.getInstance().serverWaiting.remove(e.getPlayer());
+                Action action = CustomNPCs.getInstance().editingActions.get(e.getPlayer());
+                List<String> currentArgs = action.getArgs();
+                currentArgs.clear();
+                currentArgs.addAll(List.of(e.getMessage().split(" ")));
+                e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set server to be '" + ChatColor.RESET +  e.getMessage() + ChatColor.RESET + "" + ChatColor.GREEN + "'");
+                Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> e.getPlayer().openInventory(CustomNPCs.getInstance().menuCores.get(e.getPlayer()).getActionCustomizerMenu(action)));
+            });
+            e.setCancelled(true);
+        } else if (CustomNPCs.getInstance().actionbarWaiting.contains(e.getPlayer())) {
+            Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> {
+                CustomNPCs.getInstance().actionbarWaiting.remove(e.getPlayer());
+                Action action = CustomNPCs.getInstance().editingActions.get(e.getPlayer());
+                List<String> currentArgs = action.getArgs();
+                currentArgs.clear();
+                currentArgs.addAll(List.of(e.getMessage().split(" ")));
+                e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set actiobar to be '" + ChatColor.RESET +  ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
+                Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> e.getPlayer().openInventory(CustomNPCs.getInstance().menuCores.get(e.getPlayer()).getActionCustomizerMenu(action)));
+            });
             e.setCancelled(true);
         }
     }
@@ -53,7 +114,7 @@ public class Listeners implements Listener {
             for (NPC npc : CustomNPCs.getInstance().getNPCs()) {
                 npc.injectPlayer(e.getPlayer());
             }
-            Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () ->{
+            Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> {
                 for (NPC npc : CustomNPCs.getInstance().getNPCs()) {
                     npc.injectPlayer(e.getPlayer());
                 }
@@ -64,13 +125,13 @@ public class Listeners implements Listener {
     public void onMove(PlayerMoveEvent e) {
         Player player = e.getPlayer();
         for (NPC npc : CustomNPCs.getInstance().npcs.values()) {
-            if (getDistance(e.getPlayer().getLocation(), npc.getLocation()) <= 5) {
+            if (getDistance(e.getPlayer().getLocation(), npc.getCurrentLocation()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
-            } else if (getDistance(e.getFrom(), npc.getLocation()) >= 48 && getDistance(e.getTo(), npc.getLocation()) <= 48) {
+            } else if (getDistance(e.getFrom(), npc.getCurrentLocation()) >= 48 && getDistance(e.getTo(), npc.getCurrentLocation()) <= 48) {
                 npc.injectPlayer(player);
             }
-            if (getDistance(e.getPlayer().getLocation(), npc.getLocation()) > 5) {
-                Collection<Entity> entities = npc.getWorld().getNearbyEntities(npc.getLocation(), 2.5, 2.5, 2.5);
+            if (getDistance(e.getPlayer().getLocation(), npc.getCurrentLocation()) > 5) {
+                Collection<Entity> entities = npc.getWorld().getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
                 entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
                 for (Entity en : entities) {
                     if (en.getType() == EntityType.PLAYER) {
@@ -79,19 +140,21 @@ public class Listeners implements Listener {
                         return;
                     }
                 }
+
                     npc.setYBodyRot((float) npc.getFacingDirection());
                     npc.setYRot((float) npc.getFacingDirection());
                     npc.setYHeadRot((float) npc.getFacingDirection());
             }
         }
+
     }
     @EventHandler
-    public void onMove(PlayerTeleportEvent e) {
+    public void onTeleport(PlayerTeleportEvent e) {
         Player player = e.getPlayer();
         for (NPC npc : CustomNPCs.getInstance().npcs.values()) {
-            if (getDistance(e.getPlayer().getLocation(), npc.getLocation()) <= 5) {
+            if (getDistance(e.getPlayer().getLocation(), npc.getSpawnLoc()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
-            } else if (getDistance(e.getFrom(), npc.getLocation()) >= 48 && getDistance(e.getTo(), npc.getLocation()) <= 48) {
+            } else if (getDistance(e.getFrom(), npc.getSpawnLoc()) >= 48 && getDistance(e.getTo(), npc.getSpawnLoc()) <= 48) {
                 npc.injectPlayer(player);
             }
         }

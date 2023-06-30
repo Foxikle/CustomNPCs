@@ -1,11 +1,11 @@
 package dev.foxikle.customnpcs.listeners;
 
-import dev.foxikle.customnpcs.ChatRunnable;
+import dev.foxikle.customnpcs.Action;
 import dev.foxikle.customnpcs.CustomNPCs;
 import dev.foxikle.customnpcs.NPC;
 import dev.foxikle.customnpcs.menu.MenuCore;
 import dev.foxikle.customnpcs.menu.MenuUtils;
-import net.wesjd.anvilgui.AnvilGUI;
+import dev.foxikle.customnpcs.runnables.*;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,34 +16,16 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static org.bukkit.Material.*;
 
 public class NPCMenuListeners implements Listener {
 
-    Map<Player, MenuCore> map = CustomNPCs.getInstance().menus;
-
-    private void OpenAnvil(Player p) {
-        new AnvilGUI.Builder()
-                .onClose(stateSnapshot -> stateSnapshot.getPlayer().sendMessage("You closed the inventory."))
-                .onClick((slot, stateSnapshot) -> {
-                    if(slot != AnvilGUI.Slot.OUTPUT) {
-                        return new ArrayList<>();
-                    }
-                    String text = stateSnapshot.getText();
-                    map.get(p).getNpc().setName(ChatColor.translateAlternateColorCodes('&', text));
-                    Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> p.openInventory(map.get(p).getMainMenu()), 1);
-                    p.sendMessage(ChatColor.GREEN + "The NPC's name was set to: " + ChatColor.BOLD + text);
-                    return List.of(AnvilGUI.ResponseAction.close());
-                })
-                .preventClose()
-                .text("Type here")
-                .title(ChatColor.BLACK + "" + ChatColor.BOLD + "  Enter a Name")
-                .plugin(CustomNPCs.getInstance())
-                .open(p);
-    }
-
+    Map<Player, MenuCore> map = CustomNPCs.getInstance().menuCores;
 
     @EventHandler
     public void OnInventoryClick(InventoryClickEvent e) {
@@ -54,14 +36,18 @@ public class NPCMenuListeners implements Listener {
         PersistentDataContainer tagContainer = item.getItemMeta().getPersistentDataContainer();
         Player player = (Player) e.getWhoClicked();
         MenuCore mc = map.get(player);
+        if(mc == null) return;
         NPC npc = mc.getNpc();
         if (tagContainer.get(key, PersistentDataType.STRING) != null) {
             if (tagContainer.get(key, PersistentDataType.STRING).equals("NameTag")) {
+                CustomNPCs.getInstance().nameWaiting.add(player);
+                player.sendMessage(ChatColor.GREEN + "Type the NPC name the chat.");
+                new NameRunnable(player).runTaskTimer(CustomNPCs.getInstance(), 1, 15);
+                player.closeInventory();
                 e.setCancelled(true);
-                OpenAnvil(player);
             } else if (tagContainer.get(key, PersistentDataType.STRING).equals("direction")) {
                 double dir = npc.getFacingDirection();
-                if(e.getAction() == InventoryAction.PICKUP_ALL) {
+                if (e.getAction() == InventoryAction.PICKUP_ALL) {
                     switch ((int) dir) {
                         case 180 -> {
                             npc.setDirection(-135.0);
@@ -109,7 +95,7 @@ public class NPCMenuListeners implements Listener {
                             player.openInventory(mc.getMainMenu());
                         }
                     }
-                } else if(e.getAction() == InventoryAction.PICKUP_HALF){
+                } else if (e.getAction() == InventoryAction.PICKUP_HALF) {
                     switch ((int) dir) {
                         case 180 -> {
                             npc.setDirection(player.getLocation().getYaw());
@@ -197,14 +183,10 @@ public class NPCMenuListeners implements Listener {
                 player.sendMessage(ChatColor.RED + "NPC aborted");
                 player.closeInventory();
                 e.setCancelled(true);
-            } else if (tagContainer.get(key, PersistentDataType.STRING).equals("command")) {
-                CustomNPCs.getInstance().waiting.add(player);
-                player.sendMessage(ChatColor.RED + "Type in chat the command that should be executed. Do not include the slash.");
-               new ChatRunnable(player).runTaskTimer(CustomNPCs.getInstance(), 1, 15);
-                player.closeInventory();
+            } else if (tagContainer.get(key, PersistentDataType.STRING).equals("actions")) {
+                player.openInventory(mc.getActionMenu());
                 e.setCancelled(true);
             }
-
         } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "SkinButton"))) {
             e.setCancelled(true);
             String name = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(CustomNPCs.getInstance(), "SkinButton"), PersistentDataType.STRING);
@@ -212,7 +194,7 @@ public class NPCMenuListeners implements Listener {
             npc.setSignature(MenuUtils.getSignature(name));
             npc.setSkinName(name);
             player.sendMessage(ChatColor.GREEN + "Skin changed to " + ChatColor.BOLD + name);
-            CustomNPCs.getInstance().pages.put(player,0);
+            CustomNPCs.getInstance().pages.put(player, 0);
             player.closeInventory();
             player.openInventory(mc.getMainMenu());
         } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "NoClickey"))) {
@@ -336,10 +318,480 @@ public class NPCMenuListeners implements Listener {
                         }
                     }
                 }
-                case "close" ->
-                        player.openInventory(mc.getMainMenu());
+                case "close" -> player.openInventory(mc.getMainMenu());
             }
             e.setCancelled(true);
+        } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "ActionButton"))) {
+            String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(CustomNPCs.getInstance(), "ActionButton"), PersistentDataType.STRING);
+            if (e.getAction() == InventoryAction.PICKUP_HALF) {
+                switch (itemData) {
+                    case "RUN_COMMAND" -> npc.getActions().forEach(action -> {
+                        if (action.getSubCommand().equals("RUN_COMMAND")) {
+                            npc.getActions().remove(action);
+                        }
+                    });
+                    case "DISPLAY_TITLE" -> npc.getActions().forEach(action -> {
+                        if (action.getSubCommand().equals("DISPLAY_TITLE")) {
+                            npc.getActions().remove(action);
+                        }
+                    });
+                    case "SEND_MESSAGE" -> npc.getActions().forEach(action -> {
+                        if (action.getSubCommand().equals("SEND_MESSAGE")) {
+                            npc.getActions().remove(action);
+                        }
+                    });
+                    case "PLAY_SOUND" -> npc.getActions().forEach(action -> {
+                        if (action.getSubCommand().equals("PLAY_SOUND")) {
+                            npc.getActions().remove(action);
+                        }
+                    });
+                    case "ACTION_BAR" -> npc.getActions().forEach(action -> {
+                        if (action.getSubCommand().equals("ACTION_BAR")) {
+                            npc.getActions().remove(action);
+                        }
+                    });
+                    case "TELEPORT" -> npc.getActions().forEach(action -> {
+                        if (action.getSubCommand().equals("TELEPORT")) {
+                            npc.getActions().remove(action);
+                        }
+                    });
+                    case "SEND_TO_SERVER" -> npc.getActions().forEach(action -> {
+                        if (action.getSubCommand().equals("SEND_TO_SERVER")) {
+                            npc.getActions().remove(action);
+                        }
+                    });
+                }
+            }
+        } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "ActionInv"))) {
+            String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(CustomNPCs.getInstance(), "ActionInv"), PersistentDataType.STRING);
+            List<Action> actionList = new ArrayList<>(npc.getActions());
+            if (itemData.equals("new_action")) {
+                player.openInventory(mc.getNewActionMenu());
+            } else if (itemData.equals("go_back")) {
+                player.openInventory(mc.getMainMenu());
+            } else {
+                if (e.getAction() == InventoryAction.PICKUP_HALF) {
+                    switch (itemData) {
+                        case "RUN_COMMAND" -> actionList.forEach(action -> {
+                            if (action.getSubCommand().equals("RUN_COMMAND")) {
+                                npc.getActions().remove(action);
+                            }
+                        });
+                        case "DISPLAY_TITLE" -> actionList.forEach(action -> {
+                            if (action.getSubCommand().equals("DISPLAY_TITLE")) {
+                                npc.getActions().remove(action);
+                            }
+                        });
+                        case "SEND_MESSAGE" -> actionList.forEach(action -> {
+                            if (action.getSubCommand().equals("SEND_MESSAGE")) {
+                                npc.getActions().remove(action);
+                            }
+                        });
+                        case "PLAY_SOUND" -> actionList.forEach(action -> {
+                            if (action.getSubCommand().equals("PLAY_SOUND")) {
+                                npc.getActions().remove(action);
+                            }
+                        });
+                        case "ACTION_BAR" -> actionList.forEach(action -> {
+                            if (action.getSubCommand().equals("ACTION_BAR")) {
+                                npc.getActions().remove(action);
+                            }
+                        });
+                        case "TELEPORT" -> actionList.forEach(action -> {
+                            if (action.getSubCommand().equals("TELEPORT")) {
+                                npc.getActions().remove(action);
+                            }
+                        });
+                        case "SEND_TO_SERVER" -> actionList.forEach(action -> {
+                            if (action.getSubCommand().equals("SEND_TO_SERVER")) {
+                                npc.getActions().remove(action);
+                            }
+                        });
+                    }
+                    e.setCancelled(true);
+                    player.openInventory(mc.getActionMenu());
+                } else {
+                    // Editing
+                    switch (itemData) {
+                        case "RUN_COMMAND" -> npc.getActions().forEach(action -> {
+                            if (action.getSubCommand().equals("RUN_COMMAND")) {
+                                player.openInventory(mc.getActionCustomizerMenu(action));
+                            }
+                        });
+                        case "DISPLAY_TITLE" -> npc.getActions().forEach(action -> {
+                            if (action.getSubCommand().equals("DISPLAY_TITLE")) {
+                                player.openInventory(mc.getActionCustomizerMenu(action));
+                            }
+                        });
+                        case "SEND_MESSAGE" -> npc.getActions().forEach(action -> {
+                            if (action.getSubCommand().equals("SEND_MESSAGE")) {
+                                player.openInventory(mc.getActionCustomizerMenu(action));
+                            }
+                        });
+                        case "PLAY_SOUND" -> npc.getActions().forEach(action -> {
+                            if (action.getSubCommand().equals("PLAY_SOUND")) {
+                                player.openInventory(mc.getActionCustomizerMenu(action));
+                            }
+                        });
+                        case "ACTION_BAR" -> npc.getActions().forEach(action -> {
+                            if (action.getSubCommand().equals("ACTION_BAR")) {
+                                player.openInventory(mc.getActionCustomizerMenu(action));
+                            }
+                        });
+                        case "TELEPORT" -> npc.getActions().forEach(action -> {
+                            if (action.getSubCommand().equals("TELEPORT")) {
+                                player.openInventory(mc.getActionCustomizerMenu(action));
+                            }
+                        });
+                        case "SEND_TO_SERVER" -> npc.getActions().forEach(action -> {
+                            if (action.getSubCommand().equals("SEND_TO_SERVER")) {
+                                player.openInventory(mc.getActionCustomizerMenu(action));
+                            }
+                        });
+                    }
+                }
+            }
+        } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "NewActionButton"))) {
+            String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(CustomNPCs.getInstance(), "NewActionButton"), PersistentDataType.STRING);
+
+            Action action = null;
+
+            switch (itemData) {
+                case "RUN_COMMAND" ->
+                        action = new Action("RUN_COMMAND", new ArrayList<>(Arrays.asList("command", "to", "be", "run")));
+                case "DISPLAY_TITLE" ->
+                        action = new Action("DISPLAY_TITLE", new ArrayList<>(Arrays.asList("10", "20", "10", "title!")));
+                case "SEND_MESSAGE" ->
+                        action = new Action("SEND_MESSAGE", new ArrayList<>(Arrays.asList("message", "to", "be", "sent")));
+                case "PLAY_SOUND" -> {
+                    //action = new Action("PLAY_SOUND", new ArrayList<>(Arrays.asList("1", "1", "sound", "to", "be", "played")));
+                    player.sendMessage(ChatColor.RED + "This is currently not implemented yet. Please nudge Foxikle about getting it done sooner.");
+                    e.setCancelled(true);
+                    return;
+                }
+                case "ACTION_BAR" ->
+                        action = new Action("ACTION_BAR", new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")));
+                case "TELEPORT" ->
+                        action = new Action("TELEPORT", new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")));
+                case "SEND_TO_SERVER" ->
+                        action = new Action("SEND_TO_SERVER", new ArrayList<>(Arrays.asList("server", "to", "be", "sent", "to")));
+                case "go_back" -> player.openInventory(mc.getActionMenu());
+            }
+            if(action != null) {
+                CustomNPCs.getInstance().editingActions.put(player, action);
+                player.openInventory(mc.getActionCustomizerMenu(action));
+            }
+        } else if (tagContainer.getKeys().contains(new NamespacedKey(CustomNPCs.getInstance(), "CustomizeActionButton"))) {
+            String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(CustomNPCs.getInstance(), "CustomizeActionButton"), PersistentDataType.STRING);
+            Action action = CustomNPCs.getInstance().editingActions.get(player);
+            switch (itemData) {
+                // RUN_COMMAND
+                case "edit_command" -> {
+                    player.closeInventory();
+                    CustomNPCs.getInstance().commandWaiting.add(player);
+                    new CommandRunnable(player).runTaskTimer(CustomNPCs.getInstance(), 0, 10);
+                    e.setCancelled(true);
+                    return;
+                }
+                // DISPLAY_TITLE
+                case "increment_in" -> {
+                    if(action.getSubCommand().equalsIgnoreCase("DISPLAY_TITLE")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
+                        }
+                    }
+                }
+                case "increment_stay" -> {
+                    if(action.getSubCommand().equalsIgnoreCase("DISPLAY_TITLE")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 20));
+                        }
+                    }
+                }
+                case "increment_out" -> {
+                    if(action.getSubCommand().equalsIgnoreCase("DISPLAY_TITLE")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
+                        }
+                    }
+                }
+                case "decrement_in" -> {
+                    if(action.getSubCommand().equalsIgnoreCase("DISPLAY_TITLE")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
+                        }
+                    }
+                }
+
+                case "decrement_stay" -> {
+                    if(action.getSubCommand().equalsIgnoreCase("DISPLAY_TITLE")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 20));
+                        }
+                    }
+                }
+                case "decrement_out" -> {
+                    if(action.getSubCommand().equalsIgnoreCase("DISPLAY_TITLE")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 20));
+                        }
+                    }
+                }
+                case "edit_title" -> {
+                    player.closeInventory();
+                    CustomNPCs.getInstance().titleWaiting.add(player);
+                    new TitleRunnable(player).runTaskTimer(CustomNPCs.getInstance(), 0, 10);
+                    e.setCancelled(true);
+                    return;
+                }
+
+                //SEND_MESSAGE
+                case "edit_message" ->{
+                    player.closeInventory();
+                    CustomNPCs.getInstance().messageWaiting.add(player);
+                    new MessageRunnable(player).runTaskTimer(CustomNPCs.getInstance(), 0,10);
+                    e.setCancelled(true);
+                    return;
+                }
+                    // use a runnable
+                case "PLAY_SOUND" -> // not done yet.
+                        //player.openInventory(mc.getActionCustomizerMenu(new Action("PLAY_SOUND", new ArrayList<>(Arrays.asList("1", "1", "sound", "to", "be", "played")))));
+                        player.sendMessage(ChatColor.RED + "How in the kentucky fried flip flop did you get this menu?!");
+                // ACTION_BAR
+                case "edit_actionbar" -> {
+                    player.closeInventory();
+                    CustomNPCs.getInstance().actionbarWaiting.add(player);
+                    new ActionbarRunnable(player).runTaskTimer(CustomNPCs.getInstance(), 0, 10);
+                    e.setCancelled(true);
+                    return;
+                }
+
+                // TELEPORT
+                case "increment_x" -> {
+                    if(action.getSubCommand().equalsIgnoreCase("TELEPORT")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
+                        }
+                    }
+                }
+                case "increment_y" -> {
+                    if (action.getSubCommand().equalsIgnoreCase("TELEPORT")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 20));
+                        }
+                    }
+                }
+                case "increment_z" -> {
+                    if (action.getSubCommand().equalsIgnoreCase("TELEPORT")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
+                        }
+                    }
+                }
+                case "increment_yaw" -> {
+                    if (action.getSubCommand().equalsIgnoreCase("TELEPORT")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            if(Integer.parseInt(action.getArgs().get(3)) == 180) {
+                                player.sendMessage(ChatColor.RED + "The yaw cannot be greater than 180!");
+                            } else if ((Integer.parseInt(action.getArgs().get(3)) + 1) > 180) {
+                                action.getArgs().set(3, String.valueOf(180));
+                            } else {
+                                action.getArgs().set(3, String.valueOf(Integer.parseInt(action.getArgs().get(4)) + 1));
+                            }
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            if(Integer.parseInt(action.getArgs().get(3)) == 180) {
+                                player.sendMessage(ChatColor.RED + "The yaw cannot be greater than 180!");
+                            } else if ((Integer.parseInt(action.getArgs().get(3)) + 5) > 180) {
+                                action.getArgs().set(3, String.valueOf(180));
+                            } else {
+                                action.getArgs().set(3, String.valueOf(Integer.parseInt(action.getArgs().get(4)) + 5));
+                            }
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            if(Integer.parseInt(action.getArgs().get(3)) == 180) {
+                                player.sendMessage(ChatColor.RED + "The yaw cannot be greater than 180!");
+                            } else if ((Integer.parseInt(action.getArgs().get(3)) + 20) > 180) {
+                                action.getArgs().set(3, String.valueOf(180));
+                            } else {
+                                action.getArgs().set(3, String.valueOf(Integer.parseInt(action.getArgs().get(3)) + 20));
+                            }
+                        }
+                    }
+                }
+                case "increment_pitch" -> {
+                    if (action.getSubCommand().equalsIgnoreCase("TELEPORT")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            if(Integer.parseInt(action.getArgs().get(4)) == 90) {
+                                player.sendMessage(ChatColor.RED + "The pitch cannot be greater than 90!");
+                            } else if ((Integer.parseInt(action.getArgs().get(4)) + 1) > 90) {
+                                action.getArgs().set(4, String.valueOf(90));
+                            } else {
+                                action.getArgs().set(4, String.valueOf(Integer.parseInt(action.getArgs().get(4)) + 1));
+                            }
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            if(Integer.parseInt(action.getArgs().get(4)) == 90) {
+                                player.sendMessage(ChatColor.RED + "The pitch cannot be greater than 90!");
+                            } else if ((Integer.parseInt(action.getArgs().get(4)) + 5) > 90) {
+                                action.getArgs().set(4, String.valueOf(90));
+                            } else {
+                                action.getArgs().set(4, String.valueOf(Integer.parseInt(action.getArgs().get(4)) + 5));
+                            }
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            if(Integer.parseInt(action.getArgs().get(4)) == 90) {
+                                player.sendMessage(ChatColor.RED + "The pitch cannot be greater than 90!");
+                            } else if ((Integer.parseInt(action.getArgs().get(4)) + 20) > 90) {
+                                action.getArgs().set(4, String.valueOf(90));
+                            } else {
+                                action.getArgs().set(4, String.valueOf(Integer.parseInt(action.getArgs().get(4)) + 20));
+                            }
+                        }
+                    }
+                }
+                case "decrement_x" -> {
+                    if (action.getSubCommand().equalsIgnoreCase("TELEPORT")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
+                        }
+                    }
+                }
+                case "decrement_y" -> {
+                    if(action.getSubCommand().equalsIgnoreCase("TELEPORT")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 20));
+                        }
+                    }
+                }
+                case "decrement_z" -> {
+                    if (action.getSubCommand().equalsIgnoreCase("TELEPORT")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 20));
+                        }
+                    }
+                }
+                case "decrement_yaw" -> {
+                    if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                        if(Integer.parseInt(action.getArgs().get(3)) == -180) {
+                            player.sendMessage(ChatColor.RED + "The yaw cannot be greater than 180!");
+                        } else if ((Integer.parseInt(action.getArgs().get(3)) - 1) > -180) {
+                            action.getArgs().set(3, String.valueOf(-180));
+                        } else {
+                            action.getArgs().set(3, String.valueOf(Integer.parseInt(action.getArgs().get(4)) - 1));
+                        }
+                    } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                        if(Integer.parseInt(action.getArgs().get(3)) == -180) {
+                            player.sendMessage(ChatColor.RED + "The yaw cannot be greater than 180!");
+                        } else if ((Integer.parseInt(action.getArgs().get(3)) - 5) > -180) {
+                            action.getArgs().set(3, String.valueOf(-180));
+                        } else {
+                            action.getArgs().set(3, String.valueOf(Integer.parseInt(action.getArgs().get(4)) - 5));
+                        }
+                    } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                        if(Integer.parseInt(action.getArgs().get(3)) == 180) {
+                            player.sendMessage(ChatColor.RED + "The yaw cannot be greater than 180!");
+                        } else if ((Integer.parseInt(action.getArgs().get(3)) - 20) > -180) {
+                            action.getArgs().set(3, String.valueOf(-180));
+                        } else {
+                            action.getArgs().set(3, String.valueOf(Integer.parseInt(action.getArgs().get(3)) - 20));
+                        }
+                    }
+                }
+                case "decrement_pitch" -> {
+                    if (action.getSubCommand().equalsIgnoreCase("TELEPORT")) {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            if(Integer.parseInt(action.getArgs().get(4)) == -90) {
+                                player.sendMessage(ChatColor.RED + "The pitch cannot be less than 90!");
+                            } else if ((Integer.parseInt(action.getArgs().get(4)) - 1) < -90) {
+                                action.getArgs().set(4, String.valueOf(-90));
+                            } else {
+                                action.getArgs().set(4, String.valueOf(Integer.parseInt(action.getArgs().get(4)) - 1));
+                            }
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            if(Integer.parseInt(action.getArgs().get(4)) == -90) {
+                                player.sendMessage(ChatColor.RED + "The pitch cannot be less than 90!");
+                            } else if ((Integer.parseInt(action.getArgs().get(4)) - 5) < -90) {
+                                action.getArgs().set(4, String.valueOf(-90));
+                            } else {
+                                action.getArgs().set(4, String.valueOf(Integer.parseInt(action.getArgs().get(4)) - 5));
+                            }
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            if(Integer.parseInt(action.getArgs().get(4)) == -90) {
+                                player.sendMessage(ChatColor.RED + "The pitch cannot be less than 90!");
+                            } else if ((Integer.parseInt(action.getArgs().get(4)) - 20) < -90) {
+                                action.getArgs().set(4, String.valueOf(-90));
+                            } else {
+                                action.getArgs().set(4, String.valueOf(Integer.parseInt(action.getArgs().get(4)) - 20));
+                            }
+                        }
+                    }
+                }
+
+                // SEND_TO_SERVER
+                case "edit_server" -> {
+                    player.closeInventory();
+                    CustomNPCs.getInstance().serverWaiting.add(player);
+                    new ServerRunnable(player).runTaskTimer(CustomNPCs.getInstance(), 0,10);
+                    e.setCancelled(true);
+                    return;
+                }
+                    // runnable things
+                case "go_back" -> {
+                    Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> player.openInventory(mc.getActionMenu()), 1);
+                }
+                case "confirm" -> {
+                    npc.addAction(action);
+                    Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> player.openInventory(mc.getActionMenu()), 1);
+                }
+            }
+            e.setCancelled(true);
+            player.openInventory(mc.getActionCustomizerMenu(action));
         }
     }
 }
+

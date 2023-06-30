@@ -15,8 +15,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.*;
-import org.bukkit.craftbukkit.v1_19_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
@@ -44,7 +44,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     player.sendMessage(ChatColor.translateAlternateColorCodes('§', """
-                            §2§m                         §r§3§l Custom NPCs §r§7[§8v1.1§7] §r§2§m                          \s
+                            §2§m                         §r§3§l Custom NPCs §r§7[§8v1.3-PRE2§7] §r§2§m                          \s
                             §r                                 §r§6By Foxikle \n
                             
                             """));
@@ -115,9 +115,9 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     profile.getProperties().put("textures", new Property("textures", null, null));
                     MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
                     ServerLevel nmsWorld = ((CraftWorld) player.getWorld()).getHandle();
-                    NPC npc = new NPC(nmsServer, nmsWorld, profile,  player.getLocation(), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), true, true, "", "not set", UUID.randomUUID(), "", "", "not set", 180);
+                    NPC npc = new NPC(nmsServer, nmsWorld, profile,  player.getLocation(), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), true, true,  "not set", UUID.randomUUID(), "", "", "not set", 180, null, new ArrayList<>());
                     MenuCore mc = new MenuCore(npc);
-                    CustomNPCs.getInstance().menus.put(player, mc);
+                    CustomNPCs.getInstance().menuCores.put(player, mc);
                     CustomNPCs.getInstance().pages.put(player, 0);
                     player.openInventory(mc.getMainMenu());
                 } else if (args[0].equalsIgnoreCase("reload")) {
@@ -174,9 +174,9 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             profile.getProperties().put("textures", new Property("textures", null, null));
                             MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
                             ServerLevel nmsWorld = ((CraftWorld) player.getWorld()).getHandle();
-                            NPC newNpc = new NPC(nmsServer, nmsWorld, profile, npc.getLocation(), npc.getHandItem(), npc.getItemInOffhand(), npc.getHeadItem(), npc.getChestItem(), npc.getLegsItem(), npc.getBootsItem(), npc.isClickable(), npc.isResilient(), npc.getCommand(), npc.getHologramName(), uuid, npc.getValue(), npc.getSignature(), npc.getSkinName(), npc.getFacingDirection());
+                            NPC newNpc = new NPC(nmsServer, nmsWorld, profile, npc.getSpawnLoc(), npc.getHandItem(), npc.getItemInOffhand(), npc.getHeadItem(), npc.getChestItem(), npc.getLegsItem(), npc.getBootsItem(), npc.isClickable(), npc.isResilient(), npc.getHologramName(), uuid, npc.getValue(), npc.getSignature(), npc.getSkinName(), npc.getFacingDirection(), null, npc.getActions());
                             MenuCore mc = new MenuCore(newNpc);
-                            CustomNPCs.getInstance().menus.put(player, mc);
+                            CustomNPCs.getInstance().menuCores.put(player, mc);
                             CustomNPCs.getInstance().pages.put(player, 0);
                             player.openInventory(mc.getMainMenu());
                         }, 1);

@@ -1,5 +1,6 @@
 package dev.foxikle.customnpcs.menu;
 
+import dev.foxikle.customnpcs.Action;
 import dev.foxikle.customnpcs.CustomNPCs;
 import dev.foxikle.customnpcs.NPC;
 import org.bukkit.Bukkit;
@@ -24,7 +25,7 @@ public class MenuCore {
         this.npc = npc;
     }
 
-    public Inventory getMainMenu(){
+    public Inventory getMainMenu() {
         List<String> lore = new ArrayList<>();
         Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "     Create a New NPC"));
         NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "MenuButtonTag");
@@ -43,12 +44,12 @@ public class MenuCore {
         handMeta.setDisplayName(ChatColor.DARK_GREEN + "Change Item");
         lore.clear();
         lore.add(ChatColor.YELLOW + "The current euipment is ");
-        lore.add(ChatColor.YELLOW  + "Main Hand: " + ChatColor.AQUA + npc.getHandItem().getType());
-        lore.add(ChatColor.YELLOW  + "Offhand: " + ChatColor.AQUA + npc.getItemInOffhand().getType());
-        lore.add(ChatColor.YELLOW  + "Helmet: " + ChatColor.AQUA + npc.getHeadItem().getType());
-        lore.add(ChatColor.YELLOW  + "Chestplate: " + ChatColor.AQUA + npc.getChestItem().getType());
-        lore.add(ChatColor.YELLOW  + "Leggings: " + ChatColor.AQUA + npc.getLegsItem().getType());
-        lore.add(ChatColor.YELLOW  + "Boots: " + ChatColor.AQUA + npc.getBootsItem().getType());
+        lore.add(ChatColor.YELLOW + "Main Hand: " + ChatColor.AQUA + npc.getHandItem().getType());
+        lore.add(ChatColor.YELLOW + "Offhand: " + ChatColor.AQUA + npc.getItemInOffhand().getType());
+        lore.add(ChatColor.YELLOW + "Helmet: " + ChatColor.AQUA + npc.getHeadItem().getType());
+        lore.add(ChatColor.YELLOW + "Chestplate: " + ChatColor.AQUA + npc.getChestItem().getType());
+        lore.add(ChatColor.YELLOW + "Leggings: " + ChatColor.AQUA + npc.getLegsItem().getType());
+        lore.add(ChatColor.YELLOW + "Boots: " + ChatColor.AQUA + npc.getBootsItem().getType());
 
         handMeta.setLore(lore);
         equipment.setItemMeta(handMeta);
@@ -59,7 +60,7 @@ public class MenuCore {
         positionMeta.setDisplayName(ChatColor.DARK_GREEN + "Facing Direction");
         double dir = npc.getFacingDirection();
         lore.clear();
-        switch ((int) dir){
+        switch ((int) dir) {
             case 180 -> {
                 lore.add("");
                 lore.add(ChatColor.DARK_AQUA + "▸ North");
@@ -72,7 +73,8 @@ public class MenuCore {
                 lore.add(ChatColor.GREEN + "North West");
                 lore.add(ChatColor.GREEN + "Player Direction");
                 lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");            }
+                lore.add(ChatColor.YELLOW + "Click to change!");
+            }
             case -135 -> {
                 lore.add("");
                 lore.add(ChatColor.GREEN + "North");
@@ -206,21 +208,19 @@ public class MenuCore {
         confirmButton.setItemMeta(confirmMeta);
 
         ItemStack clickableButton;
-        if(npc.isClickable()){
+        if (npc.isClickable()) {
             clickableButton = new ItemStack(Material.OAK_SAPLING);
 
-            ItemStack commandButton = new ItemStack(Material.RECOVERY_COMPASS);
-            ItemMeta commandButtonMeta = commandButton.getItemMeta();
-            commandButtonMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "command");
-            commandButtonMeta.setDisplayName(ChatColor.DARK_GREEN + "Change command");
+            ItemStack actionsButton = new ItemStack(Material.RECOVERY_COMPASS);
+            ItemMeta actionsButtonMeta = actionsButton.getItemMeta();
+            actionsButtonMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "actions");
+            actionsButtonMeta.setDisplayName(ChatColor.DARK_GREEN + "Change actions");
             lore.clear();
-            lore.add(ChatColor.YELLOW + "The command run when ");
+            lore.add(ChatColor.YELLOW + "The actions performed when ");
             lore.add(ChatColor.YELLOW + "interacting with the npc. ");
-            lore.add(ChatColor.YELLOW + "The current command is:");
-            lore.add(ChatColor.AQUA + npc.getCommand());
-            commandButtonMeta.setLore(lore);
-            commandButton.setItemMeta(commandButtonMeta);
-            inv.setItem(34, commandButton);
+            actionsButtonMeta.setLore(lore);
+            actionsButton.setItemMeta(actionsButtonMeta);
+            inv.setItem(34, actionsButton);
         } else {
             clickableButton = new ItemStack(Material.DEAD_BUSH);
         }
@@ -248,7 +248,7 @@ public class MenuCore {
         return inv;
     }
 
-    public Inventory getArmorMenu(){
+    public Inventory getArmorMenu() {
         ItemStack helm = npc.getHeadItem();
         ItemStack cp = npc.getChestItem();
         ItemStack legs = npc.getLegsItem();
@@ -298,7 +298,7 @@ public class MenuCore {
         inv.setItem(42, item1);
         inv.setItem(43, item1);
 
-        if(helm.getType().isAir()){
+        if (helm.getType().isAir()) {
             ItemStack item = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
             ItemMeta meta = item.getItemMeta();
             List<String> lore = new ArrayList<>();
@@ -325,7 +325,7 @@ public class MenuCore {
             helm.setItemMeta(meta);
             inv.setItem(13, helm);
         }
-        if(cp.getType().isAir()){
+        if (cp.getType().isAir()) {
             ItemStack item = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
             ItemMeta meta = item.getItemMeta();
             List<String> lore = new ArrayList<>();
@@ -352,7 +352,7 @@ public class MenuCore {
             cp.setItemMeta(meta);
             inv.setItem(22, cp);
         }
-        if(legs.getType().isAir()){
+        if (legs.getType().isAir()) {
             ItemStack item = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
             ItemMeta meta = item.getItemMeta();
             List<String> lore = new ArrayList<>();
@@ -381,7 +381,7 @@ public class MenuCore {
             legs.setItemMeta(meta);
             inv.setItem(31, legs);
         }
-        if(boots.getType().isAir()){
+        if (boots.getType().isAir()) {
             ItemStack item = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
             ItemMeta meta = item.getItemMeta();
             List<String> lore = new ArrayList<>();
@@ -410,7 +410,7 @@ public class MenuCore {
             boots.setItemMeta(meta);
             inv.setItem(40, boots);
         }
-        if(hand.getType().isAir()){
+        if (hand.getType().isAir()) {
             ItemStack item = new ItemStack(Material.YELLOW_STAINED_GLASS_PANE);
             ItemMeta meta = item.getItemMeta();
             List<String> lore = new ArrayList<>();
@@ -437,7 +437,7 @@ public class MenuCore {
             hand.setItemMeta(meta);
             inv.setItem(23, hand);
         }
-        if(offhand.getType().isAir()){
+        if (offhand.getType().isAir()) {
             ItemStack item = new ItemStack(Material.YELLOW_STAINED_GLASS_PANE);
             ItemMeta meta = item.getItemMeta();
             List<String> lore = new ArrayList<>();
@@ -474,7 +474,588 @@ public class MenuCore {
         return inv;
     }
 
-    public NPC getNpc(){
+    public Inventory getActionMenu() {
+        Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Actions"));
+        NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "ActionInv");
+
+        List<Action> actions = npc.getActions();
+
+        for (Action action : actions) {
+            ItemStack item = new ItemStack(Material.BEDROCK);
+            ItemMeta meta = item.getItemMeta();
+            List<String> lore = new ArrayList<>();
+            switch (action.getSubCommand()) {
+                case "DISPLAY_TITLE" -> {
+                    item.setType(Material.OAK_SIGN);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bDisplay Title"));
+                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "DISPLAY_TITLE");
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current title is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                }
+                case "SEND_MESSAGE" -> {
+                    item.setType(Material.PAPER);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Message"));
+                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "SEND_MESSAGE");
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current message is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                }
+                case "PLAY_SOUND" -> {
+                    item.setType(Material.BELL);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePlay Sound"));
+                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "PLAY_SOUND");
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current sound is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                }
+                case "RUN_COMMAND" -> {
+                    item.setType(Material.ANVIL);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRun Command"));
+                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "RUN_COMMAND");
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe command is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                }
+                case "ACTION_BAR" -> {
+                    item.setType(Material.IRON_INGOT);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Actionbar"));
+                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "ACTION_BAR");
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current actionbar is: '" + String.join(" ", action.getArgs()) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                }
+                case "TELEPORT" -> {
+                    item.setType(Material.ENDER_PEARL);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bTeleport Player"));
+                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "TELEPORT");
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current Teleport location is: '" + String.join(", ", action.getArgs()) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                }
+                case "SEND_TO_SERVER" -> {
+                    item.setType(Material.GRASS_BLOCK);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend To Bungeecord Server"));
+                    meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "SEND_TO_SERVER");
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe server is called: '" + String.join(" ", action.getArgs()) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                }
+            }
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            inv.addItem(item);
+        }
+
+        List<String> lore = new ArrayList<>();
+
+        // Close Button
+        ItemStack close = new ItemStack(Material.BARRIER);
+        ItemMeta closeMeta = close.getItemMeta();
+        closeMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&lGO BACK"));
+        closeMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
+        closeMeta.setLore(lore);
+        close.setItemMeta(closeMeta);
+        lore.clear();
+        inv.setItem(31, close);
+
+        // Add New
+        ItemStack newAction = new ItemStack(Material.LILY_PAD);
+        ItemMeta actionMeta = newAction.getItemMeta();
+        actionMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&a&lNew Action"));
+        actionMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "new_action");
+        newAction.setItemMeta(actionMeta);
+        lore.clear();
+        inv.addItem(newAction);
+
+        return inv;
+    }
+
+    public Inventory getActionCustomizerMenu(Action action) {
+        Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Action"));
+        NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "CustomizeActionButton");
+
+        // Go back to actions menu
+        ItemStack goBack = new ItemStack(Material.ARROW);
+        ItemMeta goBackMeta = goBack.getItemMeta();
+        goBackMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
+        goBackMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&6Go Back"));
+        goBack.setItemMeta(goBackMeta);
+        inv.setItem(36, goBack);
+
+        // Confirm the action creation
+        ItemStack confirm = new ItemStack(Material.LILY_PAD);
+        ItemMeta confirmMeta = confirm.getItemMeta();
+        confirmMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "confirm");
+        confirmMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&aConfirm"));
+        confirm.setItemMeta(confirmMeta);
+        inv.setItem(40, confirm);
+
+        List<String> args = action.getArgsCopy();
+
+        switch (action.getSubCommand()) {
+            case "RUN_COMMAND" -> {
+                ItemStack selectCommand = new ItemStack(Material.ANVIL);
+                ItemMeta meta = selectCommand.getItemMeta();
+                List<String> lore = new ArrayList<>();
+                meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_command");
+                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eClick To Edit Command"));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&b" + String.join(" ", args)));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "\n&eClick to change!"));
+                meta.setLore(lore);
+                selectCommand.setItemMeta(meta);
+                inv.setItem(22, selectCommand);
+            }
+            case "DISPLAY_TITLE" -> {
+
+                /* 6 buttons. 3 "displays" Fade in, stay, fade out. 3 buttons increment, 3 decrement.  1 button to edit title
+
+                 # # # # # # # # #
+                 # I # I # I # # #
+                 # O # O # O # E #
+                 # D # D # D # # #
+                 # # # # # # # # #
+
+                 ^^ Example inventory layout.
+                 - I = increment
+                 - D = decrement
+                 - O = display
+                 - E = title displayed
+                 - # = empty space
+                */
+                
+                // Increments
+
+                List<String> incLore = new ArrayList<>();
+                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to add 1"));
+                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Right Click to add 5"));
+                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Shift + Right Click to add 20"));
+
+                ItemStack incIn = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncIn = incIn.getItemMeta();
+                metaIncIn.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease fade in duration"));
+                metaIncIn.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_in");
+                metaIncIn.setLore(incLore);
+                incIn.setItemMeta(metaIncIn);
+                inv.setItem(10, incIn);
+
+                ItemStack incStay = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncStay = incStay.getItemMeta();
+                metaIncStay.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease display duration"));
+                metaIncStay.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_stay");
+                metaIncStay.setLore(incLore);
+                incStay.setItemMeta(metaIncStay);
+                inv.setItem(12, incStay);
+
+                ItemStack incOut = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncOut = incOut.getItemMeta();
+                metaIncOut.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease fade out duration"));
+                metaIncOut.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_out");
+                metaIncOut.setLore(incLore);
+                incOut.setItemMeta(metaIncOut);
+                inv.setItem(14, incOut);
+
+    
+                
+                //decrements
+
+                List<String> decLore = new ArrayList<>();
+                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to remove 1"));
+                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Right Click to remove 5"));
+                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Shift + Click to remove 20"));
+
+                ItemStack decIn = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecIn = decIn.getItemMeta();
+                metaDecIn.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease fade in duration"));
+                metaDecIn.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_in");
+                metaDecIn.setLore(decLore);
+                decIn.setItemMeta(metaDecIn);
+                inv.setItem(28, decIn);
+
+                ItemStack decStay = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecStay = decStay.getItemMeta();
+                metaDecStay.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease display duration"));
+                metaDecStay.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_stay");
+                metaDecStay.setLore(decLore);
+                decStay.setItemMeta(metaDecStay);
+                inv.setItem(30, decStay);
+
+                ItemStack decOut = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecOut = decOut.getItemMeta();
+                metaDecOut.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease fade out duration"));
+                metaDecOut.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_out");
+                metaDecOut.setLore(decLore);
+                decOut.setItemMeta(metaDecOut);
+                inv.setItem(32, decOut);
+
+                // Displays
+
+                List<String> displayLore = new ArrayList<>();
+                displayLore.add(ChatColor.translateAlternateColorCodes('&', "&8In ticks"));
+
+
+                ItemStack displayIn = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayIn = displayIn.getItemMeta();
+                metaDisplayIn.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eFade in: " + args.get(0)));
+                args.remove(0);
+                metaDisplayIn.setLore(displayLore);
+                displayIn.setItemMeta(metaDisplayIn);
+                inv.setItem(19, displayIn);
+
+                ItemStack displayStay = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayStay = displayStay.getItemMeta();
+                metaDisplayStay.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDisplay time: " + args.get(0)));
+                args.remove(0);
+                metaDisplayStay.setLore(displayLore);
+                displayStay.setItemMeta(metaDisplayStay);
+                inv.setItem(21, displayStay);
+
+                ItemStack displayOut = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayOut = displayOut.getItemMeta();
+                metaDisplayOut.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eFade out: " + args.get(0)));
+                args.remove(0);
+                metaDisplayOut.setLore(displayLore);
+                displayOut.setItemMeta(metaDisplayOut);
+                inv.setItem(23, displayOut);
+
+                ItemStack title = new ItemStack(Material.OAK_HANGING_SIGN);
+                ItemMeta titleMeta = title.getItemMeta();
+                titleMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', String.join(" ", args)));
+                titleMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_title");
+                title.setItemMeta(titleMeta);
+                inv.setItem(25, title);
+
+            }
+            case "SEND_MESSAGE" -> {
+                /* 1 button to edit message
+
+                 # # # # # # # # #
+                 # # # # # # # # #
+                 # # # # E # # # #
+                 # # # # # # # # #
+                 # # # # # # # # #
+
+                 - E = Message sent
+                 - # = empty space
+                */
+
+                ItemStack message = new ItemStack(Material.OAK_HANGING_SIGN);
+                ItemMeta titleMeta = message.getItemMeta();
+                titleMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', String.join(" ", args)));
+                titleMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_message");
+                message.setItemMeta(titleMeta);
+                inv.setItem(22, message);
+            }
+            case "PLAY_SOUND" -> {
+                /* 4 buttons. 2 "displays" pitch, volume, 2 buttons increment, 2 decrement.  1 button to edit sound Enter it with a command for auto complete.
+
+                 # # # # # # # # #
+                 # I # I # # # # #
+                 # O # O # # E # #
+                 # D # D # # # # #
+                 # # # # # # # # #
+
+                 ^^ Example inventory layout.
+                 - I = increment
+                 - D = decrement
+                 - O = display
+                 - E = Sound played
+                 - # = empty space
+                */
+            }
+            case "ACTION_BAR" -> {
+                /* 1 button to edit message
+
+                 # # # # # # # # #
+                 # # # # # # # # #
+                 # # # # E # # # #
+                 # # # # # # # # #
+                 # # # # # # # # #
+
+                 - E = Message sent
+                 - # = empty space
+                */
+
+                ItemStack message = new ItemStack(Material.IRON_INGOT);
+                ItemMeta titleMeta = message.getItemMeta();
+                titleMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', String.join(" ", args)));
+                titleMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_actionbar");
+                message.setItemMeta(titleMeta);
+                inv.setItem(22, message);
+            }
+            case "TELEPORT" -> {
+
+                 /* 6 buttons. 3 "displays" Fade in, stay, fade out. 3 buttons increment, 3 decrement.  1 button to edit YAW
+
+                 # # # # # # # # #
+                 # I I I # I # I #
+                 # x y z # P # Y #
+                 # D D D # D # D #
+                 # # # # # # # # #
+
+                 ^^ Example inventory layout.
+                 - I = increment
+                 - D = decrement
+                 - O = display
+                 - Y = Yaw
+                 - # = empty space
+                */
+
+
+                List<String> incLore = new ArrayList<>();
+                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to add 1"));
+                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Right Click to add 5"));
+                incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Shift + Right Click to add 20"));
+
+                ItemStack incX = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncX = incX.getItemMeta();
+                metaIncX.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease X coordinate"));
+                metaIncX.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_x");
+                metaIncX.setLore(incLore);
+                incX.setItemMeta(metaIncX);
+                inv.setItem(10, incX);
+
+                ItemStack incY = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncY = incY.getItemMeta();
+                metaIncY.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease Y coordinate"));
+                metaIncY.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_y");
+                metaIncY.setLore(incLore);
+                incY.setItemMeta(metaIncY);
+                inv.setItem(11, incY);
+
+                ItemStack incZ = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncZ = incZ.getItemMeta();
+                metaIncZ.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease Z coordinate"));
+                metaIncZ.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_z");
+                metaIncZ.setLore(incLore);
+                incZ.setItemMeta(metaIncZ);
+                inv.setItem(12, incZ);
+
+                ItemStack incYaw = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncYaw = incYaw.getItemMeta();
+                metaIncYaw.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease yaw"));
+                metaIncYaw.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_yaw");
+                metaIncYaw.setLore(incLore);
+                incYaw.setItemMeta(metaIncYaw);
+                inv.setItem(16, incYaw);
+
+                ItemStack incPitch = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncPitch = incPitch.getItemMeta();
+                metaIncPitch.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease pitch"));
+                metaIncPitch.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_pitch");
+                metaIncPitch.setLore(incLore);
+                incPitch.setItemMeta(metaIncPitch);
+                inv.setItem(14, incPitch);
+
+
+                //decrements
+
+                List<String> decLore = new ArrayList<>();
+                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to remove 1"));
+                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Right Click to remove 5"));
+                decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Shift + Right Click to remove 20"));
+
+                ItemStack decX = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecX = decX.getItemMeta();
+                metaDecX.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease X coordinate"));
+                metaDecX.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_z");
+                metaDecX.setLore(decLore);
+                decX.setItemMeta(metaDecX);
+                inv.setItem(28, decX);
+
+                ItemStack decY = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecY = decY.getItemMeta();
+                metaDecY.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease Y coordinate"));
+                metaDecY.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_y");
+                metaDecY.setLore(decLore);
+                decY.setItemMeta(metaDecY);
+                inv.setItem(29, decY);
+
+                ItemStack decZ = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecOut = decZ.getItemMeta();
+                metaDecOut.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease Z coordinate"));
+                metaDecOut.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_z");
+                metaDecOut.setLore(decLore);
+                decZ.setItemMeta(metaDecOut);
+                inv.setItem(30, decZ);
+
+                ItemStack decYaw = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecYaw = decYaw.getItemMeta();
+                metaDecYaw.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease yaw"));
+                metaDecYaw.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_yaw");
+                metaDecYaw.setLore(decLore);
+                decYaw.setItemMeta(metaDecYaw);
+                inv.setItem(34, decYaw);
+
+                ItemStack decPitch = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecPitch = decPitch.getItemMeta();
+                metaDecPitch.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease pitch"));
+                metaDecPitch.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_pitch");
+                metaDecPitch.setLore(decLore);
+                decPitch.setItemMeta(metaDecPitch);
+                inv.setItem(32, decPitch);
+
+                // Displays
+
+                List<String> displayLore = new ArrayList<>();
+                displayLore.add(ChatColor.translateAlternateColorCodes('&', "&8In blocks"));
+
+
+                ItemStack displayIn = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayIn = displayIn.getItemMeta();
+                metaDisplayIn.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eX: " + args.get(0)));
+                args.remove(0);
+                metaDisplayIn.setLore(displayLore);
+                displayIn.setItemMeta(metaDisplayIn);
+                inv.setItem(19, displayIn);
+
+                ItemStack displayStay = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayStay = displayStay.getItemMeta();
+                metaDisplayStay.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eY: " + args.get(0)));
+                args.remove(0);
+                metaDisplayStay.setLore(displayLore);
+                displayStay.setItemMeta(metaDisplayStay);
+                inv.setItem(20, displayStay);
+
+                ItemStack displayOut = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayOut = displayOut.getItemMeta();
+                metaDisplayOut.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eZ: " + args.get(0)));
+                args.remove(0);
+                metaDisplayOut.setLore(displayLore);
+                displayOut.setItemMeta(metaDisplayOut);
+                inv.setItem(21, displayOut);
+
+                ItemStack displayYaw = new ItemStack(Material.COMPASS);
+                ItemMeta displayYawMeta = displayYaw.getItemMeta();
+                displayYawMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eYaw: " + args.get(0)));
+                args.remove(0);
+                displayYaw.setItemMeta(displayYawMeta);
+                inv.setItem(25, displayYaw);
+
+                ItemStack displayPitch = new ItemStack(Material.COMPASS);
+                ItemMeta displayPitchMeta = displayPitch.getItemMeta();
+                displayPitchMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePitch: " + args.get(0)));
+                args.remove(0);
+                displayPitch.setItemMeta(displayPitchMeta);
+                inv.setItem(23, displayPitch);
+
+
+
+            }
+            case "SEND_TO_SERVER" -> {
+                /* 1 button to edit message
+
+                 # # # # # # # # #
+                 # # # # # # # # #
+                 # # # # S # # # #
+                 # # # # # # # # #
+                 # # # # # # # # #
+
+                 - S = Server Name
+                 - # = empty space
+                */
+
+                ItemStack message = new ItemStack(Material.GRASS_BLOCK);
+                ItemMeta titleMeta = message.getItemMeta();
+                titleMeta.setDisplayName(ChatColor.YELLOW + "Selected server: " + String.join(" ", args));
+                titleMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_server");
+                message.setItemMeta(titleMeta);
+                inv.setItem(22, message);
+            }
+        }
+
+        return inv;
+    }
+
+    public Inventory getNewActionMenu(){
+        Inventory inv = MenuUtils.addBorder(Bukkit.createInventory(null, 27, ChatColor.BLACK + "" + ChatColor.BOLD + "       New NPC Action"));
+        NamespacedKey key = new NamespacedKey(CustomNPCs.getInstance(), "NewActionButton");
+
+        ItemStack goBack = new ItemStack(Material.ARROW);
+        ItemMeta goBackMeta = goBack.getItemMeta();
+        goBackMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
+        goBackMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&6Go Back"));
+        goBack.setItemMeta(goBackMeta);
+        inv.setItem(18, goBack);
+
+        // make and add the npc action types.
+
+        ItemStack item = new ItemStack(Material.BEDROCK);
+        ItemMeta  meta = item.getItemMeta();
+        List<String> lore = new ArrayList<>();
+
+
+            item.setType(Material.OAK_SIGN);
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bDisplay Title"));
+            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "DISPLAY_TITLE");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&eDisplays a title for the player."));
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            lore.clear();
+            inv.addItem(item);
+
+            item.setType(Material.PAPER);
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Message"));
+            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "SEND_MESSAGE");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&eSends the player a message."));
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            lore.clear();
+            inv.addItem(item);
+
+            item.setType(Material.BELL);
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePlay Sound"));
+            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "PLAY_SOUND");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&ePlays a sound for the player."));
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            lore.clear();
+            inv.addItem(item);
+
+            item.setType(Material.ANVIL);
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRun Command"));
+            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "RUN_COMMAND");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&eRuns a command as the player."));
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            lore.clear();
+            inv.addItem(item);
+
+            item.setType(Material.IRON_INGOT);
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Actionbar"));
+            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "ACTION_BAR");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&e Sends the player an actionbar."));
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            lore.clear();
+            inv.addItem(item);
+
+            item.setType(Material.ENDER_PEARL);
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bTeleport Player"));
+            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "TELEPORT");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&eTeleports a player upon interacting."));
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            lore.clear();
+            inv.addItem(item);
+
+            item.setType(Material.GRASS_BLOCK);
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend To Bungeecord Server"));
+            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "SEND_TO_SERVER");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&eSends a player to a bungeecord"));
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eserver upon interacting."));
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            lore.clear();
+            inv.addItem(item);
+
+
+
+
+        return inv;
+    }
+
+    public NPC getNpc() {
         return this.npc;
     }
 }

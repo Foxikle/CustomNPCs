@@ -1,6 +1,7 @@
 package dev.foxikle.customnpcs;
 
 import dev.foxikle.customnpcs.commands.CommandCore;
+import dev.foxikle.customnpcs.commands.NPCActionCommand;
 import dev.foxikle.customnpcs.listeners.Listeners;
 import dev.foxikle.customnpcs.listeners.NPCMenuListeners;
 import dev.foxikle.customnpcs.menu.MenuCore;
@@ -20,12 +21,19 @@ public final class CustomNPCs extends JavaPlugin {
     //TODO: NPCaction command to deal with new npc actions.
     public static CustomNPCs instance;
     public List<Inventory> invs;
-    public List<Player> waiting = new ArrayList<>();
+
+    public List<Player> titleWaiting = new ArrayList<>();
+    public List<Player> serverWaiting = new ArrayList<>();
+    public List<Player> actionbarWaiting = new ArrayList<>();
+    public List<Player> messageWaiting = new ArrayList<>();
+    public List<Player> commandWaiting = new ArrayList<>();
+    public List<Player> nameWaiting = new ArrayList<>();
     public List<TextDisplay> armorStands = new ArrayList<>();
     public FileManager fileManager;
     public Map<Player, Integer> pages = new HashMap<>();
     public Map<UUID, NPC> npcs = new HashMap<>();
-    public Map<Player, MenuCore> menus = new HashMap<>();
+    public Map<Player, MenuCore> menuCores = new HashMap<>();
+    public Map<Player, Action> editingActions = new HashMap<>();
 
     private String sversion;
 
@@ -55,6 +63,7 @@ public final class CustomNPCs extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new NPCMenuListeners(), this);
         this.getServer().getPluginManager().registerEvents(new Listeners(), this);
         getCommand("npc").setExecutor(new CommandCore());
+        getCommand("npcaction").setExecutor(new NPCActionCommand());
         this.fileManager = new FileManager();
         fileManager.createFiles();
         Bukkit.getLogger().info("Loading NPCs!");
@@ -73,11 +82,7 @@ public final class CustomNPCs extends JavaPlugin {
         } catch (ArrayIndexOutOfBoundsException ex){
             return false;
         }
-
-       if(sversion.equals("v1_19_R3")){
-            return true;
-        }
-        return false;
+        return (sversion.equals("v1_20_R1") || sversion.equals("v1_20_1_R1"));
     }
 
     @Override

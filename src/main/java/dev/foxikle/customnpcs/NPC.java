@@ -12,13 +12,15 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Entity ;
+import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
@@ -26,10 +28,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class NPC extends ServerPlayer {
     private UUID uuid;
@@ -41,8 +40,7 @@ public class NPC extends ServerPlayer {
     private ItemStack legsItem;
     private ItemStack bootsItem;
     private boolean clickable;
-    private String command;
-    private Location location;
+    private Location spawnLoc;
     private String name;
     private World world;
     private TextDisplay hologram;
@@ -51,10 +49,12 @@ public class NPC extends ServerPlayer {
     private boolean resilient;
     private String skinName;
     private double direction;
+    private Player target;
+    private ArrayList<Action> actions;
 
-    public NPC(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location loc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean clickable, boolean resilient, String command, String name, UUID uuid, String value, String signature, String skinName, double direction) {
+    public NPC(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean clickable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, Player target, Collection<Action> actions) {
         super(minecraftServer, worldServer, gameProfile);
-        this.location = loc;
+        this.spawnLoc = spawnLoc;
         this.offhandItem = offhandItem;
         this.headItem = headItem;
         this.chestItem = chestItem;
@@ -62,16 +62,17 @@ public class NPC extends ServerPlayer {
         this.bootsItem = bootsItem;
         this.clickable = clickable;
         this.handItem = handItem;
-        this.command = command;
         this.name = name;
         this.profile = gameProfile;
-        this.world = loc.getWorld();
+        this.world = spawnLoc.getWorld();
         this.uuid = uuid;
         this.signature = signature;
         this.value = value;
         this.resilient = resilient;
         this.skinName = skinName;
         this.direction = direction;
+        this.target = target;
+        this.actions = new ArrayList<>(actions);
         super.connection = new NetworkHandler(minecraftServer, new NetworkManager(PacketFlow.CLIENTBOUND), this);
     }
 
@@ -82,16 +83,16 @@ public class NPC extends ServerPlayer {
     }
 
     public void createNPC() {
-        Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> this.hologram = setupHologram(this.getLocation(), name));
+        Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> this.hologram = setupHologram(this.getSpawnLoc(), name));
         if (CustomNPCs.getInstance().npcs.containsKey(uuid)) {
             CustomNPCs.getInstance().getNPCByID(uuid).remove();
             CustomNPCs.getInstance().getNPCByID(uuid).delete();
         }
         setSkin();
-        setPosRot(this, location);
+        setPosRot(this, spawnLoc);
         this.getBukkitEntity().setInvulnerable(true);
         this.getBukkitEntity().setNoDamageTicks(Integer.MAX_VALUE);
-        super.getLevel().addNewPlayer(this);
+        super.getCommandSenderWorld().addFreshEntity(this);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HAND, handItem, true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.OFF_HAND, offhandItem, true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HEAD, headItem, true);
@@ -119,11 +120,10 @@ public class NPC extends ServerPlayer {
     }
 
     private TextDisplay setupHologram(Location loc, String name) {
-        TextDisplay hologram = (TextDisplay) loc.getWorld().spawnEntity(new Location(loc.getWorld(), loc.getX(), clickable ? loc.getY() + 2.05 : loc.getY() + 1.8, loc.getZ()), EntityType.TEXT_DISPLAY);
+        TextDisplay hologram = (TextDisplay) loc.getWorld().spawnEntity(new Location(loc.getWorld(), loc.getX(), clickable ? loc.getY() + 2.33 : loc.getY() + 2.05, loc.getZ()), EntityType.TEXT_DISPLAY);
         hologram.setInvulnerable(true);
-        hologram.setGravity(true);
-        hologram.setCustomNameVisible(true);
-        hologram.setCustomName(ChatColor.translateAlternateColorCodes('&', name));
+        hologram.setBillboard(Display.Billboard.CENTER);
+        hologram.setText(ChatColor.translateAlternateColorCodes('&', name));
         hologram.addScoreboardTag("npcHologram");
         return hologram;
     }
@@ -204,20 +204,24 @@ public class NPC extends ServerPlayer {
         this.resilient = resilient;
     }
 
-    public String getCommand() {
-        return command;
+    public Location getCurrentLocation() {
+        return super.getBukkitEntity().getLocation();
     }
 
-    public void setCommand(String command) {
-        this.command = command;
+    public Location getSpawnLoc(){
+        return spawnLoc;
     }
 
-    public Location getLocation() {
-        return location;
+    public org.bukkit.entity.Entity getTarget() {
+        return target;
     }
 
-    public void setLocation(Location location) {
-        this.location = location;
+    public void setTarget(Player target) {
+        this.target = target;
+    }
+
+    public void setSpawnLoc(Location spawnLoc) {
+        this.spawnLoc = spawnLoc;
     }
 
     public String getHologramName() {
@@ -235,6 +239,15 @@ public class NPC extends ServerPlayer {
     public void setWorld(World world) {
         this.world = world;
     }
+
+    public ArrayList<Action> getActions(){
+        return actions;
+    }
+
+    public void addAction(Action action){
+        actions.add(action);
+    }
+
 
     public void injectPlayer(Player p) {
 
@@ -277,6 +290,11 @@ public class NPC extends ServerPlayer {
             ClientboundRemoveEntitiesPacket playerInforemove = new ClientboundRemoveEntitiesPacket(super.getId());
             connection.send(playerInforemove);
         }
+    }
+
+    @Override
+    public void moveTo(Vec3 v){
+        moveTo(v.x(), v.y(), v.z());
     }
 
     public String getSignature() {
