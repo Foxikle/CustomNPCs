@@ -68,7 +68,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     player.sendMessage(ChatColor.translateAlternateColorCodes('§', """
-                            §2§m                     §r§3§l Custom NPCs §r§7[§8v1.3-PRE3§7] §r§2§m                      \s
+                            §2§m                     §r§3§l Custom NPCs §r§7[§8v1.3§7] §r§2§m                      \s
                             §r                                 §r§6By Foxikle \n
                             
                             """));
