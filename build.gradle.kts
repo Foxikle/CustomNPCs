@@ -17,7 +17,7 @@ dependencies {
 }
 
 group = "dev.foxikle"
-version = "1.3-pre5"
+version = "1.3"
 description = "CustomNPCs"
 java.sourceCompatibility = JavaVersion.VERSION_16
 
