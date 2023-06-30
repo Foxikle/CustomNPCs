@@ -84,7 +84,6 @@ public class NPC extends ServerPlayer {
      */
     public NPC(CustomNPCs plugin, MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean interactable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions) {
         super(minecraftServer, worldServer, gameProfile);
-        if(gameProfile.getId() != uuid) throw new IllegalArgumentException("The GameProfile's UUID MUST match the NPC's UUID!");
         this.spawnLoc = spawnLoc;
         this.offhandItem = offhandItem;
         this.headItem = headItem;
