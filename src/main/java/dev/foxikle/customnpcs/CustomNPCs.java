@@ -449,7 +449,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
          * @since 1.3-pre5
          */
         public NPCBuilder setResilient(boolean resilient){
-            npc.setClickable(resilient);
+            npc.setResilient(resilient);
             return this;
         }
 
