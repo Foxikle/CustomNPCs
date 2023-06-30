@@ -155,7 +155,17 @@ public final class CustomNPCs extends JavaPlugin implements @NotNull PluginMessa
     // API stuffs
     @ApiStatus.Experimental
     public static class NPCBuilder {
+        /**
+         * The NPC this builder is creating
+         */
+
         private final NPC npc;
+        /**
+         * The intended way to create an NPC
+         *
+         * @author Foxikle
+         *
+         */
         public NPCBuilder(@NotNull World world){
             Preconditions.checkArgument(world != null, "world cannot be null.");
             GameProfile profile = new GameProfile(UUID.randomUUID(), ChatColor.RED + "ERROR!");
@@ -164,96 +174,207 @@ public final class CustomNPCs extends JavaPlugin implements @NotNull PluginMessa
             this.npc = new NPC(instance, nmsServer, nmsWorld, profile, new Location(world, 0, 0, 0), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), false, true, "", profile.getId(), "",  "", null, 0, null,  new ArrayList<>());
         }
 
+        /**
+         * <p>Sets the display name of the NPC
+         * </p>
+         * @param name the item to be used
+         * @return the NPCBuilder with the modified name
+         * @since 1.3-pre5
+         */
         public NPCBuilder setName(@NotNull String name){
             Preconditions.checkArgument(name != null, "name cannot be null.");
             npc.setName(name);
             return this;
         }
 
+        /**
+         * <p>Sets the location of the NPC
+         * </p>
+         * @param loc the new location for the NPC
+         * @return the NPCBuilder with the modified location
+         * @since 1.3-pre5
+         */
         public NPCBuilder setPostion(@NotNull Location loc){
             Preconditions.checkArgument(loc != null, "loc cannot be null.");
             npc.setSpawnLoc(loc);
             return this;
         }
 
+        /**
+         * <p>Sets the leggings the NPC is wearing
+         * </p>
+         * @param skinName the name to reference the skin by.
+         * @param signature the encoded signature of the skin.
+         * @param value the encoded value of the skin
+         * @return the NPCBuilder with the modified skin
+         * @see <a href="ttps://mineskin.org/">Use this site by InventiveTalent to find value and signature</a>
+         * @since 1.3-pre5
+         */
         public NPCBuilder setSkin(@NotNull String skinName, @NotNull String signature, @NotNull String value){
             Preconditions.checkArgument(signature != null && skinName.length() != 0, "signature cannot be null or empty.");
             Preconditions.checkArgument(value != null && skinName.length() != 0, "value cannot be null or empty.");
             Preconditions.checkArgument(skinName != null && skinName.length() != 0, "skinName cannot be null or empty");
-            FileConfiguration config = instance.getConfig();
-            ConfigurationSection section = config.getConfigurationSection("Skins");
-            Set<String> keys = section.getKeys(false);
-            if(keys.contains(skinName)){
-                ConfigurationSection newSection = section.createSection(skinName + "=");
-                newSection.set("value", value);
-                newSection.set("signature", signature);
-            }
-            instance.saveConfig();
             GameProfile profile = npc.getGameProfile();
             npc.setSkinName(skinName);
+            npc.setValue(value);
+            npc.setSignature(signature);
             profile.getProperties().removeAll("textures");
             profile.getProperties().put("textures", new Property("textures", value, signature));
             return this;
         }
-        // equipment setters
+
+        /**
+         * <p>Sets the helmet the NPC is wearing
+         * </p>
+                * @param item the item to be used
+         * @return the NPCBuilder with the modified helmet
+         * @since 1.3-pre5
+         */
         public NPCBuilder setHelmet(ItemStack item){
             Preconditions.checkArgument(item != null, "item cannot be null.");
             npc.setHeadItem(item);
             return this;
         }
 
+        /**
+         * <p>Sets the chestplate the NPC is wearing
+         * </p>
+         * @param item the item to be used
+         * @return the NPCBuilder with the modified chestplate
+         * @since 1.3-pre5
+         */
         public NPCBuilder setChestplate(ItemStack item){
             Preconditions.checkArgument(item != null, "item cannot be null.");
             npc.setChestItem(item);
             return this;
         }
 
+        /**
+         * <p>Sets the leggings the NPC is wearing
+         * </p>
+         * @param item the item to be used
+         * @return the NPCBuilder with the modified pair leggings
+         * @since 1.3-pre5
+         */
         public NPCBuilder setLeggings(ItemStack item){
             Preconditions.checkArgument(item != null, "item cannot be null.");
             npc.setLegsItem(item);
             return this;
         }
 
+        /**
+         * <p>Sets the boots the NPC is wearing
+         * </p>
+         * @param item the item to be used
+         * @return the NPCBuilder with the modified pair of boots
+         * @since 1.3-pre5
+         */
         public NPCBuilder setBoots(ItemStack item){
             Preconditions.checkArgument(item != null, "item cannot be null.");
             npc.setBootsItem(item);
             return this;
         }
 
+        /**
+         * <p>Sets the item in the NPC's hand
+         * </p>
+         * @param item the item to be used
+         * @return the NPCBuilder with the modified hand item
+         * @since 1.3-pre5
+         */
         public NPCBuilder setHandItem(ItemStack item){
             Preconditions.checkArgument(item != null, "item cannot be null.");
             npc.setHandItem(item);
             return this;
         }
 
+        /**
+         * <p>Sets the item in the NPC's offhand
+         * </p>
+         * @param item the item to be used
+         * @return the NPCBuilder with the modified offhand item
+         * @since 1.3-pre5
+         */
         public NPCBuilder setOffhandItem(ItemStack item){
             Preconditions.checkArgument(item != null, "item cannot be null.");
             npc.setOffhandItem(item);
             return this;
         }
 
+        /**
+         * <p>Sets the NPC's interactability
+         * </p>
+         * @param interactable should the NPC be interactable?
+         * @return the NPCBuilder with the modified interacability
+         * @since 1.3-pre5
+         */
         public NPCBuilder setInteractable(boolean interactable){
             npc.setClickable(interactable);
             return this;
         }
 
+        /**
+         * <p>Sets the NPC's persistence (staying on server restart/reload).
+         * </p>
+         * @param resilient should the NPC persist on reloads/server restarts?
+         * @return the NPCBuilder with the modified resiliency
+         * @since 1.3-pre5
+         */
         public NPCBuilder setResilient(boolean resilient){
             npc.setClickable(resilient);
             return this;
         }
 
+        /**
+         * <p>Sets the NPC's facing direction
+         * </p>
+         * @param heading the heading the NPC should face.
+         * @return the NPCBuilder with the modified heading
+         * @since 1.3-pre5
+         */
         public NPCBuilder setHeading(double heading){
             npc.setDirection(heading);
             return this;
         }
 
+        /**
+         * <p>Sets the NPC's actions to the specified Collection
+         * </p>
+         * @param actions the colection of actions
+         * @return the NPCBuilder with the modified set of actions
+         * @see Action
+         * @since 1.3-pre5
+         */
         public NPCBuilder setActions(Collection<Action> actions){
             npc.setActions(actions);
             return this;
         }
 
+        /**
+         * <p>Creates the NPC.
+         * </p>
+         * @since 1.3-pre5
+         */
         public void create(){
             npc.createNPC();
+        }
+
+        /**
+         * <p>Permanantly deletes an NPC. They will NOT reappear on the next reload or server restart.
+         * </p>
+         * @since 1.3-pre5
+         */
+        public void delete() {
+            npc.delete();
+        }
+
+        /**
+         * <p>Temporarily removes an NPC. They will reappear on the next reload or server restart.
+         * </p>
+         * @since 1.3-pre5
+         */
+        public void remove() {
+            npc.remove();
         }
     }
 }
