@@ -57,7 +57,6 @@ public class CommandCore implements CommandExecutor, TabCompleter {
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if(!label.equalsIgnoreCase("npc")) return false;
         if(sender instanceof Player player) {
             if (args.length == 0) {
                 player.performCommand("npc help");
@@ -68,7 +67,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     player.sendMessage(ChatColor.translateAlternateColorCodes('§', """
-                            §2§m                     §r§3§l Custom NPCs §r§7[§8v1.3§7] §r§2§m                      \s
+                            §2§m                      §r§3§l Custom NPCs §r§7[§8v1.3.1§7] §r§2§m                      \s
                             §r                                 §r§6By Foxikle \n
                             
                             """));
@@ -116,7 +115,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 } else if (args[0].equalsIgnoreCase("list")) {
                     player.performCommand("npc manage");
                 } else if (args[0].equalsIgnoreCase("clear_holograms")) {
-                    if(player.hasPermission("customnpcs.commands.removeHolograms")){
+                    if(!player.hasPermission("customnpcs.commands.removeHolograms")){
                         AtomicInteger stands = new AtomicInteger();
                         player.getWorld().getEntities().forEach(entity -> {
                             if(entity.getScoreboardTags().contains("npcHologram")){
@@ -127,8 +126,8 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         player.sendMessage((stands.get() == 1) ? ChatColor.GREEN + "Successfully removed " + stands.get() + " npc hologram." : ChatColor.GREEN + "Successfully removed " + stands.get() + " npc holograms.");
                     } else {
                         player.sendMessage(RED + "You lack the propper permissions to remove npc holograms.");
+                        return true;
                     }
-                    return true;
                 } else if (args[0].equalsIgnoreCase("create")) {
                     if(!player.hasPermission("customnpcs.create")){
                         player.sendMessage(RED + "You lack the propper permissions to create npcs.");

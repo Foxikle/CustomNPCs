@@ -9,12 +9,16 @@ import dev.foxikle.customnpcs.listeners.Listeners;
 import dev.foxikle.customnpcs.listeners.NPCMenuListeners;
 import dev.foxikle.customnpcs.menu.MenuCore;
 import dev.foxikle.customnpcs.menu.MenuUtils;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec3;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftEntity;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.Inventory;
@@ -168,9 +172,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @return If the plugin is compatable with the server
      */
     public boolean setup(){
-        /**
-         * The version the server is running
-         */
         String sversion = "N/A";
         try{
             sversion = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
@@ -283,11 +284,12 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     @ApiStatus.Experimental
     public static class NPCBuilder {
+
         /**
          * The NPC this builder is creating
          */
-
         private final NPC npc;
+
         /**
          * The intended way to create an NPC
          * @param world The world for the NPC to be create in
@@ -476,6 +478,31 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         public NPCBuilder setActions(Collection<Action> actions){
             npc.setActions(actions);
             return this;
+        }
+
+        /**
+         * Move the npc to the specified location. Takes into account pitch and yaw
+         * @param location the location to move to
+         */
+        public void moveTo(Location location){
+            npc.moveTo(location.x(), location.y(), location.z(), location.getYaw(), location.getPitch());
+        }
+
+        /**
+         * Points the NPC's head in the direction of an entity
+         * @param e The entity to look at
+         * @param atHead If the npc should look head (true), or feet (false)
+         */
+        public void lookAt(Entity e, boolean atHead){
+            npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftEntity) e).getHandle(), atHead ? EntityAnchorArgument.Anchor.EYES : EntityAnchorArgument.Anchor.FEET);
+        }
+
+        /**
+         * Points the NPC's head at a location
+         * @param location the location to look at
+         */
+        public void lookAt(Location location) {
+            npc.lookAt(EntityAnchorArgument.Anchor.EYES, new Vec3(location.x(), location.y(), location.z()));
         }
 
         /**
