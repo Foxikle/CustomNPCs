@@ -17,7 +17,7 @@ dependencies {
 }
 
 group = "dev.foxikle"
-version = "1.3"
+version = "1.3.1"
 description = "CustomNPCs"
 java.sourceCompatibility = JavaVersion.VERSION_16
 
@@ -25,16 +25,19 @@ java.sourceCompatibility = JavaVersion.VERSION_16
 publishing {
     repositories {
         maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/Foxikle/CustomNPCs")
-            credentials {
-                username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
-                password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+            name = "FoxikleRepository"
+            url = uri("https://repositories.foxikle.dev/releases")
+            credentials(PasswordCredentials::class)
+            authentication {
+                create<BasicAuthentication>("basic")
             }
         }
     }
     publications {
-        register<MavenPublication>("gpr") {
+        create<MavenPublication>("final") {
+            groupId = project.group.toString()
+            artifactId = project.name
+            version = project.version.toString()
             from(components["java"])
         }
     }
@@ -68,7 +71,7 @@ tasks {
     }
 
     reobfJar {
-        outputJar.set(layout.buildDirectory.file("C:/Users/tscal/Desktop/bungeeserver/Etheria/plugins/CustomNPCs-${project.version}.jar"))
+        outputJar.set(layout.buildDirectory.file("C:/Users/tscal/Desktop/testserver/plugins/CustomNPCs-${project.version}.jar"))
     }
 
     shadowJar {

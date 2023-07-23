@@ -172,9 +172,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @return If the plugin is compatable with the server
      */
     public boolean setup(){
-        /**
-         * The version the server is running
-         */
         String sversion = "N/A";
         try{
             sversion = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
