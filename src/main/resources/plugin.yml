@@ -27,7 +27,7 @@ permissions:
     - customnpcs.commands.removeHolograms
   customnpcs.commands.*:
     description: A wildcard permission for all command permissions
-    default: false
+    default: op
     children:
       - customnpcs.commands.manage
       - customnpcs.commands.help
@@ -49,13 +49,13 @@ permissions:
     default: op
   customnpcs.edit:
     description: A permission required to edit NPCs
-    default: false
+    default: op
   customnpcs.create:
     description: A permission required to create NPCs
-    default: false
+    default: op
   customnpcs.delete:
     description: A permission required to delete NPCs
-    default: false
+    default: op
   customnpcs.commands.removeHolograms:
     description: A permission required to use the /npc clear_holograms command.
-    default: false
+    default: op

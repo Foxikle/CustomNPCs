@@ -115,7 +115,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 } else if (args[0].equalsIgnoreCase("list")) {
                     player.performCommand("npc manage");
                 } else if (args[0].equalsIgnoreCase("clear_holograms")) {
-                    if(!player.hasPermission("customnpcs.commands.removeHolograms")){
+                    if(player.hasPermission("customnpcs.commands.removeHolograms")){
                         AtomicInteger stands = new AtomicInteger();
                         player.getWorld().getEntities().forEach(entity -> {
                             if(entity.getScoreboardTags().contains("npcHologram")){
