@@ -123,14 +123,19 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     private MenuUtils mu;
 
     /**
-     * <p> Logic for when the plugin is disabled
+    * If the plugin should try to format messages with PlaceholderAPI
+    */
+    public boolean papi = false;
+
+    /**
+     * <p> Logic for when the plugin is enabled
      * </p>
      */
     @Override
     public void onEnable() {
         instance = this;
         if(!setup()){
-            Bukkit.getLogger().severe("Incompatible server version! Please use 1.19.4. Shutting down plugin.");
+            Bukkit.getLogger().severe("Incompatible server version! Please use 1.20 or 1.20.1 Shutting down plugin.");
             Bukkit.getPluginManager().disablePlugin(this);
         }
 
@@ -149,22 +154,33 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
 
-        getCommand("npc").setExecutor(new CommandCore(this));
-        getCommand("npcaction").setExecutor(new NPCActionCommand(this));
         this.fileManager = new FileManager(this);
         this.mu = new MenuUtils(this);
-        fileManager.createFiles();
-        Bukkit.getLogger().info("Loading NPCs!");
-        for (UUID uuid : fileManager.getNPCIds()) {
-            fileManager.loadNPC(uuid);
-        }
-        Bukkit.getScheduler().runTaskLater(this, () -> Bukkit.getOnlinePlayers().forEach(player -> npcs.values().forEach(npc -> Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> npc.injectPlayer(player), 5))), 20);
-        Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> catalogueInventories = this.getMenuUtils().getCatalogueInventories(), 20);
-        // setup bstats
-        Metrics metrics = new Metrics(this, 18898);
+        if(fileManager.createFiles()){
+            getCommand("npc").setExecutor(new CommandCore(this));
+            getCommand("npcaction").setExecutor(new NPCActionCommand(this));
+            this.getLogger().info("Loading NPCs!");
+            for (UUID uuid : fileManager.getNPCIds()) {
+                fileManager.loadNPC(uuid);
+            }
+            Bukkit.getScheduler().runTaskLater(this, () -> Bukkit.getOnlinePlayers().forEach(player -> npcs.values().forEach(npc -> Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> npc.injectPlayer(player), 5))), 20);
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> catalogueInventories = this.getMenuUtils().getCatalogueInventories(), 20);
+            // setup bstats
+            Metrics metrics = new Metrics(this, 18898);
 
-        // setup service manager for the API
-        Bukkit.getServer().getServicesManager().register(CustomNPCs.class, this, this, ServicePriority.Normal);
+            // setup service manager for the API
+            Bukkit.getServer().getServicesManager().register(CustomNPCs.class, this, this, ServicePriority.Normal);
+
+            // setup papi
+            if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+                this.getLogger().info("Successfully hooked into PlaceholderAPI.");
+                papi = true;
+            } else {
+                papi = false;
+                this.getLogger().warning("Could not find PlaceholderAPI! PlaceholderAPI isn't required, but CustomNPCs does support it.");
+            }
+        }
+
     }
     /**
      * <p> Checks if the plugin is compatable with the server version
