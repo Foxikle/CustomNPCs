@@ -67,7 +67,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     player.sendMessage(ChatColor.translateAlternateColorCodes('§', """
-                            §2§m                      §r§3§l Custom NPCs §r§7[§8v1.3.1§7] §r§2§m                      \s
+                            §2§m                      §r§3§l Custom NPCs §r§7[§8v1.3.1-pre1§7] §r§2§m                      \s
                             §r                                 §r§6By Foxikle \n
                             
                             """));
@@ -149,6 +149,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     player.sendMessage(ChatColor.YELLOW + "Reloading NPCs!");
+                    plugin.reloadConfig();
                     try {
                         Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
                     } catch (IllegalArgumentException ignored) {}
