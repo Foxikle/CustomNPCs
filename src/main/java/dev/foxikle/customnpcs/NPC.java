@@ -92,7 +92,7 @@ public class NPC extends ServerPlayer {
         this.bootsItem = bootsItem;
         this.clickable = interactable;
         this.handItem = handItem;
-        this.name = name;
+        this.name = name.replace("%empty%", "");
         this.profile = gameProfile;
         this.world = spawnLoc.getWorld();
         this.uuid = uuid;
