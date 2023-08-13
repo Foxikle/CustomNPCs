@@ -9,15 +9,17 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
+    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
 }
 
 dependencies {
     paperweight.paperDevBundle("1.20-R0.1-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.0.2")
+    compileOnly("me.clip:placeholderapi:2.11.3")
 }
 
 group = "dev.foxikle"
-version = "1.3.1"
+version = "1.3.2-pre1"
 description = "CustomNPCs"
 java.sourceCompatibility = JavaVersion.VERSION_16
 
