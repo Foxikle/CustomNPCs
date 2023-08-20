@@ -118,7 +118,7 @@ public class NPCActionCommand implements CommandExecutor {
                             player.playSound(player.getLocation(), sound, volume, pitch);
                         }
                     }
-                    case "RUN_COMMAND" -> player.performCommand(args.toString());
+                    case "RUN_COMMAND" -> player.performCommand(String.join(" ", args));
                     case "ACTION_BAR" -> {
                         if(plugin.papi) {
                             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(PlaceholderAPI.setPlaceholders(player, ChatColor.translateAlternateColorCodes('&', String.join(" ", args)))).create());
