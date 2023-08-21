@@ -123,6 +123,11 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     private MenuUtils mu;
 
     /**
+     * Singleton for automatic updates
+     */
+    private AutoUpdater updater;
+
+    /**
     * If the plugin should try to format messages with PlaceholderAPI
     */
     public boolean papi = false;
@@ -156,6 +161,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
         this.fileManager = new FileManager(this);
         this.mu = new MenuUtils(this);
+        this.updater = new AutoUpdater(this);
+        updater.checkForUpdates();
         if(fileManager.createFiles()){
             getCommand("npc").setExecutor(new CommandCore(this));
             getCommand("npcaction").setExecutor(new NPCActionCommand(this));
