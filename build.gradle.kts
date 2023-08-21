@@ -19,7 +19,7 @@ dependencies {
 }
 
 group = "dev.foxikle"
-version = "1.3.2-pre1"
+version = "1.3.2-pre2"
 description = "CustomNPCs"
 java.sourceCompatibility = JavaVersion.VERSION_16
 
@@ -27,8 +27,26 @@ java.sourceCompatibility = JavaVersion.VERSION_16
 publishing {
     repositories {
         maven {
-            name = "FoxikleRepository"
+            name = "FoxikleReleasesRepository"
             url = uri("https://repositories.foxikle.dev/releases")
+            credentials(PasswordCredentials::class)
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
+
+        }
+        maven {
+            name = "FoxikleSnapshotsRepository"
+            url = uri("https://repositories.foxikle.dev/snapshots")
+            credentials(PasswordCredentials::class)
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
+
+        }
+        maven {
+            name = "FoxiklePrivateRepository"
+            url = uri("https://repositories.foxikle.dev/private")
             credentials(PasswordCredentials::class)
             authentication {
                 create<BasicAuthentication>("basic")
