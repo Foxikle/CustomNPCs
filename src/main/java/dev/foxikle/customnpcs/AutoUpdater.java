@@ -20,9 +20,10 @@ public class AutoUpdater {
 
     public void checkForUpdates() {
         try {
+            String currentVersion = plugin.getDescription().getVersion();
             String latestVersion = getLatestVersion();
 
-            if (latestVersion != null && !latestVersion.equals(plugin.getDescription().getVersion())) {
+            if (latestVersion != null && !isNewerPreRelease(currentVersion, latestVersion)) {
                 plugin.getLogger().warning("A new version (" + latestVersion + ") is available!");
             }
         } catch (Exception e) {
@@ -40,7 +41,36 @@ public class AutoUpdater {
             JsonParser jsonParser = new JsonParser();
             JsonObject releaseInfo = jsonParser.parse(responseBody).getAsJsonObject();
 
-            return releaseInfo.get("tag_name").getAsString();
+            if (isPreRelease(releaseInfo)) {
+                return null;
+            }
+
+            return releaseInfo.get("tag_name").getAsString().replace("v", "");
         }
+    }
+
+    private boolean isNewerPreRelease(String currentVersion, String latestVersion) {
+        String[] currentParts = currentVersion.split("-");
+        String[] latestParts = latestVersion.split("-");
+
+        // Compare versions without pre-release identifiers
+        int comparison = currentParts[0].compareTo(latestParts[0]);
+        if (comparison > 0) {
+            return true;
+        } else if (comparison < 0) {
+            return false;
+        }
+
+        // Versions are equal, check pre-release identifiers
+        if (currentParts.length > 1 && latestParts.length > 1) {
+            return currentParts[1].compareTo(latestParts[1]) >= 0;
+        }
+
+        // No pre-release identifiers, versions are equal
+        return false;
+    }
+
+    private boolean isPreRelease(JsonObject releaseInfo) {
+        return releaseInfo.has("prerelease") && releaseInfo.get("prerelease").getAsBoolean();
     }
 }
