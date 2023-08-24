@@ -4,6 +4,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import dev.foxikle.customnpcs.CustomNPCs;
 import dev.foxikle.customnpcs.NPC;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.Bukkit;
@@ -91,12 +92,20 @@ public class NPCActionCommand implements CommandExecutor {
                             int out = Integer.parseInt(args.get(0));
                             args.remove(0);
                             String title = ChatColor.translateAlternateColorCodes('&', String.join(" ", args));
-                            player.sendTitle(title, "", in, stay, out);
+                            if(plugin.papi) {
+                                player.sendTitle(PlaceholderAPI.setPlaceholders(player, title), "", in, stay, out);
+                            } else {
+                                player.sendTitle(title, "", in, stay, out);
+                            }
                         }
                     }
                     case "SEND_MESSAGE" -> {
-                        if (args.size() >= 1) {
-                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', String.join(" ", args)));
+                        if (!args.isEmpty()) {
+                            if(plugin.papi) {
+                                player.sendMessage(PlaceholderAPI.setPlaceholders(player, ChatColor.translateAlternateColorCodes('&', String.join(" ", args))));
+                            } else {
+                                player.sendMessage(ChatColor.translateAlternateColorCodes('&', String.join(" ", args)));
+                            }
                         }
                     }
                     case "PLAY_SOUND" -> {
@@ -109,8 +118,14 @@ public class NPCActionCommand implements CommandExecutor {
                             player.playSound(player.getLocation(), sound, volume, pitch);
                         }
                     }
-                    case "RUN_COMMAND" -> player.performCommand(args.toString());
-                    case "ACTION_BAR" -> player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', String.join(" ", args))).create());
+                    case "RUN_COMMAND" -> player.performCommand(String.join(" ", args));
+                    case "ACTION_BAR" -> {
+                        if(plugin.papi) {
+                            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(PlaceholderAPI.setPlaceholders(player, ChatColor.translateAlternateColorCodes('&', String.join(" ", args)))).create());
+                        } else {
+                            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', String.join(" ", args))).create());
+                        }
+                    }
                     case "TELEPORT" -> {
                         if(args.size() >= 5) {
                             double x = Double.parseDouble(args.get(0));
@@ -134,7 +149,7 @@ public class NPCActionCommand implements CommandExecutor {
                         player.sendPluginMessage(plugin, "BungeeCord", out.toByteArray());
                     }
                     case "TOGGLE_FOLLOWING" -> { //UUID of NPC
-                        if(args.size() >= 1) {
+                        if(!args.isEmpty()) {
                             if (plugin.npcs.containsKey(UUID.fromString(args.get(0)))) {
                                 UUID npcId = UUID.fromString(args.get(0));
                                 NPC npc = plugin.getNPCByID(npcId);

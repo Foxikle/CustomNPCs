@@ -67,10 +67,10 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     player.sendMessage(ChatColor.translateAlternateColorCodes('§', """
-                            §2§m                      §r§3§l Custom NPCs §r§7[§8v1.3.1§7] §r§2§m                      \s
+                            §2§m                      §r§3§l Custom NPCs §r§7[§8v${version}§7] §r§2§m                      \s
                             §r                                 §r§6By Foxikle \n
                             
-                            """));
+                            """).replace("${version}", plugin.getDescription().getVersion()));
                     BaseComponent[] space = new ComponentBuilder(" : ").color(net.md_5.bungee.api.ChatColor.WHITE).create();
                     ComponentBuilder help = new ComponentBuilder("\n\n  -  /npc help").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Displays this message").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Displays this message").color(net.md_5.bungee.api.ChatColor.AQUA).create());
                     ComponentBuilder manage = new ComponentBuilder("\n  -  /npc manage").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Displays the current NPCs").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Displays the current NPCs").color(net.md_5.bungee.api.ChatColor.AQUA).create());
@@ -149,6 +149,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     player.sendMessage(ChatColor.YELLOW + "Reloading NPCs!");
+                    plugin.reloadConfig();
                     try {
                         Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
                     } catch (IllegalArgumentException ignored) {}

@@ -92,7 +92,7 @@ public class NPC extends ServerPlayer {
         this.bootsItem = bootsItem;
         this.clickable = interactable;
         this.handItem = handItem;
-        this.name = name;
+        this.name = name.replace("%empty%", "");
         this.profile = gameProfile;
         this.world = spawnLoc.getWorld();
         this.uuid = uuid;
@@ -151,7 +151,7 @@ public class NPC extends ServerPlayer {
         try {
             Field field = gameProfile.getClass().getDeclaredField("name");
             field.setAccessible(true);
-            field.set(gameProfile, clickable ? "§e§lClick" : "nothing");
+            field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -160,7 +160,7 @@ public class NPC extends ServerPlayer {
         plugin.addNPC(this, hologram);
 
 
-        //TODO: change this V
+        //TODO: change this maybe V
         Bukkit.getOnlinePlayers().forEach(this::injectPlayer);
     }
 
@@ -182,7 +182,7 @@ public class NPC extends ServerPlayer {
      * * @return the TextDisplay representing the NPC's nametag
      */
     private TextDisplay setupHologram(String name) {
-        TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), clickable ? spawnLoc.getY() + 2.33 : spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
+        TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), clickable && plugin.getConfig().getBoolean("DisplayClickText") ? spawnLoc.getY() + 2.33 : spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
         hologram.setInvulnerable(true);
         hologram.setBillboard(Display.Billboard.CENTER);
         hologram.setText(ChatColor.translateAlternateColorCodes('&', name));
@@ -210,7 +210,7 @@ public class NPC extends ServerPlayer {
         try {
             Field field = gameProfile.getClass().getDeclaredField("name");
             field.setAccessible(true);
-            field.set(gameProfile, clickable ? "§e§lClick" : "nothing");
+            field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
         } catch (Exception e) {
             e.printStackTrace();
         }

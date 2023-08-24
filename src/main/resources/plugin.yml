@@ -2,10 +2,12 @@ name: CustomNPCs
 version: ${version}
 main: dev.foxikle.customnpcs.CustomNPCs
 api-version: '1.20'
-prefix: CNPC
+prefix: CustomNPCs
 authors: [ Foxikle ]
 website: https://foxikle.dev/plugins.html
 description: A simple NPC plugin.
+libraries:
+  - com.google.code.gson:gson:2.8.8
 commands:
   npc:
     description: The core command for Custom NPCs

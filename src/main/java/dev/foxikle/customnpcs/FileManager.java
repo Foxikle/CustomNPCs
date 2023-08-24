@@ -5,6 +5,7 @@ import com.mojang.authlib.properties.Property;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
@@ -13,6 +14,7 @@ import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Level;
 
 /**
  * The class that deals with all file related things
@@ -34,12 +36,35 @@ public class FileManager {
      * <p> Creates the files the plugin needs to run
      * </p>
      */
-    public void createFiles(){
+    public boolean createFiles(){
         if (!new File("plugins/CustomNPCs/npcs.yml").exists()) {
             plugin.saveResource("npcs.yml", false);
         } else if (!new File("plugins/CustomNPCs/config.yml").exists()) {
             plugin.saveResource("config.yml", false);
         }
+        File file = new File("plugins/CustomNPCs/config.yml");
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+        int version = yml.getInt("CONFIG_VERSION");
+        if(version == 0) { // doesn't exist?
+            plugin.getLogger().log(Level.WARNING, "Outdated Config version! Converting config.");
+            yml.set("CONFIG_VERSION", 1);
+            yml.setComments("CONFIG_VERSION", List.of(" DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.", ""));
+            yml.set("ClickText", "&e&lCLICK");
+            yml.setComments("ClickText", List.of("ClickText -> The hologram displayed above the NPC if it is interactable", " NOTE: Due to Minecraft limitatations, this cannot be more than 16 characters INCLUDING color and format codes.", " (But not the &)", ""));
+            yml.set("DisplayClickText", true);
+            yml.setComments("DisplayClickText", List.of(" DisplayClickText -> Should the plugin display a hologram above the NPC's head if it is interactable?", ""));
+            try {
+                yml.save(file);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if(ChatColor.translateAlternateColorCodes('&', yml.getString("ClickText")).length() > 16) {
+            plugin.getLogger().severe("The 'ClickText' in the config.yml cannot be greater than 16 characters. Disabling plugin.");
+            plugin.getServer().getPluginManager().disablePlugin(plugin);
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -144,7 +169,7 @@ public class FileManager {
 
 
 
-        GameProfile profile = new GameProfile(uuid, section.getBoolean("clickable") ? "§e§lClick" : "nothing");
+        GameProfile profile = new GameProfile(uuid, section.getBoolean("clickable") ? (plugin.getConfig().getBoolean("DisplayClickText") ? ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
         profile.getProperties().removeAll("textures");
         profile.getProperties().put("textures", new Property("textures", section.getString("value"), section.getString("signature")));
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
