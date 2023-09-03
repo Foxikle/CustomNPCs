@@ -18,9 +18,13 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffectType;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
+import static java.util.stream.Collectors.toList;
 import static org.bukkit.Material.*;
 
 /**
@@ -430,6 +434,10 @@ public class NPCMenuListeners implements Listener {
                 case "TELEPORT" -> action = new Action(ActionType.TELEPORT, new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")), 0, false, new ArrayList<>());
                 case "SEND_TO_SERVER" -> action = new Action(ActionType.SEND_TO_SERVER, new ArrayList<>(Arrays.asList("server", "to", "be", "sent", "to")), 0, false, new ArrayList<>());
                 case "TOGGLE_FOLLOWING" -> action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Arrays.asList(npc.getUUID().toString())), 0, false, new ArrayList<>());
+                case "GIVE_EXP" -> action = new Action(ActionType.GIVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, false, new ArrayList<>());
+                case "REMOVE_EXP" -> action = new Action(ActionType.REMOVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, false, new ArrayList<>());
+                case "ADD_EFFECT" -> action = new Action(ActionType.ADD_EFFECT, new ArrayList<>(Arrays.asList("1", "1", "true", "SPEED")), 0, false, new ArrayList<>());
+                case "REMOVE_EFFECT" -> action = new Action(ActionType.REMOVE_EFFECT, new ArrayList<>(Arrays.asList("SPEED")), 0, false, new ArrayList<>());
                 case "go_back" -> player.openInventory(mc.getActionMenu());
             }
             if(action != null) {
@@ -879,6 +887,197 @@ public class NPCMenuListeners implements Listener {
                     e.setCancelled(true);
                     return;
                 }
+
+                // ADD_EFFECT
+                case "decrement_duration" -> {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            if(Integer.parseInt(action.getArgs().get(0)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The duration cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(0)) - 1) < -1) {
+                                action.getArgs().set(0, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 1));
+                            }
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            if(Integer.parseInt(action.getArgs().get(0)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The duration cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(0)) - 5) < -1) {
+                                action.getArgs().set(0, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 5));
+                            }
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            if(Integer.parseInt(action.getArgs().get(0)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The duration cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(0)) - 20) < -1) {
+                                action.getArgs().set(0, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
+                            }
+                    }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "decrement_amplifier" -> {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            if(Integer.parseInt(action.getArgs().get(1)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The amplifier cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(1)) - 1) < -1) {
+                                action.getArgs().set(1, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 1));
+                            }
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            if(Integer.parseInt(action.getArgs().get(1)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The amplifier cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(1)) - 5) < -1) {
+                                action.getArgs().set(1, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 5));
+                            }
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            if(Integer.parseInt(action.getArgs().get(1)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The amplifier cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(1)) - 20) < -1) {
+                                action.getArgs().set(1, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 20));
+                            }
+                    }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "increment_duration" -> {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
+                        }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "increment_amplifier" -> {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            if(Integer.parseInt(action.getArgs().get(1)) == 255) {
+                                player.sendMessage(ChatColor.RED + "The amplifier cannot be greater than 255!");
+                            } else if ((Integer.parseInt(action.getArgs().get(1)) + 1) > 255) {
+                                action.getArgs().set(1, String.valueOf(255));
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 1));
+                            }
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            if(Integer.parseInt(action.getArgs().get(1)) == 255) {
+                                player.sendMessage(ChatColor.RED + "The amplifier cannot be greater than 255!");
+                            } else if ((Integer.parseInt(action.getArgs().get(1)) + 5) > 255) {
+                                action.getArgs().set(1, String.valueOf(255));
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 5));
+                            }
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            if(Integer.parseInt(action.getArgs().get(1)) == 255) {
+                                player.sendMessage(ChatColor.RED + "The amplifier cannot be greater than 255!");
+                            } else if ((Integer.parseInt(action.getArgs().get(1)) + 20) > 255) {
+                                action.getArgs().set(1, String.valueOf(255));
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 20));
+                            }
+                    }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "edit_add_effect" -> {
+                    List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).collect(toList());                    List<String> effects = new ArrayList<>();
+                    fields.forEach(field -> effects.add(field.getName()));
+
+                    int index = effects.indexOf(action.getArgs().get(3));
+                    if (e.isLeftClick()) {
+                        if (effects.size() > (index + 1)) {
+                            action.getArgs().set(3, effects.get(index+1));
+                        } else {
+                            action.getArgs().set(3, effects.get(0));
+                        }
+                    } else if (e.isRightClick()) {
+                        if(index == 0) {
+                            action.getArgs().set(3, effects.get(effects.size()-1));
+                        } else {
+                            action.getArgs().set(3, effects.get(index-1));
+                        }
+                    }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "toggle_hide_particles" -> {
+                    boolean bool = Boolean.parseBoolean(action.getArgs().get(2));
+                    action.getArgs().set(2, String.valueOf(!bool));
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+
+                //REMOVE_EFFECT
+                case "edit_remove_effect" -> {
+                    List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).collect(toList());                    List<String> effects = new ArrayList<>();
+                    fields.forEach(field -> effects.add(field.getName()));
+
+                    int index = effects.indexOf(action.getArgs().get(0));
+                    if (e.isLeftClick()) {
+                        if (effects.size() > (index + 1)) {
+                            action.getArgs().set(0, effects.get(index+1));
+                        } else {
+                            action.getArgs().set(0, effects.get(0));
+                        }
+                    } else if (e.isRightClick()) {
+                        if(index == 0) {
+                            action.getArgs().set(0, effects.get(effects.size()-1));
+                        } else {
+                            action.getArgs().set(0, effects.get(index-1));
+                        }
+                    }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+
+                // GIVE_EXP
+
+                case "increment_give_xp", "increment_remove_xp" -> {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
+                    }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "decrement_give_xp", "decrement_remove_xp" -> {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            if(Integer.parseInt(action.getArgs().get(0)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The xp cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(0)) - 1) < -1) {
+                                action.getArgs().set(0, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 1));
+                            }
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            if(Integer.parseInt(action.getArgs().get(0)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The xp cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(0)) - 5) < -1) {
+                                action.getArgs().set(0, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 5));
+                            }
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            if(Integer.parseInt(action.getArgs().get(0)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The xp cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(0)) - 20) < -1) {
+                                action.getArgs().set(0, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
+                            }
+                        }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "edit_give_levels", "edit_remove_levels" -> {
+                    boolean bool = Boolean.parseBoolean(action.getArgs().get(1));
+                    action.getArgs().set(1, String.valueOf(!bool));
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+
+                // standard controls
                 case "decrement_delay" -> {
                     if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click (1)
                         if(!(action.getDelay() - 1 < 0)){

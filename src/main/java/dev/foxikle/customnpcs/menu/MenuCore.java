@@ -16,9 +16,16 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.tags.ItemTagType;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffectType;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Handles menu creation
@@ -559,6 +566,37 @@ public class MenuCore {
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
+                case "GIVE_EXP" -> {
+                    item.setType(Material.EXPERIENCE_BOTTLE);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bGive Experience"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current xp to give is: " + args.get(0) + " " + (args.get(1).equalsIgnoreCase("true") ? "levels" : "points")));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                }
+                case "REMOVE_EXP" -> {
+                    item.setType(Material.GLASS_BOTTLE);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRemove Experience"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current xp to remove is: " + args.get(0) + " " + (args.get(1).equalsIgnoreCase("true") ? "levels" : "points")));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                }
+                case "ADD_EFFECT" -> {
+                    item.setType(Material.BREWING_STAND);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bGive Effect"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eEffect: '" + args.get(3) + "'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eDuration: " + args.get(0)));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eAmplifier: " + args.get(1)));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eHide particles: " + args.get(2)));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                }
+                case "REMOVE_EFFECT" -> {
+                    item.setType(Material.MILK_BUCKET);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRemove Experience"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eEffect: '" + args.get(0) + "'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                }
                 case "SEND_TO_SERVER" -> {
                     item.setType(Material.GRASS_BLOCK);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend To Bungeecord Server"));
@@ -874,6 +912,237 @@ public class MenuCore {
                 titleMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_title");
                 title.setItemMeta(titleMeta);
                 inv.setItem(25, title);
+
+            }
+            case "ADD_EFFECT" -> {
+
+                /*
+                 # # # # # # # # #
+                 # I # I # # # # #
+                 # O # O # O # O #
+                 # D # D # # # # #
+                 # # # # # # # # #
+
+                 ^^ Example inventory layout.
+                 - I = increment
+                 - D = decrement
+                 - O = display
+                 - # = empty space
+                */
+
+                // Increments
+
+                ItemStack incDur = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncDur = incDur.getItemMeta();
+                metaIncDur.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease effect duration"));
+                metaIncDur.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_duration");
+                metaIncDur.setLore(incLore);
+                incDur.setItemMeta(metaIncDur);
+                inv.setItem(10, incDur);
+
+                ItemStack incAmp = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncAmp = incAmp.getItemMeta();
+                metaIncAmp.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease effect aplifier"));
+                metaIncAmp.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_amplifier");
+                metaIncAmp.setLore(incLore);
+                incAmp.setItemMeta(metaIncAmp);
+                inv.setItem(12, incAmp);
+
+                //decrements
+
+                ItemStack decDur = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecDur = decDur.getItemMeta();
+                metaDecDur.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease effect duration"));
+                metaDecDur.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_duration");
+                metaDecDur.setLore(decLore);
+                decDur.setItemMeta(metaDecDur);
+                inv.setItem(28, decDur);
+
+                ItemStack decAmp = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecAmp = decAmp.getItemMeta();
+                metaDecAmp.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease effect aplifier"));
+                metaDecAmp.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_amplifier");
+                metaDecAmp.setLore(decLore);
+                decAmp.setItemMeta(metaDecAmp);
+                inv.setItem(30, decAmp);
+
+                // Displays
+
+                List<String> displayLore = new ArrayList<>();
+                displayLore.add(ChatColor.translateAlternateColorCodes('&', "&8In ticks"));
+
+
+                ItemStack displayDuration = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayDuration = displayDuration.getItemMeta();
+                metaDisplayDuration.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
+                metaDisplayDuration.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDuration: " + args.get(0)));
+                args.remove(0);
+                metaDisplayDuration.setLore(displayLore);
+                displayDuration.setItemMeta(metaDisplayDuration);
+                inv.setItem(19, displayDuration);
+
+                ItemStack displayAmplifier = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayAmplifier = displayAmplifier.getItemMeta();
+                metaDisplayAmplifier.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
+                metaDisplayAmplifier.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eAmplifier: " + args.get(0)));
+                args.remove(0);
+                displayAmplifier.setItemMeta(metaDisplayAmplifier);
+                inv.setItem(21, displayAmplifier);
+
+                ItemStack hideParticlesItem = new ItemStack(action.getArgs().get(2).equalsIgnoreCase("true") ? Material.GREEN_CANDLE : Material.RED_CANDLE);
+                ItemMeta metaHideParticles = hideParticlesItem.getItemMeta();
+                metaHideParticles.getPersistentDataContainer().set(key, PersistentDataType.STRING, "toggle_hide_particles");
+                metaHideParticles.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eHide Particles: " + args.get(0)));
+                args.remove(0);
+                hideParticlesItem.setItemMeta(metaHideParticles);
+                inv.setItem(23, hideParticlesItem);
+
+                ItemStack potion = new ItemStack(Material.POTION);
+                ItemMeta potionMeta = potion.getItemMeta();
+                potionMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eEffect to remove"));
+                potionMeta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
+                potionMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_add_effect");
+                List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).collect(toList());
+                List<String> lore = new ArrayList<>();
+                fields.forEach(field -> {
+                    if(!Objects.equals(action.getArgs().get(3), field.getName()))
+                        lore.add(ChatColor.GREEN + field.getName());
+                    else
+                        lore.add(ChatColor.DARK_AQUA + "▸ " + field.getName());
+                });
+                potionMeta.setLore(lore);
+                potion.setItemMeta(potionMeta);
+                inv.setItem(25, potion);
+
+            }
+            case "REMOVE_EFFECT" -> {
+
+                /*
+                 # # # # # # # # #
+                 # # # # # # # # #
+                 # # # # O # # # #
+                 # # # # # # # # #
+                 # # # # # # # # #
+
+                 ^^ Example inventory layout.
+                 - O = display
+                 - # = empty space
+                */
+
+
+                ItemStack potion = new ItemStack(Material.POTION);
+                ItemMeta potionMeta = potion.getItemMeta();
+                potionMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eEffect to remove"));
+                potionMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_remove_effect");
+                List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).collect(toList());                List<String> lore = new ArrayList<>();
+                fields.forEach(field -> {
+                    if(!Objects.equals(action.getArgs().get(0), field.getName()))
+                        lore.add(ChatColor.GREEN + field.getName());
+                    else
+                        lore.add(ChatColor.DARK_AQUA + "▸ " + field.getName());
+                });
+                potionMeta.setLore(lore);
+                potion.setItemMeta(potionMeta);
+                inv.setItem(22, potion);
+
+            }
+
+            case "GIVE_EXP" -> {
+
+                /*
+                 # # # # # # # # #
+                 # # # I # # # # #
+                 # # # O # O # # #
+                 # # # D # # # # #
+                 # # # # # # # # #
+
+                 ^^ Example inventory layout.
+                 - O = display
+                 - # = empty space
+                */
+
+                ItemStack incAmount = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncAmount = incAmount.getItemMeta();
+                metaIncAmount.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease xp"));
+                metaIncAmount.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_give_xp");
+                metaIncAmount.setLore(incLore);
+                incAmount.setItemMeta(metaIncAmount);
+                inv.setItem(11, incAmount);
+
+                ItemStack displayAmount = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayAmount = displayAmount.getItemMeta();
+                metaDisplayAmount.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
+                metaDisplayAmount.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eXp to give: " + args.get(0)));
+                args.remove(0);
+                displayAmount.setItemMeta(metaDisplayAmount);
+                inv.setItem(20, displayAmount);
+
+                ItemStack decAmount = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecAmount = decAmount.getItemMeta();
+                metaDecAmount.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease xp"));
+                metaDecAmount.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_give_xp");
+                metaDecAmount.setLore(decLore);
+                decAmount.setItemMeta(metaDecAmount);
+                inv.setItem(29, decAmount);
+
+                ItemStack levels = new ItemStack(action.getArgs().get(1).equalsIgnoreCase("true") ? Material.GREEN_CANDLE : Material.RED_CANDLE);
+                ItemMeta levelsMeta = levels.getItemMeta();
+                levelsMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', action.getArgs().get(1).equalsIgnoreCase("true") ? "&aLevels" : "&bPoints"));
+                levelsMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_give_levels");
+                levelsMeta.setLore(List.of(ChatColor.YELLOW + "Click to change!"));
+
+
+                levels.setItemMeta(levelsMeta);
+                inv.setItem(24, levels);
+
+            }
+            case "REMOVE_EXP" -> {
+
+                /*
+                 # # # # # # # # #
+                 # # # I # # # # #
+                 # # # O # O # # #
+                 # # # D # # # # #
+                 # # # # # # # # #
+
+                 ^^ Example inventory layout.
+                 - O = display
+                 - # = empty space
+                */
+
+                ItemStack incAmount = new ItemStack(Material.LIME_DYE);
+                ItemMeta metaIncAmount = incAmount.getItemMeta();
+                metaIncAmount.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease xp"));
+                metaIncAmount.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_remove_xp");
+                metaIncAmount.setLore(incLore);
+                incAmount.setItemMeta(metaIncAmount);
+                inv.setItem(12, incAmount);
+
+                ItemStack displayAmount = new ItemStack(Material.CLOCK);
+                ItemMeta metaDisplayAmount = displayAmount.getItemMeta();
+                metaDisplayAmount.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
+                metaDisplayAmount.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eXp to remove: " + args.get(0)));
+                args.remove(0);
+                displayAmount.setItemMeta(metaDisplayAmount);
+                inv.setItem(21, displayAmount);
+
+                ItemStack decAmount = new ItemStack(Material.RED_DYE);
+                ItemMeta metaDecAmount = decAmount.getItemMeta();
+                metaDecAmount.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease xp"));
+                metaDecAmount.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_remove_xp");
+                metaDecAmount.setLore(decLore);
+                decAmount.setItemMeta(metaDecAmount);
+                inv.setItem(30, decAmount);
+
+                ItemStack levels = new ItemStack(action.getArgs().get(1).equalsIgnoreCase("true") ? Material.GREEN_CANDLE : Material.RED_CANDLE);
+                ItemMeta levelsMeta = levels.getItemMeta();
+                levelsMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', action.getArgs().get(1).equalsIgnoreCase("true") ? "&aLevels" : "&bPoints"));
+                levelsMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_remove_levels");
+                levelsMeta.setLore(List.of(ChatColor.YELLOW + "Click to change!"));
+
+
+                levels.setItemMeta(levelsMeta);
+                inv.setItem(23, levels);
 
             }
             case "SEND_MESSAGE" -> {
@@ -1397,7 +1666,7 @@ public class MenuCore {
         item.setType(Material.IRON_INGOT);
         meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Actionbar"));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "ACTION_BAR");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&e Sends the player an actionbar."));
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eSends the player an actionbar."));
         meta.setLore(lore);
         item.setItemMeta(meta);
         lore.clear();
@@ -1432,6 +1701,41 @@ public class MenuCore {
         lore.clear();
         inv.addItem(item);
 
+        item.setType(Material.EXPERIENCE_BOTTLE);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bGive Exp"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "GIVE_EXP");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eGives the player exp."));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
+
+        item.setType(Material.GLASS_BOTTLE);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRemove Exp"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "REMOVE_EXP");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eRemoves exp from the player."));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
+
+        item.setType(Material.BREWING_STAND);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bGive Effect"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "ADD_EFFECT");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eGives an effect to the player."));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
+
+        item.setType(Material.MILK_BUCKET);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRemove Effect"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "REMOVE_EFFECT");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eRemoves an effect from the player."));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
 
         return inv;
     }
