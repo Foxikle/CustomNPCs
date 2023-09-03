@@ -504,7 +504,7 @@ public class MenuCore {
      * @return The Inventory representing the Actions menu
      */
     public Inventory getActionMenu() { //todo: increase inv size
-        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Actions"));
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 54, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Actions"));
         NamespacedKey key = new NamespacedKey(plugin, "ActionInv");
 
         List<Action> actions = npc.getActions();
@@ -585,14 +585,14 @@ public class MenuCore {
         List<String> lore = new ArrayList<>();
 
         // Close Button
-        ItemStack close = new ItemStack(Material.BARRIER);
+        ItemStack close = new ItemStack(Material.ARROW);
         ItemMeta closeMeta = close.getItemMeta();
         closeMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&lGO BACK"));
         closeMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
         closeMeta.setLore(lore);
         close.setItemMeta(closeMeta);
         lore.clear();
-        inv.setItem(31, close);
+        inv.setItem(45, close);
 
         // Add New
         ItemStack newAction = new ItemStack(Material.LILY_PAD);
