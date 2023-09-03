@@ -19,7 +19,7 @@ dependencies {
 }
 
 group = "dev.foxikle"
-version = "1.3.2"
+version = "1.4-alpha3"
 description = "CustomNPCs"
 java.sourceCompatibility = JavaVersion.VERSION_16
 
@@ -27,26 +27,8 @@ java.sourceCompatibility = JavaVersion.VERSION_16
 publishing {
     repositories {
         maven {
-            name = "FoxikleReleasesRepository"
-            url = uri("https://repositories.foxikle.dev/releases")
-            credentials(PasswordCredentials::class)
-            authentication {
-                create<BasicAuthentication>("basic")
-            }
-
-        }
-        maven {
-            name = "FoxikleSnapshotsRepository"
-            url = uri("https://repositories.foxikle.dev/snapshots")
-            credentials(PasswordCredentials::class)
-            authentication {
-                create<BasicAuthentication>("basic")
-            }
-
-        }
-        maven {
-            name = "FoxiklePrivateRepository"
-            url = uri("https://repositories.foxikle.dev/private")
+            name = "FoxiklePublicRepository"
+            url = uri("https://repo.foxikle.dev/public")
             credentials(PasswordCredentials::class)
             authentication {
                 create<BasicAuthentication>("basic")
@@ -54,10 +36,13 @@ publishing {
         }
     }
     publications {
-        create<MavenPublication>("final") {
+        create<MavenPublication>("maven") {
             groupId = project.group.toString()
             artifactId = project.name
             version = project.version.toString()
+            artifact(tasks.named("jar")) {
+                classifier = null
+            }
             from(components["java"])
         }
     }
