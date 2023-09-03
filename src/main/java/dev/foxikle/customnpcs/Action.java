@@ -1,5 +1,6 @@
 package dev.foxikle.customnpcs;
 
+import dev.foxikle.customnpcs.conditions.Conditional;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,23 +17,33 @@ public class Action {
     private ArrayList<String> args;
     private int delay;
 
+    private boolean matchAll;
+
+    private final List<String> conditionals;
+
     /**
      * <p> Creates a new Action
      * </p>
-     * @param args The arguments for the Action
+     *
      * @param actionType The type of action to be performed
-     * @param delay The amount of ticks to delay an action
+     * @param args       The arguments for the Action
+     * @param delay      The amount of ticks to delay an action
+     * @param matchAll If all the conditions must be met, or one
      */
-    public Action(ActionType actionType, ArrayList<String> args, int delay){
+    public Action(ActionType actionType, ArrayList<String> args, int delay, boolean matchAll, List<String> conditionals){
         this.subCommand = actionType.name();
         this.args = args;
         this.delay = delay;
+        this.matchAll = matchAll;
+        this.conditionals = conditionals;
     }
 
-    private Action(String subCommand, ArrayList<String> args, int delay){
+    private Action(String subCommand, ArrayList<String> args, int delay, boolean matchAll){
         this.subCommand = subCommand;
         this.args = args;
         this.delay = delay;
+        this.matchAll = matchAll;
+        this.conditionals = new ArrayList<>();
     }
 
     /**
@@ -92,13 +103,53 @@ public class Action {
         this.delay = delay;
     }
 
+    public boolean isMatchAll() {
+        return matchAll;
+    }
+
+    public List<Conditional> getConditionals() {
+        List<Conditional> tmp = new ArrayList<>();
+        conditionals.forEach(s -> {
+            tmp.add(Conditional.of(s));
+        });
+        return tmp;
+    }
+
+    public void setMatchAll(boolean matchAll) {
+        this.matchAll = matchAll;
+    }
+
+    public boolean addConditional(Conditional conditional) {
+        return conditionals.add(conditional.toJson());
+    }
+
+    public boolean removeConditional(Conditional conditional) {
+        return conditionals.remove(conditional.toJson());
+    }
+
     /**
      * Gets the command that is run to initiate the action.
      * @param player the action is targeted at
      * @return String representing the command. The arguments are: player's uuid, sub command, delay (in ticks), command specific arguments
      */
-    public String getCommand(@NotNull Player player){
-        return "npcaction " + player.getUniqueId() + " " + subCommand + " " + delay + " " + String.join(" ", args);
+    public String getCommand(@NotNull Player player) {
+        if(processConditions(player)) {
+            return "npcaction " + player.getUniqueId() + " " + subCommand + " " + delay + " " + String.join(" ", args);
+        } else {
+            return "npcaction";
+        }
+    }
+
+    private boolean processConditions(Player player) {
+        if(conditionals == null || conditionals.isEmpty())
+            return true; // no conditions
+        List<Boolean> computedActions = new ArrayList<>();
+        conditionals.forEach(conditional -> computedActions.add(Conditional.of(conditional).compute(player)));
+        if(matchAll) {
+            return !computedActions.contains(false); // not all true
+        } else {
+            return computedActions.contains(true); // if any are true
+        }
     }
 
     /**
@@ -109,21 +160,25 @@ public class Action {
      * @throws NumberFormatException If the string was formatted improperly
      * @throws ArrayIndexOutOfBoundsException if the action was formatted impropperly
      */
-    public static Action of(String string) throws NumberFormatException, ArrayIndexOutOfBoundsException{
-        ArrayList<String> split = new ArrayList<>(Arrays.stream(string.split("%::%")).toList());
-        String sub = split.get(0);
-        split.remove(0);
-        int delay = Integer.parseInt(split.get(0));
-        split.remove(0);
-        return new Action(sub, split, delay);
+    public static Action of(String string) throws NumberFormatException, ArrayIndexOutOfBoundsException {
+        if(string.contains("%::%")) {
+            ArrayList<String> split = new ArrayList<>(Arrays.stream(string.split("%::%")).toList());
+            String sub = split.get(0);
+            split.remove(0);
+            int delay = Integer.parseInt(split.get(0));
+            split.remove(0);
+            return new Action(sub, split, delay, false); // doesn't support conditionals
+        } else {
+            return CustomNPCs.getGson().fromJson(string, Action.class);
+        }
     }
 
     /**
-     * <p> Gets the serialezed version of this action
+     * <p> Gets the json equivalent of this action
      * </p>
-     * @return the serialized version of the action
+     * @return the serialized version of the action (in json)
      */
-    public String serialize(){
-        return subCommand + "%::%" + delay + "%::%" + String.join("%::%", args);
+    public String toJson(){
+        return CustomNPCs.getGson().toJson(this);
     }
 }
