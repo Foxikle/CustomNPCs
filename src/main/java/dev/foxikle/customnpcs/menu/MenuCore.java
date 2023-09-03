@@ -3,6 +3,9 @@ package dev.foxikle.customnpcs.menu;
 import dev.foxikle.customnpcs.Action;
 import dev.foxikle.customnpcs.CustomNPCs;
 import dev.foxikle.customnpcs.NPC;
+import dev.foxikle.customnpcs.conditions.Conditional;
+import dev.foxikle.customnpcs.conditions.LogicalConditional;
+import dev.foxikle.customnpcs.conditions.NumericConditional;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -500,7 +503,7 @@ public class MenuCore {
      * </p>
      * @return The Inventory representing the Actions menu
      */
-    public Inventory getActionMenu() {
+    public Inventory getActionMenu() { //todo: increase inv size
         Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Actions"));
         NamespacedKey key = new NamespacedKey(plugin, "ActionInv");
 
@@ -572,7 +575,7 @@ public class MenuCore {
             lore.add(ChatColor.translateAlternateColorCodes('&', "&eDelay Ticks: " + action.getDelay()));
             NamespacedKey actionKey = new NamespacedKey(plugin, "SerializedAction");
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "actionDisplay");
-            meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action.serialize());
+            meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action.toJson());
             meta.setLore(lore);
             item.setItemMeta(meta);
             if (!inv.contains(item))
@@ -603,6 +606,82 @@ public class MenuCore {
         return inv;
     }
 
+    public Inventory getConditionMenu(Action action) {
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "  Edit Action Conditionals"));
+        NamespacedKey key = new NamespacedKey(plugin, "ConditionInv");
+        NamespacedKey dataKey = new NamespacedKey(plugin, "SerializedCondition");
+        if(action.getConditionals() != null) {
+            for (Conditional c : action.getConditionals()) {
+                ItemStack item = new ItemStack(Material.BEDROCK);
+                ItemMeta meta = item.getItemMeta();
+                List<String> lore = new ArrayList<>();
+                if (c.getType() == Conditional.Type.NUMERIC) {
+                    item.setType(Material.POPPED_CHORUS_FRUIT);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bNumeric Condition"));
+                    lore.add("");
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe comparator is: '&d" + c.getComparator().name() + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe value is: '&d" + c.getValue().name() + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe target value is: '&d" + c.getTarget() + "&r&e'"));
+                    lore.add("");
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+
+                } else if (c.getType() == Conditional.Type.LOGICAL) {
+                    item.setType(Material.COMPARATOR);
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bLogical Condition"));
+                    lore.add("");
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe comparator is: '&d" + c.getComparator().name() + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe value is: '&d" + c.getValue().name() + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe target value is: '&d" + c.getTarget() + "&r&e'"));
+                    lore.add("");
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+
+                }
+
+                meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "actionDisplay");
+                meta.getPersistentDataContainer().set(dataKey, PersistentDataType.STRING, c.toJson());
+                meta.setLore(lore);
+                item.setItemMeta(meta);
+                if (!inv.contains(item))
+                    inv.addItem(item);
+            }
+        }
+        List<String> lore = new ArrayList<>();
+
+        // Close Button
+        ItemStack close = new ItemStack(Material.BARRIER);
+        ItemMeta closeMeta = close.getItemMeta();
+        closeMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&lGO BACK"));
+        closeMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
+        closeMeta.setLore(lore);
+        close.setItemMeta(closeMeta);
+        lore.clear();
+        inv.setItem(31, close);
+
+        // Add New
+        ItemStack newCondition = new ItemStack(Material.LILY_PAD);
+        ItemMeta conditionMeta = newCondition.getItemMeta();
+        conditionMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&a&lNew Condition"));
+        conditionMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "new_condition");
+        newCondition.setItemMeta(conditionMeta);
+        lore.clear();
+        inv.addItem(newCondition);
+
+        // Change Mode
+        ItemStack changeMode = new ItemStack(action.isMatchAll() ? Material.GREEN_CANDLE : Material.RED_CANDLE);
+        ItemMeta changeModeMeta = changeMode.getItemMeta();
+        changeModeMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&a&lChange Mode"));
+        lore.add(action.isMatchAll() ? ChatColor.YELLOW + "Match ALL Conditions" : ChatColor.YELLOW + "Match ONE Condition");
+        changeModeMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "change_mode");
+        changeModeMeta.setLore(lore);
+        changeMode.setItemMeta(changeModeMeta);
+        lore.clear();
+        inv.setItem(35, changeMode);
+
+        return inv;
+    }
+
     /**
      * <p>Gets the menu to customize an action
      * </p>
@@ -610,7 +689,7 @@ public class MenuCore {
      * @return The Inventory representing the action to customize
      */
     public Inventory getActionCustomizerMenu(Action action) {
-        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Action"));
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "       Edit NPC Action"));
         NamespacedKey key = new NamespacedKey(plugin, "CustomizeActionButton");
 
         // lores
@@ -653,6 +732,14 @@ public class MenuCore {
         goBackMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&6Go Back"));
         goBack.setItemMeta(goBackMeta);
         inv.setItem(36, goBack);
+
+        //Edit conditionals
+        ItemStack editConditionals = new ItemStack(Material.COMPARATOR);
+        ItemMeta editConditionalsMeta = editConditionals.getItemMeta();
+        editConditionalsMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_conditionals");
+        editConditionalsMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&cEdit Conditionals"));
+        editConditionals.setItemMeta(editConditionalsMeta);
+        inv.setItem(44, editConditionals);
 
         // Confirm the action creation
         ItemStack confirm = new ItemStack(Material.LILY_PAD);
@@ -1101,6 +1188,154 @@ public class MenuCore {
     }
 
     /**
+     * <p> Gets the menu to customize an action
+     * </p>
+     * @param conditional The Conditional to customize
+     * @return The Inventory representing the conditional to customize
+     */
+    public Inventory getConditionalCustomizerMenu(Conditional conditional) {
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 27, ChatColor.BLACK + "" + ChatColor.BOLD + "  Edit Action Conditional"));
+        NamespacedKey key = new NamespacedKey(plugin, "CustomizeConditionalButton");
+
+
+        // Go back to actions menu
+        ItemStack goBack = new ItemStack(Material.ARROW);
+        ItemMeta goBackMeta = goBack.getItemMeta();
+        goBackMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
+        goBackMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&6Go Back"));
+        goBack.setItemMeta(goBackMeta);
+        inv.setItem(18, goBack);
+
+        // Confirm the action creation
+        ItemStack confirm = new ItemStack(Material.LILY_PAD);
+        ItemMeta confirmMeta = confirm.getItemMeta();
+        confirmMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "confirm");
+        confirmMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&aConfirm"));
+        confirm.setItemMeta(confirmMeta);
+        inv.setItem(22, confirm);
+        
+        switch (conditional.getType()) {
+            case NUMERIC -> {
+                 /* 1 button to edit message
+
+                 # # # # # # # # #
+                 # # C # T # S # #
+                 # # # # # # # # #
+
+                 - T = target value
+                 - C = comparator
+                 - S = Select Statistic
+                 - # = empty space
+                */
+                ItemStack selectComparator = new ItemStack(Material.COMPARATOR);
+                ItemMeta meta = selectComparator.getItemMeta();
+                List<String> lore = new ArrayList<>();
+                meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "toggle_comparator");
+                for (Conditional.Comparator c : Conditional.Comparator.values()) {
+                    if(conditional.getComparator() != c)
+                        lore.add(ChatColor.GREEN + c.name());
+                    else
+                        lore.add(ChatColor.DARK_AQUA + "▸ " + c.name());
+                }
+                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eComparator"));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&eClick to change!"));
+                meta.setLore(lore);
+                selectComparator.setItemMeta(meta);
+                inv.setItem(11, selectComparator);
+                lore.clear();
+
+                ItemStack targetValue = new ItemStack(Material.OAK_HANGING_SIGN);
+                ItemMeta targetMeta = targetValue.getItemMeta();
+                targetMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "select_target_value");
+                targetMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eSelect Target Value"));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe target value is '&b" + ((NumericConditional) conditional).getTarget() + "&e'"));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&eClick to change!"));
+                targetMeta.setLore(lore);
+                targetValue.setItemMeta(targetMeta);
+                inv.setItem(13, targetValue);
+                lore.clear();
+
+                ItemStack statistic = new ItemStack(Material.COMPARATOR);
+                ItemMeta statisticMeta = statistic.getItemMeta();
+                statisticMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "select_statistic");
+                for (Conditional.Value v : Conditional.Value.values()) {
+                    if (!v.isLogical()) {
+                        if (conditional.getValue() != v)
+                            lore.add(ChatColor.GREEN + v.name());
+                        else
+                            lore.add(ChatColor.DARK_AQUA + "▸ " + v.name());
+                    }
+                }
+                statisticMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eStatistic"));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&eClick to change!"));
+                statisticMeta.setLore(lore);
+                statistic.setItemMeta(statisticMeta);
+                inv.setItem(15, statistic);
+            }
+            case LOGICAL -> {
+                 /* 1 button to edit message
+
+                 # # # # # # # # #
+                 # # C # T # S # #
+                 # # # # # # # # #
+
+                 - T = target value
+                 - C = comparator
+                 - S = Select Statistic
+                 - # = empty space
+                */
+                ItemStack selectComparator = new ItemStack(Material.COMPARATOR);
+                ItemMeta meta = selectComparator.getItemMeta();
+                List<String> lore = new ArrayList<>();
+                meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "toggle_comparator");
+                for (Conditional.Comparator c : Conditional.Comparator.values()) {
+                    if (c.isStrictlyLogical()) {
+                        if (conditional.getComparator() != c)
+                            lore.add(ChatColor.GREEN + c.name());
+                        else
+                            lore.add(ChatColor.DARK_AQUA + "▸ " + c.name());
+                    }
+                }
+                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eComparator"));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&eClick to change!"));
+                meta.setLore(lore);
+                selectComparator.setItemMeta(meta);
+                inv.setItem(11, selectComparator);
+                lore.clear();
+
+                ItemStack targetValue = new ItemStack(Material.OAK_HANGING_SIGN);
+                ItemMeta targetMeta = targetValue.getItemMeta();
+                targetMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "select_target_value");
+                targetMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eSelect Target Value"));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe target value is '&b" + ((LogicalConditional) conditional).getTarget() + "&e'"));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&eClick to change!"));
+                targetMeta.setLore(lore);
+                targetValue.setItemMeta(targetMeta);
+                inv.setItem(13, targetValue);
+                lore.clear();
+
+                ItemStack statistic = new ItemStack(Material.COMPARATOR);
+                ItemMeta statisticMeta = statistic.getItemMeta();
+                statisticMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "select_statistic");
+                for (Conditional.Value v : Conditional.Value.values()) {
+                    if (v.isLogical()) {
+                        if (conditional.getValue() != v)
+                            lore.add(ChatColor.GREEN + v.name());
+                        else
+                            lore.add(ChatColor.DARK_AQUA + "▸ " + v.name());
+                    }
+                }
+                statisticMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eStatistic"));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&eClick to change!"));
+                statisticMeta.setLore(lore);
+                statistic.setItemMeta(statisticMeta);
+                inv.setItem(15, statistic);
+            }
+        }
+        return inv;
+    }
+
+    /**
      * <p>Gets the menu to create a new action
      * </p>
      * @return The Inventory representing the new Action menu
@@ -1197,6 +1432,50 @@ public class MenuCore {
         lore.clear();
         inv.addItem(item);
 
+
+        return inv;
+    }
+
+    /**
+     * <p>Gets the menu to create a new action
+     * </p>
+     * @return The Inventory representing the new Action menu
+     */
+    public Inventory getNewConditionMenu() {
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 27, ChatColor.BLACK + "" + ChatColor.BOLD + "   New Action Condition"));
+        NamespacedKey key = new NamespacedKey(plugin, "NewConditionButton");
+
+        ItemStack goBack = new ItemStack(Material.ARROW);
+        ItemMeta goBackMeta = goBack.getItemMeta();
+        goBackMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
+        goBackMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&6Go Back"));
+        goBack.setItemMeta(goBackMeta);
+        inv.setItem(18, goBack);
+
+        // make and add the npc action types.
+
+        ItemStack item = new ItemStack(Material.BEDROCK);
+        ItemMeta meta = item.getItemMeta();
+        List<String> lore = new ArrayList<>();
+
+
+        item.setType(Material.POPPED_CHORUS_FRUIT);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bNumeric Condition"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "NUMERIC_CONDITION");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eCompares numbers."));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
+
+        item.setType(Material.COMPARATOR);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bLogical Condition"));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "LOGICAL_CONDITION");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eCompares things with numbered options"));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        lore.clear();
+        inv.addItem(item);
 
         return inv;
     }
