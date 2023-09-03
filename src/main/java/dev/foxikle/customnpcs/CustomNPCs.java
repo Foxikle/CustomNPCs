@@ -1,10 +1,14 @@
 package dev.foxikle.customnpcs;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import dev.foxikle.customnpcs.commands.CommandCore;
 import dev.foxikle.customnpcs.commands.NPCActionCommand;
+import dev.foxikle.customnpcs.conditions.Conditional;
+import dev.foxikle.customnpcs.conditions.ConditionalTypeAdapter;
 import dev.foxikle.customnpcs.listeners.Listeners;
 import dev.foxikle.customnpcs.listeners.NPCMenuListeners;
 import dev.foxikle.customnpcs.menu.MenuCore;
@@ -46,6 +50,11 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * The List of players the plugin is waiting for title text input
      */
     public List<Player> titleWaiting = new ArrayList<>();
+
+    /**
+     * The List of players the plugin is waiting for title text input
+     */
+    public List<Player> targetWaiting = new ArrayList<>();
 
     /**
      * The List of players the plugin is waiting for server name text input
@@ -113,6 +122,16 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public Map<Player, String> originalEditingActions = new HashMap<>();
 
     /**
+     * The Map of the action a player is editing
+     */
+    public Map<Player, Conditional> editingConditionals = new HashMap<>();
+
+    /**
+     * The Map of the original actions a player is editing
+     */
+    public Map<Player, String> originalEditingConditionals = new HashMap<>();
+
+    /**
      * Singleton for the NPCBuilder
      */
     private static CustomNPCs instance;
@@ -131,6 +150,11 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     * If the plugin should try to format messages with PlaceholderAPI
     */
     public boolean papi = false;
+
+    /**
+     * The plugin's json handler
+     */
+    private static Gson gson;
 
     /**
      * <p> Logic for when the plugin is enabled
@@ -159,6 +183,9 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
 
+        gson = new GsonBuilder()
+                .registerTypeAdapter(Conditional.class, new ConditionalTypeAdapter())
+                .create();
         this.fileManager = new FileManager(this);
         this.mu = new MenuUtils(this);
         this.updater = new AutoUpdater(this);
@@ -292,6 +319,15 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public MenuUtils getMenuUtils(){
         return mu;
     }
+
+    /**
+     * <p> Gets the Gson object
+     * </p>
+     * @return the Gson object
+     */
+    public static Gson getGson(){
+            return gson;
+        }
 
     /**
      * <p> Doesn't do anything since this plugin is not expecting to receive any plugin messages. It exists soley to be able to send a player to a bungeecord server.
