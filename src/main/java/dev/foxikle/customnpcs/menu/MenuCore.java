@@ -503,7 +503,7 @@ public class MenuCore {
      * </p>
      * @return The Inventory representing the Actions menu
      */
-    public Inventory getActionMenu() { //todo: increase inv size
+    public Inventory getActionMenu() {
         Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 54, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Actions"));
         NamespacedKey key = new NamespacedKey(plugin, "ActionInv");
 
