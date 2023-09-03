@@ -226,7 +226,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                                 MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
                                 ServerLevel nmsWorld = ((CraftWorld) player.getWorld()).getHandle();
                                 List<String> actionStrs = new ArrayList<>();
-                                npc.getActions().forEach(action -> actionStrs.add(action.serialize()));
+                                npc.getActions().forEach(action -> actionStrs.add(action.toJson()));
                                 NPC newNpc = new NPC(plugin, nmsServer, nmsWorld, profile, npc.getSpawnLoc(), npc.getHandItem(), npc.getItemInOffhand(), npc.getHeadItem(), npc.getChestItem(), npc.getLegsItem(), npc.getBootsItem(), npc.isClickable(), npc.isResilient(), npc.getHologramName(), uuid, npc.getValue(), npc.getSignature(), npc.getSkinName(), npc.getFacingDirection(), null, actionStrs);
                                 MenuCore mc = new MenuCore(newNpc, plugin);
                                 plugin.menuCores.put(player, mc);
