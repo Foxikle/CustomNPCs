@@ -917,10 +917,6 @@ public class NPCMenuListeners implements Listener {
                     npc.addAction(action);
                     Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(mc.getActionMenu()), 1);
                 }
-                case "edit_conditions" -> {
-                    //todo: open a condition editing menu
-                    return;
-                }
             }
             e.setCancelled(true);
             player.openInventory(mc.getActionCustomizerMenu(action));
