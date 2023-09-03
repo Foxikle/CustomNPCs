@@ -20,10 +20,15 @@ public class LogicalConditional implements Conditional {
     @Override
     public boolean compute(Player player) {
         boolean value = false;
-        switch (this.value) { //todo: add more
+        switch (this.value) {
             case HAS_PERMISSION -> value = player.hasPermission(target);
             case HAS_EFFECT -> value = player.hasPotionEffect(PotionEffectType.getByName(target));
             case GAMEMODE -> value = player.getGameMode().equals(GameMode.valueOf(target));
+            case IS_FLYING -> value = player.isFlying();
+            case IS_SPRINTING -> value = player.isSprinting();
+            case IS_SNEAKING -> value = player.isSneaking();
+            case IS_FROZEN -> value = player.isFrozen();
+            case IS_GLIDING -> value = player.isGliding();
         }
         switch (comparator) {
             case EQUAL_TO -> {

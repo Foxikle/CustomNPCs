@@ -49,16 +49,23 @@ public interface Conditional {
     }
 
     enum Value {
+        // numeric
         EXP_LEVELS(false),
         EXP_POINTS(false),
         HEALTH(false),
         ABSORBTION(false),
+        Y_COORD(false),
+        X_COORD(false),
+        Z_COORD(false),
+        // logical
         HAS_EFFECT(true),
         HAS_PERMISSION(true),
         GAMEMODE(true),
-        Y_COORD(false),
-        X_COORD(false),
-        Z_COORD(false);
+        IS_FLYING(true),
+        IS_SPRINTING(true),
+        IS_SNEAKING(true),
+        IS_FROZEN(true),
+        IS_GLIDING(true);
 
         private final boolean isLogical;
         Value(boolean isLogical) {
