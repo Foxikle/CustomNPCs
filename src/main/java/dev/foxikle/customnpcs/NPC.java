@@ -437,7 +437,7 @@ public class NPC extends ServerPlayer {
      * @param action The action to add
      */
     public void addAction(Action action){
-        actions.add(action.serialize());
+        actions.add(action.toJson());
     }
 
     /**
@@ -447,7 +447,7 @@ public class NPC extends ServerPlayer {
      * @return if it was successfully removed
      */
     public boolean removeAction(Action action){
-        return actions.remove(action.serialize());
+        return actions.remove(action.toJson());
     }
 
     /**
@@ -630,7 +630,7 @@ public class NPC extends ServerPlayer {
      */
     public void setActions(Collection<Action> actions) {
         List<String> strs = new ArrayList<>();
-        actions.forEach(action -> strs.add(action.serialize()));
+        actions.forEach(action -> strs.add(action.toJson()));
         this.actions = new ArrayList<>(strs);
     }
 }
