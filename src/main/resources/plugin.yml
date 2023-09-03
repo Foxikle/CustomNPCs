@@ -4,7 +4,7 @@ main: dev.foxikle.customnpcs.CustomNPCs
 api-version: '1.20'
 prefix: CustomNPCs
 authors: [ Foxikle ]
-website: https://foxikle.dev/plugins.html
+website: https://foxikle.dev/plugins
 description: A simple NPC plugin.
 libraries:
   - com.google.code.gson:gson:2.8.8
