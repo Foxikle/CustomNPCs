@@ -3,13 +3,13 @@ package dev.foxikle.customnpcs.listeners;
 import dev.foxikle.customnpcs.Action;
 import dev.foxikle.customnpcs.CustomNPCs;
 import dev.foxikle.customnpcs.NPC;
+import dev.foxikle.customnpcs.conditions.Conditional;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -93,6 +93,22 @@ public class Listeners implements Listener {
             plugin.menuCores.get(e.getPlayer()).getNpc().setName(e.getMessage());
             e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set name to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + ChatColor.GREEN + "'");
             Bukkit.getScheduler().runTask(plugin, () -> e.getPlayer().openInventory(plugin.menuCores.get(e.getPlayer()).getMainMenu()));
+            e.setCancelled(true);
+        } else if (plugin.targetWaiting.contains(e.getPlayer())) {
+
+            Conditional conditional = plugin.editingConditionals.get(e.getPlayer());
+            if(conditional.getType() == Conditional.Type.NUMERIC) {
+                try {
+                    Double.parseDouble(e.getMessage());
+                } catch (NumberFormatException ignored) {
+                    e.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCannot parse the number 'ef" + e.getMessage() + "&c'. Please try again."));
+                    return;
+                }
+            }
+            plugin.targetWaiting.remove(e.getPlayer());
+            conditional.setTargetValue(e.getMessage());
+            e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set target to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + ChatColor.GREEN + "'");
+            Bukkit.getScheduler().runTask(plugin, () -> e.getPlayer().openInventory(plugin.menuCores.get(e.getPlayer()).getConditionalCustomizerMenu(plugin.editingConditionals.get(e.getPlayer()))));
             e.setCancelled(true);
         } else if (plugin.titleWaiting.contains(e.getPlayer())) {
             Bukkit.getScheduler().runTask(plugin, () -> {
