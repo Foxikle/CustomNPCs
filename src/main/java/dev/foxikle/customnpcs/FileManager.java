@@ -79,7 +79,7 @@ public class FileManager {
         ConfigurationSection section = yml.getConfigurationSection(npc.getUUID().toString());
 
         List<String> actions = new ArrayList<>();
-        npc.getActions().forEach(action -> actions.add(action.serialize()));
+        npc.getActions().forEach(action -> actions.add(action.toJson()));
 
         section.addDefault("value", npc.getValue());
         section.addDefault("signature", npc.getSignature());
@@ -135,8 +135,8 @@ public class FileManager {
                     String sub = split.get(0);
                     split.remove(0);
                     int delay = 0;
-                    Action acttion = new Action(ActionType.valueOf(sub), split, delay);
-                    convertedActions.add(acttion.serialize());
+                    Action acttion = new Action(ActionType.valueOf(sub), split, delay, false, new ArrayList<>());
+                    convertedActions.add(acttion.toJson());
                     actions.add(acttion);
                 }
                 s.set("actions", convertedActions);
@@ -148,12 +148,31 @@ public class FileManager {
                 plugin.getLogger().severe("An error occoured saving the npcs.yml file after saving a list of converted actions. Please report the following stacktrace to Foxikle.");
                 e.printStackTrace();
             }
+        } else if (yml.getString("version").equalsIgnoreCase("1.3")) {
+            yml.set("version", "1.4");
+            plugin.getLogger().warning("Old Actions found. Converting to json.");
+            List<String> legacyActions = section.getStringList("actions");
+            List<String> newActions = new ArrayList<>();
+            legacyActions.forEach(s -> {
+                if(s != null) {
+                    Action a = Action.of(s); // going to be converted the old way
+                    if(a != null) {
+                        newActions.add(a.toJson());
+                    }
+                }
+            });
+            section.set("actions", newActions);
+            try {
+                yml.save(file);
+            } catch (IOException e) {
+                plugin.getLogger().severe("An error occoured whilst saving the converted actions. Pleaes report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
+            }
         }
         if(section.getConfigurationSection("actions") == null) { // meaning it does not exist
             if (section.getString("command") != null) { // if there is a legacy command
                 Bukkit.getLogger().info("Converting legacy commands to Actions.");
                 String command = section.getString("command");
-                Action action = new Action(ActionType.RUN_COMMAND, new ArrayList<>(Arrays.stream(command.split(" ")).toList()), 0);
+                Action action = new Action(ActionType.RUN_COMMAND, new ArrayList<>(Arrays.stream(command.split(" ")).toList()), 0, false, new ArrayList<>());
                 actions.add(action);
                 section.set("actions", actions);
                 section.set("command", null);
