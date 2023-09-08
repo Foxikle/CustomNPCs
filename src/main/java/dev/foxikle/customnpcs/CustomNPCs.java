@@ -16,6 +16,7 @@ import dev.foxikle.customnpcs.menu.MenuUtils;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.*;
@@ -341,7 +342,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * The class for external use to create an NPC
      */
-    @ApiStatus.Experimental
     public static class NPCBuilder {
 
         /**
@@ -545,6 +545,24 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
          */
         public void moveTo(Location location){
             npc.moveTo(location.x(), location.y(), location.z(), location.getYaw(), location.getPitch());
+        }
+
+        /**
+         * Swings the NPC's arm
+         * @since 1.4
+         */
+        public void swingArm(){
+            npc.swing(InteractionHand.MAIN_HAND);
+        }
+
+        /**
+         * Injects the npc into the player's connection. This should be handled by the plugin, but this is here for more control.
+         * @param player the player to inject
+         * @since 1.4
+         * @see Player
+         */
+        public void injectPlayer(Player player) {
+            npc.injectPlayer(player);
         }
 
         /**
