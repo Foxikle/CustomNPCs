@@ -3,7 +3,6 @@ package dev.foxikle.customnpcs.internal.menu;
 import dev.foxikle.customnpcs.internal.Action;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.NPC;
-import dev.foxikle.customnpcs.internal.NumericConditional;
 import dev.foxikle.customnpcs.internal.conditions.Conditional;
 import dev.foxikle.customnpcs.internal.conditions.LogicalConditional;
 import dev.foxikle.customnpcs.internal.conditions.NumericConditional;

@@ -3,8 +3,6 @@ package dev.foxikle.customnpcs.internal.conditions;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import dev.foxikle.customnpcs.internal.LogicalConditional;
-import dev.foxikle.customnpcs.internal.NumericConditional;
 import dev.foxikle.customnpcs.internal.conditions.Conditional.Comparator;
 import dev.foxikle.customnpcs.internal.conditions.Conditional.Type;
 import dev.foxikle.customnpcs.internal.conditions.Conditional.Value;
