@@ -69,7 +69,7 @@ public class MenuCore {
         handMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "equipment");
         handMeta.setDisplayName(ChatColor.DARK_GREEN + "Change Item");
         lore.clear();
-        lore.add(ChatColor.YELLOW + "The current euipment is ");
+        lore.add(ChatColor.YELLOW + "The current equipment is ");
         lore.add(ChatColor.YELLOW + "Main Hand: " + ChatColor.AQUA + npc.getHandItem().getType());
         lore.add(ChatColor.YELLOW + "Offhand: " + ChatColor.AQUA + npc.getItemInOffhand().getType());
         lore.add(ChatColor.YELLOW + "Helmet: " + ChatColor.AQUA + npc.getHeadItem().getType());
