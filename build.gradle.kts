@@ -60,6 +60,7 @@ tasks {
     }
     javadoc {
         options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
+        exclude("**/internal/**");
     }
     processResources {
         filteringCharset = Charsets.UTF_8.name() // We want UTF-8 for everything
