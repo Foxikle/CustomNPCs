@@ -30,6 +30,7 @@ public class Action {
      * @param args       The arguments for the Action
      * @param delay      The amount of ticks to delay an action
      * @param matchAll If all the conditions must be met, or one
+     * @param conditionals The conditions to apply to this action
      */
     public Action(ActionType actionType, ArrayList<String> args, int delay, boolean matchAll, List<String> conditionals){
         this.subCommand = actionType.name();
@@ -104,26 +105,46 @@ public class Action {
         this.delay = delay;
     }
 
+    /**
+     * If all conditions must be met to execute the action
+     * @return if all condition must be met
+     */
     public boolean isMatchAll() {
         return matchAll;
     }
 
+    /**
+     * Gets the list of conditions for the actio
+     * @return the list of condtitions
+     */
     public List<Conditional> getConditionals() {
         List<Conditional> tmp = new ArrayList<>();
-        conditionals.forEach(s -> {
-            tmp.add(Conditional.of(s));
-        });
+        conditionals.forEach(s -> tmp.add(Conditional.of(s)));
         return tmp;
     }
 
+    /**
+     * Sets if all conditions should be met
+     * @param matchAll if all conditions should be met
+     */
     public void setMatchAll(boolean matchAll) {
         this.matchAll = matchAll;
     }
 
+    /**
+     *  Adds a condition to the action
+     * @param conditional the conditional to add
+     * @return if the conditional was successfully added
+     */
     public boolean addConditional(Conditional conditional) {
         return conditionals.add(conditional.toJson());
     }
 
+    /**
+     * Removes a condition from the action
+     * @param conditional conditional to remove
+     * @return if the condition was successfully removed
+     */
     public boolean removeConditional(Conditional conditional) {
         return conditionals.remove(conditional.toJson());
     }

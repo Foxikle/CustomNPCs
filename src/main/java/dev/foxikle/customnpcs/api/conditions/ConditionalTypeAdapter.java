@@ -9,8 +9,17 @@ import dev.foxikle.customnpcs.api.conditions.Conditional.Value;
 
 import java.io.IOException;
 
+/**
+ * The object allowing Gson to parse conditional objects
+ */
 public class ConditionalTypeAdapter extends TypeAdapter<Conditional> {
 
+    /**
+     *
+     * @param out the data write out to
+     * @param conditional the Java object to write. May be null.
+     * @throws IOException if an exception occours
+     */
     @Override
     public void write(JsonWriter out, Conditional conditional) throws IOException {
         out.beginObject();
@@ -21,6 +30,12 @@ public class ConditionalTypeAdapter extends TypeAdapter<Conditional> {
         out.endObject();
     }
 
+    /**
+     *
+     * @param in the data to parse
+     * @return the deserialized Conditional
+     * @throws IOException if an error occours reading
+     */
     @Override
     public Conditional read(JsonReader in) throws IOException {
         in.beginObject();
