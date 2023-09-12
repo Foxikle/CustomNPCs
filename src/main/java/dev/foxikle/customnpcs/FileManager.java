@@ -58,6 +58,15 @@ public class FileManager {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        } else if (version == 2) { // prior to 1.4-pre2
+            plugin.getLogger().log(Level.WARNING, "Outdated Config version! Converting config.");
+            yml.set("CONFIG_VERSION", 2);
+            yml.set("AlertOnUpdate", true);
+            try {
+                yml.save(file);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
         if(ChatColor.translateAlternateColorCodes('&', yml.getString("ClickText")).length() > 16) {
             plugin.getLogger().severe("The 'ClickText' in the config.yml cannot be greater than 16 characters. Disabling plugin.");
