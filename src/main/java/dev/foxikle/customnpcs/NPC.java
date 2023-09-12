@@ -3,8 +3,10 @@ package dev.foxikle.customnpcs;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
+import dev.foxikle.customnpcs.ai.Pathfinder;
 import dev.foxikle.customnpcs.network.NetworkHandler;
 import dev.foxikle.customnpcs.network.NetworkManager;
+import dev.foxikle.customnpcs.runnables.NPCMovementRunnable;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.*;
@@ -56,6 +58,8 @@ public class NPC extends ServerPlayer {
     private double direction;
     private Player target;
     private ArrayList<String> actions;
+    private Pathfinder pathfinder;
+    public List<Location> pathNodes = new ArrayList<>();
 
     /**
      * <p> Gets a new NPC
@@ -105,6 +109,7 @@ public class NPC extends ServerPlayer {
         this.actions = new ArrayList<>(actions);
         super.connection = new NetworkHandler(minecraftServer, new NetworkManager(PacketFlow.CLIENTBOUND), this);
         this.plugin = plugin;
+        this.pathfinder = new Pathfinder(world, plugin, this);
     }
 
     /**
@@ -132,6 +137,7 @@ public class NPC extends ServerPlayer {
         setPosRot(spawnLoc);
         this.getBukkitEntity().setInvulnerable(true);
         this.getBukkitEntity().setNoDamageTicks(Integer.MAX_VALUE);
+        super.getBukkitEntity().setFlying(false);
         super.getCommandSenderWorld().addFreshEntity(this);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HAND, handItem, true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.OFF_HAND, offhandItem, true);
@@ -143,6 +149,7 @@ public class NPC extends ServerPlayer {
         super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(handItem);
         super.detectEquipmentUpdates();
+        super.setNoGravity(true);
         if(!clickable){
             Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").addPlayer(this.getBukkitEntity());
         }
@@ -375,13 +382,20 @@ public class NPC extends ServerPlayer {
      */
     public void setTarget(@Nullable Player target) {
         if(target == null){
-            if(this.target != null)
+            if(this.target != null) {
                 this.target.sendMessage(ChatColor.translateAlternateColorCodes('&', getHologramName()) + ChatColor.RESET + ChatColor.GREEN + " is no longer following you.");
+                startWalkingNPC();
+            }
             this.target = null;
         } else {
             this.target = target;
             this.target.sendMessage(ChatColor.translateAlternateColorCodes('&', getHologramName()) + ChatColor.RESET + ChatColor.GREEN + " is now following you.");
         }
+    }
+
+    public void startWalkingNPC() {
+        pathfinder.computepath(getCurrentLocation(), target.getLocation());
+        Bukkit.getScheduler().runTaskLater(plugin, () -> new NPCMovementRunnable(this, plugin).runTaskTimer(plugin, 0, 1), 200);
     }
 
     /**
@@ -632,5 +646,42 @@ public class NPC extends ServerPlayer {
         List<String> strs = new ArrayList<>();
         actions.forEach(action -> strs.add(action.toJson()));
         this.actions = new ArrayList<>(strs);
+    }
+
+    public boolean addPathNode(Location location) {
+        return pathNodes.add(location);
+    }
+
+/*
+    @Override
+    public void tick() {
+        count++;
+        if(count >= 3) {
+            count = 0;
+        if(target != null) {
+            if (!pathNodes.isEmpty()) {
+                if(pathNodes.size() == 1) { // calculate a new path...
+                    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> pathfinder.computepath(getCurrentLocation(), target.getLocation()));
+                }
+                Location loc = pathNodes.get(0);
+                pathNodes.remove(0);
+                moveTo(new Vec3(loc.x(), loc.y(), loc.z()));
+                lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) target).getHandle(), EntityAnchorArgument.Anchor.EYES);
+            } else {
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> pathfinder.computepath(getCurrentLocation(), target.getLocation()));
+            }
+        }
+        }
+    }
+
+ */
+
+    public Pathfinder getPathfinder() {
+        return pathfinder;
+    }
+
+    public void setVelocity(Vec3 velocity) {
+        //super.setDeltaMovement();
+        super.setDeltaMovement(velocity);
     }
 }

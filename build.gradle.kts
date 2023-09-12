@@ -10,12 +10,14 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+    maven("https://jitpack.io")
 }
 
 dependencies {
     paperweight.paperDevBundle("1.20-R0.1-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.0.2")
     compileOnly("me.clip:placeholderapi:2.11.3")
+    implementation("com.github.patheloper.pathetic:pathetic-mapping:2.1.6")
 }
 
 group = "dev.foxikle"

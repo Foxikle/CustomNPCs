@@ -17,6 +17,7 @@ import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.phys.Vec3;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.*;
@@ -34,6 +35,11 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.patheloper.api.pathing.Pathfinder;
+import org.patheloper.api.pathing.rules.PathingRuleSet;
+import org.patheloper.api.pathing.strategy.strategies.DirectPathfinderStrategy;
+import org.patheloper.api.pathing.strategy.strategies.PlayerPathfinderStrategy;
+import org.patheloper.mapping.PatheticMapper;
 
 import java.util.*;
 
@@ -158,6 +164,11 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     private static Gson gson;
 
     /**
+     * The Plugin's pathfinder from pathetic
+     */
+    public Pathfinder pathfinder;
+
+    /**
      * <p> Logic for when the plugin is enabled
      * </p>
      */
@@ -215,7 +226,15 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                 this.getLogger().warning("Could not find PlaceholderAPI! PlaceholderAPI isn't required, but CustomNPCs does support it.");
             }
         }
-
+        // pathfinding with pathetic
+        PatheticMapper.initialize(this);
+        pathfinder = PatheticMapper.newPathfinder(PathingRuleSet.createAsyncRuleSet()
+                        .withStrategy(PlayerPathfinderStrategy.class)
+                        .withAllowingDiagonal(true)
+                        .withAllowingFailFast(true)
+                        .withAllowingFallback(true)
+                        .withLoadingChunks(true),
+                PatheticMapper.PathfinderType.ASTAR);
     }
     /**
      * <p> Checks if the plugin is compatable with the server version

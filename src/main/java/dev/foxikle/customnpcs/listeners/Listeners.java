@@ -291,6 +291,7 @@ public class Listeners implements Listener {
      * @param e The event callback
      * @since 1.3-pre2
      */
+    /*
     @EventHandler
     public void followHandler(PlayerMoveEvent e) {
         Player player = e.getPlayer();
@@ -306,6 +307,8 @@ public class Listeners implements Listener {
             }
         }
     }
+
+     */
 
     /**
      * <p>The npc injection handler
