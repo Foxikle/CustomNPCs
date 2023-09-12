@@ -1,4 +1,4 @@
-package dev.foxikle.customnpcs.internal.conditions;
+package dev.foxikle.customnpcs.api.conditions;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import org.bukkit.entity.Player;

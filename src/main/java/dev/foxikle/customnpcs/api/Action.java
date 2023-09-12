@@ -1,6 +1,7 @@
-package dev.foxikle.customnpcs.internal;
+package dev.foxikle.customnpcs.api;
 
-import dev.foxikle.customnpcs.internal.conditions.Conditional;
+import dev.foxikle.customnpcs.api.conditions.Conditional;
+import dev.foxikle.customnpcs.internal.CustomNPCs;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 

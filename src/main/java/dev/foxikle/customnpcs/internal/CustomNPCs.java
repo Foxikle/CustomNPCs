@@ -1,33 +1,21 @@
 package dev.foxikle.customnpcs.internal;
 
-import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
+import dev.foxikle.customnpcs.api.Action;
 import dev.foxikle.customnpcs.internal.commands.CommandCore;
 import dev.foxikle.customnpcs.internal.commands.NPCActionCommand;
-import dev.foxikle.customnpcs.internal.conditions.Conditional;
-import dev.foxikle.customnpcs.internal.conditions.ConditionalTypeAdapter;
+import dev.foxikle.customnpcs.api.conditions.Conditional;
+import dev.foxikle.customnpcs.api.conditions.ConditionalTypeAdapter;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.listeners.NPCMenuListeners;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
-import net.minecraft.commands.arguments.EntityAnchorArgument;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.phys.Vec3;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_20_R1.entity.CraftEntity;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -104,7 +92,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * The Map of NPCs keyed by their UUIDs
      */
-    public Map<UUID, NPC> npcs = new HashMap<>();
+    public Map<UUID, InternalNpc> npcs = new HashMap<>();
 
     /**
      * The Map of player's MenuCores
@@ -248,7 +236,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         try {
             Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
         } catch (IllegalArgumentException | NullPointerException ignored) {}
-        for (NPC npc : npcs.values()) {
+        for (InternalNpc npc : npcs.values()) {
             npc.remove();
         }
     }
@@ -258,7 +246,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * </p>
      * @return the list of current NPCs
      */
-    public List<NPC> getNPCs() {
+    public List<InternalNpc> getNPCs() {
         return npcs.values().stream().toList();
     }
 
@@ -268,7 +256,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @param npc The NPC to add
      * @param hologram the TextDisplay representing the NPC's name
      */
-    public void addNPC(NPC npc, TextDisplay hologram) {
+    public void addNPC(InternalNpc npc, TextDisplay hologram) {
         holograms.add(hologram);
         npcs.put(npc.getUUID(), npc);
     }
@@ -310,7 +298,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @throws NullPointerException if the specified UUID is null
      * @throws IllegalArgumentException if an NPC with the specified UUID does not exist
      */
-    public NPC getNPCByID(UUID uuid) {
+    public InternalNpc getNPCByID(UUID uuid) {
         if (uuid == null) throw new NullPointerException("uuid cannot be null");
         if (!npcs.containsKey(uuid)) throw new IllegalArgumentException("An NPC with the uuid '" + uuid + "' does not exist");
         return npcs.get(uuid);

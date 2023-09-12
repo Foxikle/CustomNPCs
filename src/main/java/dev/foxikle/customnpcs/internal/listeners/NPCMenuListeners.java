@@ -1,9 +1,11 @@
 package dev.foxikle.customnpcs.internal.listeners;
 
+import dev.foxikle.customnpcs.api.Action;
+import dev.foxikle.customnpcs.api.ActionType;
 import dev.foxikle.customnpcs.internal.*;
-import dev.foxikle.customnpcs.internal.conditions.Conditional;
-import dev.foxikle.customnpcs.internal.conditions.LogicalConditional;
-import dev.foxikle.customnpcs.internal.conditions.NumericConditional;
+import dev.foxikle.customnpcs.api.conditions.Conditional;
+import dev.foxikle.customnpcs.api.conditions.LogicalConditional;
+import dev.foxikle.customnpcs.api.conditions.NumericConditional;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import dev.foxikle.customnpcs.internal.runnables.*;
 import org.bukkit.*;
@@ -63,7 +65,7 @@ public class NPCMenuListeners implements Listener {
         Player player = (Player) e.getWhoClicked();
         MenuCore mc = map.get(player);
         if(mc == null) return;
-        NPC npc = mc.getNpc();
+        InternalNpc npc = mc.getNpc();
         if(npc.getActions() == null) return;
         if (persistentDataContainer.get(key, PersistentDataType.STRING) != null) {
             if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("NameTag")) {

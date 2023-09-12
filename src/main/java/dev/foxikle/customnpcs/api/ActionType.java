@@ -1,4 +1,4 @@
-package dev.foxikle.customnpcs.internal;
+package dev.foxikle.customnpcs.api;
 
 import javax.annotation.Nullable;
 

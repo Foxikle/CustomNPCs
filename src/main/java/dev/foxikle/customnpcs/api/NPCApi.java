@@ -3,8 +3,8 @@ package dev.foxikle.customnpcs.api;
 import com.google.common.base.Preconditions;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import dev.foxikle.customnpcs.internal.Action;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.InternalNpc;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -18,7 +18,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -55,7 +54,7 @@ public class NPCApi {
      */
     public static class NPC {
         
-        private final dev.foxikle.customnpcs.internal.NPC npc;
+        private final InternalNpc npc;
 
         /**
          * The intended way to create an NPC
@@ -69,10 +68,10 @@ public class NPCApi {
             GameProfile profile = new GameProfile(UUID.randomUUID(), ChatColor.RED + "ERROR!");
             MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
             ServerLevel nmsWorld = ((CraftWorld) world).getHandle();
-            this.npc = new dev.foxikle.customnpcs.internal.NPC(plugin, nmsServer, nmsWorld, profile, new Location(world, 0, 0, 0), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), false, false, "", profile.getId(), "",  "", null, 0, null,  new ArrayList<>());
+            this.npc = new InternalNpc(plugin, nmsServer, nmsWorld, profile, new Location(world, 0, 0, 0), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), false, false, "", profile.getId(), "",  "", null, 0, null,  new ArrayList<>());
         }
         
-        private NPC(dev.foxikle.customnpcs.internal.NPC npc) {
+        private NPC(InternalNpc npc) {
             this.npc = npc;
         }
 

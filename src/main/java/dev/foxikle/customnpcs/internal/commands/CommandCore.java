@@ -2,10 +2,10 @@ package dev.foxikle.customnpcs.internal.commands;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import dev.foxikle.customnpcs.internal.Action;
+import dev.foxikle.customnpcs.api.Action;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
-import dev.foxikle.customnpcs.internal.NPC;
+import dev.foxikle.customnpcs.internal.InternalNpc;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -98,7 +98,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             
                             """));
                     ComponentBuilder message = new ComponentBuilder();
-                    for (NPC npc : plugin.getNPCs()) {
+                    for (InternalNpc npc : plugin.getNPCs()) {
                         if (npc.isResilient()) {
                             ComponentBuilder name = new ComponentBuilder("  " + npc.getHologramName() + " §r▸").event(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, npc.getUUID().toString())).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to copy UUID").color(net.md_5.bungee.api.ChatColor.YELLOW).create())).append(new ComponentBuilder(" ").color(net.md_5.bungee.api.ChatColor.WHITE).bold(false).create())
                                     .append(new ComponentBuilder(" [EDIT]").color(net.md_5.bungee.api.ChatColor.YELLOW).bold(true).event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc edit " + npc.getUUID().toString())).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to edit npc").color(net.md_5.bungee.api.ChatColor.YELLOW).create())).create()).append(new ComponentBuilder(" ").color(net.md_5.bungee.api.ChatColor.WHITE).bold(false).create())
@@ -138,7 +138,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     profile.getProperties().put("textures", new Property("textures", null, null));
                     MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
                     ServerLevel nmsWorld = ((CraftWorld) player.getWorld()).getHandle();
-                    NPC npc = new NPC(plugin, nmsServer, nmsWorld, profile,  player.getLocation(), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), true, true,  "not set", UUID.randomUUID(), "", "", "not set", 180, null, new ArrayList<>());
+                    InternalNpc npc = new InternalNpc(plugin, nmsServer, nmsWorld, profile,  player.getLocation(), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), true, true,  "not set", UUID.randomUUID(), "", "", "not set", 180, null, new ArrayList<>());
                     MenuCore mc = new MenuCore(npc, plugin);
                     plugin.menuCores.put(player, mc);
                     plugin.pages.put(player, 0);
@@ -156,8 +156,8 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
                     } catch (IllegalArgumentException ignored) {}
                     HandlerList.unregisterAll(plugin);
-                    List<NPC> npcs = new ArrayList<>(plugin.npcs.values());
-                    for (NPC npc : npcs) {
+                    List<InternalNpc> npcs = new ArrayList<>(plugin.npcs.values());
+                    for (InternalNpc npc : npcs) {
                         plugin.npcs.remove(npc.getUUID());
                         npc.remove();
                     }
@@ -205,7 +205,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             return true;
                         }
                         if (plugin.npcs.keySet().contains(uuid)) {
-                            NPC npc = plugin.getNPCByID(uuid);
+                            InternalNpc npc = plugin.getNPCByID(uuid);
                             npc.remove();
                             npc.delete();
                             plugin.npcs.remove(npc.getUUID());
@@ -220,7 +220,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             return true;
                         }
                         if (plugin.npcs.containsKey(uuid)) {
-                            NPC npc = plugin.getNPCByID(uuid);
+                            InternalNpc npc = plugin.getNPCByID(uuid);
                             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                                 GameProfile profile = new GameProfile(uuid, npc.isClickable() ? "§e§lClick" : "noclick");
                                 profile.getProperties().removeAll("textures");
@@ -229,7 +229,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                                 ServerLevel nmsWorld = ((CraftWorld) player.getWorld()).getHandle();
                                 List<String> actionStrs = new ArrayList<>();
                                 npc.getActions().forEach(action -> actionStrs.add(action.toJson()));
-                                NPC newNpc = new NPC(plugin, nmsServer, nmsWorld, profile, npc.getSpawnLoc(), npc.getHandItem(), npc.getItemInOffhand(), npc.getHeadItem(), npc.getChestItem(), npc.getLegsItem(), npc.getBootsItem(), npc.isClickable(), npc.isResilient(), npc.getHologramName(), uuid, npc.getValue(), npc.getSignature(), npc.getSkinName(), npc.getFacingDirection(), null, actionStrs);
+                                InternalNpc newNpc = new InternalNpc(plugin, nmsServer, nmsWorld, profile, npc.getSpawnLoc(), npc.getHandItem(), npc.getItemInOffhand(), npc.getHeadItem(), npc.getChestItem(), npc.getLegsItem(), npc.getBootsItem(), npc.isClickable(), npc.isResilient(), npc.getHologramName(), uuid, npc.getValue(), npc.getSignature(), npc.getSkinName(), npc.getFacingDirection(), null, actionStrs);
                                 MenuCore mc = new MenuCore(newNpc, plugin);
                                 plugin.menuCores.put(player, mc);
                                 plugin.pages.put(player, 0);
@@ -251,8 +251,8 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     } catch (IllegalArgumentException ignored) {
                     }
                     HandlerList.unregisterAll(plugin);
-                    List<NPC> npcs = new ArrayList<>(plugin.npcs.values());
-                    for (NPC npc : npcs) {
+                    List<InternalNpc> npcs = new ArrayList<>(plugin.npcs.values());
+                    for (InternalNpc npc : npcs) {
                         plugin.npcs.remove(npc.getUUID());
                         npc.remove();
                     }
@@ -266,8 +266,8 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
                 } catch (IllegalArgumentException ignored) {}
                 HandlerList.unregisterAll(plugin);
-                List<NPC> npcs = new ArrayList<>(plugin.npcs.values());
-                for (NPC npc : npcs) {
+                List<InternalNpc> npcs = new ArrayList<>(plugin.npcs.values());
+                for (InternalNpc npc : npcs) {
                     plugin.npcs.remove(npc.getUUID());
                     npc.remove();
                 }

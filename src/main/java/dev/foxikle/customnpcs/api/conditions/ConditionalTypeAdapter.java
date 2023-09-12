@@ -1,11 +1,11 @@
-package dev.foxikle.customnpcs.internal.conditions;
+package dev.foxikle.customnpcs.api.conditions;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import dev.foxikle.customnpcs.internal.conditions.Conditional.Comparator;
-import dev.foxikle.customnpcs.internal.conditions.Conditional.Type;
-import dev.foxikle.customnpcs.internal.conditions.Conditional.Value;
+import dev.foxikle.customnpcs.api.conditions.Conditional.Comparator;
+import dev.foxikle.customnpcs.api.conditions.Conditional.Type;
+import dev.foxikle.customnpcs.api.conditions.Conditional.Value;
 
 import java.io.IOException;
 

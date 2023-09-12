@@ -3,7 +3,7 @@ package dev.foxikle.customnpcs.internal.commands;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.NPC;
+import dev.foxikle.customnpcs.internal.InternalNpc;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -199,7 +199,7 @@ public class NPCActionCommand implements CommandExecutor {
                         if(!args.isEmpty()) {
                             if (plugin.npcs.containsKey(UUID.fromString(args.get(0)))) {
                                 UUID npcId = UUID.fromString(args.get(0));
-                                NPC npc = plugin.getNPCByID(npcId);
+                                InternalNpc npc = plugin.getNPCByID(npcId);
                                 if(npc.getTarget() == player){
                                     npc.setTarget(null);
                                 } else {

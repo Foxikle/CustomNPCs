@@ -2,6 +2,8 @@ package dev.foxikle.customnpcs.internal;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import dev.foxikle.customnpcs.api.Action;
+import dev.foxikle.customnpcs.api.ActionType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import org.bukkit.Bukkit;
@@ -81,7 +83,7 @@ public class FileManager {
      * </p>
      * @param npc The NPC to store
      */
-    public void addNPC(NPC npc){
+    public void addNPC(InternalNpc npc){
         File file = new File("plugins/CustomNPCs/npcs.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         yml.createSection(npc.getUUID().toString());
@@ -202,7 +204,7 @@ public class FileManager {
         profile.getProperties().put("textures", new Property("textures", section.getString("value"), section.getString("signature")));
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
         ServerLevel nmsWorld = ((CraftWorld) section.getLocation("location").getWorld()).getHandle();
-        NPC npc = new NPC(plugin, nmsServer, nmsWorld, profile, section.getLocation("location"), section.getItemStack("handItem"), section.getItemStack("offhandItem"), section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getBoolean("clickable"), true, section.getString("name"), uuid, section.getString("value"), section.getString("signature"), section.getString("skin"), section.getDouble("direction"), null,  section.getStringList("actions"));
+        InternalNpc npc = new InternalNpc(plugin, nmsServer, nmsWorld, profile, section.getLocation("location"), section.getItemStack("handItem"), section.getItemStack("offhandItem"), section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getBoolean("clickable"), true, section.getString("name"), uuid, section.getString("value"), section.getString("signature"), section.getString("skin"), section.getDouble("direction"), null,  section.getStringList("actions"));
         npc.createNPC();
     }
 

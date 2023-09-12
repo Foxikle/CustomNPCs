@@ -1,11 +1,11 @@
 package dev.foxikle.customnpcs.internal.menu;
 
-import dev.foxikle.customnpcs.internal.Action;
+import dev.foxikle.customnpcs.api.Action;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.NPC;
-import dev.foxikle.customnpcs.internal.conditions.Conditional;
-import dev.foxikle.customnpcs.internal.conditions.LogicalConditional;
-import dev.foxikle.customnpcs.internal.conditions.NumericConditional;
+import dev.foxikle.customnpcs.internal.InternalNpc;
+import dev.foxikle.customnpcs.api.conditions.Conditional;
+import dev.foxikle.customnpcs.api.conditions.LogicalConditional;
+import dev.foxikle.customnpcs.api.conditions.NumericConditional;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -32,7 +32,7 @@ import static java.util.stream.Collectors.toList;
  */
 public class MenuCore {
 
-    private final NPC npc;
+    private final InternalNpc npc;
     private final CustomNPCs plugin;
 
     /**
@@ -41,7 +41,7 @@ public class MenuCore {
      * @param npc The NPC to edit
      * @param plugin The instance of the Main class
      */
-    public MenuCore(NPC npc, CustomNPCs plugin) {
+    public MenuCore(InternalNpc npc, CustomNPCs plugin) {
         this.npc = npc;
         this.plugin = plugin;
     }
@@ -1797,7 +1797,7 @@ public class MenuCore {
      * </p>
      * @return The npc
      */
-    public NPC getNpc() {
+    public InternalNpc getNpc() {
         return this.npc;
     }
 }

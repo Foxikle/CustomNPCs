@@ -1,9 +1,9 @@
 package dev.foxikle.customnpcs.internal.listeners;
 
-import dev.foxikle.customnpcs.internal.Action;
+import dev.foxikle.customnpcs.api.Action;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.NPC;
-import dev.foxikle.customnpcs.internal.conditions.Conditional;
+import dev.foxikle.customnpcs.internal.InternalNpc;
+import dev.foxikle.customnpcs.api.conditions.Conditional;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.server.level.ServerPlayer;
@@ -54,7 +54,7 @@ public class Listeners implements Listener {
                 Player player = e.getPlayer();
                 Player rightClicked = (Player) e.getRightClicked();
                 ServerPlayer sp = ((CraftPlayer) rightClicked).getHandle();
-                NPC npc;
+                InternalNpc npc;
                 try {
                     npc = plugin.getNPCByID(sp.getUUID());
                 } catch (IllegalArgumentException ignored){
@@ -174,11 +174,11 @@ public class Listeners implements Listener {
                 e.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&2&m----------------&r &6[&e!&6] &b&lCustomNPCs &6[&e!&6]  &2&m----------------\n&r&eA new update is available! I'd appreciate if you updated :) \n -&e&oFoxikle"));
             }
         }
-            for (NPC npc : plugin.getNPCs()) {
+            for (InternalNpc npc : plugin.getNPCs()) {
                 npc.injectPlayer(e.getPlayer());
             }
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                for (NPC npc : plugin.getNPCs()) {
+                for (InternalNpc npc : plugin.getNPCs()) {
                     npc.injectPlayer(e.getPlayer());
                 }
         }, 10);
@@ -193,7 +193,7 @@ public class Listeners implements Listener {
     @EventHandler
     public void onMove(PlayerMoveEvent e) {
         Player player = e.getPlayer();
-        for (NPC npc : plugin.npcs.values()) {
+        for (InternalNpc npc : plugin.npcs.values()) {
             if(npc.getTarget() != null) return;
             if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
@@ -231,7 +231,7 @@ public class Listeners implements Listener {
             if(entity1 instanceof Player player) players.add(player);
         });
         for (Player player : players) {
-            for (NPC npc : plugin.npcs.values()) {
+            for (InternalNpc npc : plugin.npcs.values()) {
                 if(npc.getTarget() != null) return;
                 if (player.getLocation().distance(npc.getCurrentLocation()) <= 5) {
                     npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
@@ -266,7 +266,7 @@ public class Listeners implements Listener {
     @EventHandler
     public void onVelocity(PlayerVelocityEvent e) {
         Player player = e.getPlayer();
-        for (NPC npc : plugin.npcs.values()) {
+        for (InternalNpc npc : plugin.npcs.values()) {
             if(npc.getTarget() != null) return;
             if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
@@ -299,7 +299,7 @@ public class Listeners implements Listener {
     @EventHandler
     public void followHandler(PlayerMoveEvent e) {
         Player player = e.getPlayer();
-        for (NPC npc : plugin.npcs.values()) {
+        for (InternalNpc npc : plugin.npcs.values()) {
             if(npc.getTarget() == player){
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
                 if(npc.getCurrentLocation().distance(e.getTo()) >= .5){
@@ -321,7 +321,7 @@ public class Listeners implements Listener {
     @EventHandler
     public void onTeleport(PlayerTeleportEvent e) {
         Player player = e.getPlayer();
-        for (NPC npc : plugin.npcs.values()) {
+        for (InternalNpc npc : plugin.npcs.values()) {
             if (e.getPlayer().getLocation().distance(npc.getSpawnLoc()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
             } else if (e.getFrom().distance(npc.getSpawnLoc()) >= 48 && e.getTo().distance(npc.getSpawnLoc()) <= 48) {
@@ -338,7 +338,7 @@ public class Listeners implements Listener {
      */
     @EventHandler
     public void onLeave(PlayerQuitEvent e){
-        for (NPC npc : plugin.npcs.values()) {
+        for (InternalNpc npc : plugin.npcs.values()) {
             if(npc.getPlayer().getBukkitEntity().getPlayer() == e.getPlayer()){
                 e.setQuitMessage("");
             }
@@ -353,7 +353,7 @@ public class Listeners implements Listener {
      */
     @EventHandler
     public void onRespawn(PlayerRespawnEvent e){
-        for (NPC npc : plugin.npcs.values()) {
+        for (InternalNpc npc : plugin.npcs.values()) {
             if(e.getRespawnLocation().distance(npc.getCurrentLocation()) <= 48){
                 npc.injectPlayer(e.getPlayer());
             }
