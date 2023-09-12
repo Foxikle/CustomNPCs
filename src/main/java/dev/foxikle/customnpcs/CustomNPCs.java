@@ -158,6 +158,11 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     private static Gson gson;
 
     /**
+     * If there is a new update available
+     */
+    public boolean update;
+
+    /**
      * <p> Logic for when the plugin is enabled
      * </p>
      */
@@ -165,7 +170,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public void onEnable() {
         instance = this;
         if(!setup()){
-            Bukkit.getLogger().severe("Incompatible server version! Please use 1.20 or 1.20.1 Shutting down plugin.");
+            Bukkit.getLogger().severe("Incompatible server version! Please use 1.20 or 1.20.1! Shutting down plugin.");
             Bukkit.getPluginManager().disablePlugin(this);
         }
 
@@ -190,7 +195,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         this.fileManager = new FileManager(this);
         this.mu = new MenuUtils(this);
         this.updater = new AutoUpdater(this);
-        updater.checkForUpdates();
+        update = updater.checkForUpdates();
         if(fileManager.createFiles()){
             getCommand("npc").setExecutor(new CommandCore(this));
             getCommand("npcaction").setExecutor(new NPCActionCommand(this));

@@ -27,6 +27,7 @@ permissions:
     - customnpcs.commands.reload
     - customnpcs.commands.list
     - customnpcs.commands.removeHolograms
+    - customnpcs.alert
   customnpcs.commands.*:
     description: A wildcard permission for all command permissions
     default: op
@@ -43,6 +44,7 @@ permissions:
       - customnpcs.edit
       - customnpcs.create
       - customnpcs.delete
+      - customnpcs.alert
   customnpcs.commands.help:
     description: A permission required for the /npc help or /npc command
     default: op
@@ -60,4 +62,7 @@ permissions:
     default: op
   customnpcs.commands.removeHolograms:
     description: A permission required to use the /npc clear_holograms command.
+    default: op
+  customnpcs.alert:
+    description: A permission to alert if there is a new update available.
     default: op
