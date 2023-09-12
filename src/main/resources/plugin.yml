@@ -1,6 +1,6 @@
 name: CustomNPCs
 version: ${version}
-main: dev.foxikle.customnpcs.CustomNPCs
+main: dev.foxikle.customnpcs.internal.CustomNPCs
 api-version: '1.20'
 prefix: CustomNPCs
 authors: [ Foxikle ]
