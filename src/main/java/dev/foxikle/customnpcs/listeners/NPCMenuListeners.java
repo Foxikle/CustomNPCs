@@ -531,8 +531,10 @@ public class NPCMenuListeners implements Listener {
                 }
                 case "confirm" -> {
                     e.setCancelled(true);
+                    if(plugin.originalEditingConditionals.get(player) != null)
+                        action.removeConditional(Conditional.of(plugin.originalEditingConditionals.remove(player)));
                     action.addConditional(conditional);
-                    player.openInventory(mc.getConditionMenu(action));
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(mc.getConditionMenu(action)), 1);
                 }
                 case "go_back" -> player.openInventory(mc.getNewConditionMenu());
             }
