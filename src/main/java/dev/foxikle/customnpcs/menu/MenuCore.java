@@ -521,64 +521,78 @@ public class MenuCore {
             ItemMeta meta = item.getItemMeta();
             List<String> lore = new ArrayList<>();
             List<String> args = action.getArgsCopy();
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&aDelay (ticks): " + action.getDelay()));
+            lore.add("");
             switch (action.getSubCommand()) {
                 case "DISPLAY_TITLE" -> {
                     item.setType(Material.OAK_SIGN);
+                    int fIn = Integer.parseInt(args.get(0));
+                    int stay = Integer.parseInt(args.get(1));
+                    int fOut = Integer.parseInt(args.get(1));
+                    args.remove(0);
+                    args.remove(0);
+                    args.remove(0);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bDisplay Title"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current title is: '" + String.join(" ", args) + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current title is: '&f" + String.join(" ", args) + "&r&e'"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bFade in: " + fIn));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bStay: " + stay));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bFade out: " + fOut));
                 }
                 case "SEND_MESSAGE" -> {
                     item.setType(Material.PAPER);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Message"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current message is: '" + String.join(" ", args) + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current message is: '&f" + String.join(" ", args) + "&r&e'"));
                 }
                 case "PLAY_SOUND" -> {
                     item.setType(Material.BELL);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePlay Sound"));
+                    int pitch = Integer.parseInt(args.get(0));
                     args.remove(0);
+                    int volume = Integer.parseInt(args.get(0));
                     args.remove(0);
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current sound is: '" + String.join(" ", args) + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bPitch: " + pitch));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bVolume: " + volume));
                 }
                 case "RUN_COMMAND" -> {
                     item.setType(Material.ANVIL);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRun Command"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe command is: '" + String.join(" ", args) + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
                 case "ACTION_BAR" -> {
                     item.setType(Material.IRON_INGOT);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Actionbar"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current actionbar is: '" + String.join(" ", args) + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current actionbar is: '&f" + String.join(" ", args) + "&r&e'"));
                 }
                 case "TELEPORT" -> {
                     item.setType(Material.ENDER_PEARL);
+                    int x = Integer.parseInt(args.get(0));
+                    args.remove(0);
+                    int y = Integer.parseInt(args.get(0));
+                    args.remove(0);
+                    int z = Integer.parseInt(args.get(0));
+                    args.remove(0);
+                    int pitch = Integer.parseInt(args.get(0));
+                    args.remove(0);
+                    int yaw = Integer.parseInt(args.get(0));
+                    args.remove(0);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bTeleport Player"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current Teleport location is: '" + String.join(", ", args) + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current Teleport location is:"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bX: " + x));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bY: " + z));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bZ: " + y));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bPitch: " + pitch));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bYaw: " + yaw));
                 }
                 case "GIVE_EXP" -> {
                     item.setType(Material.EXPERIENCE_BOTTLE);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bGive Experience"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current xp to give is: " + args.get(0) + " " + (args.get(1).equalsIgnoreCase("true") ? "levels" : "points")));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
                 case "REMOVE_EXP" -> {
                     item.setType(Material.GLASS_BOTTLE);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRemove Experience"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current xp to remove is: " + args.get(0) + " " + (args.get(1).equalsIgnoreCase("true") ? "levels" : "points")));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
                 case "ADD_EFFECT" -> {
                     item.setType(Material.BREWING_STAND);
@@ -587,30 +601,25 @@ public class MenuCore {
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eDuration: " + args.get(0)));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eAmplifier: " + args.get(1)));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eHide particles: " + args.get(2)));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
                 case "REMOVE_EFFECT" -> {
                     item.setType(Material.MILK_BUCKET);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRemove Experience"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eEffect: '" + args.get(0) + "'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
                 }
                 case "SEND_TO_SERVER" -> {
                     item.setType(Material.GRASS_BLOCK);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend To Bungeecord Server"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe server is called: '" + String.join(" ", args) + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eServer: '" + String.join(" ", args) + "&r&e'"));
                 }
                 case "TOGGLE_FOLLOWING" -> {
                     item.setType(Material.LEAD);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&d&l[WIP] &bStart / Stop Following"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                 }
             }
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&eDelay Ticks: " + action.getDelay()));
+            lore.add("");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
             NamespacedKey actionKey = new NamespacedKey(plugin, "SerializedAction");
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "actionDisplay");
             meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action.toJson());
@@ -1000,7 +1009,7 @@ public class MenuCore {
                 ItemStack potion = new ItemStack(Material.POTION);
                 ItemMeta potionMeta = potion.getItemMeta();
                 potionMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eEffect to remove"));
-                potionMeta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
+                potionMeta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);;
                 potionMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_add_effect");
                 List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).collect(toList());
                 List<String> lore = new ArrayList<>();
