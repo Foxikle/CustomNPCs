@@ -149,6 +149,8 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     player.sendMessage(ChatColor.YELLOW + "Reloading NPCs!");
+                    plugin.getServer().getMessenger().unregisterIncomingPluginChannel(plugin);
+                    plugin.getServer().getMessenger().unregisterIncomingPluginChannel(plugin);
                     plugin.reloadConfig();
                     try {
                         Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
