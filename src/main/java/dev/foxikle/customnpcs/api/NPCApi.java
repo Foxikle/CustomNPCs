@@ -112,8 +112,8 @@ public class NPCApi {
          * @since 1.3-pre5
          */
         public NPC setSkin(@NotNull String skinName, @NotNull String signature, @NotNull String value){
-            Preconditions.checkArgument(signature != null && skinName.length() != 0, "signature cannot be null or empty.");
-            Preconditions.checkArgument(value != null && skinName.length() != 0, "value cannot be null or empty.");
+            Preconditions.checkArgument(signature != null, "signature cannot be null.");
+            Preconditions.checkArgument(value != null, "value cannot be null.");
             Preconditions.checkArgument(skinName != null && skinName.length() != 0, "skinName cannot be null or empty");
             GameProfile profile = npc.getGameProfile();
             npc.setSkinName(skinName);
