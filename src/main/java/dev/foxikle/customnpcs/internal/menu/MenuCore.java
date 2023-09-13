@@ -716,10 +716,10 @@ public class MenuCore {
         inv.addItem(newCondition);
 
         // Change Mode
-        ItemStack changeMode = new ItemStack(action.isMatchAll() ? Material.GREEN_CANDLE : Material.RED_CANDLE);
+        ItemStack changeMode = new ItemStack(action.getMode() == Conditional.SelectionMode.ALL ? Material.GREEN_CANDLE : Material.RED_CANDLE);
         ItemMeta changeModeMeta = changeMode.getItemMeta();
         changeModeMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&a&lChange Mode"));
-        lore.add(action.isMatchAll() ? ChatColor.YELLOW + "Match ALL Conditions" : ChatColor.YELLOW + "Match ONE Condition");
+        lore.add(action.getMode() == Conditional.SelectionMode.ALL ? ChatColor.YELLOW + "Match ALL Conditions" : ChatColor.YELLOW + "Match ONE Condition");
         changeModeMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "change_mode");
         changeModeMeta.setLore(lore);
         changeMode.setItemMeta(changeModeMeta);

@@ -399,7 +399,7 @@ public class NPCMenuListeners implements Listener {
             } else if (itemData.equals("change_mode")) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 Action action = plugin.editingActions.get(player);
-                action.setMatchAll(!action.isMatchAll());
+                action.setMode(action.getMode() == Conditional.SelectionMode.ALL ? Conditional.SelectionMode.ONE : Conditional.SelectionMode.ALL);
                 player.openInventory(mc.getConditionMenu(action));
             } else if (itemData.equals("go_back")) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -425,18 +425,18 @@ public class NPCMenuListeners implements Listener {
             Action action = null;
 
             switch (itemData) {
-                case "RUN_COMMAND" -> action = new Action(ActionType.RUN_COMMAND, new ArrayList<>(Arrays.asList("command", "to", "be", "run")), 0, false, new ArrayList<>());
-                case "DISPLAY_TITLE" -> action = new Action(ActionType.DISPLAY_TITLE, new ArrayList<>(Arrays.asList("10", "20", "10", "title!")), 0, false, new ArrayList<>());
-                case "SEND_MESSAGE" -> action = new Action(ActionType.SEND_MESSAGE, new ArrayList<>(Arrays.asList("message", "to", "be", "sent")), 0, false, new ArrayList<>());
-                case "PLAY_SOUND" -> action = new Action(ActionType.PLAY_SOUND, new ArrayList<>(Arrays.asList("1", "1", Sound.UI_BUTTON_CLICK.name())), 0, false, new ArrayList<>());
-                case "ACTION_BAR" -> action = new Action(ActionType.ACTION_BAR, new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")), 0, false, new ArrayList<>());
-                case "TELEPORT" -> action = new Action(ActionType.TELEPORT, new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")), 0, false, new ArrayList<>());
-                case "SEND_TO_SERVER" -> action = new Action(ActionType.SEND_TO_SERVER, new ArrayList<>(Arrays.asList("server", "name")), 0, false, new ArrayList<>());
-                case "TOGGLE_FOLLOWING" -> action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Arrays.asList(npc.getUUID().toString())), 0, false, new ArrayList<>());
-                case "GIVE_EXP" -> action = new Action(ActionType.GIVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, false, new ArrayList<>());
-                case "REMOVE_EXP" -> action = new Action(ActionType.REMOVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, false, new ArrayList<>());
-                case "ADD_EFFECT" -> action = new Action(ActionType.ADD_EFFECT, new ArrayList<>(Arrays.asList("1", "1", "true", "SPEED")), 0, false, new ArrayList<>());
-                case "REMOVE_EFFECT" -> action = new Action(ActionType.REMOVE_EFFECT, new ArrayList<>(Arrays.asList("SPEED")), 0, false, new ArrayList<>());
+                case "RUN_COMMAND" -> action = new Action(ActionType.RUN_COMMAND, new ArrayList<>(Arrays.asList("command", "to", "be", "run")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "DISPLAY_TITLE" -> action = new Action(ActionType.DISPLAY_TITLE, new ArrayList<>(Arrays.asList("10", "20", "10", "title!")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "SEND_MESSAGE" -> action = new Action(ActionType.SEND_MESSAGE, new ArrayList<>(Arrays.asList("message", "to", "be", "sent")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "PLAY_SOUND" -> action = new Action(ActionType.PLAY_SOUND, new ArrayList<>(Arrays.asList("1", "1", Sound.UI_BUTTON_CLICK.name())), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "ACTION_BAR" -> action = new Action(ActionType.ACTION_BAR, new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "TELEPORT" -> action = new Action(ActionType.TELEPORT, new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "SEND_TO_SERVER" -> action = new Action(ActionType.SEND_TO_SERVER, new ArrayList<>(Arrays.asList("server", "name")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "TOGGLE_FOLLOWING" -> action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Arrays.asList(npc.getUUID().toString())), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "GIVE_EXP" -> action = new Action(ActionType.GIVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "REMOVE_EXP" -> action = new Action(ActionType.REMOVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "ADD_EFFECT" -> action = new Action(ActionType.ADD_EFFECT, new ArrayList<>(Arrays.asList("1", "1", "true", "SPEED")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "REMOVE_EFFECT" -> action = new Action(ActionType.REMOVE_EFFECT, new ArrayList<>(Arrays.asList("SPEED")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                 case "go_back" -> player.openInventory(mc.getActionMenu());
             }
             if(action != null) {

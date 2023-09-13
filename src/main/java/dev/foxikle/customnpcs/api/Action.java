@@ -18,7 +18,7 @@ public class Action {
     private ArrayList<String> args;
     private int delay;
 
-    private boolean matchAll;
+    private Conditional.SelectionMode mode;
 
     private final List<String> conditionals;
 
@@ -32,19 +32,19 @@ public class Action {
      * @param matchAll If all the conditions must be met, or one
      * @param conditionals The conditions to apply to this action
      */
-    public Action(ActionType actionType, ArrayList<String> args, int delay, boolean matchAll, List<String> conditionals){
+    public Action(ActionType actionType, ArrayList<String> args, int delay, Conditional.SelectionMode matchAll, List<String> conditionals){
         this.subCommand = actionType.name();
         this.args = args;
         this.delay = delay;
-        this.matchAll = matchAll;
+        this.mode = matchAll;
         this.conditionals = conditionals;
     }
 
-    private Action(String subCommand, ArrayList<String> args, int delay, boolean matchAll){
+    private Action(String subCommand, ArrayList<String> args, int delay){
         this.subCommand = subCommand;
         this.args = args;
         this.delay = delay;
-        this.matchAll = matchAll;
+        this.mode = Conditional.SelectionMode.ONE;
         this.conditionals = new ArrayList<>();
     }
 
@@ -109,8 +109,8 @@ public class Action {
      * If all conditions must be met to execute the action
      * @return if all condition must be met
      */
-    public boolean isMatchAll() {
-        return matchAll;
+    public Conditional.SelectionMode getMode() {
+        return mode;
     }
 
     /**
@@ -125,10 +125,10 @@ public class Action {
 
     /**
      * Sets if all conditions should be met
-     * @param matchAll if all conditions should be met
+     * @param mode if all conditions should be met
      */
-    public void setMatchAll(boolean matchAll) {
-        this.matchAll = matchAll;
+    public void setMode(Conditional.SelectionMode mode) {
+        this.mode = mode;
     }
 
     /**
@@ -167,7 +167,7 @@ public class Action {
             return true; // no conditions
         List<Boolean> computedActions = new ArrayList<>();
         conditionals.forEach(conditional -> computedActions.add(Conditional.of(conditional).compute(player)));
-        if(matchAll) {
+        if(mode == Conditional.SelectionMode.ALL) {
             return !computedActions.contains(false); // not all true
         } else {
             return computedActions.contains(true); // if any are true
@@ -189,7 +189,7 @@ public class Action {
             split.remove(0);
             int delay = Integer.parseInt(split.get(0));
             split.remove(0);
-            return new Action(sub, split, delay, false); // doesn't support conditionals
+            return new Action(sub, split, delay); // doesn't support conditionals
         } else {
             return CustomNPCs.getGson().fromJson(string, Action.class);
         }

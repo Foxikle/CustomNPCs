@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import dev.foxikle.customnpcs.api.Action;
 import dev.foxikle.customnpcs.api.ActionType;
+import dev.foxikle.customnpcs.api.conditions.Conditional;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import org.bukkit.Bukkit;
@@ -146,7 +147,7 @@ public class FileManager {
                     String sub = split.get(0);
                     split.remove(0);
                     int delay = 0;
-                    Action acttion = new Action(ActionType.valueOf(sub), split, delay, false, new ArrayList<>());
+                    Action acttion = new Action(ActionType.valueOf(sub), split, delay, Conditional.SelectionMode.ONE, new ArrayList<>());
                     convertedActions.add(acttion.toJson());
                     actions.add(acttion);
                 }
@@ -183,7 +184,7 @@ public class FileManager {
             if (section.getString("command") != null) { // if there is a legacy command
                 Bukkit.getLogger().info("Converting legacy commands to Actions.");
                 String command = section.getString("command");
-                Action action = new Action(ActionType.RUN_COMMAND, new ArrayList<>(Arrays.stream(command.split(" ")).toList()), 0, false, new ArrayList<>());
+                Action action = new Action(ActionType.RUN_COMMAND, new ArrayList<>(Arrays.stream(command.split(" ")).toList()), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                 actions.add(action);
                 section.set("actions", actions);
                 section.set("command", null);

@@ -249,4 +249,19 @@ public interface Conditional {
             return isLogical;
         }
     }
+
+    /**
+     * Represents if how the conditions should be computed
+     */
+    enum SelectionMode {
+        /**
+         * If ALL the conditions must be true for the action to be executed
+         */
+        ALL,
+
+        /**
+         * if at least ONE of the conditions must be met for the action to be executed
+         */
+        ONE
+    }
 }
