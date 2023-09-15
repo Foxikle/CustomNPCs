@@ -1,21 +1,20 @@
-package dev.foxikle.customnpcs.commands;
+package dev.foxikle.customnpcs.internal.commands;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import dev.foxikle.customnpcs.CustomNPCs;
-import dev.foxikle.customnpcs.NPC;
+import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.InternalNpc;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -148,11 +147,59 @@ public class NPCActionCommand implements CommandExecutor {
                         out.writeUTF(args.get(0));
                         player.sendPluginMessage(plugin, "BungeeCord", out.toByteArray());
                     }
+                    case "ADD_EFFECT" -> { // duration, strength, hide particles, effect
+                        if(args.size() >= 4) {
+                            int duration = Integer.parseInt(args.get(0));
+                            args.remove(0);
+                            int strenth = Integer.parseInt(args.get(0));
+                            args.remove(0);
+                            boolean hideParticles = Boolean.parseBoolean(args.get(0));
+                            args.remove(0);
+                            PotionEffectType type = PotionEffectType.getByName(args.get(0));
+                            player.addPotionEffect(new PotionEffect(type, duration, strenth, true, !hideParticles));
+                        }
+                    }
+                    case "REMOVE_EFFECT" -> { // effect
+                        if(!args.isEmpty()) {
+                            PotionEffectType type = PotionEffectType.getByName(args.get(0));
+                            player.removePotionEffect(type);
+                        }
+                    }
+                    case "GIVE_EXP" -> { // amount, levels
+                        if(args.size() >= 2) {
+                            int amount = Integer.parseInt(args.get(0));
+                            args.remove(0);
+                            boolean isLevels = Boolean.parseBoolean(args.get(0));
+
+                            if(isLevels) {
+                                player.giveExpLevels(amount);
+                            } else {
+                                player.giveExp(amount, true);
+                            }
+                        }
+                    }
+                    case "REMOVE_EXP" -> { // amount, levels
+                        if(args.size() >= 2) {
+                            int amount = Integer.parseInt(args.get(0));
+                            args.remove(0);
+                            boolean isLevels = Boolean.parseBoolean(args.get(0));
+
+                            if(isLevels) {
+                                if(amount >= player.getLevel()) {
+                                    player.setLevel(0);
+                                } else {
+                                    player.setLevel(player.getLevel() - amount);
+                                }
+                            } else {
+                                setTotalExperience(player, getTotalExperience(player) - amount);
+                            }
+                        }
+                    }
                     case "TOGGLE_FOLLOWING" -> { //UUID of NPC
                         if(!args.isEmpty()) {
                             if (plugin.npcs.containsKey(UUID.fromString(args.get(0)))) {
                                 UUID npcId = UUID.fromString(args.get(0));
-                                NPC npc = plugin.getNPCByID(npcId);
+                                InternalNpc npc = plugin.getNPCByID(npcId);
                                 if(npc.getTarget() == player){
                                     npc.setTarget(null);
                                 } else {
@@ -169,4 +216,49 @@ public class NPCActionCommand implements CommandExecutor {
         }
         return false;
     }
+
+    private int getTotalExperience(int level) {
+        int xp = 0;
+
+        if (level >= 0 && level <= 15) {
+            xp = (int) Math.round(Math.pow(level, 2) + 6 * level);
+        } else if (level > 15 && level <= 30) {
+            xp = (int) Math.round((2.5 * Math.pow(level, 2) - 40.5 * level + 360));
+        } else if (level > 30) {
+            xp = (int) Math.round(((4.5 * Math.pow(level, 2) - 162.5 * level + 2220)));
+        }
+        return xp;
+    }
+
+    private int getTotalExperience(Player player) {
+        return Math.round(player.getExp() * player.getExpToLevel()) + getTotalExperience(player.getLevel());
+    }
+
+    private void setTotalExperience(Player player, int amount) {
+        int level = 0;
+        int xp = 0;
+        float a = 0;
+        float b = 0;
+        float c = -amount;
+
+        if (amount > getTotalExperience(0) && amount <= getTotalExperience(15)) {
+            a = 1;
+            b = 6;
+        } else if (amount > getTotalExperience(15) && amount <= getTotalExperience(30)) {
+            a = 2.5f;
+            b = -40.5f;
+            c += 360;
+        } else if (amount > getTotalExperience(30)) {
+            a = 4.5f;
+            b = -162.5f;
+            c += 2220;
+        }
+        level = (int) Math.floor((-b + Math.sqrt(Math.pow(b, 2) - (4 * a * c))) / (2 * a));
+        xp = amount - getTotalExperience(level);
+        player.setLevel(level);
+        player.setExp(0);
+        player.giveExp(xp);
+    }
+
+
 }

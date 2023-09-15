@@ -1,8 +1,8 @@
-package dev.foxikle.customnpcs.menu;
+package dev.foxikle.customnpcs.internal.menu;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import dev.foxikle.customnpcs.CustomNPCs;
+import dev.foxikle.customnpcs.internal.CustomNPCs;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

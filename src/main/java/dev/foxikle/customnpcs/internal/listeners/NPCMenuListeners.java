@@ -1,11 +1,13 @@
-package dev.foxikle.customnpcs.listeners;
+package dev.foxikle.customnpcs.internal.listeners;
 
-import dev.foxikle.customnpcs.Action;
-import dev.foxikle.customnpcs.ActionType;
-import dev.foxikle.customnpcs.CustomNPCs;
-import dev.foxikle.customnpcs.NPC;
-import dev.foxikle.customnpcs.menu.MenuCore;
-import dev.foxikle.customnpcs.runnables.*;
+import dev.foxikle.customnpcs.api.Action;
+import dev.foxikle.customnpcs.api.ActionType;
+import dev.foxikle.customnpcs.internal.*;
+import dev.foxikle.customnpcs.api.conditions.Conditional;
+import dev.foxikle.customnpcs.api.conditions.LogicalConditional;
+import dev.foxikle.customnpcs.api.conditions.NumericConditional;
+import dev.foxikle.customnpcs.internal.menu.MenuCore;
+import dev.foxikle.customnpcs.internal.runnables.*;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,12 +17,13 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffectType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
+import static java.util.stream.Collectors.toList;
 import static org.bukkit.Material.*;
 
 /**
@@ -58,21 +61,21 @@ public class NPCMenuListeners implements Listener {
         if (e.getCurrentItem().getItemMeta() == null) return;
         NamespacedKey key = new NamespacedKey(plugin, "MenuButtonTag");
         ItemStack item = e.getCurrentItem();
-        PersistentDataContainer tagContainer = item.getItemMeta().getPersistentDataContainer();
+        PersistentDataContainer persistentDataContainer = item.getItemMeta().getPersistentDataContainer();
         Player player = (Player) e.getWhoClicked();
         MenuCore mc = map.get(player);
         if(mc == null) return;
-        NPC npc = mc.getNpc();
+        InternalNpc npc = mc.getNpc();
         if(npc.getActions() == null) return;
-        if (tagContainer.get(key, PersistentDataType.STRING) != null) {
-            if (tagContainer.get(key, PersistentDataType.STRING).equals("NameTag")) {
+        if (persistentDataContainer.get(key, PersistentDataType.STRING) != null) {
+            if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("NameTag")) {
                 plugin.nameWaiting.add(player);
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 player.sendMessage(ChatColor.GREEN + "Type the NPC name the chat.");
                 new NameRunnable(player, plugin).runTaskTimer(plugin, 1, 15);
                 player.closeInventory();
                 e.setCancelled(true);
-            } else if (tagContainer.get(key, PersistentDataType.STRING).equals("direction")) {
+            } else if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("direction")) {
                 double dir = npc.getFacingDirection();
                 if (e.getAction() == InventoryAction.PICKUP_ALL) {
                     switch ((int) dir) {
@@ -171,7 +174,7 @@ public class NPCMenuListeners implements Listener {
                         }
                     }
                 }
-            } else if (tagContainer.get(key, PersistentDataType.STRING).equals("resilience")) {
+            } else if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("resilience")) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 e.setCancelled(true);
                 if (e.getCurrentItem().getItemMeta().getLore().contains(ChatColor.RED + "" + ChatColor.BOLD + "NOT RESILIENT")) {
@@ -183,7 +186,7 @@ public class NPCMenuListeners implements Listener {
                     player.openInventory(mc.getMainMenu());
                     player.sendMessage(ChatColor.AQUA + "The NPC is now " + ChatColor.RED + "" + ChatColor.BOLD + "NOT RESILIENT");
                 }
-            } else if (tagContainer.get(key, PersistentDataType.STRING).equals("clickable")) {
+            } else if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("clickable")) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 e.setCancelled(true);
                 if (e.getCurrentItem().getItemMeta().getLore().contains(ChatColor.RED + "" + ChatColor.BOLD + "NOT CLICKABLE")) {
@@ -195,34 +198,33 @@ public class NPCMenuListeners implements Listener {
                     player.openInventory(mc.getMainMenu());
                     player.sendMessage(ChatColor.AQUA + "The NPC is now " + ChatColor.RED + "" + ChatColor.BOLD + "NOT CLICKABLE");
                 }
-            } else if (tagContainer.get(key, PersistentDataType.STRING).equals("changeSkin")) {
+            } else if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("changeSkin")) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-                player.sendMessage("You're changing the NPC's Skin.");
                 e.setCancelled(true);
                 player.openInventory(plugin.catalogueInventories.get(0));
 
-            } else if (tagContainer.get(key, PersistentDataType.STRING).equals("equipment")) {
+            } else if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("equipment")) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 e.setCancelled(true);
                 player.openInventory(mc.getArmorMenu());
-            } else if (tagContainer.get(key, PersistentDataType.STRING).equals("Confirm")) {
+            } else if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("Confirm")) {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1), 1);
                 Bukkit.getScheduler().runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1), 3);
                 Bukkit.getScheduler().runTaskLater(plugin, npc::createNPC, 1);
                 player.sendMessage(npc.isResilient() ? ChatColor.GREEN + "Reslilient NPC created!" : ChatColor.GREEN + "Temporary NPC created!");
                 player.closeInventory();
                 e.setCancelled(true);
-            } else if (tagContainer.get(key, PersistentDataType.STRING).equals("Cancel")) {
+            } else if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("Cancel")) {
                 player.playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
                 player.sendMessage(ChatColor.RED + "NPC aborted");
                 player.closeInventory();
                 e.setCancelled(true);
-            } else if (tagContainer.get(key, PersistentDataType.STRING).equals("actions")) {
+            } else if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("actions")) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 player.openInventory(mc.getActionMenu());
                 e.setCancelled(true);
             }
-        } else if (tagContainer.getKeys().contains(new NamespacedKey(plugin, "SkinButton"))) {
+        } else if (persistentDataContainer.getKeys().contains(new NamespacedKey(plugin, "SkinButton"))) {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             e.setCancelled(true);
             String name = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "SkinButton"), PersistentDataType.STRING);
@@ -233,7 +235,7 @@ public class NPCMenuListeners implements Listener {
             plugin.pages.put(player, 0);
             player.closeInventory();
             player.openInventory(mc.getMainMenu());
-        } else if (tagContainer.getKeys().contains(new NamespacedKey(plugin, "NoClickey"))) {
+        } else if (persistentDataContainer.getKeys().contains(new NamespacedKey(plugin, "NoClickey"))) {
             e.setCancelled(true);
             String tag = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "NoClickey"), PersistentDataType.STRING);
             switch (tag) {
@@ -252,7 +254,7 @@ public class NPCMenuListeners implements Listener {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }
             }
-        } else if (tagContainer.getKeys().contains(new NamespacedKey(plugin, "EquipmentInv"))) {
+        } else if (persistentDataContainer.getKeys().contains(new NamespacedKey(plugin, "EquipmentInv"))) {
             String button = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "EquipmentInv"), PersistentDataType.STRING);
             switch (button) {
                 case "helm" -> {
@@ -367,7 +369,7 @@ public class NPCMenuListeners implements Listener {
                 }
             }
             e.setCancelled(true);
-        } else if (tagContainer.getKeys().contains(new NamespacedKey(plugin, "ActionInv"))) {
+        } else if (persistentDataContainer.getKeys().contains(new NamespacedKey(plugin, "ActionInv"))) {
             String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "ActionInv"), PersistentDataType.STRING);
             if (itemData.equals("new_action")) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -375,7 +377,7 @@ public class NPCMenuListeners implements Listener {
             } else if (itemData.equals("go_back")) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 player.openInventory(mc.getMainMenu());
-            } else if (tagContainer.getKeys().contains(new NamespacedKey(plugin, "SerializedAction"))){
+            } else if (persistentDataContainer.getKeys().contains(new NamespacedKey(plugin, "SerializedAction"))){
                 Action action = Action.of(e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "SerializedAction"), PersistentDataType.STRING));
                 if (e.getAction() == InventoryAction.PICKUP_HALF) {
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -384,32 +386,158 @@ public class NPCMenuListeners implements Listener {
                     e.setCancelled(true);
                 } else {
                     plugin.editingActions.put(player, action);
-                    plugin.originalEditingActions.put(player, action.serialize());
+                    plugin.originalEditingActions.put(player, action.toJson());
                     player.openInventory(mc.getActionCustomizerMenu(action));
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }
             }
-        } else if (tagContainer.getKeys().contains(new NamespacedKey(plugin, "NewActionButton"))) {
+        } else if (persistentDataContainer.getKeys().contains(new NamespacedKey(plugin, "ConditionInv"))) {
+            String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "ConditionInv"), PersistentDataType.STRING);
+            if (itemData.equals("new_condition")) {
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                player.openInventory(mc.getNewConditionMenu());
+            } else if (itemData.equals("change_mode")) {
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                Action action = plugin.editingActions.get(player);
+                action.setMode(action.getMode() == Conditional.SelectionMode.ALL ? Conditional.SelectionMode.ONE : Conditional.SelectionMode.ALL);
+                player.openInventory(mc.getConditionMenu(action));
+            } else if (itemData.equals("go_back")) {
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                player.openInventory(mc.getActionCustomizerMenu(plugin.editingActions.get(player)));
+            } else if (persistentDataContainer.getKeys().contains(new NamespacedKey(plugin, "SerializedCondition"))){
+                Conditional conditional = Conditional.of(e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "SerializedCondition"), PersistentDataType.STRING));
+                if (e.isRightClick()) {
+                    player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                    Action action = plugin.editingActions.get(player);
+                    action.removeConditional(conditional);
+                    player.openInventory(mc.getConditionMenu(action));
+                    e.setCancelled(true);
+                } else {
+                    plugin.editingConditionals.put(player, conditional);
+                    plugin.originalEditingConditionals.put(player, conditional.toJson());
+                    player.openInventory(mc.getConditionalCustomizerMenu(conditional));
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                }
+            }
+        } else if (persistentDataContainer.getKeys().contains(new NamespacedKey(plugin, "NewActionButton"))) {
             String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "NewActionButton"), PersistentDataType.STRING);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = null;
 
             switch (itemData) {
-                case "RUN_COMMAND" -> action = new Action(ActionType.RUN_COMMAND, new ArrayList<>(Arrays.asList("command", "to", "be", "run")), 0);
-                case "DISPLAY_TITLE" -> action = new Action(ActionType.DISPLAY_TITLE, new ArrayList<>(Arrays.asList("10", "20", "10", "title!")), 0);
-                case "SEND_MESSAGE" -> action = new Action(ActionType.SEND_MESSAGE, new ArrayList<>(Arrays.asList("message", "to", "be", "sent")), 0);
-                case "PLAY_SOUND" -> action = new Action(ActionType.PLAY_SOUND, new ArrayList<>(Arrays.asList("1", "1", Sound.UI_BUTTON_CLICK.name())), 0);
-                case "ACTION_BAR" -> action = new Action(ActionType.ACTION_BAR, new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")), 0);
-                case "TELEPORT" -> action = new Action(ActionType.TELEPORT, new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")), 0);
-                case "SEND_TO_SERVER" -> action = new Action(ActionType.SEND_TO_SERVER, new ArrayList<>(Arrays.asList("server", "to", "be", "sent", "to")), 0);
-                case "TOGGLE_FOLLOWING" -> action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Arrays.asList(npc.getUUID().toString())), 0);
+                case "RUN_COMMAND" -> action = new Action(ActionType.RUN_COMMAND, new ArrayList<>(Arrays.asList("command", "to", "be", "run")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "DISPLAY_TITLE" -> action = new Action(ActionType.DISPLAY_TITLE, new ArrayList<>(Arrays.asList("10", "20", "10", "title!")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "SEND_MESSAGE" -> action = new Action(ActionType.SEND_MESSAGE, new ArrayList<>(Arrays.asList("message", "to", "be", "sent")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "PLAY_SOUND" -> action = new Action(ActionType.PLAY_SOUND, new ArrayList<>(Arrays.asList("1", "1", Sound.UI_BUTTON_CLICK.name())), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "ACTION_BAR" -> action = new Action(ActionType.ACTION_BAR, new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "TELEPORT" -> action = new Action(ActionType.TELEPORT, new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "SEND_TO_SERVER" -> action = new Action(ActionType.SEND_TO_SERVER, new ArrayList<>(Arrays.asList("server", "name")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "TOGGLE_FOLLOWING" -> action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Arrays.asList(npc.getUUID().toString())), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "GIVE_EXP" -> action = new Action(ActionType.GIVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "REMOVE_EXP" -> action = new Action(ActionType.REMOVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "ADD_EFFECT" -> action = new Action(ActionType.ADD_EFFECT, new ArrayList<>(Arrays.asList("1", "1", "true", "SPEED")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "REMOVE_EFFECT" -> action = new Action(ActionType.REMOVE_EFFECT, new ArrayList<>(Arrays.asList("SPEED")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                 case "go_back" -> player.openInventory(mc.getActionMenu());
             }
             if(action != null) {
                 plugin.editingActions.put(player, action);
                 player.openInventory(mc.getActionCustomizerMenu(action));
             }
-        } else if (tagContainer.getKeys().contains(new NamespacedKey(plugin, "CustomizeActionButton"))) {
+        } else if (persistentDataContainer.getKeys().contains(new NamespacedKey(plugin, "NewConditionButton"))) {
+            String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "NewConditionButton"), PersistentDataType.STRING);
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+            Conditional conditional = null;
+
+            switch (itemData) {
+                case "NUMERIC_CONDITION" -> conditional = new NumericConditional(Conditional.Comparator.EQUAL_TO, Conditional.Value.EXP_LEVELS, 0.0);
+                case "LOGICAL_CONDITION" -> conditional = new LogicalConditional(Conditional.Comparator.EQUAL_TO, Conditional.Value.GAMEMODE, "SURVIVAL");
+                case "go_back" -> player.openInventory(mc.getConditionMenu(plugin.editingActions.get(player)));
+            }
+            if(conditional != null) {
+                plugin.editingConditionals.put(player, conditional);
+                player.openInventory(mc.getConditionalCustomizerMenu(conditional));
+            }
+        } else if (persistentDataContainer.getKeys().contains(new NamespacedKey(plugin, "CustomizeConditionalButton"))) {
+            String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "CustomizeConditionalButton"), PersistentDataType.STRING);
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+            Conditional conditional = plugin.editingConditionals.get(player);
+            Action action = plugin.editingActions.get(player);
+
+            switch (itemData) {
+                case "select_target_value" -> {
+                    player.closeInventory();
+                    plugin.targetWaiting.add(player);
+                    new TargetInputRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
+                    e.setCancelled(true);
+                    conditional = new NumericConditional(Conditional.Comparator.EQUAL_TO, Conditional.Value.EXP_LEVELS, 0.0);
+                    return;
+                }
+                case "toggle_comparator" -> {
+
+                        List<Conditional.Comparator> comparators = new ArrayList<>();
+                        if(conditional.getType() == Conditional.Type.LOGICAL) {
+                            for (Conditional.Comparator value : Conditional.Comparator.values()) {
+                                if (value.isStrictlyLogical()) comparators.add(value);
+                            }
+                        } else {
+                            comparators.addAll(Arrays.asList(Conditional.Comparator.values()));
+                        }
+
+                        int index = comparators.indexOf(conditional.getComparator());
+                        if (e.isLeftClick()) {
+                            if (comparators.size() > (index + 1)) {
+                                conditional.setComparator(comparators.get(index+1));
+                            } else {
+                                conditional.setComparator(comparators.get(0));
+                            }
+                        } else if (e.isRightClick()) {
+                            if(index == 0) {
+                                conditional.setComparator(comparators.get(comparators.size()-1));
+                            } else {
+                                conditional.setComparator(comparators.get(index-1));
+                            }
+                        }
+                        player.openInventory(mc.getConditionalCustomizerMenu(conditional));
+                }
+                case "select_statistic" -> {
+
+                    List<Conditional.Value> statistics = new ArrayList<>();
+                    if(conditional.getType() == Conditional.Type.LOGICAL) {
+                        for (Conditional.Value value : Conditional.Value.values()) {
+                            if (value.isLogical()) statistics.add(value);
+                        }
+                    } else {
+                        for (Conditional.Value value : Conditional.Value.values()) {
+                            if (!value.isLogical()) statistics.add(value);
+                        }
+                    }
+
+                    int index = statistics.indexOf(conditional.getValue());
+                    if (e.isLeftClick()) {
+                        if (statistics.size() > (index + 1)) {
+                            conditional.setValue(statistics.get(index+1));
+                        } else {
+                            conditional.setValue(statistics.get(0));
+                        }
+                    } else if (e.isRightClick()) {
+                        if(index == 0) {
+                            conditional.setValue(statistics.get(statistics.size()-1));
+                        } else {
+                            conditional.setValue(statistics.get(index-1));
+                        }
+                    }
+                    player.openInventory(mc.getConditionalCustomizerMenu(conditional));
+                }
+                case "confirm" -> {
+                    e.setCancelled(true);
+                    if(plugin.originalEditingConditionals.get(player) != null)
+                        action.removeConditional(Conditional.of(plugin.originalEditingConditionals.remove(player)));
+                    action.addConditional(conditional);
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(mc.getConditionMenu(action)), 1);
+                }
+                case "go_back" -> player.openInventory(mc.getNewConditionMenu());
+            }
+        } else if (persistentDataContainer.getKeys().contains(new NamespacedKey(plugin, "CustomizeActionButton"))) {
             String itemData = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "CustomizeActionButton"), PersistentDataType.STRING);
             Action action = plugin.editingActions.get(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -760,6 +888,197 @@ public class NPCMenuListeners implements Listener {
                     e.setCancelled(true);
                     return;
                 }
+
+                // ADD_EFFECT
+                case "decrement_duration" -> {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            if(Integer.parseInt(action.getArgs().get(0)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The duration cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(0)) - 1) < -1) {
+                                action.getArgs().set(0, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 1));
+                            }
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            if(Integer.parseInt(action.getArgs().get(0)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The duration cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(0)) - 5) < -1) {
+                                action.getArgs().set(0, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 5));
+                            }
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            if(Integer.parseInt(action.getArgs().get(0)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The duration cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(0)) - 20) < -1) {
+                                action.getArgs().set(0, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
+                            }
+                    }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "decrement_amplifier" -> {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            if(Integer.parseInt(action.getArgs().get(1)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The amplifier cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(1)) - 1) < -1) {
+                                action.getArgs().set(1, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 1));
+                            }
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            if(Integer.parseInt(action.getArgs().get(1)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The amplifier cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(1)) - 5) < -1) {
+                                action.getArgs().set(1, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 5));
+                            }
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            if(Integer.parseInt(action.getArgs().get(1)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The amplifier cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(1)) - 20) < -1) {
+                                action.getArgs().set(1, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 20));
+                            }
+                    }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "increment_duration" -> {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
+                        }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "increment_amplifier" -> {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            if(Integer.parseInt(action.getArgs().get(1)) == 255) {
+                                player.sendMessage(ChatColor.RED + "The amplifier cannot be greater than 255!");
+                            } else if ((Integer.parseInt(action.getArgs().get(1)) + 1) > 255) {
+                                action.getArgs().set(1, String.valueOf(255));
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 1));
+                            }
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            if(Integer.parseInt(action.getArgs().get(1)) == 255) {
+                                player.sendMessage(ChatColor.RED + "The amplifier cannot be greater than 255!");
+                            } else if ((Integer.parseInt(action.getArgs().get(1)) + 5) > 255) {
+                                action.getArgs().set(1, String.valueOf(255));
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 5));
+                            }
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            if(Integer.parseInt(action.getArgs().get(1)) == 255) {
+                                player.sendMessage(ChatColor.RED + "The amplifier cannot be greater than 255!");
+                            } else if ((Integer.parseInt(action.getArgs().get(1)) + 20) > 255) {
+                                action.getArgs().set(1, String.valueOf(255));
+                            } else {
+                                action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 20));
+                            }
+                    }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "edit_add_effect" -> {
+                    List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).collect(toList());                    List<String> effects = new ArrayList<>();
+                    fields.forEach(field -> effects.add(field.getName()));
+
+                    int index = effects.indexOf(action.getArgs().get(3));
+                    if (e.isLeftClick()) {
+                        if (effects.size() > (index + 1)) {
+                            action.getArgs().set(3, effects.get(index+1));
+                        } else {
+                            action.getArgs().set(3, effects.get(0));
+                        }
+                    } else if (e.isRightClick()) {
+                        if(index == 0) {
+                            action.getArgs().set(3, effects.get(effects.size()-1));
+                        } else {
+                            action.getArgs().set(3, effects.get(index-1));
+                        }
+                    }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "toggle_hide_particles" -> {
+                    boolean bool = Boolean.parseBoolean(action.getArgs().get(2));
+                    action.getArgs().set(2, String.valueOf(!bool));
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+
+                //REMOVE_EFFECT
+                case "edit_remove_effect" -> {
+                    List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).collect(toList());                    List<String> effects = new ArrayList<>();
+                    fields.forEach(field -> effects.add(field.getName()));
+
+                    int index = effects.indexOf(action.getArgs().get(0));
+                    if (e.isLeftClick()) {
+                        if (effects.size() > (index + 1)) {
+                            action.getArgs().set(0, effects.get(index+1));
+                        } else {
+                            action.getArgs().set(0, effects.get(0));
+                        }
+                    } else if (e.isRightClick()) {
+                        if(index == 0) {
+                            action.getArgs().set(0, effects.get(effects.size()-1));
+                        } else {
+                            action.getArgs().set(0, effects.get(index-1));
+                        }
+                    }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+
+                // GIVE_EXP
+
+                case "increment_give_xp", "increment_remove_xp" -> {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 1));
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 5));
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
+                    }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "decrement_give_xp", "decrement_remove_xp" -> {
+                        if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click
+                            if(Integer.parseInt(action.getArgs().get(0)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The xp cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(0)) - 1) < -1) {
+                                action.getArgs().set(0, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 1));
+                            }
+                        } else if (e.getAction() == InventoryAction.PICKUP_HALF) { // Right Click
+                            if(Integer.parseInt(action.getArgs().get(0)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The xp cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(0)) - 5) < -1) {
+                                action.getArgs().set(0, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 5));
+                            }
+                        } else if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) { // Shift Click
+                            if(Integer.parseInt(action.getArgs().get(0)) == -1) {
+                                player.sendMessage(ChatColor.RED + "The xp cannot be less than 1!");
+                            } else if ((Integer.parseInt(action.getArgs().get(0)) - 20) < -1) {
+                                action.getArgs().set(0, String.valueOf(-1));
+                            } else {
+                                action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
+                            }
+                        }
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+                case "edit_give_levels", "edit_remove_levels" -> {
+                    boolean bool = Boolean.parseBoolean(action.getArgs().get(1));
+                    action.getArgs().set(1, String.valueOf(!bool));
+                    player.openInventory(mc.getActionCustomizerMenu(action));
+                }
+
+                // standard controls
                 case "decrement_delay" -> {
                     if (e.getAction() == InventoryAction.PICKUP_ALL) { // Left click (1)
                         if(!(action.getDelay() - 1 < 0)){
@@ -791,6 +1110,7 @@ public class NPCMenuListeners implements Listener {
                     }
                 }
                 case "go_back" -> Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(mc.getActionMenu()), 1);
+                case "edit_conditionals" -> Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(mc.getConditionMenu(action)), 1);
                 case "confirm" -> {
                     if(plugin.originalEditingActions.get(player) != null)
                         npc.removeAction(Action.of(plugin.originalEditingActions.remove(player)));

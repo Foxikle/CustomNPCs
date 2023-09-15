@@ -1,25 +1,24 @@
-package dev.foxikle.customnpcs.runnables;
+package dev.foxikle.customnpcs.internal.runnables;
 
-import dev.foxikle.customnpcs.CustomNPCs;
+import dev.foxikle.customnpcs.internal.CustomNPCs;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- * The runnable for ActionBar text collection
+ * The runnable for Name text collection
  */
-public class ActionbarRunnable extends BukkitRunnable {
-
+public class NameRunnable extends BukkitRunnable {
     private final Player player;
     private final CustomNPCs plugin;
 
     /**
-     * <p> Creates a runnable for collecting text input for the actionbar Action
+     * <p> Creates a runnable for collecting text input for the npc name
      * </p>
      * @param plugin The instance to get who's waiting for the title
      * @param player The player to display the title to
      */
-    public ActionbarRunnable(Player player, CustomNPCs plugin){
+    public NameRunnable(Player player, CustomNPCs plugin){
         this.player = player;
         this.plugin = plugin;
     }
@@ -30,8 +29,8 @@ public class ActionbarRunnable extends BukkitRunnable {
      */
     @Override
     public void run() {
-        if(!plugin.actionbarWaiting.contains(player))
+        if(!plugin.nameWaiting.contains(player))
             this.cancel();
-        player.sendTitle(ChatColor.GOLD + "Type the actiobar in chat", ChatColor.YELLOW + "Supports & colors.", 0, 20, 0);
+        player.sendTitle(ChatColor.GOLD + "Type NPC name in chat", ChatColor.YELLOW + "Supports & colors.", 0, 20, 0);
     }
 }

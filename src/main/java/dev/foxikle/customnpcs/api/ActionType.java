@@ -1,4 +1,4 @@
-package dev.foxikle.customnpcs;
+package dev.foxikle.customnpcs.api;
 
 import javax.annotation.Nullable;
 
@@ -52,5 +52,31 @@ public enum ActionType {
      * Represents sending the player to a BungeeCord server. The argument syntax is as follows:
      * Case_sensitive_Server_Name
      */
-    SEND_TO_SERVER;
+    SEND_TO_SERVER,
+
+    /**
+     * Represents giving an effect to the player. The argument syntax is as follows:
+     * duration, strength, hide_particles, effect
+     */
+    ADD_EFFECT,
+
+    /**
+     * Represents removing an effect to the player. The argument syntax is as follows:
+     * effect
+     */
+    REMOVE_EFFECT,
+
+    /**
+     * Represents giving a xp to the player. The argument syntax is as follows:
+     * amount, levels
+     */
+    GIVE_EXP,
+
+    /**
+     * Represents removing a xp to the player. The argument syntax is as follows:
+     * amount, levels
+     */
+    REMOVE_EXP,
+
+
 }

@@ -1,4 +1,4 @@
-package dev.foxikle.customnpcs;
+package dev.foxikle.customnpcs.internal;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -18,17 +18,19 @@ public class AutoUpdater {
         this.plugin = plugin;
     }
 
-    public void checkForUpdates() {
+    public boolean checkForUpdates() {
         try {
             String currentVersion = plugin.getDescription().getVersion();
             String latestVersion = getLatestVersion();
 
             if (latestVersion != null && !isNewerPreRelease(currentVersion, latestVersion)) {
                 plugin.getLogger().warning("A new version (" + latestVersion + ") is available!");
+                return true;
             }
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to check for updates: " + e.getMessage());
         }
+        return false;
     }
 
     private String getLatestVersion() throws IOException {

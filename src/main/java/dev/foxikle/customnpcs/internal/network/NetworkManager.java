@@ -1,4 +1,4 @@
-package dev.foxikle.customnpcs.network;
+package dev.foxikle.customnpcs.internal.network;
 
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.PacketFlow;

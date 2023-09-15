@@ -1,10 +1,11 @@
-package dev.foxikle.customnpcs;
+package dev.foxikle.customnpcs.internal;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
-import dev.foxikle.customnpcs.network.NetworkHandler;
-import dev.foxikle.customnpcs.network.NetworkManager;
+import dev.foxikle.customnpcs.api.Action;
+import dev.foxikle.customnpcs.internal.network.NetworkHandler;
+import dev.foxikle.customnpcs.internal.network.NetworkManager;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.*;
@@ -12,7 +13,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import net.minecraft.world.entity.Entity ;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,7 +35,7 @@ import java.util.*;
 /**
  * The object representing the NPC
  */
-public class NPC extends ServerPlayer {
+public class InternalNpc extends ServerPlayer {
     private UUID uuid;
     private CustomNPCs plugin;
     private GameProfile profile;
@@ -82,7 +83,7 @@ public class NPC extends ServerPlayer {
      * @param chestItem The Item the NPC should have in the chest slot
      * @param headItem The Item the NPC should have on their head
      */
-    public NPC(CustomNPCs plugin, MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean interactable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions) {
+    public InternalNpc(CustomNPCs plugin, MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean interactable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions) {
         super(minecraftServer, worldServer, gameProfile);
         this.spawnLoc = spawnLoc;
         this.offhandItem = offhandItem;
@@ -437,7 +438,7 @@ public class NPC extends ServerPlayer {
      * @param action The action to add
      */
     public void addAction(Action action){
-        actions.add(action.serialize());
+        actions.add(action.toJson());
     }
 
     /**
@@ -447,7 +448,7 @@ public class NPC extends ServerPlayer {
      * @return if it was successfully removed
      */
     public boolean removeAction(Action action){
-        return actions.remove(action.serialize());
+        return actions.remove(action.toJson());
     }
 
     /**
@@ -630,7 +631,7 @@ public class NPC extends ServerPlayer {
      */
     public void setActions(Collection<Action> actions) {
         List<String> strs = new ArrayList<>();
-        actions.forEach(action -> strs.add(action.serialize()));
+        actions.forEach(action -> strs.add(action.toJson()));
         this.actions = new ArrayList<>(strs);
     }
 }

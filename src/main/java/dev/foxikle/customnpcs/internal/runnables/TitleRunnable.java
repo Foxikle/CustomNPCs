@@ -1,13 +1,15 @@
-package dev.foxikle.customnpcs.runnables;
+package dev.foxikle.customnpcs.internal.runnables;
 
-import dev.foxikle.customnpcs.CustomNPCs;
+import dev.foxikle.customnpcs.internal.CustomNPCs;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+
 /**
- * The runnable for server name text collection
+ * The runnable for title text collection
  */
-public class ServerRunnable extends BukkitRunnable {
+public class TitleRunnable extends BukkitRunnable {
+
     /**
      * The player to send the title to
      */
@@ -19,12 +21,12 @@ public class ServerRunnable extends BukkitRunnable {
     private final CustomNPCs plugin;
 
     /**
-     * <p> Creates a runnable for collecting text input for the send to server Action
+     * <p> Creates a runnable for collecting text input for the display title Action
      * </p>
      * @param plugin The instance to get who's waiting for the title
      * @param player The player to display the title to
      */
-    public ServerRunnable(Player player, CustomNPCs plugin){
+    public TitleRunnable(Player player, CustomNPCs plugin){
         this.player = player;
         this.plugin = plugin;
     }
@@ -35,8 +37,8 @@ public class ServerRunnable extends BukkitRunnable {
      */
     @Override
     public void run() {
-        if(!plugin.serverWaiting.contains(player))
+        if(!plugin.titleWaiting.contains(player))
             this.cancel();
-        player.sendTitle(ChatColor.GOLD + "Type the name of the server in chat", ChatColor.YELLOW + "Note: It should be EXACTLY what is the the bungeecord config.", 0, 20, 0);
+        player.sendTitle(ChatColor.GOLD + "Type title in chat", ChatColor.YELLOW + "Supports & colors.", 0, 20, 0);
     }
 }

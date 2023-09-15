@@ -1,6 +1,6 @@
-package dev.foxikle.customnpcs.runnables;
+package dev.foxikle.customnpcs.internal.runnables;
 
-import dev.foxikle.customnpcs.CustomNPCs;
+import dev.foxikle.customnpcs.internal.CustomNPCs;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;

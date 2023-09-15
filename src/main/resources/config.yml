@@ -13,7 +13,7 @@
 #    will be automatically generated on the next server start.
 
 # DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.
-CONFIG_VERSION: 1
+CONFIG_VERSION: 2
 
 # DisplayClickText -> Should the plugin display a hologram above the NPC's head if it is interactable?
 DisplayClickText: true
@@ -22,6 +22,10 @@ DisplayClickText: true
 # NOTE: Due to Minecraft limitatations, this cannot be more than 16 characters INCLUDING color and format codes.
 # (But not the &)
 ClickText: '&e&lClick'
+
+# AlertOnUpdate -> Should the plugin alert you when there is an update available?
+# NOTE: This only notifies players with the 'customnpcs.alert' permission
+AlertOnUpdate: true
 
 # Skins -> A list of preset Skins
 Skins:
