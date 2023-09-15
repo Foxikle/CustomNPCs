@@ -1,3 +1,5 @@
+# Total Downloads
+[![Github All Releases](https://img.shields.io/github/downloads/Foxikle/customnpcs/total.svg)]()
 # CustomNPCs
 Foxikle's NPC plugin.
 This plugin supports exclusivley 1.20.1!
