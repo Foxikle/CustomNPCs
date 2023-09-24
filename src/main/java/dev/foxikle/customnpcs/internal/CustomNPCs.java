@@ -11,8 +11,10 @@ import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.listeners.NPCMenuListeners;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import net.minecraft.world.entity.Entity;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.*;
+import org.bukkit.block.Biome;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.Inventory;
@@ -215,13 +217,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @return If the plugin is compatable with the server
      */
     public boolean setup(){
-        String sversion = "N/A";
-        try{
-            sversion = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
-        } catch (ArrayIndexOutOfBoundsException ex){
-            return false;
-        }
-        return (sversion.equals("v1_20_R1") || sversion.equals("v1_20_1_R1"));
+        return (Bukkit.getServer().getMinecraftVersion().equals("1.20.1"));
     }
 
     /**
