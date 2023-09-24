@@ -217,7 +217,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @return If the plugin is compatable with the server
      */
     public boolean setup(){
-        return (Bukkit.getServer().getMinecraftVersion().equals("1.20.2"));
+        return (Bukkit.getServer().getMinecraftVersion().equals("1.20.1"));
     }
 
     /**
