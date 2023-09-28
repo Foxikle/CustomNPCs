@@ -177,7 +177,7 @@ public class MenuUtils {
         headMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, keyValue);
         headMeta.setDisplayName(nameColor + name);
 
-        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
+        GameProfile profile = new GameProfile(UUID.randomUUID(), "foo");
         profile.getProperties().put("textures", new Property("textures", texture));
         Field profileField;
         try {
