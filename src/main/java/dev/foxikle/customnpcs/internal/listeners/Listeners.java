@@ -174,13 +174,13 @@ public class Listeners implements Listener {
                 e.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&2&m----------------&r &6[&e!&6] &b&lCustomNPCs &6[&e!&6]  &2&m----------------\n&r&eA new update is available! I'd appreciate if you updated :) \n -&e&oFoxikle"));
             }
         }
+        for (InternalNpc npc : plugin.getNPCs()) {
+            npc.injectPlayer(e.getPlayer());
+        }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
             for (InternalNpc npc : plugin.getNPCs()) {
                 npc.injectPlayer(e.getPlayer());
             }
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                for (InternalNpc npc : plugin.getNPCs()) {
-                    npc.injectPlayer(e.getPlayer());
-                }
         }, 10);
     }
 
@@ -195,6 +195,7 @@ public class Listeners implements Listener {
         Player player = e.getPlayer();
         for (InternalNpc npc : plugin.npcs.values()) {
             if(npc.getTarget() != null) return;
+            if(player.getWorld() != npc.getWorld()) return;
             if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
             } else if (e.getFrom().distance(npc.getCurrentLocation()) >= 48 && e.getTo().distance(npc.getCurrentLocation()) <= 48) {
@@ -210,9 +211,9 @@ public class Listeners implements Listener {
                         return;
                     }
                 }
-                 npc.setYBodyRot((float) npc.getFacingDirection());
-                 npc.setYRot((float) npc.getFacingDirection());
-                 npc.setYHeadRot((float) npc.getFacingDirection());
+                npc.setYBodyRot((float) npc.getFacingDirection());
+                npc.setYRot((float) npc.getFacingDirection());
+                npc.setYHeadRot((float) npc.getFacingDirection());
             }
         }
     }
@@ -232,6 +233,7 @@ public class Listeners implements Listener {
         });
         for (Player player : players) {
             for (InternalNpc npc : plugin.npcs.values()) {
+                if(player.getWorld() != npc.getWorld()) return;
                 if(npc.getTarget() != null) return;
                 if (player.getLocation().distance(npc.getCurrentLocation()) <= 5) {
                     npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
@@ -267,6 +269,7 @@ public class Listeners implements Listener {
     public void onVelocity(PlayerVelocityEvent e) {
         Player player = e.getPlayer();
         for (InternalNpc npc : plugin.npcs.values()) {
+            if(player.getWorld() != npc.getWorld()) return;
             if(npc.getTarget() != null) return;
             if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
@@ -300,6 +303,7 @@ public class Listeners implements Listener {
     public void followHandler(PlayerMoveEvent e) {
         Player player = e.getPlayer();
         for (InternalNpc npc : plugin.npcs.values()) {
+            if(player.getWorld() != npc.getWorld()) return; //TODO: Make npc travel between dimensions
             if(npc.getTarget() == player){
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
                 if(npc.getCurrentLocation().distance(e.getTo()) >= .5){
@@ -322,10 +326,27 @@ public class Listeners implements Listener {
     public void onTeleport(PlayerTeleportEvent e) {
         Player player = e.getPlayer();
         for (InternalNpc npc : plugin.npcs.values()) {
-            if (e.getPlayer().getLocation().distance(npc.getSpawnLoc()) <= 5) {
+            if(player.getWorld() != npc.getWorld()) return;
+            if (player.getLocation().distance(npc.getSpawnLoc()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
-            } else if (e.getFrom().distance(npc.getSpawnLoc()) >= 48 && e.getTo().distance(npc.getSpawnLoc()) <= 48) {
+            } else if (player.getLocation().distance(npc.getSpawnLoc()) >= 48 && player.getLocation().distance(npc.getSpawnLoc()) <= 48) {
                 npc.injectPlayer(player);
+            }
+        }
+    }
+
+
+    /**
+     * Logic for injecting NPCs on world changes
+     * @param e Event callback
+     */
+    @EventHandler
+    public void onDimentionChange(PlayerChangedWorldEvent e) {
+        for (InternalNpc npc : plugin.npcs.values()) {
+            if(e.getPlayer().getWorld() == npc.getWorld()) {
+                if(e.getPlayer().getLocation().distance(npc.getCurrentLocation()) <= 48){
+                    npc.injectPlayer(e.getPlayer());
+                }
             }
         }
     }
