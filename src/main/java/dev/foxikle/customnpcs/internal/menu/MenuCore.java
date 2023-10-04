@@ -6,6 +6,10 @@ import dev.foxikle.customnpcs.internal.InternalNpc;
 import dev.foxikle.customnpcs.api.conditions.Conditional;
 import dev.foxikle.customnpcs.api.conditions.LogicalConditional;
 import dev.foxikle.customnpcs.api.conditions.NumericConditional;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -52,7 +56,7 @@ public class MenuCore {
      * @return The Inventory representing the Main NPC menu
      */
     public Inventory getMainMenu() {
-        List<String> lore = new ArrayList<>();
+        List<Component> lore = new ArrayList<>();
         Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "     Create a New NPC"));
         NamespacedKey key = new NamespacedKey(plugin, "MenuButtonTag");
 
@@ -60,8 +64,8 @@ public class MenuCore {
         ItemMeta nameMeta = nametag.getItemMeta();
         nameMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "NameTag");
         nameMeta.setDisplayName(ChatColor.AQUA + "Change Name");
-        lore.add(ChatColor.YELLOW + "The current name is " + ChatColor.AQUA + npc.getHologramName());
-        nameMeta.setLore(lore);
+        lore.add(Component.text("The current name is ").color(NamedTextColor.YELLOW).append(Component.text(npc.getHologramName()).color(NamedTextColor.AQUA)));
+        nameMeta.lore(lore);
         nametag.setItemMeta(nameMeta);
 
         ItemStack equipment = new ItemStack(Material.ARMOR_STAND);
@@ -69,15 +73,15 @@ public class MenuCore {
         handMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "equipment");
         handMeta.setDisplayName(ChatColor.DARK_GREEN + "Change Item");
         lore.clear();
-        lore.add(ChatColor.YELLOW + "The current equipment is ");
-        lore.add(ChatColor.YELLOW + "Main Hand: " + ChatColor.AQUA + npc.getHandItem().getType());
-        lore.add(ChatColor.YELLOW + "Offhand: " + ChatColor.AQUA + npc.getItemInOffhand().getType());
-        lore.add(ChatColor.YELLOW + "Helmet: " + ChatColor.AQUA + npc.getHeadItem().getType());
-        lore.add(ChatColor.YELLOW + "Chestplate: " + ChatColor.AQUA + npc.getChestItem().getType());
-        lore.add(ChatColor.YELLOW + "Leggings: " + ChatColor.AQUA + npc.getLegsItem().getType());
-        lore.add(ChatColor.YELLOW + "Boots: " + ChatColor.AQUA + npc.getBootsItem().getType());
+        lore.add(Component.text("The current equipment is ").color(NamedTextColor.YELLOW));
+        lore.add(Component.text("Main Hand: ").color(NamedTextColor.YELLOW).append(Component.text((npc.getHandItem().getType().toString()))));
+        lore.add(Component.text("Offhand: ").color(NamedTextColor.YELLOW).append(Component.text(npc.getItemInOffhand().getType().toString())));
+        lore.add(Component.text("Helmet: ").color(NamedTextColor.YELLOW).append(Component.text((npc.getHeadItem().getType().toString()))));
+        lore.add(Component.text("Chestplate: ").color(NamedTextColor.YELLOW).append(Component.text((npc.getChestItem().getType().toString()))));
+        lore.add(Component.text("Leggings: ").color(NamedTextColor.YELLOW).append(Component.text((npc.getLegsItem().getType().toString()))));
+        lore.add(Component.text("Boots: ").color(NamedTextColor.YELLOW).append(Component.text((npc.getBootsItem().getType().toString()))));
 
-        handMeta.setLore(lore);
+        handMeta.lore(lore);
         equipment.setItemMeta(handMeta);
 
         ItemStack positionsItem = new ItemStack(Material.COMPASS);
@@ -88,141 +92,141 @@ public class MenuCore {
         lore.clear();
         switch ((int) dir) {
             case 180 -> {
-                lore.add("");
-                lore.add(ChatColor.DARK_AQUA + "▸ North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("▸ North").color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("North East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").color(NamedTextColor.YELLOW));
             }
             case -135 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.DARK_AQUA + "▸ North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ North East").color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").color(NamedTextColor.YELLOW));
             }
             case -90 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.DARK_AQUA + "▸ East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ East").color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("South East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").color(NamedTextColor.YELLOW));
             }
             case -45 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.DARK_AQUA + "▸ South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ South East").color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("South").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").color(NamedTextColor.YELLOW));
             }
             case 0 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.DARK_AQUA + "▸ South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ South").color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("South West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").color(NamedTextColor.YELLOW));
             }
             case 45 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.DARK_AQUA + "▸ South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ South West").color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").color(NamedTextColor.YELLOW));
             }
             case 90 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.DARK_AQUA + "▸ West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ West").color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("North West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").color(NamedTextColor.YELLOW));
             }
             case 135 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.DARK_AQUA + "▸ North west");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ North west").color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("Player Direction").color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").color(NamedTextColor.YELLOW));
             }
             default -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North west");
-                lore.add(ChatColor.DARK_AQUA + "▸ Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ Player Direction").color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").color(NamedTextColor.YELLOW));
             }
         }
 
-        positionMeta.setLore(lore);
+        positionMeta.lore(lore);
         positionsItem.setItemMeta(positionMeta);
 
         ItemStack resilientItem = new ItemStack(Material.BELL);
         ItemMeta resilientMeta = resilientItem.getItemMeta();
         lore.clear();
-        lore.add(npc.isResilient() ? ChatColor.GREEN + "" + ChatColor.BOLD + "RESILIENT" : ChatColor.RED + "" + ChatColor.BOLD + "NOT RESILIENT");
-        resilientMeta.setLore(lore);
+        lore.add(npc.isResilient() ? Component.text("RESILIENT").color(NamedTextColor.GREEN).decorate(TextDecoration.BOLD) : Component.text("NOT RESILIENT").color(NamedTextColor.RED).decorate(TextDecoration.BOLD));
+        resilientMeta.lore(lore);
         resilientMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "resilience");
         resilientMeta.setDisplayName(ChatColor.DARK_GREEN + "Change resilience");
         resilientItem.setItemMeta(resilientMeta);
@@ -242,9 +246,10 @@ public class MenuCore {
             actionsButtonMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "actions");
             actionsButtonMeta.setDisplayName(ChatColor.DARK_GREEN + "Change actions");
             lore.clear();
-            lore.add(ChatColor.YELLOW + "The actions performed when ");
-            lore.add(ChatColor.YELLOW + "interacting with the npc. ");
-            actionsButtonMeta.setLore(lore);
+            lore.add(Component.text("The actions performed when ").color(NamedTextColor.YELLOW));
+            lore.add(Component.text("interacting with the npc. ").color(NamedTextColor.YELLOW));
+            actionsButtonMeta.lore(lore);
+            actionsButtonMeta.lore();
             actionsButton.setItemMeta(actionsButtonMeta);
             inv.setItem(34, actionsButton);
         } else {
@@ -254,8 +259,8 @@ public class MenuCore {
         clickableMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "clickable");
         clickableMeta.setDisplayName(ChatColor.DARK_GREEN + "Change interactability");
         lore.clear();
-        lore.add(npc.isClickable() ? ChatColor.GREEN + "" + ChatColor.BOLD + "CLICKABLE" : ChatColor.RED + "" + ChatColor.BOLD + "NOT CLICKABLE");
-        clickableMeta.setLore(lore);
+        lore.add(npc.isClickable() ? Component.text("INTERACTABLE").color(NamedTextColor.GREEN).decorate(TextDecoration.BOLD) : Component.text("NOT INTERACTABLE").color(NamedTextColor.RED).decorate(TextDecoration.BOLD));
+        clickableMeta.lore(lore);
         clickableButton.setItemMeta(clickableMeta);
 
         ItemStack cancelButton = new ItemStack(Material.BARRIER);
@@ -519,10 +524,10 @@ public class MenuCore {
         for (Action action : actions) {
             ItemStack item = new ItemStack(Material.BEDROCK);
             ItemMeta meta = item.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             List<String> args = action.getArgsCopy();
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&aDelay (ticks): " + action.getDelay()));
-            lore.add("");
+            lore.add(Component.text("Delay (ticks): " + action.getDelay()).color(NamedTextColor.GREEN));
+            lore.add(Component.empty());
             switch (action.getSubCommand()) {
                 case "DISPLAY_TITLE" -> {
                     item.setType(Material.OAK_SIGN);
@@ -532,16 +537,16 @@ public class MenuCore {
                     args.remove(0);
                     args.remove(0);
                     args.remove(0);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bDisplay Title"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current title is: '&f" + String.join(" ", args) + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bFade in: " + fIn));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bStay: " + stay));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bFade out: " + fOut));
+                    meta.displayName(Component.text("Display Title").color(NamedTextColor.AQUA));
+                    lore.add(Component.text("The current title is: '", NamedTextColor.YELLOW).append(Component.text(String.join(" ", args))).append(Component.text("'", NamedTextColor.YELLOW)));
+                    lore.add(Component.text("Fade in: " + fIn).color(NamedTextColor.AQUA));
+                    lore.add(Component.text("Stay: " + stay).color(NamedTextColor.AQUA));
+                    lore.add(Component.text("Fade out: " + fOut).color(NamedTextColor.AQUA));
                 }
                 case "SEND_MESSAGE" -> {
                     item.setType(Material.PAPER);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Message"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current message is: '&f" + String.join(" ", args) + "&r&e'"));
+                    lore.add(Component.text("The current message is: '", NamedTextColor.YELLOW).append(Component.text(String.join(" ", args))).append(Component.text("'", NamedTextColor.YELLOW)));
                 }
                 case "PLAY_SOUND" -> {
                     item.setType(Material.BELL);
@@ -617,7 +622,7 @@ public class MenuCore {
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&d&l[WIP] &bStart / Stop Following"));
                 }
             }
-            lore.add("");
+            lore.add(Component.empty());
             lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
             lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
             NamespacedKey actionKey = new NamespacedKey(plugin, "SerializedAction");
@@ -665,22 +670,22 @@ public class MenuCore {
                 if (c.getType() == Conditional.Type.NUMERIC) {
                     item.setType(Material.POPPED_CHORUS_FRUIT);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bNumeric Condition"));
-                    lore.add("");
+                    lore.add(Component.empty());
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe comparator is: '&d" + c.getComparator().name() + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe value is: '&d" + c.getValue().name() + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe target value is: '&d" + c.getTarget() + "&r&e'"));
-                    lore.add("");
+                    lore.add(Component.empty());
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
 
                 } else if (c.getType() == Conditional.Type.LOGICAL) {
                     item.setType(Material.COMPARATOR);
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bLogical Condition"));
-                    lore.add("");
+                    lore.add(Component.empty());
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe comparator is: '&d" + c.getComparator().name() + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe value is: '&d" + c.getValue().name() + "&r&e'"));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe target value is: '&d" + c.getTarget() + "&r&e'"));
-                    lore.add("");
+                    lore.add(Component.empty());
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
 
