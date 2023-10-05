@@ -94,7 +94,7 @@ public class MenuUtils {
 
         int pagesint = (int) Math.ceil(items.size() / 28.0);
         for (int i = 0; i < pagesint; i++) {
-            Inventory inv = addBorder(Bukkit.createInventory(null, 54,   Component.text("     Select a Skin" + ChatColor.RESET + "        (" + (i + 1) + "/" + pagesint + ")", NamedTextColor.BLACK, TextDecoration.BOLD)));
+            Inventory inv = addBorder(Bukkit.createInventory(null, 54,   Component.text("        Select a Skin" + ChatColor.RESET + "   (" + (i + 1) + "/" + pagesint + ")", NamedTextColor.BLACK, TextDecoration.BOLD)));
             if (i < pagesint - 1) {
                 inv.setItem(53, next);
             }
