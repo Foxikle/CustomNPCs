@@ -32,6 +32,6 @@ public class MessageRunnable extends BukkitRunnable {
     public void run() {
         if(!plugin.messageWaiting.contains(player))
             this.cancel();
-        player.sendTitle(ChatColor.GOLD + "Type message in chat", ChatColor.YELLOW + "Supports & colors.", 0, 20, 0);
+        player.sendTitle(ChatColor.GOLD + "Type message in chat", ChatColor.YELLOW + "Using MiniMessage", 0, 20, 0);
     }
 }

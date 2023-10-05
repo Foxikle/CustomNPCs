@@ -31,6 +31,6 @@ public class NameRunnable extends BukkitRunnable {
     public void run() {
         if(!plugin.nameWaiting.contains(player))
             this.cancel();
-        player.sendTitle(ChatColor.GOLD + "Type NPC name in chat", ChatColor.YELLOW + "Supports & colors.", 0, 20, 0);
+        player.sendTitle(ChatColor.GOLD + "Type NPC name in chat", ChatColor.YELLOW + "Using MiniMessage", 0, 20, 0);
     }
 }
