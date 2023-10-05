@@ -6,7 +6,8 @@ import com.mojang.datafixers.util.Pair;
 import dev.foxikle.customnpcs.api.Action;
 import dev.foxikle.customnpcs.internal.network.NetworkHandler;
 import dev.foxikle.customnpcs.internal.network.NetworkManager;
-import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.MinecraftServer;
@@ -14,7 +15,6 @@ import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -28,7 +28,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
@@ -38,9 +37,9 @@ import java.util.*;
  * The object representing the NPC
  */
 public class InternalNpc extends ServerPlayer {
-    private UUID uuid;
-    private CustomNPCs plugin;
-    private GameProfile profile;
+    private final UUID uuid;
+    private final CustomNPCs plugin;
+    private final GameProfile profile;
     private ItemStack handItem;
     private ItemStack offhandItem;
     private ItemStack headItem;
@@ -50,7 +49,7 @@ public class InternalNpc extends ServerPlayer {
     private boolean clickable;
     private Location spawnLoc;
     private String name;
-    private World world;
+    private final World world;
     private TextDisplay hologram;
     private String signature;
     private String value;
@@ -153,9 +152,9 @@ public class InternalNpc extends ServerPlayer {
         try {
             Field field = gameProfile.getClass().getDeclaredField("name");
             field.setAccessible(true);
-            field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
+            field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? plugin.getMiniMessage().deserialize(plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("An error occoured whilst setting an NPC skin! Please report the following stacktrace to @foxikle on discord: " + Arrays.toString(e.getStackTrace()));
         }
 
         if (resilient) plugin.getFileManager().addNPC(this);
@@ -187,7 +186,7 @@ public class InternalNpc extends ServerPlayer {
         TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), clickable && plugin.getConfig().getBoolean("DisplayClickText") ? spawnLoc.getY() + 2.33 : spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
         hologram.setInvulnerable(true);
         hologram.setBillboard(Display.Billboard.CENTER);
-        hologram.setText(ChatColor.translateAlternateColorCodes('&', name));
+        hologram.text(plugin.getMiniMessage().deserialize(name));
         hologram.addScoreboardTag("npcHologram");
         return hologram;
     }
@@ -212,9 +211,9 @@ public class InternalNpc extends ServerPlayer {
         try {
             Field field = gameProfile.getClass().getDeclaredField("name");
             field.setAccessible(true);
-            field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
+            field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? plugin.getMiniMessage().deserialize(plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("An error occoured whilst changing an NPC's clickable text! Please report the following stacktrace to @foxikle on discord: " + Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -378,11 +377,11 @@ public class InternalNpc extends ServerPlayer {
     public void setTarget(@Nullable Player target) {
         if(target == null){
             if(this.target != null)
-                this.target.sendMessage(ChatColor.translateAlternateColorCodes('&', getHologramName()) + ChatColor.RESET + ChatColor.GREEN + " is no longer following you.");
+                this.target.sendMessage(plugin.getMiniMessage().deserialize(getHologramName()).append(Component.text(" is no longer following you.", NamedTextColor.RED)));
             this.target = null;
         } else {
             this.target = target;
-            this.target.sendMessage(ChatColor.translateAlternateColorCodes('&', getHologramName()) + ChatColor.RESET + ChatColor.GREEN + " is now following you.");
+            this.target.sendMessage(plugin.getMiniMessage().deserialize(getHologramName()).append(Component.text(" is now following you.", NamedTextColor.GREEN)));
         }
     }
 
