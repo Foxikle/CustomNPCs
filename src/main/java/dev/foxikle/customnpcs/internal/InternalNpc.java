@@ -28,6 +28,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
@@ -144,7 +145,6 @@ public class InternalNpc extends ServerPlayer {
         super.getBukkitEntity().setCustomNameVisible(clickable);
         super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(handItem);
-        super.detectEquipmentUpdates();
         if(!clickable){
             Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").addPlayer(this.getBukkitEntity());
         }
@@ -472,7 +472,6 @@ public class InternalNpc extends ServerPlayer {
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
         ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getFacingDirection() * 256 / 360), (byte) (0 / 360), true);
-        super.detectEquipmentUpdates();
         setSkin();
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
         connection.send(playerInfoAdd);
@@ -484,14 +483,6 @@ public class InternalNpc extends ServerPlayer {
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
     }
 
-    /**
-     * <p> Makes the NPC look at an entity
-     * </p>
-     */
-    @Override
-    public void lookAt(EntityAnchorArgument.Anchor argumentanchor_anchor, Entity entity, EntityAnchorArgument.Anchor argumentanchor_anchor1) {
-        super.lookAt(argumentanchor_anchor, entity, argumentanchor_anchor1);
-    }
 
     /**
      * <p> Despawns the NPC
