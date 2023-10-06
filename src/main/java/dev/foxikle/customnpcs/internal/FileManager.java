@@ -5,6 +5,7 @@ import com.mojang.authlib.properties.Property;
 import dev.foxikle.customnpcs.api.Action;
 import dev.foxikle.customnpcs.api.ActionType;
 import dev.foxikle.customnpcs.api.conditions.Conditional;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import org.bukkit.Bukkit;
@@ -194,6 +195,15 @@ public class FileManager {
                     plugin.getLogger().severe("An error occoured saving the npcs.yml file after converting legacy commands to actions. Please report the following stacktrace to Foxikle.");
                     e.printStackTrace();
                 }
+            }
+        }
+        if(section.getString("name").contains("§")) {
+            section.set("name", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(section.getString("name").replace("§", "&"))));
+            try {
+                yml.save(file);
+            } catch (IOException e) {
+                plugin.getLogger().severe("An error occoured saving the npcs.yml file after converting legacy names to minimessage. Please report the following stacktrace to Foxikle.");
+                e.printStackTrace();
             }
         }
 
