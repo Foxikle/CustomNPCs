@@ -5,6 +5,8 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.InternalNpc;
 import dev.foxikle.customnpcs.api.conditions.Conditional;
 import io.papermc.paper.event.entity.EntityMoveEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
@@ -91,7 +93,7 @@ public class Listeners implements Listener {
         } else if (plugin.nameWaiting.contains(e.getPlayer())) {
             plugin.nameWaiting.remove(e.getPlayer());
             plugin.menuCores.get(e.getPlayer()).getNpc().setName(e.getMessage());
-            e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set name to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + ChatColor.GREEN + "'");
+            e.getPlayer().sendMessage(Component.text("Successfully set name to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(e.getMessage())).append(Component.text("'", NamedTextColor.GREEN)));
             Bukkit.getScheduler().runTask(plugin, () -> e.getPlayer().openInventory(plugin.menuCores.get(e.getPlayer()).getMainMenu()));
             e.setCancelled(true);
         } else if (plugin.targetWaiting.contains(e.getPlayer())) {
@@ -101,7 +103,7 @@ public class Listeners implements Listener {
                 try {
                     Double.parseDouble(e.getMessage());
                 } catch (NumberFormatException ignored) {
-                    e.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCannot parse the number 'ef" + e.getMessage() + "&c'. Please try again."));
+                    e.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCannot parse the number '&f" + e.getMessage() + "&c'. Please try again."));
                     return;
                 }
             }
@@ -121,7 +123,7 @@ public class Listeners implements Listener {
                 currentArgs.add(1, args.get(1));
                 currentArgs.add(2, args.get(2));
                 currentArgs.addAll(List.of(e.getMessage().split(" ")));
-                e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set title to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
+                e.getPlayer().sendMessage(Component.text("Successfully set title to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(e.getMessage())).append(Component.text("'", NamedTextColor.GREEN)));
                 Bukkit.getScheduler().runTask(plugin, () -> e.getPlayer().openInventory(plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action)));
             });
             e.setCancelled(true);
@@ -132,7 +134,7 @@ public class Listeners implements Listener {
                 List<String> currentArgs = action.getArgs();
                 currentArgs.clear();
                 currentArgs.addAll(List.of(e.getMessage().split(" ")));
-                e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set message to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
+                e.getPlayer().sendMessage(Component.text("Successfully set message to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(e.getMessage())).append(Component.text("'", NamedTextColor.GREEN)));
                 Bukkit.getScheduler().runTask(plugin, () -> e.getPlayer().openInventory(plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action)));
             });
             e.setCancelled(true);
@@ -154,7 +156,7 @@ public class Listeners implements Listener {
                 List<String> currentArgs = action.getArgs();
                 currentArgs.clear();
                 currentArgs.addAll(List.of(e.getMessage().split(" ")));
-                e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set actiobar to be '" + ChatColor.RESET +  ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
+                e.getPlayer().sendMessage(Component.text("Successfully set actionbar to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(e.getMessage())).append(Component.text("'", NamedTextColor.GREEN)));
                 Bukkit.getScheduler().runTask(plugin, () -> e.getPlayer().openInventory(plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action)));
             });
             e.setCancelled(true);
