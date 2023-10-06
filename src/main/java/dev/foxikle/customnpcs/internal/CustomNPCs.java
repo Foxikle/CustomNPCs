@@ -164,7 +164,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public void onEnable() {
         instance = this;
         if (!setup()) {
-            Bukkit.getLogger().severe("Incompatible server version! Please use 1.20 or 1.20.1! Shutting down plugin.");
+            Bukkit.getLogger().severe("Incompatible server version! Please use 1.20.2! Shutting down plugin.");
             Bukkit.getPluginManager().disablePlugin(this);
         }
 
