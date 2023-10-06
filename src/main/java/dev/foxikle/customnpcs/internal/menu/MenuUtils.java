@@ -75,20 +75,20 @@ public class MenuUtils {
         // Menu controls
         ItemStack next = new ItemStack(Material.ARROW);
         ItemMeta nextMeta = next.getItemMeta();
-        nextMeta.displayName(Component.text("Next Page", NamedTextColor.YELLOW));
+        nextMeta.displayName(Component.text("Next Page", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         NamespacedKey key = new NamespacedKey(plugin, "NoClickey");
         nextMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "next");
         next.setItemMeta(nextMeta);
 
         ItemStack prev = new ItemStack(Material.ARROW);
         ItemMeta prevMeta = prev.getItemMeta();
-        prevMeta.displayName(Component.text("Previous Page", NamedTextColor.YELLOW));
+        prevMeta.displayName(Component.text("Previous Page", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         prevMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "prev");
         prev.setItemMeta(prevMeta);
 
         ItemStack close = new ItemStack(Material.BARRIER);
         ItemMeta closeMeta = close.getItemMeta();
-        closeMeta.displayName(Component.text("Close", NamedTextColor.RED));
+        closeMeta.displayName(Component.text("Close", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         closeMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "close");
         close.setItemMeta(closeMeta);
 
