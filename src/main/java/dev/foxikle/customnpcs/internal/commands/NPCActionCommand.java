@@ -5,9 +5,12 @@ import com.google.common.io.ByteStreams;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.InternalNpc;
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import org.bukkit.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -16,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -90,20 +94,19 @@ public class NPCActionCommand implements CommandExecutor {
                             args.remove(0);
                             int out = Integer.parseInt(args.get(0));
                             args.remove(0);
-                            String title = ChatColor.translateAlternateColorCodes('&', String.join(" ", args));
+                            String title = String.join(" ", args);
                             if(plugin.papi) {
-                                player.sendTitle(PlaceholderAPI.setPlaceholders(player, title), "", in, stay, out);
-                            } else {
-                                player.sendTitle(title, "", in, stay, out);
+                                title = PlaceholderAPI.setPlaceholders(player, title);
                             }
+                            player.showTitle(Title.title(plugin.getMiniMessage().deserialize(title), Component.empty(), Title.Times.times(Duration.ofMillis(in * 50L), Duration.ofMillis(stay * 50L), Duration.ofMillis(out * 50L))));
                         }
                     }
                     case "SEND_MESSAGE" -> {
                         if (!args.isEmpty()) {
                             if(plugin.papi) {
-                                player.sendMessage(PlaceholderAPI.setPlaceholders(player, ChatColor.translateAlternateColorCodes('&', String.join(" ", args))));
+                                player.sendMessage(plugin.getMiniMessage().deserialize(PlaceholderAPI.setPlaceholders(player, String.join(" ", args))));
                             } else {
-                                player.sendMessage(ChatColor.translateAlternateColorCodes('&', String.join(" ", args)));
+                                player.sendMessage(plugin.getMiniMessage().deserialize(String.join(" ", args)));
                             }
                         }
                     }
@@ -120,9 +123,9 @@ public class NPCActionCommand implements CommandExecutor {
                     case "RUN_COMMAND" -> player.performCommand(String.join(" ", args));
                     case "ACTION_BAR" -> {
                         if(plugin.papi) {
-                            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(PlaceholderAPI.setPlaceholders(player, ChatColor.translateAlternateColorCodes('&', String.join(" ", args)))).create());
+                            player.sendActionBar(plugin.getMiniMessage().deserialize(PlaceholderAPI.setPlaceholders(player, String.join(" ", args))));
                         } else {
-                            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', String.join(" ", args))).create());
+                            player.sendActionBar(plugin.getMiniMessage().deserialize(String.join(" ", args)));
                         }
                     }
                     case "TELEPORT" -> {
@@ -212,7 +215,7 @@ public class NPCActionCommand implements CommandExecutor {
                 }, delay);
             }
         } else {
-            sender.sendPlainMessage(ChatColor.RED + "You cannot do this!");
+            sender.sendMessage(Component.text("You cannot do this!", NamedTextColor.RED));
         }
         return false;
     }
