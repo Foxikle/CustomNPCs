@@ -16,10 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.phys.Vec3;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack;
 import org.bukkit.entity.Display;
@@ -152,9 +149,10 @@ public class InternalNpc extends ServerPlayer {
         try {
             Field field = gameProfile.getClass().getDeclaredField("name");
             field.setAccessible(true);
-            field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? plugin.getMiniMessage().deserialize(plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
+            field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
         } catch (Exception e) {
-            plugin.getLogger().severe("An error occoured whilst setting an NPC skin! Please report the following stacktrace to @foxikle on discord: " + Arrays.toString(e.getStackTrace()));
+            plugin.getLogger().severe("An error occoured whilst setting an NPC skin! Please report the following stacktrace to @foxikle on discord: \n");
+            e.printStackTrace();
         }
 
         if (resilient) plugin.getFileManager().addNPC(this);
@@ -211,7 +209,7 @@ public class InternalNpc extends ServerPlayer {
         try {
             Field field = gameProfile.getClass().getDeclaredField("name");
             field.setAccessible(true);
-            field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? plugin.getMiniMessage().deserialize(plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
+            field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
         } catch (Exception e) {
             plugin.getLogger().severe("An error occoured whilst changing an NPC's clickable text! Please report the following stacktrace to @foxikle on discord: " + Arrays.toString(e.getStackTrace()));
         }
@@ -232,6 +230,8 @@ public class InternalNpc extends ServerPlayer {
      * @return the Item in the NPC's main (right) hand
      */
     public ItemStack getHandItem() {
+        if(headItem == null)
+            return new ItemStack(Material.AIR);
         return handItem;
     }
 
@@ -250,6 +250,8 @@ public class InternalNpc extends ServerPlayer {
      * @return the Item in the NPC's offhand (left hand)
      */
     public ItemStack getItemInOffhand() {
+        if(offhandItem == null)
+            return new ItemStack(Material.AIR);
         return offhandItem;
     }
 
@@ -259,6 +261,8 @@ public class InternalNpc extends ServerPlayer {
      * @return the Item on the NPC's head
      */
     public ItemStack getHeadItem() {
+        if(headItem == null)
+            return new ItemStack(Material.AIR);
         return headItem;
     }
 
@@ -273,10 +277,13 @@ public class InternalNpc extends ServerPlayer {
 
     /**
      * <p> Gets the Item the NPC is wearing on their chest
+     * <p> Returns an empty item stack if the npc isn't wearing a chestplate
      * </p>
      * @return the Item the NPC is wearing on their chest
      */
     public ItemStack getChestItem() {
+        if(chestItem == null)
+            return new ItemStack(Material.AIR);
         return chestItem;
     }
 
@@ -295,6 +302,8 @@ public class InternalNpc extends ServerPlayer {
      * @return the Item the NPC is wearing on their legs
      */
     public ItemStack getLegsItem() {
+        if(legsItem == null)
+            return new ItemStack(Material.AIR);
         return legsItem;
     }
 
@@ -313,6 +322,8 @@ public class InternalNpc extends ServerPlayer {
      * @return the Item the NPC is wearing on their feet
      */
     public ItemStack getBootsItem() {
+        if(bootsItem == null)
+            return new ItemStack(Material.AIR);
         return bootsItem;
     }
 
