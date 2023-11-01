@@ -15,7 +15,7 @@ repositories {
 dependencies {
     paperweight.paperDevBundle("1.20-R0.1-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.0.2")
-    compileOnly("me.clip:placeholderapi:2.11.4")
+    compileOnly("me.clip:placeholderapi:2.11.5")
 }
 
 group = "dev.foxikle"
