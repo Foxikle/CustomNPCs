@@ -32,6 +32,6 @@ public class ActionbarRunnable extends BukkitRunnable {
     public void run() {
         if(!plugin.actionbarWaiting.contains(player))
             this.cancel();
-        player.sendTitle(ChatColor.GOLD + "Type the actiobar in chat", ChatColor.YELLOW + "Using MiniMessage", 0, 20, 0);
+        player.sendTitle(ChatColor.GOLD + "Type the actiobar in chat", ChatColor.YELLOW + "Using MiniMessage format", 0, 20, 0);
     }
 }
