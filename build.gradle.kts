@@ -1,8 +1,8 @@
 plugins {
     `java-library`
     `maven-publish`
-    id("io.papermc.paperweight.userdev") version "1.5.6"
-    id("xyz.jpenilla.run-paper") version "2.1.0"
+    id("io.papermc.paperweight.userdev") version "1.5.9"
+    id("xyz.jpenilla.run-paper") version "2.2.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -15,11 +15,11 @@ repositories {
 dependencies {
     paperweight.paperDevBundle("1.20.2-R0.1-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.0.2")
-    compileOnly("me.clip:placeholderapi:2.11.3")
+    compileOnly("me.clip:placeholderapi:2.11.5")
 }
 
 group = "dev.foxikle"
-version = "1.5-pre1"
+version = "1.5"
 description = "CustomNPCs"
 java.sourceCompatibility = JavaVersion.VERSION_16
 

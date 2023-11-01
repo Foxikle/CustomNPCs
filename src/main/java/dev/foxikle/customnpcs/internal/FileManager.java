@@ -48,6 +48,12 @@ public class FileManager {
         }
         File file = new File("plugins/CustomNPCs/config.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+
+        if(!yml.contains("Skins")){
+            plugin.getLogger().warning("Adding Skin Section to config.");
+            plugin.saveResource("config.yml", true);
+        }
+
         int version = yml.getInt("CONFIG_VERSION");
         if(version == 0) { // doesn't exist?
             plugin.getLogger().log(Level.WARNING, "Outdated Config version! Converting config.");
