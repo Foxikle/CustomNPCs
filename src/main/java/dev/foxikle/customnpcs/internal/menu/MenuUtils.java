@@ -3,6 +3,9 @@ package dev.foxikle.customnpcs.internal.menu;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -72,26 +75,26 @@ public class MenuUtils {
         // Menu controls
         ItemStack next = new ItemStack(Material.ARROW);
         ItemMeta nextMeta = next.getItemMeta();
-        nextMeta.setDisplayName(ChatColor.translateAlternateColorCodes('§', "§eNext Page"));
+        nextMeta.displayName(Component.text("Next Page", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         NamespacedKey key = new NamespacedKey(plugin, "NoClickey");
         nextMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "next");
         next.setItemMeta(nextMeta);
 
         ItemStack prev = new ItemStack(Material.ARROW);
         ItemMeta prevMeta = prev.getItemMeta();
-        prevMeta.setDisplayName(ChatColor.translateAlternateColorCodes('§', "§ePrevious Page"));
+        prevMeta.displayName(Component.text("Previous Page", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         prevMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "prev");
         prev.setItemMeta(prevMeta);
 
         ItemStack close = new ItemStack(Material.BARRIER);
         ItemMeta closeMeta = close.getItemMeta();
-        closeMeta.setDisplayName(ChatColor.translateAlternateColorCodes('§', "§c§lClose"));
+        closeMeta.displayName(Component.text("Close", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         closeMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "close");
         close.setItemMeta(closeMeta);
 
         int pagesint = (int) Math.ceil(items.size() / 28.0);
         for (int i = 0; i < pagesint; i++) {
-            Inventory inv = addBorder(Bukkit.createInventory(null, 54,   ChatColor.BLACK + "" + ChatColor.BOLD + "     Select a Skin" + ChatColor.RESET + "        (" + (i + 1) + "/" + pagesint + ")"));
+            Inventory inv = addBorder(Bukkit.createInventory(null, 54,   Component.text("        Select a Skin" + ChatColor.RESET + "   (" + (i + 1) + "/" + pagesint + ")", NamedTextColor.BLACK, TextDecoration.BOLD)));
             if (i < pagesint - 1) {
                 inv.setItem(53, next);
             }
@@ -100,7 +103,7 @@ public class MenuUtils {
             }
             inv.setItem(49, close);
             for (int x = 0; x < 28; x++) {
-                if (items.size() >= 1) {
+                if (!items.isEmpty()) {
                     inv.addItem(items.get(0));
                 } else {
                     break;
@@ -122,12 +125,9 @@ public class MenuUtils {
     public Inventory addBorder(Inventory inv) {
         ItemStack item = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta meta = item.getItemMeta();
-        List<String> lore = new ArrayList<>();
         NamespacedKey key = new NamespacedKey(plugin, "NoClickey");
         meta.getCustomTagContainer().setCustomTag(key, ItemTagType.STRING, "PANE");
-        meta.setDisplayName(" ");
-        lore.add("");
-        meta.setLore(lore);
+        meta.displayName(Component.empty());
         item.setItemMeta(meta);
 
         for (int x = 0; x < inv.getSize(); x++) {
@@ -177,7 +177,7 @@ public class MenuUtils {
         headMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, keyValue);
         headMeta.setDisplayName(nameColor + name);
 
-        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
+        GameProfile profile = new GameProfile(UUID.randomUUID(), "foo");
         profile.getProperties().put("textures", new Property("textures", texture));
         Field profileField;
         try {
@@ -187,7 +187,7 @@ public class MenuUtils {
         } catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException ignored) {
 
         }
-        ArrayList<String> lore = new ArrayList<String>();
+        ArrayList<String> lore = new ArrayList<>();
         lore.add(loreColor + Ll1);
         lore.add(loreColor + Ll2);
         lore.add(loreColor + Ll3);

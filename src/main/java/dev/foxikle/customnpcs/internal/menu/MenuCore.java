@@ -1,11 +1,12 @@
 package dev.foxikle.customnpcs.internal.menu;
 
 import dev.foxikle.customnpcs.api.Action;
+import dev.foxikle.customnpcs.api.conditions.Conditional;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.InternalNpc;
-import dev.foxikle.customnpcs.api.conditions.Conditional;
-import dev.foxikle.customnpcs.api.conditions.LogicalConditional;
-import dev.foxikle.customnpcs.api.conditions.NumericConditional;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -20,12 +21,7 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-
-import static java.util.stream.Collectors.toList;
+import java.util.*;
 
 /**
  * Handles menu creation
@@ -52,185 +48,185 @@ public class MenuCore {
      * @return The Inventory representing the Main NPC menu
      */
     public Inventory getMainMenu() {
-        List<String> lore = new ArrayList<>();
-        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "     Create a New NPC"));
+        List<Component> lore = new ArrayList<>();
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 45, Component.text("     Create a New NPC", NamedTextColor.BLACK, TextDecoration.BOLD)));
         NamespacedKey key = new NamespacedKey(plugin, "MenuButtonTag");
 
         ItemStack nametag = new ItemStack(Material.NAME_TAG);
         ItemMeta nameMeta = nametag.getItemMeta();
         nameMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "NameTag");
-        nameMeta.setDisplayName(ChatColor.AQUA + "Change Name");
-        lore.add(ChatColor.YELLOW + "The current name is " + ChatColor.AQUA + npc.getHologramName());
-        nameMeta.setLore(lore);
+        nameMeta.displayName(Component.text("Change Name", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        lore.add(Component.text("The current name is ", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(plugin.getMiniMessage().deserialize(npc.getHologramName())));
+        nameMeta.lore(lore);
         nametag.setItemMeta(nameMeta);
 
         ItemStack equipment = new ItemStack(Material.ARMOR_STAND);
         ItemMeta handMeta = equipment.getItemMeta();
         handMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "equipment");
-        handMeta.setDisplayName(ChatColor.DARK_GREEN + "Change Item");
+        handMeta.displayName(Component.text("Change Item", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         lore.clear();
-        lore.add(ChatColor.YELLOW + "The current equipment is ");
-        lore.add(ChatColor.YELLOW + "Main Hand: " + ChatColor.AQUA + npc.getHandItem().getType());
-        lore.add(ChatColor.YELLOW + "Offhand: " + ChatColor.AQUA + npc.getItemInOffhand().getType());
-        lore.add(ChatColor.YELLOW + "Helmet: " + ChatColor.AQUA + npc.getHeadItem().getType());
-        lore.add(ChatColor.YELLOW + "Chestplate: " + ChatColor.AQUA + npc.getChestItem().getType());
-        lore.add(ChatColor.YELLOW + "Leggings: " + ChatColor.AQUA + npc.getLegsItem().getType());
-        lore.add(ChatColor.YELLOW + "Boots: " + ChatColor.AQUA + npc.getBootsItem().getType());
+        lore.add(Component.text("The current equipment is ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
+        lore.add(Component.text("Main Hand: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getHandItem().getType().toString()))));
+        lore.add(Component.text("Offhand: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text(npc.getItemInOffhand().getType().toString())));
+        lore.add(Component.text("Helmet: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getHeadItem().getType().toString()))));
+        lore.add(Component.text("Chestplate: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getChestItem().getType().toString()))));
+        lore.add(Component.text("Leggings: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getLegsItem().getType().toString()))));
+        lore.add(Component.text("Boots: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getBootsItem().getType().toString()))));
 
-        handMeta.setLore(lore);
+        handMeta.lore(lore);
         equipment.setItemMeta(handMeta);
 
         ItemStack positionsItem = new ItemStack(Material.COMPASS);
         ItemMeta positionMeta = positionsItem.getItemMeta();
         positionMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "direction");
-        positionMeta.setDisplayName(ChatColor.DARK_GREEN + "Facing Direction");
+        positionMeta.displayName(Component.text("Facing Direction", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         double dir = npc.getFacingDirection();
         lore.clear();
         switch ((int) dir) {
             case 180 -> {
-                lore.add("");
-                lore.add(ChatColor.DARK_AQUA + "▸ North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("▸ North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
             }
             case -135 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.DARK_AQUA + "▸ North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
             }
             case -90 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.DARK_AQUA + "▸ East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
             }
             case -45 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.DARK_AQUA + "▸ South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
             }
             case 0 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.DARK_AQUA + "▸ South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
             }
             case 45 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.DARK_AQUA + "▸ South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
             }
             case 90 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.DARK_AQUA + "▸ West");
-                lore.add(ChatColor.GREEN + "North West");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
             }
             case 135 -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.DARK_AQUA + "▸ North west");
-                lore.add(ChatColor.GREEN + "Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ North west").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
             }
             default -> {
-                lore.add("");
-                lore.add(ChatColor.GREEN + "North");
-                lore.add(ChatColor.GREEN + "North East");
-                lore.add(ChatColor.GREEN + "East");
-                lore.add(ChatColor.GREEN + "South East");
-                lore.add(ChatColor.GREEN + "South");
-                lore.add(ChatColor.GREEN + "South West");
-                lore.add(ChatColor.GREEN + "West");
-                lore.add(ChatColor.GREEN + "North west");
-                lore.add(ChatColor.DARK_AQUA + "▸ Player Direction");
-                lore.add("");
-                lore.add(ChatColor.YELLOW + "Click to change!");
+                lore.add(Component.empty());
+                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+                lore.add(Component.text("▸ Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
+                lore.add(Component.empty());
+                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
             }
         }
 
-        positionMeta.setLore(lore);
+        positionMeta.lore(lore);
         positionsItem.setItemMeta(positionMeta);
 
         ItemStack resilientItem = new ItemStack(Material.BELL);
         ItemMeta resilientMeta = resilientItem.getItemMeta();
         lore.clear();
-        lore.add(npc.isResilient() ? ChatColor.GREEN + "" + ChatColor.BOLD + "RESILIENT" : ChatColor.RED + "" + ChatColor.BOLD + "NOT RESILIENT");
-        resilientMeta.setLore(lore);
+        lore.add(npc.isResilient() ? Component.text("RESILIENT").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN).decorate(TextDecoration.BOLD) : Component.text("NOT RESILIENT").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.RED).decorate(TextDecoration.BOLD));
+        resilientMeta.lore(lore);
         resilientMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "resilience");
-        resilientMeta.setDisplayName(ChatColor.DARK_GREEN + "Change resilience");
+        resilientMeta.displayName(Component.text("Change resilience", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         resilientItem.setItemMeta(resilientMeta);
 
         ItemStack confirmButton = new ItemStack(Material.LIME_DYE);
         ItemMeta confirmMeta = confirmButton.getItemMeta();
         confirmMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "Confirm");
-        confirmMeta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "CONFIRM");
+        confirmMeta.displayName(Component.text("CONFIRM", NamedTextColor.GREEN, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         confirmButton.setItemMeta(confirmMeta);
 
         ItemStack clickableButton;
@@ -240,11 +236,12 @@ public class MenuCore {
             ItemStack actionsButton = new ItemStack(Material.RECOVERY_COMPASS);
             ItemMeta actionsButtonMeta = actionsButton.getItemMeta();
             actionsButtonMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "actions");
-            actionsButtonMeta.setDisplayName(ChatColor.DARK_GREEN + "Change actions");
+            actionsButtonMeta.displayName(Component.text("Change actions", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             lore.clear();
-            lore.add(ChatColor.YELLOW + "The actions performed when ");
-            lore.add(ChatColor.YELLOW + "interacting with the npc. ");
-            actionsButtonMeta.setLore(lore);
+            lore.add(Component.text("The actions performed when ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
+            lore.add(Component.text("interacting with the npc. ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
+            actionsButtonMeta.lore(lore);
+            actionsButtonMeta.lore();
             actionsButton.setItemMeta(actionsButtonMeta);
             inv.setItem(34, actionsButton);
         } else {
@@ -252,16 +249,16 @@ public class MenuCore {
         }
         ItemMeta clickableMeta = clickableButton.getItemMeta();
         clickableMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "clickable");
-        clickableMeta.setDisplayName(ChatColor.DARK_GREEN + "Change interactability");
+        clickableMeta.displayName(Component.text("Change interactability", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         lore.clear();
-        lore.add(npc.isClickable() ? ChatColor.GREEN + "" + ChatColor.BOLD + "CLICKABLE" : ChatColor.RED + "" + ChatColor.BOLD + "NOT CLICKABLE");
-        clickableMeta.setLore(lore);
+        lore.add(npc.isClickable() ? Component.text("INTERACTABLE").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN).decorate(TextDecoration.BOLD) : Component.text("NOT INTERACTABLE").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.RED).decorate(TextDecoration.BOLD));
+        clickableMeta.lore(lore);
         clickableButton.setItemMeta(clickableMeta);
 
         ItemStack cancelButton = new ItemStack(Material.BARRIER);
         ItemMeta cancelMeta = cancelButton.getItemMeta();
         cancelMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "Cancel");
-        cancelMeta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "CANCEL");
+        cancelMeta.displayName(Component.text("CANCEL", NamedTextColor.RED, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         cancelButton.setItemMeta(cancelMeta);
         inv.setItem(13, plugin.getMenuUtils().getSkinIcon(key, "changeSkin", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9"));
         inv.setItem(16, nametag);
@@ -286,17 +283,15 @@ public class MenuCore {
         ItemStack boots = npc.getBootsItem();
         ItemStack hand = npc.getHandItem();
         ItemStack offhand = npc.getItemInOffhand();
-        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 54, ChatColor.BLACK + "" + ChatColor.BOLD + "     Edit NPC Equipment"));
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 54, Component.text("     Edit NPC Equipment", NamedTextColor.BLACK, TextDecoration.BOLD)));
         NamespacedKey key = new NamespacedKey(plugin, "EquipmentInv");
 
         ItemStack item1 = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta meta1 = item1.getItemMeta();
-        List<String> lore1 = new ArrayList<>();
         NamespacedKey key1 = new NamespacedKey(plugin, "NoClickey");
         meta1.getCustomTagContainer().setCustomTag(key1, ItemTagType.STRING, "PANE");
-        meta1.setDisplayName(" ");
-        lore1.add("");
-        meta1.setLore(lore1);
+        meta1.displayName(Component.empty());
+        meta1.lore(Collections.emptyList());
         item1.setItemMeta(meta1);
 
         inv.setItem(10, item1);
@@ -332,173 +327,173 @@ public class MenuCore {
         if (helm.getType().isAir()) {
             ItemStack item = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
             ItemMeta meta = item.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "helm");
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.setDisplayName(ChatColor.GREEN + "Empty Helmet Slot");
-            lore.add(ChatColor.YELLOW + "Click this slot with");
-            lore.add(ChatColor.YELLOW + "a helmet to change.");
-            meta.setLore(lore);
+            meta.displayName(Component.text("Empty Helmet Slot", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("a helmet to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.lore(lore);
             item.setItemMeta(meta);
             inv.setItem(13, item);
         } else {
             ItemMeta meta = helm.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "helm");
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.setDisplayName(ChatColor.GREEN + helm.getType().toString());
-            lore.add(ChatColor.YELLOW + "Click this slot with");
-            lore.add(ChatColor.YELLOW + "a helmet to change.");
-            lore.add(ChatColor.RED + "Rick click to remove");
-            meta.setLore(lore);
+            meta.displayName(Component.text(helm.getType().toString(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("a helmet to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Rick click to remove", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.lore(lore);
             helm.setItemMeta(meta);
             inv.setItem(13, helm);
         }
         if (cp.getType().isAir()) {
             ItemStack item = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
             ItemMeta meta = item.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "cp");
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.setDisplayName(ChatColor.GREEN + "Empty Chestplate Slot");
-            lore.add(ChatColor.YELLOW + "Click this slot with");
-            lore.add(ChatColor.YELLOW + "a chestplate to change.");
-            meta.setLore(lore);
+            meta.displayName(Component.text("Empty Chestplate Slot", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("a chestplate to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.lore(lore);
             item.setItemMeta(meta);
             inv.setItem(22, item);
         } else {
             ItemMeta meta = cp.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "cp");
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.setDisplayName(ChatColor.GREEN + cp.getType().toString());
-            lore.add(ChatColor.YELLOW + "Click this slot with");
-            lore.add(ChatColor.YELLOW + "a chestplate to change.");
-            lore.add(ChatColor.RED + "Rick click to remove");
-            meta.setLore(lore);
+            meta.displayName(Component.text(cp.getType().toString(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("a chestplate to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.lore(lore);
             cp.setItemMeta(meta);
             inv.setItem(22, cp);
         }
         if (legs.getType().isAir()) {
             ItemStack item = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
             ItemMeta meta = item.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "legs");
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.setDisplayName(ChatColor.GREEN + "Empty Leggings Slot");
-            lore.add(ChatColor.YELLOW + "Click this slot with");
-            lore.add(ChatColor.YELLOW + "a pair of leggings");
-            lore.add(ChatColor.YELLOW + "to change.");
-            meta.setLore(lore);
+            meta.displayName(Component.text("Empty Leggings Slot", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("a pair of leggings", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.lore(lore);
             item.setItemMeta(meta);
             inv.setItem(31, item);
         } else {
             ItemMeta meta = legs.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "legs");
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.setDisplayName(ChatColor.GREEN + legs.getType().toString());
-            lore.add(ChatColor.YELLOW + "Click this slot with");
-            lore.add(ChatColor.YELLOW + "a pair of leggings");
-            lore.add(ChatColor.YELLOW + "to change.");
-            lore.add(ChatColor.RED + "Rick click to remove");
-            meta.setLore(lore);
+            meta.displayName(Component.text(legs.getType().toString(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("a pair of leggings", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.lore(lore);
             legs.setItemMeta(meta);
             inv.setItem(31, legs);
         }
         if (boots.getType().isAir()) {
             ItemStack item = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
             ItemMeta meta = item.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "boots");
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.setDisplayName(ChatColor.GREEN + "Empty Boots Slot");
-            lore.add(ChatColor.YELLOW + "Click this slot with");
-            lore.add(ChatColor.YELLOW + "a pair of boots to ");
-            lore.add(ChatColor.YELLOW + "change.");
-            meta.setLore(lore);
+            meta.displayName(Component.text("Empty Boots Slot", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("a pair of boots to ", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.lore(lore);
             item.setItemMeta(meta);
             inv.setItem(40, item);
         } else {
             ItemMeta meta = boots.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "boots");
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.setDisplayName(ChatColor.GREEN + boots.getType().toString());
-            lore.add(ChatColor.YELLOW + "Click this slot with");
-            lore.add(ChatColor.YELLOW + "a pair of boots to ");
-            lore.add(ChatColor.YELLOW + "change.");
-            lore.add(ChatColor.RED + "Rick click to remove");
-            meta.setLore(lore);
+            meta.displayName(Component.text(boots.getType().toString(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("a pair of boots to ", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.lore(lore);
             boots.setItemMeta(meta);
             inv.setItem(40, boots);
         }
         if (hand.getType().isAir()) {
             ItemStack item = new ItemStack(Material.YELLOW_STAINED_GLASS_PANE);
             ItemMeta meta = item.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "hand");
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.setDisplayName(ChatColor.GREEN + "Empty Hand Slot");
-            lore.add(ChatColor.YELLOW + "Click this slot with");
-            lore.add(ChatColor.YELLOW + "an item to change.");
-            meta.setLore(lore);
+            meta.displayName(Component.text("Empty Hand Slot", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("an item to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.lore(lore);
             item.setItemMeta(meta);
             inv.setItem(23, item);
         } else {
             ItemMeta meta = hand.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "hand");
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.setDisplayName(ChatColor.GREEN + hand.getType().toString());
-            lore.add(ChatColor.YELLOW + "Click this slot with");
-            lore.add(ChatColor.YELLOW + "an item to change.");
-            lore.add(ChatColor.RED + "Rick click to remove");
-            meta.setLore(lore);
+            meta.displayName(Component.text(hand.getType().toString(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("an item to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.lore(lore);
             hand.setItemMeta(meta);
             inv.setItem(23, hand);
         }
         if (offhand.getType().isAir()) {
             ItemStack item = new ItemStack(Material.YELLOW_STAINED_GLASS_PANE);
             ItemMeta meta = item.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "offhand");
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.setDisplayName(ChatColor.GREEN + "Empty Offhand Slot");
-            lore.add(ChatColor.YELLOW + "Click this slot with");
-            lore.add(ChatColor.YELLOW + "an item to change.");
-            meta.setLore(lore);
+            meta.displayName(Component.text("Empty Offhand Slot", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("an item to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.lore(lore);
             item.setItemMeta(meta);
             inv.setItem(21, item);
         } else {
             ItemMeta meta = offhand.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "offhand");
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.setDisplayName(ChatColor.GREEN + offhand.getType().toString());
-            lore.add(ChatColor.YELLOW + "Click this slot with");
-            lore.add(ChatColor.YELLOW + "an item to change.");
-            lore.add(ChatColor.RED + "Rick click to remove");
-            meta.setLore(lore);
+            meta.displayName(Component.text(offhand.getType().toString(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("an item to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Rick click to remove", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.lore(lore);
             offhand.setItemMeta(meta);
             inv.setItem(21, offhand);
         }
         ItemStack closeButton = new ItemStack(Material.BARRIER);
         ItemMeta closeMeta = closeButton.getItemMeta();
         closeMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "close");
-        closeMeta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "CLOSE");
+        closeMeta.displayName(Component.text("CLOSE", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorate(TextDecoration.BOLD));
         closeButton.setItemMeta(closeMeta);
         inv.setItem(49, closeButton);
 
@@ -511,7 +506,7 @@ public class MenuCore {
      * @return The Inventory representing the Actions menu
      */
     public Inventory getActionMenu() {
-        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 54, ChatColor.BLACK + "" + ChatColor.BOLD + "      Edit NPC Actions"));
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 54, Component.text("      Edit NPC Actions", NamedTextColor.BLACK, TextDecoration.BOLD)));
         NamespacedKey key = new NamespacedKey(plugin, "ActionInv");
 
         List<Action> actions = npc.getActions();
@@ -519,10 +514,10 @@ public class MenuCore {
         for (Action action : actions) {
             ItemStack item = new ItemStack(Material.BEDROCK);
             ItemMeta meta = item.getItemMeta();
-            List<String> lore = new ArrayList<>();
+            List<Component> lore = new ArrayList<>();
             List<String> args = action.getArgsCopy();
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&aDelay (ticks): " + action.getDelay()));
-            lore.add("");
+            lore.add(Component.text("Delay (ticks): " + action.getDelay()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+            lore.add(Component.empty());
             switch (action.getSubCommand()) {
                 case "DISPLAY_TITLE" -> {
                     item.setType(Material.OAK_SIGN);
@@ -532,176 +527,157 @@ public class MenuCore {
                     args.remove(0);
                     args.remove(0);
                     args.remove(0);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bDisplay Title"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current title is: '&f" + String.join(" ", args) + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bFade in: " + fIn));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bStay: " + stay));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bFade out: " + fOut));
+                    meta.displayName(Component.text("Display Title").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.AQUA));
+                    lore.add(Component.text("The current title is: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(String.join(" ", args))).append(Component.text("'", NamedTextColor.YELLOW)));
+                    lore.add(Component.text("Fade in: " + fIn).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.AQUA));
+                    lore.add(Component.text("Stay: " + stay).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.AQUA));
+                    lore.add(Component.text("Fade out: " + fOut).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.AQUA));
                 }
                 case "SEND_MESSAGE" -> {
                     item.setType(Material.PAPER);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Message"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current message is: '&f" + String.join(" ", args) + "&r&e'"));
+                    meta.displayName(Component.text("Send Message", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("The current message is: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(String.join(" ", args))).append(Component.text("'", NamedTextColor.YELLOW)));
                 }
                 case "PLAY_SOUND" -> {
                     item.setType(Material.BELL);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePlay Sound"));
+                    meta.displayName(Component.text("Play Sound", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     int pitch = Integer.parseInt(args.get(0));
                     args.remove(0);
                     int volume = Integer.parseInt(args.get(0));
                     args.remove(0);
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current sound is: '" + String.join(" ", args) + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bPitch: " + pitch));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bVolume: " + volume));
+                    lore.add(Component.text("The current sound is: '" + String.join(" ", args) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Pitch: " + pitch, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Volume: " + volume, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
                 case "RUN_COMMAND" -> {
                     item.setType(Material.ANVIL);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRun Command"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe command is: '" + String.join(" ", args) + "&r&e'"));
+                    meta.displayName(Component.text("Run Command", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("The command is: '" + String.join(" ", args) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
                 case "ACTION_BAR" -> {
                     item.setType(Material.IRON_INGOT);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Actionbar"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current actionbar is: '&f" + String.join(" ", args) + "&r&e'"));
+                    meta.displayName(Component.text("Send Actionbar", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("The current actionbar is: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(plugin.getMiniMessage().deserialize(String.join(" ", args))).append(Component.text("'", NamedTextColor.YELLOW)));
                 }
                 case "TELEPORT" -> {
                     item.setType(Material.ENDER_PEARL);
                     int x = Integer.parseInt(args.get(0));
-                    args.remove(0);
-                    int y = Integer.parseInt(args.get(0));
-                    args.remove(0);
-                    int z = Integer.parseInt(args.get(0));
-                    args.remove(0);
-                    int pitch = Integer.parseInt(args.get(0));
-                    args.remove(0);
-                    int yaw = Integer.parseInt(args.get(0));
-                    args.remove(0);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bTeleport Player"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current Teleport location is:"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bX: " + x));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bY: " + z));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bZ: " + y));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bPitch: " + pitch));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&bYaw: " + yaw));
+                    int y = Integer.parseInt(args.get(1));
+                    int z = Integer.parseInt(args.get(2));
+                    int pitch = Integer.parseInt(args.get(3));
+                    int yaw = Integer.parseInt(args.get(4));
+                    meta.displayName(Component.text("Teleport Player", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("The current Teleport location is:", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("X: " + x, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Y: " + z, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Z: " + y, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Pitch: " + pitch, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Yaw: " + yaw, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
                 case "GIVE_EXP" -> {
                     item.setType(Material.EXPERIENCE_BOTTLE);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bGive Experience"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current xp to give is: " + args.get(0) + " " + (args.get(1).equalsIgnoreCase("true") ? "levels" : "points")));
+                    meta.displayName(Component.text("Give Experience", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("The current xp to give is: " + args.get(0) + " " + (args.get(1).equalsIgnoreCase("true") ? "levels" : "points"), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
                 case "REMOVE_EXP" -> {
                     item.setType(Material.GLASS_BOTTLE);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRemove Experience"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe current xp to remove is: " + args.get(0) + " " + (args.get(1).equalsIgnoreCase("true") ? "levels" : "points")));
+                    meta.displayName(Component.text("Remove Experience", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("The current xp to remove is: " + args.get(0) + " " + (args.get(1).equalsIgnoreCase("true") ? "levels" : "points"), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
                 case "ADD_EFFECT" -> {
                     item.setType(Material.BREWING_STAND);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bGive Effect"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eEffect: '" + args.get(3) + "'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eDuration: " + args.get(0)));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eAmplifier: " + args.get(1)));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eHide particles: " + args.get(2)));
+                    meta.displayName(Component.text("Give Effect", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Effect: '" + args.get(3) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Duration: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Amplifier: " + args.get(1), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Hide particles: " + args.get(2), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
                 case "REMOVE_EFFECT" -> {
                     item.setType(Material.MILK_BUCKET);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRemove Experience"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eEffect: '" + args.get(0) + "'"));
+                    meta.displayName(Component.text("Remove Experience", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Effect: '" + args.get(0) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
                 case "SEND_TO_SERVER" -> {
                     item.setType(Material.GRASS_BLOCK);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend To Bungeecord Server"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eServer: '" + String.join(" ", args) + "&r&e'"));
+                    meta.displayName(Component.text("Send To Bungeecord/Velocity Server", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Server: '" + String.join(" ", args) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
                 case "TOGGLE_FOLLOWING" -> {
                     item.setType(Material.LEAD);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&d&l[WIP] &bStart / Stop Following"));
+                    meta.displayName(Component.text("[WIP]", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(" Start / Stop Following", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)));
                 }
             }
-            lore.add("");
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
+            lore.add(Component.empty());
+            lore.add(Component.text("Right Click to remove.", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            lore.add(Component.text("Left Click to edit.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             NamespacedKey actionKey = new NamespacedKey(plugin, "SerializedAction");
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "actionDisplay");
             meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action.toJson());
-            meta.setLore(lore);
+            meta.lore(lore);
             item.setItemMeta(meta);
             if (!inv.contains(item))
                 inv.addItem(item);
         }
 
-        List<String> lore = new ArrayList<>();
-
         // Close Button
         ItemStack close = new ItemStack(Material.ARROW);
         ItemMeta closeMeta = close.getItemMeta();
-        closeMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&lGO BACK"));
+        closeMeta.displayName(Component.text("GO BACK", NamedTextColor.RED, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         closeMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
-        closeMeta.setLore(lore);
         close.setItemMeta(closeMeta);
-        lore.clear();
         inv.setItem(45, close);
 
         // Add New
         ItemStack newAction = new ItemStack(Material.LILY_PAD);
         ItemMeta actionMeta = newAction.getItemMeta();
-        actionMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&a&lNew Action"));
+        actionMeta.displayName(Component.text("New Action", NamedTextColor.GREEN, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         actionMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "new_action");
         newAction.setItemMeta(actionMeta);
-        lore.clear();
         inv.addItem(newAction);
 
         return inv;
     }
 
     public Inventory getConditionMenu(Action action) {
-        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "  Edit Action Conditionals"));
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, Component.text("  Edit Action Conditionals", NamedTextColor.BLACK, TextDecoration.BOLD)));
         NamespacedKey key = new NamespacedKey(plugin, "ConditionInv");
         NamespacedKey dataKey = new NamespacedKey(plugin, "SerializedCondition");
         if(action.getConditionals() != null) {
             for (Conditional c : action.getConditionals()) {
                 ItemStack item = new ItemStack(Material.BEDROCK);
                 ItemMeta meta = item.getItemMeta();
-                List<String> lore = new ArrayList<>();
+                List<Component> lore = new ArrayList<>();
                 if (c.getType() == Conditional.Type.NUMERIC) {
                     item.setType(Material.POPPED_CHORUS_FRUIT);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bNumeric Condition"));
-                    lore.add("");
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe comparator is: '&d" + c.getComparator().name() + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe value is: '&d" + c.getValue().name() + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe target value is: '&d" + c.getTarget() + "&r&e'"));
-                    lore.add("");
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
-
+                    meta.displayName(Component.text("Numeric Condition", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 } else if (c.getType() == Conditional.Type.LOGICAL) {
                     item.setType(Material.COMPARATOR);
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bLogical Condition"));
-                    lore.add("");
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe comparator is: '&d" + c.getComparator().name() + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe value is: '&d" + c.getValue().name() + "&r&e'"));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe target value is: '&d" + c.getTarget() + "&r&e'"));
-                    lore.add("");
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cRight Click to remove."));
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&eLeft Click to edit."));
-
+                    meta.displayName(Component.text("Logical Condition", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
+                lore.add(Component.empty());
+                lore.add(Component.text("Comparator: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(c.getComparator().name(), NamedTextColor.LIGHT_PURPLE)).append(Component.text("'", NamedTextColor.YELLOW)));
+                lore.add(Component.text("Value: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(c.getValue().name(), NamedTextColor.LIGHT_PURPLE)).append(Component.text("'", NamedTextColor.YELLOW)));
+                lore.add(Component.text("Target Value: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(c.getTarget(), NamedTextColor.LIGHT_PURPLE)).append(Component.text("'", NamedTextColor.YELLOW)));
+                lore.add(Component.empty());
+                lore.add(Component.text("Right Click to remove.", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                lore.add(Component.text("Left Click to edit.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
 
                 meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "actionDisplay");
                 meta.getPersistentDataContainer().set(dataKey, PersistentDataType.STRING, c.toJson());
-                meta.setLore(lore);
+                meta.lore(lore);
                 item.setItemMeta(meta);
                 if (!inv.contains(item))
                     inv.addItem(item);
             }
         }
-        List<String> lore = new ArrayList<>();
+        List<Component> lore = new ArrayList<>();
 
         // Close Button
         ItemStack close = new ItemStack(Material.BARRIER);
         ItemMeta closeMeta = close.getItemMeta();
-        closeMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&lGO BACK"));
+        closeMeta.displayName(Component.text("GO BACK", NamedTextColor.RED, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         closeMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
-        closeMeta.setLore(lore);
+        closeMeta.lore(lore);
         close.setItemMeta(closeMeta);
         lore.clear();
         inv.setItem(31, close);
@@ -709,7 +685,7 @@ public class MenuCore {
         // Add New
         ItemStack newCondition = new ItemStack(Material.LILY_PAD);
         ItemMeta conditionMeta = newCondition.getItemMeta();
-        conditionMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&a&lNew Condition"));
+        conditionMeta.displayName(Component.text("New Condition", NamedTextColor.GREEN, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         conditionMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "new_condition");
         newCondition.setItemMeta(conditionMeta);
         lore.clear();
@@ -718,10 +694,10 @@ public class MenuCore {
         // Change Mode
         ItemStack changeMode = new ItemStack(action.getMode() == Conditional.SelectionMode.ALL ? Material.GREEN_CANDLE : Material.RED_CANDLE);
         ItemMeta changeModeMeta = changeMode.getItemMeta();
-        changeModeMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&a&lChange Mode"));
-        lore.add(action.getMode() == Conditional.SelectionMode.ALL ? ChatColor.YELLOW + "Match ALL Conditions" : ChatColor.YELLOW + "Match ONE Condition");
+        changeModeMeta.displayName(Component.text("Change Mode", NamedTextColor.GREEN, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        lore.add(action.getMode() == Conditional.SelectionMode.ALL ? Component.text("Match ALL Conditions", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE) : Component.text("Match ONE Condition", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         changeModeMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "change_mode");
-        changeModeMeta.setLore(lore);
+        changeModeMeta.lore(lore);
         changeMode.setItemMeta(changeModeMeta);
         lore.clear();
         inv.setItem(35, changeMode);
@@ -736,39 +712,39 @@ public class MenuCore {
      * @return The Inventory representing the action to customize
      */
     public Inventory getActionCustomizerMenu(Action action) {
-        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 45, ChatColor.BLACK + "" + ChatColor.BOLD + "       Edit NPC Action"));
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 45, Component.text("       Edit NPC Action", NamedTextColor.BLACK, TextDecoration.BOLD)));
         NamespacedKey key = new NamespacedKey(plugin, "CustomizeActionButton");
 
         // lores
-        List<String> incLore = new ArrayList<>();
-        incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to add 1"));
-        incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Right Click to add 5"));
-        incLore.add(ChatColor.translateAlternateColorCodes('&', "&8Shift + Right Click to add 20"));
+        List<Component> incLore = new ArrayList<>();
+        incLore.add(Component.text("Left CLick to add 1", NamedTextColor.DARK_GRAY).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        incLore.add(Component.text("Right Click to add 5", NamedTextColor.DARK_GRAY).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        incLore.add(Component.text("Shift + Right Click to add 20", NamedTextColor.DARK_GRAY).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
 
-        List<String> decLore = new ArrayList<>();
-        decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to remove 1"));
-        decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Right Click to remove 5"));
-        decLore.add(ChatColor.translateAlternateColorCodes('&', "&8Shift + Click to remove 20"));
+        List<Component> decLore = new ArrayList<>();
+        decLore.add(Component.text("Left CLick to remove 1", NamedTextColor.DARK_GRAY).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        decLore.add(Component.text("Right Click to remove 5", NamedTextColor.DARK_GRAY).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        decLore.add(Component.text("Shift + Click to remove 20", NamedTextColor.DARK_GRAY).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
 
         // Go back to actions menu
         ItemStack decDelay = new ItemStack(Material.RED_DYE);
         ItemMeta decDelayItemMeta = decDelay.getItemMeta();
         decDelayItemMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_delay");
-        decDelayItemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrement Delay"));
+        decDelayItemMeta.displayName(Component.text("Decrement Delay", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         decDelay.setItemMeta(decDelayItemMeta);
         inv.setItem(3, decDelay);// Go back to actions menu
 
         ItemStack displayDelay = new ItemStack(Material.CLOCK);
         ItemMeta delayMeta = displayDelay.getItemMeta();
         delayMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-        delayMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDelay ticks: " + action.getDelay()));
+        delayMeta.displayName(Component.text("Delay ticks: " + action.getDelay(), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         displayDelay.setItemMeta(delayMeta);
         inv.setItem(4, displayDelay);// Go back to actions menu
 
         ItemStack incDelay = new ItemStack(Material.LIME_DYE);
         ItemMeta incDelayItemMeta = incDelay.getItemMeta();
         incDelayItemMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_delay");
-        incDelayItemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrement Delay"));
+        incDelayItemMeta.displayName(Component.text("Increment Delay", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         incDelay.setItemMeta(incDelayItemMeta);
         inv.setItem(5, incDelay);
 
@@ -776,7 +752,7 @@ public class MenuCore {
         ItemStack goBack = new ItemStack(Material.ARROW);
         ItemMeta goBackMeta = goBack.getItemMeta();
         goBackMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
-        goBackMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&6Go Back"));
+        goBackMeta.displayName(Component.text("Go Back", NamedTextColor.GOLD));
         goBack.setItemMeta(goBackMeta);
         inv.setItem(36, goBack);
 
@@ -784,7 +760,7 @@ public class MenuCore {
         ItemStack editConditionals = new ItemStack(Material.COMPARATOR);
         ItemMeta editConditionalsMeta = editConditionals.getItemMeta();
         editConditionalsMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_conditionals");
-        editConditionalsMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&cEdit Conditionals"));
+        editConditionalsMeta.displayName(Component.text("Edit Conditionals", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         editConditionals.setItemMeta(editConditionalsMeta);
         inv.setItem(44, editConditionals);
 
@@ -792,7 +768,7 @@ public class MenuCore {
         ItemStack confirm = new ItemStack(Material.LILY_PAD);
         ItemMeta confirmMeta = confirm.getItemMeta();
         confirmMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "confirm");
-        confirmMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&aConfirm"));
+        confirmMeta.displayName(Component.text("Confirm", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         confirm.setItemMeta(confirmMeta);
         inv.setItem(40, confirm);
 
@@ -802,12 +778,12 @@ public class MenuCore {
             case "RUN_COMMAND" -> {
                 ItemStack selectCommand = new ItemStack(Material.ANVIL);
                 ItemMeta meta = selectCommand.getItemMeta();
-                List<String> lore = new ArrayList<>();
+                List<Component> lore = new ArrayList<>();
                 meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_command");
-                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eClick To Edit Command"));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&b" + String.join(" ", args)));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "\n&eClick to change!"));
-                meta.setLore(lore);
+                meta.displayName(Component.text("Click To Edit Command", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                lore.add(Component.text(String.join(" ", args), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                meta.lore(lore);
                 selectCommand.setItemMeta(meta);
                 inv.setItem(22, selectCommand);
             }
@@ -833,25 +809,25 @@ public class MenuCore {
 
                 ItemStack incIn = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncIn = incIn.getItemMeta();
-                metaIncIn.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease fade in duration"));
+                metaIncIn.displayName(Component.text("Increase fade in duration", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncIn.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_in");
-                metaIncIn.setLore(incLore);
+                metaIncIn.lore(incLore);
                 incIn.setItemMeta(metaIncIn);
                 inv.setItem(10, incIn);
 
                 ItemStack incStay = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncStay = incStay.getItemMeta();
-                metaIncStay.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease display duration"));
+                metaIncStay.displayName(Component.text("Increase display duration", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncStay.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_stay");
-                metaIncStay.setLore(incLore);
+                metaIncStay.lore(incLore);
                 incStay.setItemMeta(metaIncStay);
                 inv.setItem(12, incStay);
 
                 ItemStack incOut = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncOut = incOut.getItemMeta();
-                metaIncOut.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease fade out duration"));
+                metaIncOut.displayName(Component.text("Increase fade out duration", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncOut.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_out");
-                metaIncOut.setLore(incLore);
+                metaIncOut.lore(incLore);
                 incOut.setItemMeta(metaIncOut);
                 inv.setItem(14, incOut);
 
@@ -860,64 +836,64 @@ public class MenuCore {
 
                 ItemStack decIn = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecIn = decIn.getItemMeta();
-                metaDecIn.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease fade in duration"));
+                metaDecIn.displayName(Component.text("Decrease fade in duration", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecIn.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_in");
-                metaDecIn.setLore(decLore);
+                metaDecIn.lore(decLore);
                 decIn.setItemMeta(metaDecIn);
                 inv.setItem(28, decIn);
 
                 ItemStack decStay = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecStay = decStay.getItemMeta();
-                metaDecStay.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease display duration"));
+                metaDecStay.displayName(Component.text("Decrease display duration", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecStay.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_stay");
-                metaDecStay.setLore(decLore);
+                metaDecStay.lore(decLore);
                 decStay.setItemMeta(metaDecStay);
                 inv.setItem(30, decStay);
 
                 ItemStack decOut = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecOut = decOut.getItemMeta();
-                metaDecOut.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease fade out duration"));
+                metaDecOut.displayName(Component.text("Decrease fade out duration", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecOut.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_out");
-                metaDecOut.setLore(decLore);
+                metaDecOut.lore(decLore);
                 decOut.setItemMeta(metaDecOut);
                 inv.setItem(32, decOut);
 
                 // Displays
 
-                List<String> displayLore = new ArrayList<>();
-                displayLore.add(ChatColor.translateAlternateColorCodes('&', "&8In ticks"));
+                List<Component> displayLore = new ArrayList<>();
+                displayLore.add(Component.text("In ticks", NamedTextColor.DARK_GRAY).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
 
 
                 ItemStack displayIn = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayIn = displayIn.getItemMeta();
                 metaDisplayIn.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                metaDisplayIn.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eFade in: " + args.get(0)));
+                metaDisplayIn.displayName(Component.text("Fade in: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
-                metaDisplayIn.setLore(displayLore);
+                metaDisplayIn.lore(displayLore);
                 displayIn.setItemMeta(metaDisplayIn);
                 inv.setItem(19, displayIn);
 
                 ItemStack displayStay = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayStay = displayStay.getItemMeta();
                 metaDisplayStay.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                metaDisplayStay.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDisplay time: " + args.get(0)));
+                metaDisplayStay.displayName(Component.text("Display time: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
-                metaDisplayStay.setLore(displayLore);
+                metaDisplayStay.lore(displayLore);
                 displayStay.setItemMeta(metaDisplayStay);
                 inv.setItem(21, displayStay);
 
                 ItemStack displayOut = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayOut = displayOut.getItemMeta();
                 metaDisplayOut.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                metaDisplayOut.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eFade out: " + args.get(0)));
+                metaDisplayOut.displayName(Component.text("Fade out: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
-                metaDisplayOut.setLore(displayLore);
+                metaDisplayOut.lore(displayLore);
                 displayOut.setItemMeta(metaDisplayOut);
                 inv.setItem(23, displayOut);
 
                 ItemStack title = new ItemStack(Material.OAK_HANGING_SIGN);
                 ItemMeta titleMeta = title.getItemMeta();
-                titleMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', String.join(" ", args)));
+                titleMeta.displayName(plugin.getMiniMessage().deserialize(String.join(" ", args)));
                 titleMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_title");
                 title.setItemMeta(titleMeta);
                 inv.setItem(25, title);
@@ -943,17 +919,17 @@ public class MenuCore {
 
                 ItemStack incDur = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncDur = incDur.getItemMeta();
-                metaIncDur.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease effect duration"));
+                metaIncDur.displayName(Component.text("Increase effect duration", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncDur.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_duration");
-                metaIncDur.setLore(incLore);
+                metaIncDur.lore(incLore);
                 incDur.setItemMeta(metaIncDur);
                 inv.setItem(10, incDur);
 
                 ItemStack incAmp = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncAmp = incAmp.getItemMeta();
-                metaIncAmp.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease effect aplifier"));
+                metaIncAmp.displayName(Component.text("Increase effect aplifier", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncAmp.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_amplifier");
-                metaIncAmp.setLore(incLore);
+                metaIncAmp.lore(incLore);
                 incAmp.setItemMeta(metaIncAmp);
                 inv.setItem(12, incAmp);
 
@@ -961,39 +937,39 @@ public class MenuCore {
 
                 ItemStack decDur = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecDur = decDur.getItemMeta();
-                metaDecDur.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease effect duration"));
+                metaDecDur.displayName(Component.text("Decrease effect duration", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecDur.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_duration");
-                metaDecDur.setLore(decLore);
+                metaDecDur.lore(decLore);
                 decDur.setItemMeta(metaDecDur);
                 inv.setItem(28, decDur);
 
                 ItemStack decAmp = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecAmp = decAmp.getItemMeta();
-                metaDecAmp.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease effect aplifier"));
+                metaDecAmp.displayName(Component.text("Decrease effect aplifier", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecAmp.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_amplifier");
-                metaDecAmp.setLore(decLore);
+                metaDecAmp.lore(decLore);
                 decAmp.setItemMeta(metaDecAmp);
                 inv.setItem(30, decAmp);
 
                 // Displays
 
-                List<String> displayLore = new ArrayList<>();
-                displayLore.add(ChatColor.translateAlternateColorCodes('&', "&8In ticks"));
+                List<Component> displayLore = new ArrayList<>();
+                displayLore.add(Component.text("In ticks", NamedTextColor.DARK_GRAY).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
 
 
                 ItemStack displayDuration = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayDuration = displayDuration.getItemMeta();
                 metaDisplayDuration.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                metaDisplayDuration.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDuration: " + args.get(0)));
+                metaDisplayDuration.displayName(Component.text("Duration: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
-                metaDisplayDuration.setLore(displayLore);
+                metaDisplayDuration.lore(displayLore);
                 displayDuration.setItemMeta(metaDisplayDuration);
                 inv.setItem(19, displayDuration);
 
                 ItemStack displayAmplifier = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayAmplifier = displayAmplifier.getItemMeta();
                 metaDisplayAmplifier.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                metaDisplayAmplifier.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eAmplifier: " + args.get(0)));
+                metaDisplayAmplifier.displayName(Component.text("Amplifier: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
                 displayAmplifier.setItemMeta(metaDisplayAmplifier);
                 inv.setItem(21, displayAmplifier);
@@ -1001,25 +977,25 @@ public class MenuCore {
                 ItemStack hideParticlesItem = new ItemStack(action.getArgs().get(2).equalsIgnoreCase("true") ? Material.GREEN_CANDLE : Material.RED_CANDLE);
                 ItemMeta metaHideParticles = hideParticlesItem.getItemMeta();
                 metaHideParticles.getPersistentDataContainer().set(key, PersistentDataType.STRING, "toggle_hide_particles");
-                metaHideParticles.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eHide Particles: " + args.get(0)));
+                metaHideParticles.displayName(Component.text("Hide Particles: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
                 hideParticlesItem.setItemMeta(metaHideParticles);
                 inv.setItem(23, hideParticlesItem);
 
                 ItemStack potion = new ItemStack(Material.POTION);
                 ItemMeta potionMeta = potion.getItemMeta();
-                potionMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eEffect to remove"));
-                potionMeta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);;
+                potionMeta.displayName(Component.text("Effect to give", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                potionMeta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
                 potionMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_add_effect");
-                List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).collect(toList());
-                List<String> lore = new ArrayList<>();
+                List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
+                List<Component> lore = new ArrayList<>();
                 fields.forEach(field -> {
                     if(!Objects.equals(action.getArgs().get(3), field.getName()))
-                        lore.add(ChatColor.GREEN + field.getName());
+                        lore.add(Component.text(field.getName(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     else
-                        lore.add(ChatColor.DARK_AQUA + "▸ " + field.getName());
+                        lore.add(Component.text("▸ " + field.getName(), NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 });
-                potionMeta.setLore(lore);
+                potionMeta.lore(lore);
                 potion.setItemMeta(potionMeta);
                 inv.setItem(25, potion);
 
@@ -1041,16 +1017,17 @@ public class MenuCore {
 
                 ItemStack potion = new ItemStack(Material.POTION);
                 ItemMeta potionMeta = potion.getItemMeta();
-                potionMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eEffect to remove"));
+                potionMeta.displayName(Component.text("Effect to remove", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 potionMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_remove_effect");
-                List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).collect(toList());                List<String> lore = new ArrayList<>();
+                List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
+                List<Component> lore = new ArrayList<>();
                 fields.forEach(field -> {
-                    if(!Objects.equals(action.getArgs().get(0), field.getName()))
-                        lore.add(ChatColor.GREEN + field.getName());
+                    if(!Objects.equals(action.getArgs().get(3), field.getName()))
+                        lore.add(Component.text(field.getName(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     else
-                        lore.add(ChatColor.DARK_AQUA + "▸ " + field.getName());
+                        lore.add(Component.text("▸ " + field.getName(), NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 });
-                potionMeta.setLore(lore);
+                potionMeta.lore(lore);
                 potion.setItemMeta(potionMeta);
                 inv.setItem(22, potion);
 
@@ -1072,34 +1049,33 @@ public class MenuCore {
 
                 ItemStack incAmount = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncAmount = incAmount.getItemMeta();
-                metaIncAmount.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease xp"));
+                metaIncAmount.displayName(Component.text("Increase xp", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncAmount.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_give_xp");
-                metaIncAmount.setLore(incLore);
+                metaIncAmount.lore(incLore);
                 incAmount.setItemMeta(metaIncAmount);
                 inv.setItem(11, incAmount);
 
                 ItemStack displayAmount = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayAmount = displayAmount.getItemMeta();
                 metaDisplayAmount.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                metaDisplayAmount.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eXp to give: " + args.get(0)));
+                metaDisplayAmount.displayName(Component.text("Xp to give: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
                 displayAmount.setItemMeta(metaDisplayAmount);
                 inv.setItem(20, displayAmount);
 
                 ItemStack decAmount = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecAmount = decAmount.getItemMeta();
-                metaDecAmount.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease xp"));
+                metaDecAmount.displayName(Component.text("Decrease xp", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecAmount.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_give_xp");
-                metaDecAmount.setLore(decLore);
+                metaDecAmount.lore(decLore);
                 decAmount.setItemMeta(metaDecAmount);
                 inv.setItem(29, decAmount);
 
                 ItemStack levels = new ItemStack(action.getArgs().get(1).equalsIgnoreCase("true") ? Material.GREEN_CANDLE : Material.RED_CANDLE);
                 ItemMeta levelsMeta = levels.getItemMeta();
-                levelsMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', action.getArgs().get(1).equalsIgnoreCase("true") ? "&aLevels" : "&bPoints"));
+                levelsMeta.displayName(action.getArgs().get(1).equalsIgnoreCase("true") ? Component.text("Levels", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE) : Component.text("Points", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 levelsMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_give_levels");
-                levelsMeta.setLore(List.of(ChatColor.YELLOW + "Click to change!"));
-
+                levelsMeta.lore(List.of(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)));
 
                 levels.setItemMeta(levelsMeta);
                 inv.setItem(24, levels);
@@ -1121,33 +1097,33 @@ public class MenuCore {
 
                 ItemStack incAmount = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncAmount = incAmount.getItemMeta();
-                metaIncAmount.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease xp"));
+                metaIncAmount.displayName(Component.text("Increase xp", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncAmount.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_remove_xp");
-                metaIncAmount.setLore(incLore);
+                metaIncAmount.lore(incLore);
                 incAmount.setItemMeta(metaIncAmount);
                 inv.setItem(12, incAmount);
 
                 ItemStack displayAmount = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayAmount = displayAmount.getItemMeta();
                 metaDisplayAmount.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                metaDisplayAmount.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eXp to remove: " + args.get(0)));
+                metaDisplayAmount.displayName(Component.text("Xp to remove: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
                 displayAmount.setItemMeta(metaDisplayAmount);
                 inv.setItem(21, displayAmount);
 
                 ItemStack decAmount = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecAmount = decAmount.getItemMeta();
-                metaDecAmount.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease xp"));
+                metaDecAmount.displayName(Component.text("Decrease xp", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecAmount.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_remove_xp");
-                metaDecAmount.setLore(decLore);
+                metaDecAmount.lore(decLore);
                 decAmount.setItemMeta(metaDecAmount);
                 inv.setItem(30, decAmount);
 
                 ItemStack levels = new ItemStack(action.getArgs().get(1).equalsIgnoreCase("true") ? Material.GREEN_CANDLE : Material.RED_CANDLE);
                 ItemMeta levelsMeta = levels.getItemMeta();
-                levelsMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', action.getArgs().get(1).equalsIgnoreCase("true") ? "&aLevels" : "&bPoints"));
+                levelsMeta.displayName(action.getArgs().get(1).equalsIgnoreCase("true") ? Component.text("Levels", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE) : Component.text("Points", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 levelsMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_remove_levels");
-                levelsMeta.setLore(List.of(ChatColor.YELLOW + "Click to change!"));
+                levelsMeta.lore(List.of(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)));
 
 
                 levels.setItemMeta(levelsMeta);
@@ -1169,13 +1145,17 @@ public class MenuCore {
 
                 ItemStack message = new ItemStack(Material.OAK_HANGING_SIGN);
                 ItemMeta titleMeta = message.getItemMeta();
-                titleMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', String.join(" ", args)));
+                titleMeta.displayName(plugin.getMiniMessage().deserialize(String.join(" ", args)));
                 titleMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_message");
                 message.setItemMeta(titleMeta);
                 inv.setItem(22, message);
             }
             case "PLAY_SOUND" -> {
-                /* 4 buttons. 2 "displays" pitch, volume, 2 buttons increment, 2 decrement.  1 button to edit sound Enter it with a command for auto complete.
+                /* 4 buttons.
+                2 "displays" pitch, volume,
+                2 buttons increment,
+                2 decrement.
+                1 button to edit sound Enter it with a command for auto complete.
 
                  # # # # # # # # #
                  # I # I # # # # #
@@ -1192,72 +1172,70 @@ public class MenuCore {
                 */
 
 
-                List<String> smallIncLore = new ArrayList<>();
-                smallIncLore.add(ChatColor.translateAlternateColorCodes('&', "&8CLick to add .1"));
+                List<Component> smallIncLore = new ArrayList<>();
+                smallIncLore.add(Component.text("CLick to add .1", NamedTextColor.DARK_GRAY).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
 
                 ItemStack incPitch = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncPitch = incPitch.getItemMeta();
-                metaIncPitch.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease pitch."));
+                metaIncPitch.displayName(Component.text("Increase pitch.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncPitch.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_sound_pitch");
-                metaIncPitch.setLore(smallIncLore);
+                metaIncPitch.lore(smallIncLore);
                 incPitch.setItemMeta(metaIncPitch);
                 inv.setItem(10, incPitch);
 
                 ItemStack incVolume = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncVolume = incVolume.getItemMeta();
-                metaIncVolume.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease volume"));
+                metaIncVolume.displayName(Component.text("Increase volume", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncVolume.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_volume");
-                metaIncVolume.setLore(smallIncLore);
+                metaIncVolume.lore(smallIncLore);
                 incVolume.setItemMeta(metaIncVolume);
                 inv.setItem(12, incVolume);
 
                 //decrements
 
-                List<String> smalldecLore = new ArrayList<>();
-                smalldecLore.add(ChatColor.translateAlternateColorCodes('&', "&8Left CLick to remove .1"));
+                List<Component> smallDecLore = new ArrayList<>();
+                smallDecLore.add(Component.text("Left CLick to remove .1", NamedTextColor.DARK_GRAY).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
 
                 ItemStack decPitch = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecPitch = decPitch.getItemMeta();
-                metaDecPitch.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease pitch"));
+                metaDecPitch.displayName(Component.text("Decrease pitch", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecPitch.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_sound_pitch");
-                metaDecPitch.setLore(smalldecLore);
+                metaDecPitch.lore(smallDecLore);
                 decPitch.setItemMeta(metaDecPitch);
                 inv.setItem(28, decPitch);
 
                 ItemStack decVolume = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecVolume = decVolume.getItemMeta();
-                metaDecVolume.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease volume"));
+                metaDecVolume.displayName(Component.text("Decrease volume", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecVolume.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_volume");
-                metaDecVolume.setLore(smalldecLore);
+                metaDecVolume.lore(smallDecLore);
                 decVolume.setItemMeta(metaDecVolume);
                 inv.setItem(30, decVolume);
 
 
                 // Displays
 
-                List<String> displayLore = new ArrayList<>();
+
 
                 ItemStack displayPitch = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayPitch = displayPitch.getItemMeta();
                 metaDisplayPitch.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                metaDisplayPitch.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePitch: " + args.get(0)));
+                metaDisplayPitch.displayName(Component.text("Pitch: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
-                metaDisplayPitch.setLore(displayLore);
                 displayPitch.setItemMeta(metaDisplayPitch);
                 inv.setItem(19, displayPitch);
 
                 ItemStack displayVolume = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayVolume = displayVolume.getItemMeta();
                 metaDisplayVolume.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                metaDisplayVolume.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eVolume: " + args.get(0)));
+                metaDisplayVolume.displayName(Component.text("Volume: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
-                metaDisplayVolume.setLore(displayLore);
                 displayVolume.setItemMeta(metaDisplayVolume);
                 inv.setItem(21, displayVolume);
 
                 ItemStack sound = new ItemStack(Material.BELL);
                 ItemMeta metaDisplaySound = sound.getItemMeta();
-                metaDisplaySound.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eSound: " + args.get(0)));
+                metaDisplaySound.displayName(Component.text("Sound: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDisplaySound.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_sound");
                 sound.setItemMeta(metaDisplaySound);
                 inv.setItem(24, sound);
@@ -1278,14 +1256,22 @@ public class MenuCore {
 
                 ItemStack message = new ItemStack(Material.IRON_INGOT);
                 ItemMeta titleMeta = message.getItemMeta();
-                titleMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', String.join(" ", args)));
+                titleMeta.displayName(plugin.getMiniMessage().deserialize(String.join(" ", args)));
                 titleMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_actionbar");
                 message.setItemMeta(titleMeta);
                 inv.setItem(22, message);
             }
             case "TELEPORT" -> {
 
-                 /* 6 buttons. 3 "displays" Fade in, stay, fade out. 3 buttons increment, 3 decrement.  1 button to edit YAW
+                 /* 6 buttons.
+                 3 "displays" F
+                 ade in,
+                 stay,
+                 fade out.
+
+                 3 buttons increment,
+                 3 decrement.
+                 1 button to edit YAW
 
                  # # # # # # # # #
                  # I I I # I # I #
@@ -1303,41 +1289,41 @@ public class MenuCore {
 
                 ItemStack incX = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncX = incX.getItemMeta();
-                metaIncX.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease X coordinate"));
+                metaIncX.displayName(Component.text("Increase X coordinate", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncX.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_x");
-                metaIncX.setLore(incLore);
+                metaIncX.lore(incLore);
                 incX.setItemMeta(metaIncX);
                 inv.setItem(10, incX);
 
                 ItemStack incY = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncY = incY.getItemMeta();
-                metaIncY.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease Y coordinate"));
+                metaIncY.displayName(Component.text("Increase Y coordinate", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncY.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_y");
-                metaIncY.setLore(incLore);
+                metaIncY.lore(incLore);
                 incY.setItemMeta(metaIncY);
                 inv.setItem(11, incY);
 
                 ItemStack incZ = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncZ = incZ.getItemMeta();
-                metaIncZ.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease Z coordinate"));
+                metaIncZ.displayName(Component.text("Increase Z coordinate", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncZ.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_z");
-                metaIncZ.setLore(incLore);
+                metaIncZ.lore(incLore);
                 incZ.setItemMeta(metaIncZ);
                 inv.setItem(12, incZ);
 
                 ItemStack incYaw = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncYaw = incYaw.getItemMeta();
-                metaIncYaw.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease yaw"));
+                metaIncYaw.displayName(Component.text("Increase yaw", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncYaw.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_yaw");
-                metaIncYaw.setLore(incLore);
+                metaIncYaw.lore(incLore);
                 incYaw.setItemMeta(metaIncYaw);
                 inv.setItem(16, incYaw);
 
                 ItemStack incPitch = new ItemStack(Material.LIME_DYE);
                 ItemMeta metaIncPitch = incPitch.getItemMeta();
-                metaIncPitch.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eIncrease pitch"));
+                metaIncPitch.displayName(Component.text("Increase pitch", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaIncPitch.getPersistentDataContainer().set(key, PersistentDataType.STRING, "increment_pitch");
-                metaIncPitch.setLore(incLore);
+                metaIncPitch.lore(incLore);
                 incPitch.setItemMeta(metaIncPitch);
                 inv.setItem(14, incPitch);
 
@@ -1346,82 +1332,82 @@ public class MenuCore {
 
                 ItemStack decX = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecX = decX.getItemMeta();
-                metaDecX.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease X coordinate"));
+                metaDecX.displayName(Component.text("Decrease X coordinate", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecX.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_z");
-                metaDecX.setLore(decLore);
+                metaDecX.lore(decLore);
                 decX.setItemMeta(metaDecX);
                 inv.setItem(28, decX);
 
                 ItemStack decY = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecY = decY.getItemMeta();
-                metaDecY.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease Y coordinate"));
+                metaDecY.displayName(Component.text("Decrease Y coordinate", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecY.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_y");
-                metaDecY.setLore(decLore);
+                metaDecY.lore(decLore);
                 decY.setItemMeta(metaDecY);
                 inv.setItem(29, decY);
 
                 ItemStack decZ = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecOut = decZ.getItemMeta();
-                metaDecOut.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease Z coordinate"));
+                metaDecOut.displayName(Component.text("Decrease Z coordinate", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecOut.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_z");
-                metaDecOut.setLore(decLore);
+                metaDecOut.lore(decLore);
                 decZ.setItemMeta(metaDecOut);
                 inv.setItem(30, decZ);
 
                 ItemStack decYaw = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecYaw = decYaw.getItemMeta();
-                metaDecYaw.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease yaw"));
+                metaDecYaw.displayName(Component.text("Decrease yaw", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecYaw.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_yaw");
-                metaDecYaw.setLore(decLore);
+                metaDecYaw.lore(decLore);
                 decYaw.setItemMeta(metaDecYaw);
                 inv.setItem(34, decYaw);
 
                 ItemStack decPitch = new ItemStack(Material.RED_DYE);
                 ItemMeta metaDecPitch = decPitch.getItemMeta();
-                metaDecPitch.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eDecrease pitch"));
+                metaDecPitch.displayName(Component.text("Decrease pitch", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 metaDecPitch.getPersistentDataContainer().set(key, PersistentDataType.STRING, "decrement_pitch");
-                metaDecPitch.setLore(decLore);
+                metaDecPitch.lore(decLore);
                 decPitch.setItemMeta(metaDecPitch);
                 inv.setItem(32, decPitch);
 
                 // Displays
 
-                List<String> displayLore = new ArrayList<>();
-                displayLore.add(ChatColor.translateAlternateColorCodes('&', "&8In blocks"));
+                List<Component> displayLore = new ArrayList<>();
+                displayLore.add(Component.text("In blocks", NamedTextColor.DARK_GRAY).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
 
 
                 ItemStack displayX = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayX = displayX.getItemMeta();
                 metaDisplayX.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
                 metaDisplayX.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                metaDisplayX.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eX: " + args.get(0)));
+                metaDisplayX.displayName(Component.text("X: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
-                metaDisplayX.setLore(displayLore);
+                metaDisplayX.lore(displayLore);
                 displayX.setItemMeta(metaDisplayX);
                 inv.setItem(19, displayX);
 
                 ItemStack displayY = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayY = displayY.getItemMeta();
                 metaDisplayY.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                metaDisplayY.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eY: " + args.get(0)));
+                metaDisplayY.displayName(Component.text("Y: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
-                metaDisplayY.setLore(displayLore);
+                metaDisplayY.lore(displayLore);
                 displayY.setItemMeta(metaDisplayY);
                 inv.setItem(20, displayY);
 
                 ItemStack displayZ = new ItemStack(Material.CLOCK);
                 ItemMeta metaDisplayZ = displayZ.getItemMeta();
                 metaDisplayZ.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                metaDisplayZ.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eZ: " + args.get(0)));
+                metaDisplayZ.displayName(Component.text("Z: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
-                metaDisplayZ.setLore(displayLore);
+                metaDisplayZ.lore(displayLore);
                 displayZ.setItemMeta(metaDisplayZ);
                 inv.setItem(21, displayZ);
 
                 ItemStack displayYaw = new ItemStack(Material.COMPASS);
                 ItemMeta displayYawMeta = displayYaw.getItemMeta();
                 displayYawMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                displayYawMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eYaw: " + args.get(0)));
+                displayYawMeta.displayName(Component.text("Yaw: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 args.remove(0);
                 displayYaw.setItemMeta(displayYawMeta);
                 inv.setItem(25, displayYaw);
@@ -1429,8 +1415,7 @@ public class MenuCore {
                 ItemStack displayPitch = new ItemStack(Material.COMPASS);
                 ItemMeta displayPitchMeta = displayPitch.getItemMeta();
                 displayPitchMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "display");
-                displayPitchMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePitch: " + args.get(0)));
-                args.remove(0);
+                displayPitchMeta.displayName(Component.text("Pitch: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 displayPitch.setItemMeta(displayPitchMeta);
                 inv.setItem(23, displayPitch);
 
@@ -1451,7 +1436,7 @@ public class MenuCore {
 
                 ItemStack message = new ItemStack(Material.GRASS_BLOCK);
                 ItemMeta titleMeta = message.getItemMeta();
-                titleMeta.setDisplayName(ChatColor.YELLOW + "Selected server: " + String.join(" ", args));
+                titleMeta.displayName(Component.text("Selected server: " + String.join(" ", args), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 titleMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "edit_server");
                 message.setItemMeta(titleMeta);
                 inv.setItem(22, message);
@@ -1472,7 +1457,7 @@ public class MenuCore {
      * @return The Inventory representing the conditional to customize
      */
     public Inventory getConditionalCustomizerMenu(Conditional conditional) {
-        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 27, ChatColor.BLACK + "" + ChatColor.BOLD + "  Edit Action Conditional"));
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 27, Component.text("  Edit Action Conditional", NamedTextColor.BLACK, TextDecoration.BOLD)));
         NamespacedKey key = new NamespacedKey(plugin, "CustomizeConditionalButton");
 
 
@@ -1480,7 +1465,7 @@ public class MenuCore {
         ItemStack goBack = new ItemStack(Material.ARROW);
         ItemMeta goBackMeta = goBack.getItemMeta();
         goBackMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
-        goBackMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&6Go Back"));
+        goBackMeta.displayName(Component.text("Go Back", NamedTextColor.GOLD));
         goBack.setItemMeta(goBackMeta);
         inv.setItem(18, goBack);
 
@@ -1488,7 +1473,7 @@ public class MenuCore {
         ItemStack confirm = new ItemStack(Material.LILY_PAD);
         ItemMeta confirmMeta = confirm.getItemMeta();
         confirmMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "confirm");
-        confirmMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&aConfirm"));
+        confirmMeta.displayName(Component.text("Confirm", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         confirm.setItemMeta(confirmMeta);
         inv.setItem(22, confirm);
         
@@ -1507,17 +1492,17 @@ public class MenuCore {
                 */
                 ItemStack selectComparator = new ItemStack(Material.COMPARATOR);
                 ItemMeta meta = selectComparator.getItemMeta();
-                List<String> lore = new ArrayList<>();
+                List<Component> lore = new ArrayList<>();
                 meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "toggle_comparator");
                 for (Conditional.Comparator c : Conditional.Comparator.values()) {
                     if(conditional.getComparator() != c)
-                        lore.add(ChatColor.GREEN + c.name());
+                        lore.add(Component.text(c.name(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     else
-                        lore.add(ChatColor.DARK_AQUA + "▸ " + c.name());
+                        lore.add(Component.text("▸ " + c.name(), NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
-                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eComparator"));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&eClick to change!"));
-                meta.setLore(lore);
+                meta.displayName(Component.text("Comparator", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                meta.lore(lore);
                 selectComparator.setItemMeta(meta);
                 inv.setItem(11, selectComparator);
                 lore.clear();
@@ -1525,10 +1510,10 @@ public class MenuCore {
                 ItemStack targetValue = new ItemStack(Material.OAK_HANGING_SIGN);
                 ItemMeta targetMeta = targetValue.getItemMeta();
                 targetMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "select_target_value");
-                targetMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eSelect Target Value"));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe target value is '&b" + ((NumericConditional) conditional).getTarget() + "&e'"));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&eClick to change!"));
-                targetMeta.setLore(lore);
+                targetMeta.displayName(Component.text("Select Target Value", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                lore.add(Component.text("The target value is '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(conditional.getTarget(), NamedTextColor.AQUA).append(Component.text("'", NamedTextColor.YELLOW))));
+                lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                targetMeta.lore(lore);
                 targetValue.setItemMeta(targetMeta);
                 inv.setItem(13, targetValue);
                 lore.clear();
@@ -1539,14 +1524,14 @@ public class MenuCore {
                 for (Conditional.Value v : Conditional.Value.values()) {
                     if (!v.isLogical()) {
                         if (conditional.getValue() != v)
-                            lore.add(ChatColor.GREEN + v.name());
+                            lore.add(Component.text(v.name(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                         else
-                            lore.add(ChatColor.DARK_AQUA + "▸ " + v.name());
+                            lore.add(Component.text("▸ " + v.name(), NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     }
                 }
-                statisticMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eStatistic"));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&eClick to change!"));
-                statisticMeta.setLore(lore);
+                statisticMeta.displayName(Component.text("Statistic", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                statisticMeta.lore(lore);
                 statistic.setItemMeta(statisticMeta);
                 inv.setItem(15, statistic);
             }
@@ -1564,19 +1549,19 @@ public class MenuCore {
                 */
                 ItemStack selectComparator = new ItemStack(Material.COMPARATOR);
                 ItemMeta meta = selectComparator.getItemMeta();
-                List<String> lore = new ArrayList<>();
+                List<Component> lore = new ArrayList<>();
                 meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "toggle_comparator");
                 for (Conditional.Comparator c : Conditional.Comparator.values()) {
                     if (c.isStrictlyLogical()) {
-                        if (conditional.getComparator() != c)
-                            lore.add(ChatColor.GREEN + c.name());
+                        if(conditional.getComparator() != c)
+                            lore.add(Component.text(c.name(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                         else
-                            lore.add(ChatColor.DARK_AQUA + "▸ " + c.name());
+                            lore.add(Component.text("▸ " + c.name(), NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     }
                 }
-                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eComparator"));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&eClick to change!"));
-                meta.setLore(lore);
+                meta.displayName(Component.text("Comparator", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                meta.lore(lore);
                 selectComparator.setItemMeta(meta);
                 inv.setItem(11, selectComparator);
                 lore.clear();
@@ -1584,10 +1569,10 @@ public class MenuCore {
                 ItemStack targetValue = new ItemStack(Material.OAK_HANGING_SIGN);
                 ItemMeta targetMeta = targetValue.getItemMeta();
                 targetMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "select_target_value");
-                targetMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eSelect Target Value"));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&eThe target value is '&b" + ((LogicalConditional) conditional).getTarget() + "&e'"));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&eClick to change!"));
-                targetMeta.setLore(lore);
+                targetMeta.displayName(Component.text("Select Target Value", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                lore.add(Component.text("The target value is '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(conditional.getTarget(), NamedTextColor.AQUA).append(Component.text("'", NamedTextColor.YELLOW))));
+                lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                targetMeta.lore(lore);
                 targetValue.setItemMeta(targetMeta);
                 inv.setItem(13, targetValue);
                 lore.clear();
@@ -1598,14 +1583,14 @@ public class MenuCore {
                 for (Conditional.Value v : Conditional.Value.values()) {
                     if (v.isLogical()) {
                         if (conditional.getValue() != v)
-                            lore.add(ChatColor.GREEN + v.name());
+                            lore.add(Component.text(v.name(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                         else
-                            lore.add(ChatColor.DARK_AQUA + "▸ " + v.name());
+                            lore.add(Component.text("▸ " + v.name(), NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     }
                 }
-                statisticMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&eStatistic"));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&eClick to change!"));
-                statisticMeta.setLore(lore);
+                statisticMeta.displayName(Component.text("Statistic", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                statisticMeta.lore(lore);
                 statistic.setItemMeta(statisticMeta);
                 inv.setItem(15, statistic);
             }
@@ -1619,13 +1604,13 @@ public class MenuCore {
      * @return The Inventory representing the new Action menu
      */
     public Inventory getNewActionMenu() {
-        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, ChatColor.BLACK + "" + ChatColor.BOLD + "       New NPC Action"));
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, Component.text("       New NPC Action", NamedTextColor.BLACK, TextDecoration.BOLD)));
         NamespacedKey key = new NamespacedKey(plugin, "NewActionButton");
 
         ItemStack goBack = new ItemStack(Material.ARROW);
         ItemMeta goBackMeta = goBack.getItemMeta();
         goBackMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
-        goBackMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&6Go Back"));
+        goBackMeta.displayName(Component.text("Go Back", NamedTextColor.GOLD));
         goBack.setItemMeta(goBackMeta);
         inv.setItem(27, goBack);
 
@@ -1633,115 +1618,115 @@ public class MenuCore {
 
         ItemStack item = new ItemStack(Material.BEDROCK);
         ItemMeta meta = item.getItemMeta();
-        List<String> lore = new ArrayList<>();
+        List<Component> lore = new ArrayList<>();
 
 
         item.setType(Material.OAK_SIGN);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bDisplay Title"));
+        meta.displayName(Component.text("Display Title", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "DISPLAY_TITLE");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eDisplays a title for the player."));
-        meta.setLore(lore);
+        lore.add(Component.text("Displays a title for the player.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);
 
         item.setType(Material.PAPER);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Message"));
+        meta.displayName(Component.text("Send Message", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "SEND_MESSAGE");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eSends the player a message."));
-        meta.setLore(lore);
+        lore.add(Component.text("Sends the player a message.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);
 
         item.setType(Material.BELL);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&ePlay Sound"));
+        meta.displayName(Component.text("Play Sound", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "PLAY_SOUND");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&ePlays a sound for the player."));
-        meta.setLore(lore);
+        lore.add(Component.text("Plays a sound for the player.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);
 
         item.setType(Material.ANVIL);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRun Command"));
+        meta.displayName(Component.text("Run Command", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "RUN_COMMAND");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eRuns a command as the player."));
-        meta.setLore(lore);
+        lore.add(Component.text("Runs a command as the player.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);
 
         item.setType(Material.IRON_INGOT);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend Actionbar"));
+        meta.displayName(Component.text("Send Actionbar", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "ACTION_BAR");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eSends the player an actionbar."));
-        meta.setLore(lore);
+        lore.add(Component.text("Sends the player an actionbar.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);
 
         item.setType(Material.ENDER_PEARL);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bTeleport Player"));
+        meta.displayName(Component.text("Teleport Player", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "TELEPORT");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eTeleports a player upon interacting."));
-        meta.setLore(lore);
+        lore.add(Component.text("Teleports a player upon interacting.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);
 
         item.setType(Material.GRASS_BLOCK);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bSend To Bungeecord Server"));
+        meta.displayName(Component.text("Send To Bungeecord/Velocity Server", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "SEND_TO_SERVER");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eSends a player to a bungeecord"));
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eserver upon interacting."));
-        meta.setLore(lore);
+        lore.add(Component.text("Sends a player to a bungeecord/velocity", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        lore.add(Component.text("server upon interacting.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);
 
         item.setType(Material.LEAD);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bStart/Stop Following"));
+        meta.displayName(Component.text("Start/Stop Following", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "TOGGLE_FOLLOWING");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eToggles wether or not the "));
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eNPC follows this player."));
-        meta.setLore(lore);
+        lore.add(Component.text("Toggles whether or not the ", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        lore.add(Component.text("NPC follows this player.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);
 
         item.setType(Material.EXPERIENCE_BOTTLE);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bGive Exp"));
+        meta.displayName(Component.text("Give Exp", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "GIVE_EXP");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eGives the player exp."));
-        meta.setLore(lore);
+        lore.add(Component.text("Gives the player exp.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);
 
         item.setType(Material.GLASS_BOTTLE);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRemove Exp"));
+        meta.displayName(Component.text("Remove Exp", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "REMOVE_EXP");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eRemoves exp from the player."));
-        meta.setLore(lore);
+        lore.add(Component.text("Removes exp from the player.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);
 
         item.setType(Material.BREWING_STAND);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bGive Effect"));
+        meta.displayName(Component.text("Give Effect", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "ADD_EFFECT");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eGives an effect to the player."));
-        meta.setLore(lore);
+        lore.add(Component.text("Gives an effect to the player.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);
 
         item.setType(Material.MILK_BUCKET);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bRemove Effect"));
+        meta.displayName(Component.text("Remove Effect", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "REMOVE_EFFECT");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eRemoves an effect from the player."));
-        meta.setLore(lore);
+        lore.add(Component.text("Removes an effect from the player.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);
@@ -1755,13 +1740,13 @@ public class MenuCore {
      * @return The Inventory representing the new Action menu
      */
     public Inventory getNewConditionMenu() {
-        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 27, ChatColor.BLACK + "" + ChatColor.BOLD + "   New Action Condition"));
+        Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 27, Component.text("   New Action Condition", NamedTextColor.BLACK, TextDecoration.BOLD)));
         NamespacedKey key = new NamespacedKey(plugin, "NewConditionButton");
 
         ItemStack goBack = new ItemStack(Material.ARROW);
         ItemMeta goBackMeta = goBack.getItemMeta();
         goBackMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "go_back");
-        goBackMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&6Go Back"));
+        goBackMeta.displayName(Component.text("Go Back", NamedTextColor.GOLD));
         goBack.setItemMeta(goBackMeta);
         inv.setItem(18, goBack);
 
@@ -1769,23 +1754,23 @@ public class MenuCore {
 
         ItemStack item = new ItemStack(Material.BEDROCK);
         ItemMeta meta = item.getItemMeta();
-        List<String> lore = new ArrayList<>();
+        List<Component> lore = new ArrayList<>();
 
 
         item.setType(Material.POPPED_CHORUS_FRUIT);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bNumeric Condition"));
+        meta.displayName(Component.text("Numeric Condition", NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "NUMERIC_CONDITION");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eCompares numbers."));
-        meta.setLore(lore);
+        lore.add(Component.text("Compares numbers.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);
 
         item.setType(Material.COMPARATOR);
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&bLogical Condition"));
+        meta.displayName(Component.text("Logical Condition", NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "LOGICAL_CONDITION");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eCompares things with numbered options"));
-        meta.setLore(lore);
+        lore.add(Component.text("Compares things with numbered options", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(lore);
         item.setItemMeta(meta);
         lore.clear();
         inv.addItem(item);

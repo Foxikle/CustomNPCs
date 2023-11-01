@@ -3,18 +3,18 @@ package dev.foxikle.customnpcs.internal;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.foxikle.customnpcs.api.Action;
-import dev.foxikle.customnpcs.internal.commands.CommandCore;
-import dev.foxikle.customnpcs.internal.commands.NPCActionCommand;
 import dev.foxikle.customnpcs.api.conditions.Conditional;
 import dev.foxikle.customnpcs.api.conditions.ConditionalTypeAdapter;
+import dev.foxikle.customnpcs.internal.commands.CommandCore;
+import dev.foxikle.customnpcs.internal.commands.NPCActionCommand;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.listeners.NPCMenuListeners;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
-import net.minecraft.world.entity.Entity;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bstats.bukkit.Metrics;
-import org.bukkit.*;
-import org.bukkit.block.Biome;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.Inventory;
@@ -26,10 +26,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-    /**
-     * <p> The class that represents the plugin
-     * </p>
-     */
+/**
+ * <p> The class that represents the plugin
+ * </p>
+ */
 public final class CustomNPCs extends JavaPlugin implements PluginMessageListener {
     /**
      * The List of inventories that make up the skin selection menus
@@ -137,8 +137,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     private AutoUpdater updater;
 
     /**
-    * If the plugin should try to format messages with PlaceholderAPI
-    */
+     * If the plugin should try to format messages with PlaceholderAPI
+     */
     public boolean papi = false;
 
     /**
@@ -152,14 +152,19 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public boolean update;
 
     /**
+     * The plugin's MiniMessage instance
+     */
+    public MiniMessage miniMessage = MiniMessage.miniMessage();
+
+    /**
      * <p> Logic for when the plugin is enabled
      * </p>
      */
     @Override
     public void onEnable() {
         instance = this;
-        if(!setup()){
-            Bukkit.getLogger().severe("Incompatible server version! Please use 1.20 or 1.20.1! Shutting down plugin.");
+        if (!setup()) {
+            Bukkit.getLogger().severe("Incompatible server version! Please use 1.20.2! Shutting down plugin.");
             Bukkit.getPluginManager().disablePlugin(this);
         }
 
@@ -185,7 +190,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         this.mu = new MenuUtils(this);
         this.updater = new AutoUpdater(this);
         update = updater.checkForUpdates();
-        if(fileManager.createFiles()){
+        if (fileManager.createFiles()) {
             getCommand("npc").setExecutor(new CommandCore(this));
             getCommand("npcaction").setExecutor(new NPCActionCommand(this));
             this.getLogger().info("Loading NPCs!");
@@ -211,13 +216,16 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         }
 
     }
+
     /**
      * <p> Checks if the plugin is compatable with the server version
      * </p>
+     *
      * @return If the plugin is compatable with the server
      */
-    public boolean setup(){
-        return (Bukkit.getServer().getMinecraftVersion().equals("1.20.1"));
+
+    public boolean setup() {
+        return (Bukkit.getServer().getMinecraftVersion().equals("1.20.2"));
     }
 
     /**
@@ -231,7 +239,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         Bukkit.getServicesManager().unregister(this);
         try {
             Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
-        } catch (IllegalArgumentException | NullPointerException ignored) {}
+        } catch (IllegalArgumentException | NullPointerException ignored) {
+        }
         for (InternalNpc npc : npcs.values()) {
             npc.remove();
         }
@@ -240,6 +249,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * <p> Gets list of current NPCs
      * </p>
+     *
      * @return the list of current NPCs
      */
     public List<InternalNpc> getNPCs() {
@@ -249,7 +259,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * <p> Adds an NPC to the list of current NPCs
      * </p>
-     * @param npc The NPC to add
+     *
+     * @param npc      The NPC to add
      * @param hologram the TextDisplay representing the NPC's name
      */
     public void addNPC(InternalNpc npc, TextDisplay hologram) {
@@ -260,6 +271,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * <p> Gets the FileManager
      * </p>
+     *
      * @return the file manager object
      */
     public FileManager getFileManager() {
@@ -269,6 +281,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * <p> Gets the page the player is in.
      * </p>
+     *
      * @param p The player to get the page of
      * @return the current page in the Skin browser the player is in
      */
@@ -279,7 +292,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * <p> Sets the page the player is in. Does not actually set the player's open inventory.
      * </p>
-     * @param p The player to ser the page of
+     *
+     * @param p    The player to ser the page of
      * @param page The page number to set.
      */
     public void setPage(Player p, int page) {
@@ -289,40 +303,54 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * <p> Gets the delay of an action
      * </p>
+     *
      * @param uuid The UUID of the npc
      * @return the NPC of the specified UUID
-     * @throws NullPointerException if the specified UUID is null
+     * @throws NullPointerException     if the specified UUID is null
      * @throws IllegalArgumentException if an NPC with the specified UUID does not exist
      */
     public InternalNpc getNPCByID(UUID uuid) {
         if (uuid == null) throw new NullPointerException("uuid cannot be null");
-        if (!npcs.containsKey(uuid)) throw new IllegalArgumentException("An NPC with the uuid '" + uuid + "' does not exist");
+        if (!npcs.containsKey(uuid))
+            throw new IllegalArgumentException("An NPC with the uuid '" + uuid + "' does not exist");
         return npcs.get(uuid);
     }
 
     /**
      * <p> Gets the MenuUtils object
      * </p>
+     *
      * @return the MenuUtils object
      */
-    public MenuUtils getMenuUtils(){
+    public MenuUtils getMenuUtils() {
         return mu;
     }
 
     /**
      * <p> Gets the Gson object
      * </p>
+     *
      * @return the Gson object
      */
-    public static Gson getGson(){
-            return gson;
-        }
+    public static Gson getGson() {
+        return gson;
+    }
 
     /**
      * <p> Doesn't do anything since this plugin is not expecting to receive any plugin messages. It exists soley to be able to send a player to a bungeecord server.
      * </p>
      */
     @Override
-    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte[] message) {}
+    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte[] message) {
+    }
 
+    /**
+     * <p> Gets the plugin's minimessage parser.
+     * <p>
+     *
+     * @return the plugin's minimessage instance
+     */
+    public MiniMessage getMiniMessage() {
+        return miniMessage;
+    }
 }

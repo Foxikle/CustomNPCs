@@ -1,6 +1,7 @@
 package dev.foxikle.customnpcs.internal.network;
 
 import net.minecraft.network.Connection;
+import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.PacketFlow;
 
 /**
@@ -14,5 +15,10 @@ public class NetworkManager extends Connection {
      */
     public NetworkManager(PacketFlow enumprotocoldirection) {
         super(enumprotocoldirection);
+    }
+
+    @Override
+    public void setListener(PacketListener packetListener) {
+
     }
 }

@@ -37,6 +37,6 @@ public class ServerRunnable extends BukkitRunnable {
     public void run() {
         if(!plugin.serverWaiting.contains(player))
             this.cancel();
-        player.sendTitle(ChatColor.GOLD + "Type the name of the server in chat", ChatColor.YELLOW + "Note: It should be EXACTLY what is the the bungeecord config.", 0, 20, 0);
+        player.sendTitle(ChatColor.GOLD + "Type the name of the server in chat", ChatColor.YELLOW + "Note: It should be EXACTLY what is the the bungeecord/Velocity config.", 0, 20, 0);
     }
 }

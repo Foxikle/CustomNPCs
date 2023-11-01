@@ -6,10 +6,11 @@ import dev.foxikle.customnpcs.api.Action;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import dev.foxikle.customnpcs.internal.InternalNpc;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import org.bukkit.Bukkit;
@@ -17,11 +18,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.command.*;
-import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R2.CraftServer;
+import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,18 +73,9 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             §r                                 §r§6By Foxikle \n
                             
                             """).replace("${version}", plugin.getDescription().getVersion()));
-                    BaseComponent[] space = new ComponentBuilder(" : ").color(net.md_5.bungee.api.ChatColor.WHITE).create();
-                    ComponentBuilder help = new ComponentBuilder("\n\n  -  /npc help").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Displays this message").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Displays this message").color(net.md_5.bungee.api.ChatColor.AQUA).create());
-                    ComponentBuilder manage = new ComponentBuilder("\n  -  /npc manage").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Displays the current NPCs").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Displays the current NPCs").color(net.md_5.bungee.api.ChatColor.AQUA).create());
-                    ComponentBuilder create = new ComponentBuilder("\n  -  /npc create").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Displays a menu to create an NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Displays a menu to create an NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create());
-                    ComponentBuilder delete = new ComponentBuilder("\n  -  /npc delete <UUID>").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Deletes the specified NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Deletes the specified NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create());
-                    ComponentBuilder edit   = new ComponentBuilder("\n  -  /npc edit <UUID>").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Displays a menu to edit the NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Displays a menu to edit the NPC").color(net.md_5.bungee.api.ChatColor.AQUA).create());
-                    ComponentBuilder remove   = new ComponentBuilder("\n  -  /npc clear_holograms").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Forcibly removes NPC holograms.").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Forcibly removes NPC holograms.").color(net.md_5.bungee.api.ChatColor.AQUA).create());
-                    ComponentBuilder reload   = new ComponentBuilder("\n  -  /npc reload").color(net.md_5.bungee.api.ChatColor.YELLOW).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Reloads the plugin.").color(net.md_5.bungee.api.ChatColor.AQUA).create())).append(space).append(new ComponentBuilder("Reloads the NPCs and plugin.").color(net.md_5.bungee.api.ChatColor.AQUA).create());
 
-                    ComponentBuilder close  = new ComponentBuilder("\n§2§m                                                                                ");
-                    help.append(manage.create()).append(create.create()).append(delete.create()).append(edit.create()).append(remove.create()).append(reload.create()).append(close.create());
-                    player.spigot().sendMessage(help.create());
+
+                    player.sendMessage(getHelpComponent());
                 } else if (args[0].equalsIgnoreCase("manage")) {
                     if(!player.hasPermission("customnpcs.commands.manage")){
                         player.sendMessage(RED + "You lack the propper permissions to manage npcs.");
@@ -97,17 +90,24 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             §r                                 \n
                             
                             """));
-                    ComponentBuilder message = new ComponentBuilder();
+                    Component message = Component.empty();
                     for (InternalNpc npc : plugin.getNPCs()) {
                         if (npc.isResilient()) {
-                            ComponentBuilder name = new ComponentBuilder("  " + npc.getHologramName() + " §r▸").event(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, npc.getUUID().toString())).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to copy UUID").color(net.md_5.bungee.api.ChatColor.YELLOW).create())).append(new ComponentBuilder(" ").color(net.md_5.bungee.api.ChatColor.WHITE).bold(false).create())
-                                    .append(new ComponentBuilder(" [EDIT]").color(net.md_5.bungee.api.ChatColor.YELLOW).bold(true).event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc edit " + npc.getUUID().toString())).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to edit npc").color(net.md_5.bungee.api.ChatColor.YELLOW).create())).create()).append(new ComponentBuilder(" ").color(net.md_5.bungee.api.ChatColor.WHITE).bold(false).create())
-                                    .append(new ComponentBuilder(" [DELETE]").color(net.md_5.bungee.api.ChatColor.RED).bold(true).event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc delete " + npc.getUUID().toString())).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to delete npc").color(net.md_5.bungee.api.ChatColor.YELLOW).create())).create()).append(new ComponentBuilder(" ").color(net.md_5.bungee.api.ChatColor.WHITE).bold(false).create())
-                                    .append("\n");
-                            message.append(name.create());
+                            Component name = Component.text("  ")
+                                    .append(plugin.getMiniMessage().deserialize(npc.getHologramName())
+                                            .hoverEvent(HoverEvent.showText(Component.text("Click to copy UUID", NamedTextColor.GREEN)))
+                                            .clickEvent(net.kyori.adventure.text.event.ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, npc.getUUID().toString()))
+                                    ).append(Component.text( " [EDIT]", NamedTextColor.YELLOW, TextDecoration.BOLD)
+                                            .hoverEvent(HoverEvent.showText(Component.text("Click to edit NPC", NamedTextColor.DARK_AQUA)))
+                                            .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc edit " + npc.getUUID()))
+                                    ).append(Component.text(" [DELETE]", NamedTextColor.RED, TextDecoration.BOLD)
+                                            .hoverEvent(HoverEvent.showText(Component.text("Click to permanantly delete NPC", NamedTextColor.DARK_RED, TextDecoration.BOLD)))
+                                            .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc delete " + npc.getUUID()))
+                                    ).appendNewline();
+                            message = message.append(name);
                         }
                     }
-                    player.spigot().sendMessage(message.create());
+                    player.sendMessage(message);
 
 
                 } else if (args[0].equalsIgnoreCase("new")) {
@@ -278,6 +278,52 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             }
         }
         return false;
+    }
+
+    @NotNull
+    private Component getHelpComponent() {
+        Component component = Component.empty();
+        component = component.append(Component.text("\n\n- /npc help  ", NamedTextColor.GOLD)
+        .hoverEvent(HoverEvent.showText(Component.text("Displays this message.", NamedTextColor.WHITE)))
+        .append(Component.text("Displays this message.", NamedTextColor.AQUA))
+        .appendNewline()
+        .append(Component.text("- /npc manage  ", NamedTextColor.GOLD)
+                .hoverEvent(HoverEvent.showText(Component.text("Displays the current NPCs with buttons to edit or delete them.", NamedTextColor.WHITE)))
+        )
+        .append(Component.text("Displays the current NPCs", NamedTextColor.AQUA))
+        .appendNewline()
+        .append(Component.text("- /npc create  ", NamedTextColor.GOLD)
+            .hoverEvent(HoverEvent.showText(Component.text("Opens the NPC customizer", NamedTextColor.WHITE)))
+        )
+        .append(Component.text("Creates a new NPC", NamedTextColor.AQUA))
+        .appendNewline()
+        .append(Component.text("- /npc delete <UUID>  ", NamedTextColor.GOLD)
+                .hoverEvent(HoverEvent.showText(Component.text("Permanantly deletes the NPC", NamedTextColor.DARK_RED)))
+        )
+        .append(Component.text("Permanantly deletes the NPC  ", NamedTextColor.AQUA))
+        .appendNewline()
+        .append(Component.text("- /npc edit <UUID>  ", NamedTextColor.GOLD)
+                .hoverEvent(HoverEvent.showText(Component.text("Brings up the NPC edit dialogue", NamedTextColor.WHITE)))
+        )
+        .append(Component.text("Edits the specified NPC", NamedTextColor.AQUA))
+        .appendNewline()
+        .append(Component.text("- /npc create  ", NamedTextColor.GOLD)
+                .hoverEvent(HoverEvent.showText(Component.text("Opens the NPC customizer", NamedTextColor.WHITE)))
+        )
+        .append(Component.text("Creates a new NPC  ", NamedTextColor.AQUA))
+        .appendNewline()
+        .append(Component.text("- /npc clear_holograms  ", NamedTextColor.GOLD)
+                .hoverEvent(HoverEvent.showText(Component.text("Deletes ALL NPC holograms. (Includes holograms without NPCs correlated to them)", NamedTextColor.WHITE)))
+        )
+        .append(Component.text("Forcfully deletes NPC holograms", NamedTextColor.AQUA))
+        .appendNewline()
+        .append(Component.text("- /npc reload  ", NamedTextColor.GOLD)
+                .hoverEvent(HoverEvent.showText(Component.text("Reloads the plugin and config", NamedTextColor.WHITE)))
+        )
+        .append(Component.text("Reloads CustomNPCs", NamedTextColor.AQUA))
+        .appendNewline()
+        .append(Component.text("                                                                                 ", NamedTextColor.DARK_GREEN, TextDecoration.STRIKETHROUGH)));
+        return component;
     }
 
     /**

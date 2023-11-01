@@ -189,14 +189,14 @@ public class NPCMenuListeners implements Listener {
             } else if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("clickable")) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 e.setCancelled(true);
-                if (e.getCurrentItem().getItemMeta().getLore().contains(ChatColor.RED + "" + ChatColor.BOLD + "NOT CLICKABLE")) {
+                if (e.getCurrentItem().getItemMeta().getLore().contains(ChatColor.RED + "" + ChatColor.BOLD + "NOT INTERACTABLE")) {
                     npc.setClickable(true);
-                    player.sendMessage(ChatColor.AQUA + "The NPC is now " + ChatColor.GREEN + "" + ChatColor.BOLD + "CLICKABLE");
+                    player.sendMessage(ChatColor.AQUA + "The NPC is now " + ChatColor.GREEN + "" + ChatColor.BOLD + "INTERACTABLE");
                     player.openInventory(mc.getMainMenu());
-                } else if (e.getCurrentItem().getItemMeta().getLore().contains(ChatColor.GREEN + "" + ChatColor.BOLD + "CLICKABLE")) {
+                } else if (e.getCurrentItem().getItemMeta().getLore().contains(ChatColor.GREEN + "" + ChatColor.BOLD + "INTERACTABLE")) {
                     npc.setClickable(false);
                     player.openInventory(mc.getMainMenu());
-                    player.sendMessage(ChatColor.AQUA + "The NPC is now " + ChatColor.RED + "" + ChatColor.BOLD + "NOT CLICKABLE");
+                    player.sendMessage(ChatColor.AQUA + "The NPC is now " + ChatColor.RED + "" + ChatColor.BOLD + "NOT INTERACTABLE");
                 }
             } else if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("changeSkin")) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);

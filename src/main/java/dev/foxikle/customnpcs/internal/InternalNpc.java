@@ -6,21 +6,19 @@ import com.mojang.datafixers.util.Pair;
 import dev.foxikle.customnpcs.api.Action;
 import dev.foxikle.customnpcs.internal.network.NetworkHandler;
 import dev.foxikle.customnpcs.internal.network.NetworkManager;
-import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
+import org.bukkit.*;
+import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -36,9 +34,9 @@ import java.util.*;
  * The object representing the NPC
  */
 public class InternalNpc extends ServerPlayer {
-    private UUID uuid;
-    private CustomNPCs plugin;
-    private GameProfile profile;
+    private final UUID uuid;
+    private final CustomNPCs plugin;
+    private final GameProfile profile;
     private ItemStack handItem;
     private ItemStack offhandItem;
     private ItemStack headItem;
@@ -48,7 +46,7 @@ public class InternalNpc extends ServerPlayer {
     private boolean clickable;
     private Location spawnLoc;
     private String name;
-    private World world;
+    private final World world;
     private TextDisplay hologram;
     private String signature;
     private String value;
@@ -84,7 +82,7 @@ public class InternalNpc extends ServerPlayer {
      * @param headItem The Item the NPC should have on their head
      */
     public InternalNpc(CustomNPCs plugin, MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean interactable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions) {
-        super(minecraftServer, worldServer, gameProfile);
+        super(minecraftServer, worldServer, gameProfile, ClientInformation.createDefault());
         this.spawnLoc = spawnLoc;
         this.offhandItem = offhandItem;
         this.headItem = headItem;
@@ -143,7 +141,6 @@ public class InternalNpc extends ServerPlayer {
         super.getBukkitEntity().setCustomNameVisible(clickable);
         super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(handItem);
-        super.detectEquipmentUpdates();
         if(!clickable){
             Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").addPlayer(this.getBukkitEntity());
         }
@@ -154,6 +151,7 @@ public class InternalNpc extends ServerPlayer {
             field.setAccessible(true);
             field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
         } catch (Exception e) {
+            plugin.getLogger().severe("An error occoured whilst setting an NPC skin! Please report the following stacktrace to @foxikle on discord: \n");
             e.printStackTrace();
         }
 
@@ -186,7 +184,7 @@ public class InternalNpc extends ServerPlayer {
         TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), clickable && plugin.getConfig().getBoolean("DisplayClickText") ? spawnLoc.getY() + 2.33 : spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
         hologram.setInvulnerable(true);
         hologram.setBillboard(Display.Billboard.CENTER);
-        hologram.setText(ChatColor.translateAlternateColorCodes('&', name));
+        hologram.text(plugin.getMiniMessage().deserialize(name));
         hologram.addScoreboardTag("npcHologram");
         return hologram;
     }
@@ -213,7 +211,7 @@ public class InternalNpc extends ServerPlayer {
             field.setAccessible(true);
             field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("An error occoured whilst changing an NPC's clickable text! Please report the following stacktrace to @foxikle on discord: " + Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -232,6 +230,8 @@ public class InternalNpc extends ServerPlayer {
      * @return the Item in the NPC's main (right) hand
      */
     public ItemStack getHandItem() {
+        if(headItem == null)
+            return new ItemStack(Material.AIR);
         return handItem;
     }
 
@@ -250,6 +250,8 @@ public class InternalNpc extends ServerPlayer {
      * @return the Item in the NPC's offhand (left hand)
      */
     public ItemStack getItemInOffhand() {
+        if(offhandItem == null)
+            return new ItemStack(Material.AIR);
         return offhandItem;
     }
 
@@ -259,6 +261,8 @@ public class InternalNpc extends ServerPlayer {
      * @return the Item on the NPC's head
      */
     public ItemStack getHeadItem() {
+        if(headItem == null)
+            return new ItemStack(Material.AIR);
         return headItem;
     }
 
@@ -273,10 +277,13 @@ public class InternalNpc extends ServerPlayer {
 
     /**
      * <p> Gets the Item the NPC is wearing on their chest
+     * <p> Returns an empty item stack if the npc isn't wearing a chestplate
      * </p>
      * @return the Item the NPC is wearing on their chest
      */
     public ItemStack getChestItem() {
+        if(chestItem == null)
+            return new ItemStack(Material.AIR);
         return chestItem;
     }
 
@@ -295,6 +302,8 @@ public class InternalNpc extends ServerPlayer {
      * @return the Item the NPC is wearing on their legs
      */
     public ItemStack getLegsItem() {
+        if(legsItem == null)
+            return new ItemStack(Material.AIR);
         return legsItem;
     }
 
@@ -313,6 +322,8 @@ public class InternalNpc extends ServerPlayer {
      * @return the Item the NPC is wearing on their feet
      */
     public ItemStack getBootsItem() {
+        if(bootsItem == null)
+            return new ItemStack(Material.AIR);
         return bootsItem;
     }
 
@@ -377,11 +388,11 @@ public class InternalNpc extends ServerPlayer {
     public void setTarget(@Nullable Player target) {
         if(target == null){
             if(this.target != null)
-                this.target.sendMessage(ChatColor.translateAlternateColorCodes('&', getHologramName()) + ChatColor.RESET + ChatColor.GREEN + " is no longer following you.");
+                this.target.sendMessage(plugin.getMiniMessage().deserialize(getHologramName()).append(Component.text(" is no longer following you.", NamedTextColor.RED)));
             this.target = null;
         } else {
             this.target = target;
-            this.target.sendMessage(ChatColor.translateAlternateColorCodes('&', getHologramName()) + ChatColor.RESET + ChatColor.GREEN + " is now following you.");
+            this.target.sendMessage(plugin.getMiniMessage().deserialize(getHologramName()).append(Component.text(" is now following you.", NamedTextColor.GREEN)));
         }
     }
 
@@ -467,11 +478,10 @@ public class InternalNpc extends ServerPlayer {
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.FEET, CraftItemStack.asNMSCopy(bootsItem)));
 
         ClientboundPlayerInfoUpdatePacket playerInfoAdd = new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, this);
-        ClientboundAddPlayerPacket namedEntitySpawn = new ClientboundAddPlayerPacket(this);
+        ClientboundAddEntityPacket namedEntitySpawn = new ClientboundAddEntityPacket(this);
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
         ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getFacingDirection() * 256 / 360), (byte) (0 / 360), true);
-        super.detectEquipmentUpdates();
         setSkin();
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
         connection.send(playerInfoAdd);
@@ -483,14 +493,6 @@ public class InternalNpc extends ServerPlayer {
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
     }
 
-    /**
-     * <p> Makes the NPC look at an entity
-     * </p>
-     */
-    @Override
-    public void lookAt(EntityAnchorArgument.Anchor argumentanchor_anchor, Entity entity, EntityAnchorArgument.Anchor argumentanchor_anchor1) {
-        super.lookAt(argumentanchor_anchor, entity, argumentanchor_anchor1);
-    }
 
     /**
      * <p> Despawns the NPC

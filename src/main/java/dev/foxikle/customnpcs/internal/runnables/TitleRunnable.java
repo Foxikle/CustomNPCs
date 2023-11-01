@@ -39,6 +39,6 @@ public class TitleRunnable extends BukkitRunnable {
     public void run() {
         if(!plugin.titleWaiting.contains(player))
             this.cancel();
-        player.sendTitle(ChatColor.GOLD + "Type title in chat", ChatColor.YELLOW + "Supports & colors.", 0, 20, 0);
+        player.sendTitle(ChatColor.GOLD + "Type title in chat", ChatColor.YELLOW + "Using Minimessage format", 0, 20, 0);
     }
 }
