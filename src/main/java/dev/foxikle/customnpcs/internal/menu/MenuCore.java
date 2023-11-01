@@ -599,7 +599,7 @@ public class MenuCore {
                 }
                 case "SEND_TO_SERVER" -> {
                     item.setType(Material.GRASS_BLOCK);
-                    meta.displayName(Component.text("Send To Bungeecord Server", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    meta.displayName(Component.text("Send To Bungeecord/Velocity Server", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     lore.add(Component.text("Server: '" + String.join(" ", args) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
                 case "TOGGLE_FOLLOWING" -> {
@@ -1676,9 +1676,9 @@ public class MenuCore {
         inv.addItem(item);
 
         item.setType(Material.GRASS_BLOCK);
-        meta.displayName(Component.text("Send To Bungeecord Server", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.displayName(Component.text("Send To Bungeecord/Velocity Server", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "SEND_TO_SERVER");
-        lore.add(Component.text("Sends a player to a bungeecord", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        lore.add(Component.text("Sends a player to a bungeecord/velocity", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         lore.add(Component.text("server upon interacting.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         meta.lore(lore);
         item.setItemMeta(meta);
