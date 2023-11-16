@@ -9,7 +9,6 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.craftbukkit.v1_20_R2.CraftServer;
@@ -56,7 +55,7 @@ public class FileManager {
 
         int version = yml.getInt("CONFIG_VERSION");
         if(version == 0) { // doesn't exist?
-            plugin.getLogger().log(Level.WARNING, "Outdated Config version! Converting config.");
+            plugin.getLogger().log(Level.WARNING, "Outdated Config version! Converting config (" + version + " -> 2).");
             yml.set("CONFIG_VERSION", 1);
             yml.setComments("CONFIG_VERSION", List.of(" DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.", ""));
             yml.set("ClickText", "&e&lCLICK");
@@ -69,7 +68,7 @@ public class FileManager {
                 throw new RuntimeException(e);
             }
         } else if (version < 2) { // prior to 1.4-pre2
-            plugin.getLogger().log(Level.WARNING, "Outdated Config version! Converting config.");
+            plugin.getLogger().log(Level.WARNING, "Outdated Config version! Converting config (" + version + " -> 2).");
             yml.set("CONFIG_VERSION", 2);
             yml.set("AlertOnUpdate", true);
             try {
@@ -77,11 +76,15 @@ public class FileManager {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        }
-        if(ChatColor.translateAlternateColorCodes('&', yml.getString("ClickText")).length() > 16) {
-            plugin.getLogger().severe("The 'ClickText' in the config.yml cannot be greater than 16 characters. Disabling plugin.");
-            plugin.getServer().getPluginManager().disablePlugin(plugin);
-            return false;
+        } else if(version < 3) { // prior to 1.5.2-pre1
+            plugin.getLogger().log(Level.WARNING, "Outdated Config version! Converting config (" + version + " -> 3).");
+            yml.set("CONFIG_VERSION", 3);
+            yml.set("ClickText", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(yml.getString("ClickText"))));
+            try {
+                yml.save(file);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
         return true;
     }
@@ -216,7 +219,7 @@ public class FileManager {
 
 
 
-        GameProfile profile = new GameProfile(uuid, section.getBoolean("clickable") ? (plugin.getConfig().getBoolean("DisplayClickText") ? ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
+        GameProfile profile = new GameProfile(uuid, uuid.toString().substring(0, 16));
         profile.getProperties().removeAll("textures");
         profile.getProperties().put("textures", new Property("textures", section.getString("value"), section.getString("signature")));
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
