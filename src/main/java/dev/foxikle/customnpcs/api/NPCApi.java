@@ -65,7 +65,8 @@ public class NPCApi {
         public NPC(@NotNull World world){
             if(plugin == null) throw new IllegalStateException("You must initialize the api before using it!");
             Preconditions.checkArgument(world != null, "world cannot be null.");
-            GameProfile profile = new GameProfile(UUID.randomUUID(), ChatColor.RED + "ERROR!");
+            UUID uuid = UUID.randomUUID();
+            GameProfile profile = new GameProfile(uuid, uuid.toString().substring(0, 16));
             MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
             ServerLevel nmsWorld = ((CraftWorld) world).getHandle();
             this.npc = new InternalNpc(plugin, nmsServer, nmsWorld, profile, new Location(world, 0, 0, 0), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), false, false, "", profile.getId(), "",  "", null, 0, null,  new ArrayList<>());
