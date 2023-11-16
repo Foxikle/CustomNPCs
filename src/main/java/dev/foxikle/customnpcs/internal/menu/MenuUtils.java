@@ -1,5 +1,6 @@
 package dev.foxikle.customnpcs.internal.menu;
 
+import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
@@ -15,14 +16,18 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.inventory.meta.tags.ItemTagType;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Provides menu utilites
@@ -170,23 +175,23 @@ public class MenuUtils {
      * @param Ll3 The lore line 3
      * @return The encoded value of a skin
      */
+
     public ItemStack getSkinIcon(NamespacedKey key, String keyValue, String name, ChatColor nameColor, ChatColor loreColor, String Ll1, String Ll2, String Ll3, String texture) {
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
 
-        ItemMeta headMeta = head.getItemMeta();
+        SkullMeta headMeta = (SkullMeta) head.getItemMeta();
         headMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, keyValue);
         headMeta.setDisplayName(nameColor + name);
-
-        GameProfile profile = new GameProfile(UUID.randomUUID(), "foo");
-        profile.getProperties().put("textures", new Property("textures", texture));
-        Field profileField;
+        PlayerProfile profile =  Bukkit.createPlayerProfile(UUID.fromString("92864445-51c5-4c3b-9039-517c9927d1b4"), name);
+        PlayerTextures textures = profile.getTextures();
         try {
-            profileField = headMeta.getClass().getDeclaredField("profile");
-            profileField.setAccessible(true);
-            profileField.set(headMeta, profile);
-        } catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException ignored) {
-
+            textures.setSkin(getUrlFromBase64(texture));
+        } catch (MalformedURLException e) {
+            plugin.getLogger().severe("An error occured whilst fetching player skin icon");
+            e.printStackTrace();
         }
+        profile.setTextures(textures);
+        headMeta.setOwnerProfile(profile);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(loreColor + Ll1);
         lore.add(loreColor + Ll2);
@@ -195,6 +200,15 @@ public class MenuUtils {
         head.setItemMeta(headMeta);
 
         return head;
+    }
+
+    public static URL getUrlFromBase64(String base64) throws MalformedURLException {
+        String decoded = new String(Base64.getDecoder().decode(base64));
+        Matcher m = Pattern.compile("\"url\"\\s*:\\s*\"([^\"]+)\"").matcher(decoded);
+        if(m.find()){
+            return new URL(m.group().replace("\"url\" : \"", "").replace("\"", ""));
+        }
+        throw new IllegalArgumentException("The value '" +  base64 + "' is not valid!");
     }
 
 }
