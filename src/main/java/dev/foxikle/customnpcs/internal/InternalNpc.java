@@ -146,8 +146,6 @@ public class InternalNpc extends ServerPlayer {
         super.getBukkitEntity().setCustomNameVisible(clickable);
         super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(handItem);
-        Bukkit.broadcastMessage(super.getBukkitEntity().getName());
-        Bukkit.broadcastMessage(uuid.toString());
         Bukkit.getScheduler().runTaskLater(plugin, () -> Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").addEntry(uuid.toString().substring(0, 16)), 1);
 
         if (resilient) plugin.getFileManager().addNPC(this);
