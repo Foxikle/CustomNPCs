@@ -198,6 +198,7 @@ public class Listeners implements Listener {
         for (InternalNpc npc : plugin.npcs.values()) {
             if(npc.getTarget() != null) return;
             if(player.getWorld() != npc.getWorld()) return;
+            if(npc.isTunnelVision()) return;
             if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) <= 5) {
                 npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
             } else if (e.getFrom().distance(npc.getCurrentLocation()) >= 48 && e.getTo().distance(npc.getCurrentLocation()) <= 48) {

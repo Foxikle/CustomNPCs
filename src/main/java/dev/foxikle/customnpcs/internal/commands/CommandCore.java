@@ -139,7 +139,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     profile.getProperties().put("textures", new Property("textures", null, null));
                     MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
                     ServerLevel nmsWorld = ((CraftWorld) player.getWorld()).getHandle();
-                    InternalNpc npc = new InternalNpc(plugin, nmsServer, nmsWorld, profile,  player.getLocation(), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), true, true,  "not set", uuid, "", "", "not set", 180, null, new ArrayList<>());
+                    InternalNpc npc = new InternalNpc(plugin, nmsServer, nmsWorld, profile,  player.getLocation(), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), true, true,  "not set", uuid, "", "", "not set", 180, null, new ArrayList<>(), false);
                     MenuCore mc = new MenuCore(npc, plugin);
                     plugin.menuCores.put(player, mc);
                     plugin.pages.put(player, 0);
@@ -230,7 +230,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                                 ServerLevel nmsWorld = ((CraftWorld) player.getWorld()).getHandle();
                                 List<String> actionStrs = new ArrayList<>();
                                 npc.getActions().forEach(action -> actionStrs.add(action.toJson()));
-                                InternalNpc newNpc = new InternalNpc(plugin, nmsServer, nmsWorld, profile, npc.getSpawnLoc(), npc.getHandItem(), npc.getItemInOffhand(), npc.getHeadItem(), npc.getChestItem(), npc.getLegsItem(), npc.getBootsItem(), npc.isClickable(), npc.isResilient(), npc.getHologramName(), uuid, npc.getValue(), npc.getSignature(), npc.getSkinName(), npc.getFacingDirection(), null, actionStrs);
+                                InternalNpc newNpc = new InternalNpc(plugin, nmsServer, nmsWorld, profile, npc.getSpawnLoc(), npc.getHandItem(), npc.getItemInOffhand(), npc.getHeadItem(), npc.getChestItem(), npc.getLegsItem(), npc.getBootsItem(), npc.isClickable(), npc.isResilient(), npc.getHologramName(), uuid, npc.getValue(), npc.getSignature(), npc.getSkinName(), npc.getFacingDirection(), null, actionStrs, false);
                                 MenuCore mc = new MenuCore(newNpc, plugin);
                                 plugin.menuCores.put(player, mc);
                                 plugin.pages.put(player, 0);

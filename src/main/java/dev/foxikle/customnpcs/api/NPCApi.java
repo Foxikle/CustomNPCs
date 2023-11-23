@@ -69,7 +69,7 @@ public class NPCApi {
             GameProfile profile = new GameProfile(uuid, uuid.toString().substring(0, 16));
             MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
             ServerLevel nmsWorld = ((CraftWorld) world).getHandle();
-            this.npc = new InternalNpc(plugin, nmsServer, nmsWorld, profile, new Location(world, 0, 0, 0), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), false, false, "", profile.getId(), "",  "", null, 0, null,  new ArrayList<>());
+            this.npc = new InternalNpc(plugin, nmsServer, nmsWorld, profile, new Location(world, 0, 0, 0), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), false, false, "", profile.getId(), "",  "", null, 0, null,  new ArrayList<>(), false);
         }
         
         private NPC(InternalNpc npc) {

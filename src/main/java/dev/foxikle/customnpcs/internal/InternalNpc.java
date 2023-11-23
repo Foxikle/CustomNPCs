@@ -56,6 +56,7 @@ public class InternalNpc extends ServerPlayer {
     private double direction;
     private Player target;
     private ArrayList<String> actions;
+    private boolean tunnelVision;
 
     /**
      * <p> Gets a new NPC
@@ -81,8 +82,9 @@ public class InternalNpc extends ServerPlayer {
      * @param legsItem The Item the NPC should have in the leg slot
      * @param chestItem The Item the NPC should have in the chest slot
      * @param headItem The Item the NPC should have on their head
+     * @param tunnelvision If the NPC has tunnel vision (Doesn't loook at players)
      */
-    public InternalNpc(CustomNPCs plugin, MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean interactable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions) {
+    public InternalNpc(CustomNPCs plugin, MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean interactable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions, boolean tunnelvision) {
         super(minecraftServer, worldServer, gameProfile, ClientInformation.createDefault());
         this.spawnLoc = spawnLoc;
         this.offhandItem = offhandItem;
@@ -105,6 +107,7 @@ public class InternalNpc extends ServerPlayer {
         this.actions = new ArrayList<>(actions);
         super.connection = new NetworkHandler(minecraftServer, new NetworkManager(PacketFlow.CLIENTBOUND), this);
         this.plugin = plugin;
+        this.tunnelVision = tunnelvision;
     }
 
     /**
@@ -572,6 +575,14 @@ public class InternalNpc extends ServerPlayer {
      */
     public void setValue(String value) {
         this.value = value;
+    }
+
+    /**
+     * Determines if the NPC should look at players
+     * @return if the npc has tunnelvision
+     */
+    public boolean isTunnelVision(){
+        return tunnelVision;
     }
 
     /**
