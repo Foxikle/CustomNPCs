@@ -3,7 +3,9 @@ package dev.foxikle.customnpcs.api;
 import com.google.common.base.Preconditions;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.InternalNpc;
+import net.kyori.adventure.text.Component;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -25,21 +27,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
+/**
+ * A class providing a 'PaperAPI friendly' NPC object requring no NMS to use within a project.
+ */
 public class NPC {
 
     private final InternalNpc npc;
 
     /**
      * The intended way to create an NPC
+     * By default, this npc has no actions
+     * By default, this npc has no skin
+     * By default, this npc has no name
+     * By default, this npc is not interactable
+     * By default, this npc is not resilient
+     * By default, this npc has a yaw of 0
+     * By default, this npc has tunnelvision
      * @param world The world for the NPC to be created in
      * @author Foxikle
-     * @apiNote By default, this npc has no actions
-     * @apiNote By default, this npc has no skin
-     * @apiNote By default, this npc has no name
-     * @apiNote By default, this npc is not interactable
-     * @apiNote By default, this npc is not resilient
-     * @apiNote By default, this npc has a yaw of 0
-     * @apiNote By default, this npc has tunnelvision
      * @since 1.5-pre5
      * @throws NullPointerException if the world is null
      * @throws IllegalStateException if the API is not initilized
@@ -60,14 +65,28 @@ public class NPC {
 
     /**
      * <p>Sets the display name of the NPC
+     * This supports SERIALIZED MiniMessage.
      * </p>
-     * @param name the item to be used
+     * @param name the new name
      * @return the NPC with the modified name
      * @since 1.5.2-pre3
      */
     public NPC setName(@NotNull String name){
         Preconditions.checkArgument(name != null, "name cannot be null.");
         npc.setName(name);
+        return this;
+    }
+
+    /**
+     * <p>Sets the display name of the NPC
+     * </p>
+     * @param name of the NPC as an Adventure Component
+     * @return the NPC with the modified name
+     * @since 1.5.2-pre3
+     */
+    public NPC setName(@NotNull Component name){
+        Preconditions.checkArgument(name != null, "name cannot be null.");
+        npc.setName(NPCApi.plugin.getMiniMessage().serialize(name));
         return this;
     }
 
@@ -84,6 +103,11 @@ public class NPC {
         return this;
     }
 
+    /**
+     *
+     * @param tunnelVision if the npc should have TunnelVision (Not looking at players)
+     * @return the npc with the modified TunnelVision
+     */
     public NPC setTunnelVision(boolean tunnelVision){
         npc.setTunnelVision(tunnelVision);
         return this;
@@ -96,7 +120,7 @@ public class NPC {
      * @param signature the encoded signature of the skin.
      * @param value the encoded value of the skin
      * @return the NPC with the modified skin
-     * @apiNote  <a href="ttps://mineskin.org/">Use this site by InventiveTalent to find value and signature</a>
+     * @see <a href="ttps://mineskin.org/">Use this site by InventiveTalent to find value and signature</a>
      * @since 1.5.2-pre3
      * @throws NullPointerException if any argument is null
      */
