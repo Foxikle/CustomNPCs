@@ -29,7 +29,11 @@ import java.util.UUID;
  * A class providing an interface using non NMS objects to use NPCs
  */
 public class NPCApi {
-    protected static CustomNPCs plugin = JavaPlugin.getPlugin(CustomNPCs.class);
+    /**
+     * A static instance of the plugin for API use.
+     * The `NPCApi#initialize()` method must be called before using it.
+     */
+    protected static CustomNPCs plugin = null;
 
     /**
      * Initiailizes the API
@@ -45,15 +49,16 @@ public class NPCApi {
      * @throws NullPointerException if the specified UUID is null
      * @throws IllegalArgumentException if an NPC doesn't exist by that UUID
      */
-    public static NPC getNPC(UUID uuid) throws NullPointerException, IllegalArgumentException {
-        return new NPC(plugin.getNPCByID(uuid));
+    public static dev.foxikle.customnpcs.api.NPC getNPC(UUID uuid) throws NullPointerException, IllegalArgumentException {
+        return new dev.foxikle.customnpcs.api.NPC(plugin.getNPCByID(uuid));
     }
     
     // API stuffs
     /**
      * The class for external use to create an NPC
+     * *Use the `NPC` class instead*
      */
-    @Deprecated
+    @Deprecated(since = "1.5.2-pre3", forRemoval = true)
     @ApiStatus.ScheduledForRemoval(inVersion = "1.6")
     public static class NPC {
         
