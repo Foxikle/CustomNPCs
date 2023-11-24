@@ -18,6 +18,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -53,6 +54,7 @@ public class NPCApi {
      * The class for external use to create an NPC
      */
     @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.6")
     public static class NPC {
         
         private final InternalNpc npc;
