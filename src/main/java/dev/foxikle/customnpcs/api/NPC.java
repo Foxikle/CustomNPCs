@@ -59,7 +59,7 @@ public class NPC {
         this.npc = new InternalNpc(NPCApi.plugin, nmsServer, nmsWorld, profile, new Location(world, 0, 0, 0), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), false, false, "", profile.getId(), "",  "", null, 0, null,  new ArrayList<>(), true);
     }
 
-    private NPC(InternalNpc npc) {
+    protected NPC(InternalNpc npc) {
         this.npc = npc;
     }
 
