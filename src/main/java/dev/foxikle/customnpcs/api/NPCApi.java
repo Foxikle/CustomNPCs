@@ -28,7 +28,7 @@ import java.util.UUID;
  * A class providing an interface using non NMS objects to use NPCs
  */
 public class NPCApi {
-    private static CustomNPCs plugin = JavaPlugin.getPlugin(CustomNPCs.class);
+    protected static CustomNPCs plugin = JavaPlugin.getPlugin(CustomNPCs.class);
 
     /**
      * Initiailizes the API
@@ -52,6 +52,7 @@ public class NPCApi {
     /**
      * The class for external use to create an NPC
      */
+    @Deprecated
     public static class NPC {
         
         private final InternalNpc npc;

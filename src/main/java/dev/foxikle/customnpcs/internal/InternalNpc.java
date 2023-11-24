@@ -586,6 +586,13 @@ public class InternalNpc extends ServerPlayer {
     }
 
     /**
+     * Determines if the NPC should look at players
+     */
+    public void setTunnelVision(boolean tunnelVision){
+        this.tunnelVision = tunnelVision;
+    }
+
+    /**
      * <p> Gets the Player object associated with the NPC
      * </p>
      * @return the player object
