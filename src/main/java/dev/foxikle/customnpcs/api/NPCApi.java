@@ -18,6 +18,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ import java.util.UUID;
  * A class providing an interface using non NMS objects to use NPCs
  */
 public class NPCApi {
-    private static CustomNPCs plugin = JavaPlugin.getPlugin(CustomNPCs.class);
+    protected static CustomNPCs plugin = JavaPlugin.getPlugin(CustomNPCs.class);
 
     /**
      * Initiailizes the API
@@ -52,6 +53,8 @@ public class NPCApi {
     /**
      * The class for external use to create an NPC
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.6")
     public static class NPC {
         
         private final InternalNpc npc;
@@ -65,10 +68,11 @@ public class NPCApi {
         public NPC(@NotNull World world){
             if(plugin == null) throw new IllegalStateException("You must initialize the api before using it!");
             Preconditions.checkArgument(world != null, "world cannot be null.");
-            GameProfile profile = new GameProfile(UUID.randomUUID(), ChatColor.RED + "ERROR!");
+            UUID uuid = UUID.randomUUID();
+            GameProfile profile = new GameProfile(uuid, uuid.toString().substring(0, 16));
             MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
             ServerLevel nmsWorld = ((CraftWorld) world).getHandle();
-            this.npc = new InternalNpc(plugin, nmsServer, nmsWorld, profile, new Location(world, 0, 0, 0), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), false, false, "", profile.getId(), "",  "", null, 0, null,  new ArrayList<>());
+            this.npc = new InternalNpc(plugin, nmsServer, nmsWorld, profile, new Location(world, 0, 0, 0), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), false, false, "", profile.getId(), "",  "", null, 0, null,  new ArrayList<>(), false);
         }
         
         private NPC(InternalNpc npc) {

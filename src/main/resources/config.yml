@@ -19,9 +19,8 @@ CONFIG_VERSION: 2
 DisplayClickText: true
 
 # ClickText -> The hologram displayed above the NPC if it is interactable
-# NOTE: Due to Minecraft limitatations, this cannot be more than 16 characters INCLUDING color and format codes.
-# (But not the &)
-ClickText: '&e&lClick'
+# NOTE: This uses MiniMessage format.
+ClickText: '<b><yellow>Click</yellow></b>'
 
 # AlertOnUpdate -> Should the plugin alert you when there is an update available?
 # NOTE: This only notifies players with the 'customnpcs.alert' permission

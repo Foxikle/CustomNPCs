@@ -47,6 +47,7 @@ public class InternalNpc extends ServerPlayer {
     private Location spawnLoc;
     private String name;
     private final World world;
+    private TextDisplay clickableHologram;
     private TextDisplay hologram;
     private String signature;
     private String value;
@@ -55,6 +56,7 @@ public class InternalNpc extends ServerPlayer {
     private double direction;
     private Player target;
     private ArrayList<String> actions;
+    private boolean tunnelVision;
 
     /**
      * <p> Gets a new NPC
@@ -80,8 +82,9 @@ public class InternalNpc extends ServerPlayer {
      * @param legsItem The Item the NPC should have in the leg slot
      * @param chestItem The Item the NPC should have in the chest slot
      * @param headItem The Item the NPC should have on their head
+     * @param tunnelvision If the NPC has tunnel vision (Doesn't loook at players)
      */
-    public InternalNpc(CustomNPCs plugin, MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean interactable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions) {
+    public InternalNpc(CustomNPCs plugin, MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean interactable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions, boolean tunnelvision) {
         super(minecraftServer, worldServer, gameProfile, ClientInformation.createDefault());
         this.spawnLoc = spawnLoc;
         this.offhandItem = offhandItem;
@@ -104,6 +107,7 @@ public class InternalNpc extends ServerPlayer {
         this.actions = new ArrayList<>(actions);
         super.connection = new NetworkHandler(minecraftServer, new NetworkManager(PacketFlow.CLIENTBOUND), this);
         this.plugin = plugin;
+        this.tunnelVision = tunnelvision;
     }
 
     /**
@@ -123,6 +127,10 @@ public class InternalNpc extends ServerPlayer {
      */
     public void createNPC() {
         Bukkit.getScheduler().runTask(plugin, () -> this.hologram = setupHologram(name));
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if(clickable)
+                this.clickableHologram = setupClickableHologram(plugin.getConfig().getString("ClickText"));
+        });
         if (plugin.npcs.containsKey(uuid)) {
             plugin.getNPCByID(uuid).remove();
             plugin.getNPCByID(uuid).delete();
@@ -141,19 +149,7 @@ public class InternalNpc extends ServerPlayer {
         super.getBukkitEntity().setCustomNameVisible(clickable);
         super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(handItem);
-        if(!clickable){
-            Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").addPlayer(this.getBukkitEntity());
-        }
-
-        GameProfile gameProfile = super.getGameProfile();
-        try {
-            Field field = gameProfile.getClass().getDeclaredField("name");
-            field.setAccessible(true);
-            field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
-        } catch (Exception e) {
-            plugin.getLogger().severe("An error occoured whilst setting an NPC skin! Please report the following stacktrace to @foxikle on discord: \n");
-            e.printStackTrace();
-        }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").addEntry(uuid.toString().substring(0, 16)), 1);
 
         if (resilient) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
@@ -175,13 +171,28 @@ public class InternalNpc extends ServerPlayer {
     }
 
     /**
-     * <p> Gets the page the player is in.
+     * <p> Creates the NPC's name hologram
      * </p>
      * @param name The name to give the text display
-     * * @return the TextDisplay representing the NPC's nametag
+     * @return the TextDisplay representing the NPC's nametag
      */
     private TextDisplay setupHologram(String name) {
         TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), clickable && plugin.getConfig().getBoolean("DisplayClickText") ? spawnLoc.getY() + 2.33 : spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
+        hologram.setInvulnerable(true);
+        hologram.setBillboard(Display.Billboard.CENTER);
+        hologram.text(plugin.getMiniMessage().deserialize(name));
+        hologram.addScoreboardTag("npcHologram");
+        return hologram;
+    }
+
+    /**
+     * <p> Creates the NPC's clickable hologram
+     * </p>
+     * @param name The name to give the text display
+     * @return the TextDisplay representing the NPC's hologram
+     */
+    private TextDisplay setupClickableHologram(String name) {
+        TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
         hologram.setInvulnerable(true);
         hologram.setBillboard(Display.Billboard.CENTER);
         hologram.text(plugin.getMiniMessage().deserialize(name));
@@ -206,13 +217,9 @@ public class InternalNpc extends ServerPlayer {
     public void setClickable(boolean clickable) {
         this.clickable = clickable;
         GameProfile gameProfile = super.getGameProfile();
-        try {
-            Field field = gameProfile.getClass().getDeclaredField("name");
-            field.setAccessible(true);
-            field.set(gameProfile, clickable ? (plugin.getConfig().getBoolean("DisplayClickText") ? ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("ClickText")) : "nothing") : "nothing");
-        } catch (Exception e) {
-            plugin.getLogger().severe("An error occoured whilst changing an NPC's clickable text! Please report the following stacktrace to @foxikle on discord: " + Arrays.toString(e.getStackTrace()));
-        }
+       if(clickable){
+
+       }
     }
 
     /**
@@ -408,7 +415,7 @@ public class InternalNpc extends ServerPlayer {
     /**
      * <p> Gets the Name of the NPC
      * </p>
-     * @return the Item the NPC is wearing on their feet
+     * @return the name of the npc (in deserialized MiniMessage form)
      */
     public String getHologramName() {
         return name;
@@ -417,10 +424,20 @@ public class InternalNpc extends ServerPlayer {
     /**
      * <p> Gets the text display representing the NPC nametag
      * </p>
-     * @return the Item the NPC is wearing on their feet
+     * @return the TextDisplay entity the NPC uses for their nametag
      */
     public TextDisplay getHologram() {
         return hologram;
+    }
+
+    /**
+     * <p> Gets the text display representing the NPC nametag
+     * </p>
+     * @return the TextDisplay entity the NPC uses for their clickable hologram
+     */
+    @Nullable
+    public TextDisplay getClickableHologram() {
+        return clickableHologram;
     }
 
     /**
@@ -500,6 +517,8 @@ public class InternalNpc extends ServerPlayer {
      */
     public void remove() {
         hologram.remove();
+        if(clickable)
+            clickableHologram.remove();
         super.remove(RemovalReason.DISCARDED);
         super.setHealth(0);
         for (Player p: Bukkit.getOnlinePlayers()) {
@@ -516,6 +535,9 @@ public class InternalNpc extends ServerPlayer {
     @Override
     public void moveTo(Vec3 v){
         Bukkit.getScheduler().runTaskLater(plugin, () -> this.hologram.teleport(new Location(getWorld(), v.x(), clickable ? v.y() + 2.33 :v.y() + 2.05, v.z())), 3);
+        if(clickable)
+            Bukkit.getScheduler().runTaskLater(plugin, () -> this.clickableHologram.teleport(new Location(getWorld(), v.x(), v.y() + 2.05, v.z())), 3);
+
         moveTo(v.x(), v.y(), v.z());
     }
 
@@ -553,6 +575,21 @@ public class InternalNpc extends ServerPlayer {
      */
     public void setValue(String value) {
         this.value = value;
+    }
+
+    /**
+     * Determines if the NPC should look at players
+     * @return if the npc has tunnelvision
+     */
+    public boolean isTunnelVision(){
+        return tunnelVision;
+    }
+
+    /**
+     * Determines if the NPC should look at players
+     */
+    public void setTunnelVision(boolean tunnelVision){
+        this.tunnelVision = tunnelVision;
     }
 
     /**
@@ -619,7 +656,7 @@ public class InternalNpc extends ServerPlayer {
     }
 
     /**
-     * <p> Permantanly deletes an NPC. Does not despawn it.
+     * <p> Permantanly deletes an NPC. Does NOT despawn it.
      * </p>
      */
     public void delete(){
