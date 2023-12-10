@@ -13,13 +13,13 @@ repositories {
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.20.2-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.20.3-R0.1-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.0.2")
     compileOnly("me.clip:placeholderapi:2.11.5")
 }
 
 group = "dev.foxikle"
-version = "1.5.2-pre3"
+version = "1.6-pre1"
 description = "CustomNPCs"
 java.sourceCompatibility = JavaVersion.VERSION_16
 

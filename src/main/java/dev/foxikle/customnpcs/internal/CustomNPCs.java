@@ -164,7 +164,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public void onEnable() {
         instance = this;
         if (!setup()) {
-            Bukkit.getLogger().severe("Incompatible server version! Please use 1.20.2! Shutting down plugin.");
+            Bukkit.getLogger().severe("Incompatible server version! Please use 1.20.3 - 1.20.4! Shutting down plugin.");
             Bukkit.getPluginManager().disablePlugin(this);
         }
 
@@ -225,7 +225,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
 
     public boolean setup() {
-        return (Bukkit.getServer().getMinecraftVersion().equals("1.20.2"));
+        return (Bukkit.getServer().getMinecraftVersion().equals("1.20.3") || Bukkit.getServer().getMinecraftVersion().equals("1.20.4"));
     }
 
     /**
