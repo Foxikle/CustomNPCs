@@ -375,4 +375,13 @@ public class NPC {
      public Equipment getEquipment() {
         return npc.getEquipment();
      }
+
+    /**
+     * Reloads the NPC's settings within the Settings and Equipment objects
+     * @see Equipment
+     * @see Settings
+     */
+    public void reloadSettings() {
+         npc.reloadSettings();
+    }
 }
