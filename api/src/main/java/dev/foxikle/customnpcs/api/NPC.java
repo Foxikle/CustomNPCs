@@ -2,9 +2,10 @@ package dev.foxikle.customnpcs.api;
 
 import com.google.common.base.Preconditions;
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.data.Equipment;
+import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
-import dev.foxikle.customnpcs.internal.CustomNPCs;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -12,6 +13,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -19,7 +21,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 /**
- * A class providing a 'PaperAPI friendly' NPC object requring no NMS to use within a project.
+ * A class providing a 'Paper API friendly' NPC object requring no NMS to use within a project.
  */
 public class NPC {
 
@@ -95,9 +97,12 @@ public class NPC {
      *
      * @param tunnelVision if the npc should have TunnelVision (Not looking at players)
      * @return the npc with the modified TunnelVision
+     * @deprecated in favour of {@link Settings#setTunnelvision(boolean)}
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setTunnelVision(boolean tunnelVision){
-        npc.setTunnelVision(tunnelVision);
+        npc.getSettings().setTunnelvision(tunnelVision);
         return this;
     }
 
@@ -126,10 +131,13 @@ public class NPC {
      * @param item the item to be used
      * @return the NPC with the modified helmet
      * @since 1.5.2-pre3
+     * @deprecated in favour of {@link dev.foxikle.customnpcs.data.Equipment#setHead(ItemStack)}
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setHelmet(ItemStack item){
         Preconditions.checkArgument(item != null, "item cannot be null.");
-        npc.setHeadItem(item);
+        npc.getEquipment().setHead(item);
         return this;
     }
 
@@ -139,10 +147,13 @@ public class NPC {
      * @param item the item to be used
      * @return the NPC with the modified chestplate
      * @since 1.5.2-pre3
+     * @deprecated in favour of {@link dev.foxikle.customnpcs.data.Equipment#setChest(ItemStack)}
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setChestplate(ItemStack item){
         Preconditions.checkArgument(item != null, "item cannot be null.");
-        npc.setChestItem(item);
+        npc.getEquipment().setChest(item);
         return this;
     }
 
@@ -152,10 +163,13 @@ public class NPC {
      * @param item the item to be used
      * @return the NPC with the modified pair leggings
      * @since 1.5.2-pre3
+     * @deprecated in favour of {@link dev.foxikle.customnpcs.data.Equipment#setLegs(ItemStack)}
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setLeggings(ItemStack item){
         Preconditions.checkArgument(item != null, "item cannot be null.");
-        npc.setLegsItem(item);
+        npc.getEquipment().setLegs(item);
         return this;
     }
 
@@ -165,10 +179,13 @@ public class NPC {
      * @param item the item to be used
      * @return the NPC with the modified pair of boots
      * @since 1.5.2-pre3
+     * @deprecated in favour of {@link dev.foxikle.customnpcs.data.Equipment#setBoots(ItemStack)}
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setBoots(ItemStack item){
         Preconditions.checkArgument(item != null, "item cannot be null.");
-        npc.setBootsItem(item);
+        npc.getEquipment().setBoots(item);
         return this;
     }
 
@@ -178,10 +195,13 @@ public class NPC {
      * @param item the item to be used
      * @return the NPC with the modified hand item
      * @since 1.5.2-pre3
+     * @deprecated in favour of {@link dev.foxikle.customnpcs.data.Equipment#setHand(ItemStack)}
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setHandItem(ItemStack item){
         Preconditions.checkArgument(item != null, "item cannot be null.");
-        npc.setHandItem(item);
+        npc.getEquipment().setHand(item);
         return this;
     }
 
@@ -191,10 +211,13 @@ public class NPC {
      * @param item the item to be used
      * @return the NPC with the modified offhand item
      * @since 1.5.2-pre3
+     * @deprecated in favour of {@link dev.foxikle.customnpcs.data.Equipment#setOffhand(ItemStack)}
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setOffhandItem(ItemStack item){
         Preconditions.checkArgument(item != null, "item cannot be null.");
-        npc.setOffhandItem(item);
+        npc.getEquipment().setOffhand(item);
         return this;
     }
 
@@ -204,9 +227,12 @@ public class NPC {
      * @param interactable should the NPC be interactable?
      * @return the NPC with the modified interacability
      * @since 1.5.2-pre3
+     * @deprecated in favour of {@link Settings#setInteractable(boolean)}
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setInteractable(boolean interactable){
-        npc.setClickable(interactable);
+        npc.getSettings().setInteractable(interactable);
         return this;
     }
 
@@ -216,9 +242,12 @@ public class NPC {
      * @param resilient should the NPC persist on reloads/server restarts?
      * @return the NPC with the modified resiliency
      * @since 1.5.2-pre3
+     * @deprecated in favour of {@link Settings#setResilient(boolean)}
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setResilient(boolean resilient){
-        npc.setResilient(resilient);
+        npc.getSettings().setResilient(resilient);
         return this;
     }
 
@@ -309,7 +338,7 @@ public class NPC {
      * @throws IllegalStateException if the NPC is not resilient
      */
     public void delete() {
-        if(!npc.isResilient()) throw new IllegalStateException("The NPC must be resilient to be deleted!");
+        if(!npc.getSettings().isResilient()) throw new IllegalStateException("The NPC must be resilient to be deleted!");
         npc.delete();
     }
 
@@ -321,4 +350,20 @@ public class NPC {
     public void remove() {
         npc.remove();
     }
+
+    /**
+     * Gets the object representing the NPC's settings
+     * @return the object containing the resilience, tunnelvision, and interactablility
+     */
+     public Settings getSettings() {
+        return npc.getSettings();
+     }
+
+    /**
+     * Gets the equipment object representing the NPC's armor and hand items
+     * @return the equipment object holding the NPC's items
+     */
+     public Equipment getEquipment() {
+        return npc.getEquipment();
+     }
 }
