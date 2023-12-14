@@ -1,19 +1,16 @@
-package dev.foxikle.customnpcs.internal.network;
+package dev.foxikle.customnpcs.versions;
 
 import net.minecraft.network.Connection;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.PacketFlow;
 
-/**
- * The object that fakes the NPC's connection
- */
-public class NetworkManager extends Connection {
+public class FakeConnection_v1_20_R1 extends Connection {
     /**
-     * <p> Creates a fake Connection for NPCs
+     * <p> Creates a fake Connection for NPC
      * </p>
      * @param enumprotocoldirection The protocol direction
      */
-    public NetworkManager(PacketFlow enumprotocoldirection) {
+    public FakeConnection_v1_20_R1(PacketFlow enumprotocoldirection) {
         super(enumprotocoldirection);
     }
 

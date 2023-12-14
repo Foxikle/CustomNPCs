@@ -1,4 +1,4 @@
-package dev.foxikle.customnpcs.internal.network;
+package dev.foxikle.customnpcs.versions;
 
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
@@ -8,10 +8,7 @@ import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * The class to make a fake ServerGamePacketListenerImpl for the NPCs
- */
-public class NetworkHandler extends ServerGamePacketListenerImpl {
+public class FakeListener_v1_20_R2 extends ServerGamePacketListenerImpl {
     /**
      * <p> Creates a fake ServerGamePacketListenerImpl for NPCs
      * </p>
@@ -19,7 +16,7 @@ public class NetworkHandler extends ServerGamePacketListenerImpl {
      * @param connection The connection
      * @param npc The NPC
      */
-    public NetworkHandler(MinecraftServer server, Connection connection, ServerPlayer npc) {
+    public FakeListener_v1_20_R2(MinecraftServer server, Connection connection, ServerPlayer npc) {
         super(server, connection, npc, CommonListenerCookie.createInitial(npc.gameProfile));
     }
     /**

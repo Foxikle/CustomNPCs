@@ -1,39 +1,42 @@
-package dev.foxikle.customnpcs.internal;
+package dev.foxikle.customnpcs.versions;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
-import dev.foxikle.customnpcs.api.Action;
-import dev.foxikle.customnpcs.internal.network.NetworkHandler;
-import dev.foxikle.customnpcs.internal.network.NetworkManager;
+import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.LookAtAnchor;
+import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.*;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_20_R2.CraftServer;
+import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R2.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack;
-import org.bukkit.entity.Display;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.TextDisplay;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Field;
 import java.util.*;
 
 /**
  * The object representing the NPC
  */
-public class InternalNpc extends ServerPlayer {
+public class NPC_v1_20_R2 extends ServerPlayer implements InternalNPC {
     private final UUID uuid;
     private final CustomNPCs plugin;
     private final GameProfile profile;
@@ -67,9 +70,6 @@ public class InternalNpc extends ServerPlayer {
      * @param interactable If the NPC is interactable
      * @param value The encoded value of the NPC skin
      * @param signature The encoded signature of the NPC skin
-     * @param gameProfile the GameProfile of the NPC
-     * @param minecraftServer The NMS server to spawn the NPC in
-     * @param worldServer The NMS world to spawn the NPC in
      * @param uuid The UUID of the NPC (Should be the same as the gameprofile's uuid)
      * @param resilient If the NPC should stay on server restart/reloads
      * @param spawnLoc The location to spawn the NPC
@@ -84,8 +84,8 @@ public class InternalNpc extends ServerPlayer {
      * @param headItem The Item the NPC should have on their head
      * @param tunnelvision If the NPC has tunnel vision (Doesn't loook at players)
      */
-    public InternalNpc(CustomNPCs plugin, MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile gameProfile, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean interactable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions, boolean tunnelvision) {
-        super(minecraftServer, worldServer, gameProfile, ClientInformation.createDefault());
+    public NPC_v1_20_R2(CustomNPCs plugin, World world, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean interactable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions, boolean tunnelvision) {
+        super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uuid, uuid.toString().substring(0, 16)), ClientInformation.createDefault());
         this.spawnLoc = spawnLoc;
         this.offhandItem = offhandItem;
         this.headItem = headItem;
@@ -105,7 +105,7 @@ public class InternalNpc extends ServerPlayer {
         this.direction = direction;
         this.target = target;
         this.actions = new ArrayList<>(actions);
-        super.connection = new NetworkHandler(minecraftServer, new NetworkManager(PacketFlow.CLIENTBOUND), this);
+        super.connection = new FakeListener_v1_20_R2(((CraftServer) Bukkit.getServer()).getServer(), new FakeConnection_v1_20_R2(PacketFlow.CLIENTBOUND), this);
         this.plugin = plugin;
         this.tunnelVision = tunnelvision;
     }
@@ -115,7 +115,7 @@ public class InternalNpc extends ServerPlayer {
      * </p>
      * @param location The location to set the NPC
      */
-    private void setPosRot(Location location) {
+    public void setPosRot(Location location) {
         this.setPos(location.getX(), location.getY(), location.getZ());
         this.setXRot(location.getYaw());
         this.setYRot(location.getPitch());
@@ -163,7 +163,7 @@ public class InternalNpc extends ServerPlayer {
      * <p> Applies the skin to the NPC's GameProfile
      * </p>
      */
-    private void setSkin() {
+    public void setSkin() {
         super.getGameProfile().getProperties().removeAll("textures");
         super.getGameProfile().getProperties().put("textures", new Property("textures", value, signature));
         byte bitmask = (byte) (0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40);
@@ -176,7 +176,7 @@ public class InternalNpc extends ServerPlayer {
      * @param name The name to give the text display
      * @return the TextDisplay representing the NPC's nametag
      */
-    private TextDisplay setupHologram(String name) {
+    public TextDisplay setupHologram(String name) {
         TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), clickable && plugin.getConfig().getBoolean("DisplayClickText") ? spawnLoc.getY() + 2.33 : spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
         hologram.setInvulnerable(true);
         hologram.setBillboard(Display.Billboard.CENTER);
@@ -191,7 +191,7 @@ public class InternalNpc extends ServerPlayer {
      * @param name The name to give the text display
      * @return the TextDisplay representing the NPC's hologram
      */
-    private TextDisplay setupClickableHologram(String name) {
+    public TextDisplay setupClickableHologram(String name) {
         TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
         hologram.setInvulnerable(true);
         hologram.setBillboard(Display.Billboard.CENTER);
@@ -217,9 +217,9 @@ public class InternalNpc extends ServerPlayer {
     public void setClickable(boolean clickable) {
         this.clickable = clickable;
         GameProfile gameProfile = super.getGameProfile();
-       if(clickable){
+        if(clickable){
 
-       }
+        }
     }
 
     /**
@@ -528,6 +528,11 @@ public class InternalNpc extends ServerPlayer {
         }
     }
 
+    @Override
+    public void moveTo(Location v) {
+
+    }
+
     /**
      * <p> Thes the Player to the specified Vec3
      * </p>
@@ -590,15 +595,6 @@ public class InternalNpc extends ServerPlayer {
      */
     public void setTunnelVision(boolean tunnelVision){
         this.tunnelVision = tunnelVision;
-    }
-
-    /**
-     * <p> Gets the Player object associated with the NPC
-     * </p>
-     * @return the player object
-     */
-    public ServerPlayer getPlayer() {
-        return super.connection.getPlayer();
     }
 
     /**
@@ -673,4 +669,39 @@ public class InternalNpc extends ServerPlayer {
         actions.forEach(action -> strs.add(action.toJson()));
         this.actions = new ArrayList<>(strs);
     }
+
+    @Override
+    public void lookAt(LookAtAnchor anchor, Entity e) {
+        switch (anchor) {
+            case HEAD -> super.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftEntity) e).getHandle(), EntityAnchorArgument.Anchor.EYES);
+            case FEET -> super.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftEntity) e).getHandle(), EntityAnchorArgument.Anchor.FEET);
+        }
+    }
+
+    public void lookAt(Location loc) {
+        super.lookAt(EntityAnchorArgument.Anchor.EYES, new Vec3(loc.x(), loc.y(), loc.z()));
+    }
+
+    @Override
+    public void updateSkin(){
+        setSkin();
+    }
+
+    @Override
+    public void swingArm() {
+        super.swing(InteractionHand.MAIN_HAND, true);
+    }
+
+    @Override
+    public UUID getUniqueID(){
+        return uuid;
+    }
+
+    @Override
+    public void setYRotation(float f){
+        super.setYRot(f);
+        super.setYBodyRot(f);
+        super.setYHeadRot(f);
+    }
 }
+
