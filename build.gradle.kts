@@ -1,7 +1,7 @@
 plugins {
     `java-library`
     `maven-publish`
-    id("io.papermc.paperweight.userdev") version "1.5.9"
+    //id("io.papermc.paperweight.userdev") version "1.5.10"
     id("xyz.jpenilla.run-paper") version "2.2.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -9,19 +9,22 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.20.2-R0.1-SNAPSHOT")
-    implementation("org.bstats:bstats-bukkit:3.0.2")
-    compileOnly("me.clip:placeholderapi:2.11.5")
+    implementation(project(":api"))
+    implementation(project(":core"))
+    implementation(project(":v1_20_R3", "reobf"))
+    implementation(project(":v1_20_R2", "reobf"))
 }
 
-group = "dev.foxikle"
-version = "1.5.2-pre3"
-description = "CustomNPCs"
-java.sourceCompatibility = JavaVersion.VERSION_16
+allprojects {
+    group = "dev.foxikle"
+    version = "1.6-pre1"
+    description = "CustomNPCs"
+}
+
+java.sourceCompatibility = JavaVersion.VERSION_17
 
 
 publishing {
@@ -50,20 +53,24 @@ publishing {
 
 tasks {
     assemble {
-        dependsOn(reobfJar)
+        //dependsOn(reobfJar)
+        dependsOn(shadowJar)
+    }
+
+    build {
         dependsOn(shadowJar)
     }
 
     compileJava {
-        options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
+        options.encoding = Charsets.UTF_8.name()
         options.release.set(17)
     }
     javadoc {
-        options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
+        options.encoding = Charsets.UTF_8.name()
         exclude("**/internal/**");
     }
     processResources {
-        filteringCharset = Charsets.UTF_8.name() // We want UTF-8 for everything
+        filteringCharset = Charsets.UTF_8.name()
         val props = mapOf(
                 "name" to project.name,
                 "version" to project.version,
@@ -76,11 +83,12 @@ tasks {
         }
     }
 
-    reobfJar {
-        outputJar.set(layout.buildDirectory.file("C:/Users/tscal/Desktop/testserver/plugins/CustomNPCs-${project.version}.jar"))
-    }
+    //reobfJar {
+    //    outputJar.set(layout.buildDirectory.file("C:/Users/tscal/Desktop/testserver/plugins/CustomNPCs-${project.version}.jar"))
+    //}
 
     shadowJar {
+        archiveClassifier.set("")
         relocate("org.bstats", "dev.foxikle.dependencies.bstats")
     }
 }
