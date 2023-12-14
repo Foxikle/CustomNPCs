@@ -4,6 +4,8 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.data.Equipment;
+import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
@@ -19,7 +21,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_20_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_20_R3.CraftWorld;
@@ -28,8 +29,6 @@ import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -40,75 +39,35 @@ import java.util.*;
 public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
     private final UUID uuid;
     private final CustomNPCs plugin;
-    private final GameProfile profile;
-    private ItemStack handItem;
-    private ItemStack offhandItem;
-    private ItemStack headItem;
-    private ItemStack chestItem;
-    private ItemStack legsItem;
-    private ItemStack bootsItem;
-    private boolean clickable;
+    private final Settings settings;
+    private final Equipment equipment;
     private Location spawnLoc;
-    private String name;
     private final World world;
     private TextDisplay clickableHologram;
     private TextDisplay hologram;
-    private String signature;
-    private String value;
-    private boolean resilient;
-    private String skinName;
-    private double direction;
     private Player target;
     private ArrayList<String> actions;
-    private boolean tunnelVision;
 
     /**
      * <p> Gets a new NPC
      * </p>
-     * @param name The name of the NPC
      * @param actions The actions for the NPC to execute on interaction
      * @param plugin The instance of the Main class
-     * @param interactable If the NPC is interactable
-     * @param value The encoded value of the NPC skin
-     * @param signature The encoded signature of the NPC skin
      * @param uuid The UUID of the NPC (Should be the same as the gameprofile's uuid)
-     * @param resilient If the NPC should stay on server restart/reloads
      * @param spawnLoc The location to spawn the NPC
-     * @param skinName The cosmetic name of the NPC skin
      * @param target The Entity the NPC should follow
-     * @param direction The direction for the NPC to face
-     * @param handItem The Item the NPC should hold in their hand
-     * @param offhandItem The Item the NPC should hold in their offhand
-     * @param bootsItem The Item the NPC should have in the boots slot
-     * @param legsItem The Item the NPC should have in the leg slot
-     * @param chestItem The Item the NPC should have in the chest slot
-     * @param headItem The Item the NPC should have on their head
-     * @param tunnelvision If the NPC has tunnel vision (Doesn't loook at players)
      */
-    public NPC_v1_20_R3(CustomNPCs plugin, World world, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean interactable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions, boolean tunnelvision) {
+    public NPC_v1_20_R3(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<String> actions) {
         super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uuid, uuid.toString().substring(0, 16)), ClientInformation.createDefault());
         this.spawnLoc = spawnLoc;
-        this.offhandItem = offhandItem;
-        this.headItem = headItem;
-        this.chestItem = chestItem;
-        this.legsItem = legsItem;
-        this.bootsItem = bootsItem;
-        this.clickable = interactable;
-        this.handItem = handItem;
-        this.name = name.replace("%empty%", "");
-        this.profile = gameProfile;
+        this.equipment = equipment;
+        this.settings = settings;
         this.world = spawnLoc.getWorld();
         this.uuid = uuid;
-        this.signature = signature;
-        this.value = value;
-        this.resilient = resilient;
-        this.skinName = skinName;
-        this.direction = direction;
         this.target = target;
         this.actions = new ArrayList<>(actions);
         super.connection = new FakeListener_v1_20_R3(((CraftServer) Bukkit.getServer()).getServer(), new FakeConnection_v1_20_R3(PacketFlow.CLIENTBOUND), this);
         this.plugin = plugin;
-        this.tunnelVision = tunnelvision;
     }
 
     /**
@@ -127,9 +86,9 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
      * </p>
      */
     public void createNPC() {
-        Bukkit.getScheduler().runTask(plugin, () -> this.hologram = setupHologram(name));
+        Bukkit.getScheduler().runTask(plugin, () -> this.hologram = setupHologram(settings.getName()));
         Bukkit.getScheduler().runTask(plugin, () -> {
-            if(clickable)
+            if(settings.isInteractable())
                 this.clickableHologram = setupClickableHologram(plugin.getConfig().getString("ClickText"));
         });
         if (plugin.npcs.containsKey(uuid)) {
@@ -141,18 +100,18 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
         this.getBukkitEntity().setInvulnerable(true);
         this.getBukkitEntity().setNoDamageTicks(Integer.MAX_VALUE);
         super.getCommandSenderWorld().addFreshEntity(this);
-        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HAND, handItem, true);
-        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.OFF_HAND, offhandItem, true);
-        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HEAD, headItem, true);
-        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.CHEST, chestItem, true);
-        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.LEGS, legsItem, true);
-        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, bootsItem, true);
-        super.getBukkitEntity().setCustomNameVisible(clickable);
+        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HAND, equipment.getHand(), true);
+        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.OFF_HAND, equipment.getOffhand(), true);
+        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HEAD, equipment.getHead(), true);
+        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.CHEST, equipment.getChest(), true);
+        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.LEGS, equipment.getLegs(), true);
+        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
+        super.getBukkitEntity().setCustomNameVisible(settings.isInteractable());
         super.getBukkitEntity().addScoreboardTag("NPC");
-        super.getBukkitEntity().setItemInHand(handItem);
+        super.getBukkitEntity().setItemInHand(equipment.getHand());
         Bukkit.getScheduler().runTaskLater(plugin, () -> Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").addEntry(uuid.toString().substring(0, 16)), 1);
 
-        if (resilient) plugin.getFileManager().addNPC(this);
+        if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
 
 
@@ -166,7 +125,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
      */
     public void setSkin() {
         super.getGameProfile().getProperties().removeAll("textures");
-        super.getGameProfile().getProperties().put("textures", new Property("textures", value, signature));
+        super.getGameProfile().getProperties().put("textures", new Property("textures", settings.getValue(), settings.getSignature()));
         byte bitmask = (byte) (0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40);
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, bitmask);
     }
@@ -178,7 +137,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
      * @return the TextDisplay representing the NPC's nametag
      */
     public TextDisplay setupHologram(String name) {
-        TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), clickable && plugin.getConfig().getBoolean("DisplayClickText") ? spawnLoc.getY() + 2.33 : spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
+        TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), settings.isInteractable() && plugin.getConfig().getBoolean("DisplayClickText") ? spawnLoc.getY() + 2.33 : spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
         hologram.setInvulnerable(true);
         hologram.setBillboard(Display.Billboard.CENTER);
         hologram.text(plugin.getMiniMessage().deserialize(name));
@@ -199,167 +158,6 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
         hologram.text(plugin.getMiniMessage().deserialize(name));
         hologram.addScoreboardTag("npcHologram");
         return hologram;
-    }
-
-    /**
-     * <p> If the NPC is clickable
-     * </p>
-     * @return If the NPC is clickable
-     */
-    public boolean isClickable() {
-        return clickable;
-    }
-
-    /**
-     * <p> sets if the NPC is clickable
-     * </p>
-     * @param clickable if the NPC is clickable
-     */
-    public void setClickable(boolean clickable) {
-        this.clickable = clickable;
-        GameProfile gameProfile = super.getGameProfile();
-        if(clickable){
-
-        }
-    }
-
-    /**
-     * <p> Gets the NPC's GameProfile
-     * </p>
-     * @return the profile of the NPC
-     */
-    public GameProfile getProfile() {
-        return profile;
-    }
-
-    /**
-     * <p> Gets the Item in the NPC's main hand
-     * </p>
-     * @return the Item in the NPC's main (right) hand
-     */
-    public ItemStack getHandItem() {
-        if(headItem == null)
-            return new ItemStack(Material.AIR);
-        return handItem;
-    }
-
-    /**
-     * <p> Gets the item in the NPC's main hand
-     * </p>
-     * @param handItem The item to put in the NPC's hand
-     */
-    public void setHandItem(ItemStack handItem) {
-        this.handItem = handItem;
-    }
-
-    /**
-     * <p> Gets the Item in the NPC's offhand
-     * </p>
-     * @return the Item in the NPC's offhand (left hand)
-     */
-    public ItemStack getItemInOffhand() {
-        if(offhandItem == null)
-            return new ItemStack(Material.AIR);
-        return offhandItem;
-    }
-
-    /**
-     * <p> Gets the Item on the NPC's head
-     * </p>
-     * @return the Item on the NPC's head
-     */
-    public ItemStack getHeadItem() {
-        if(headItem == null)
-            return new ItemStack(Material.AIR);
-        return headItem;
-    }
-
-    /**
-     * <p> Gets the item on the NPC's head
-     * </p>
-     * @param headItem The item to put on the NPC's head
-     */
-    public void setHeadItem(ItemStack headItem) {
-        this.headItem = headItem;
-    }
-
-    /**
-     * <p> Gets the Item the NPC is wearing on their chest
-     * <p> Returns an empty item stack if the npc isn't wearing a chestplate
-     * </p>
-     * @return the Item the NPC is wearing on their chest
-     */
-    public ItemStack getChestItem() {
-        if(chestItem == null)
-            return new ItemStack(Material.AIR);
-        return chestItem;
-    }
-
-    /**
-     * <p> Sets the Item the NPC is wearing on their chest
-     * </p>
-     * @param chestItem The Item to put on the NPC's Chest
-     */
-    public void setChestItem(ItemStack chestItem) {
-        this.chestItem = chestItem;
-    }
-
-    /**
-     * <p> Gets the Item the NPC is wearing on their legs
-     * </p>
-     * @return the Item the NPC is wearing on their legs
-     */
-    public ItemStack getLegsItem() {
-        if(legsItem == null)
-            return new ItemStack(Material.AIR);
-        return legsItem;
-    }
-
-    /**
-     * <p> Sets the Item the NPC is wearing on their legs
-     * </p>
-     * @param legsItem The item to put on the NPC's legs
-     */
-    public void setLegsItem(ItemStack legsItem) {
-        this.legsItem = legsItem;
-    }
-
-    /**
-     * <p> Gets the Item the NPC is wearing on their feet
-     * </p>
-     * @return the Item the NPC is wearing on their feet
-     */
-    public ItemStack getBootsItem() {
-        if(bootsItem == null)
-            return new ItemStack(Material.AIR);
-        return bootsItem;
-    }
-
-    /**
-     * <p> Sets the Item the NPC is wearing on their feet
-     * </p>
-     * @param bootsItem The item to put on the NPC's feet
-     */
-    public void setBootsItem(ItemStack bootsItem) {
-        this.bootsItem = bootsItem;
-    }
-
-    /**
-     * <p> If the NPC is resilient
-     * </p>
-     * @return If the NPC is persistent across server reloads/restarts
-     */
-    public boolean isResilient() {
-        return resilient;
-    }
-
-    /**
-     * <p> Sets the NPC's resiliency
-     * </p>
-     * @param resilient if the NPC should persist through server reloads/restarts
-     */
-    public void setResilient(boolean resilient) {
-        this.resilient = resilient;
     }
 
     /**
@@ -396,11 +194,11 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
     public void setTarget(@Nullable Player target) {
         if(target == null){
             if(this.target != null)
-                this.target.sendMessage(plugin.getMiniMessage().deserialize(getHologramName()).append(Component.text(" is no longer following you.", NamedTextColor.RED)));
+                this.target.sendMessage(plugin.getMiniMessage().deserialize(settings.getName()).append(Component.text(" is no longer following you.", NamedTextColor.RED)));
             this.target = null;
         } else {
             this.target = target;
-            this.target.sendMessage(plugin.getMiniMessage().deserialize(getHologramName()).append(Component.text(" is now following you.", NamedTextColor.GREEN)));
+            this.target.sendMessage(plugin.getMiniMessage().deserialize(settings.getName()).append(Component.text(" is now following you.", NamedTextColor.GREEN)));
         }
     }
 
@@ -412,15 +210,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
     public void setSpawnLoc(Location spawnLoc) {
         this.spawnLoc = spawnLoc;
     }
-
-    /**
-     * <p> Gets the Name of the NPC
-     * </p>
-     * @return the name of the npc (in deserialized MiniMessage form)
-     */
-    public String getHologramName() {
-        return name;
-    }
+    
 
     /**
      * <p> Gets the text display representing the NPC nametag
@@ -488,18 +278,18 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
     public void injectPlayer(Player p) {
 
         List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>> stuffs = new ArrayList<>();
-        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.MAINHAND, CraftItemStack.asNMSCopy(handItem)));
-        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.OFFHAND, CraftItemStack.asNMSCopy(offhandItem)));
-        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.HEAD, CraftItemStack.asNMSCopy(headItem)));
-        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.CHEST, CraftItemStack.asNMSCopy(chestItem)));
-        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.LEGS, CraftItemStack.asNMSCopy(legsItem)));
-        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.FEET, CraftItemStack.asNMSCopy(bootsItem)));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.MAINHAND, CraftItemStack.asNMSCopy(equipment.getHand())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.OFFHAND, CraftItemStack.asNMSCopy(equipment.getOffhand())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.HEAD, CraftItemStack.asNMSCopy(equipment.getHead())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.CHEST, CraftItemStack.asNMSCopy(equipment.getChest())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.LEGS, CraftItemStack.asNMSCopy(equipment.getLegs())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.FEET, CraftItemStack.asNMSCopy(equipment.getBoots())));
 
         ClientboundPlayerInfoUpdatePacket playerInfoAdd = new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, this);
         ClientboundAddEntityPacket namedEntitySpawn = new ClientboundAddEntityPacket(this);
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
-        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getFacingDirection() * 256 / 360), (byte) (0 / 360), true);
+        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (settings.getDirection() * 256 / 360), (byte) (0 / 360), true);
         setSkin();
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
         connection.send(playerInfoAdd);
@@ -518,7 +308,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
      */
     public void remove() {
         hologram.remove();
-        if(clickable)
+        if(settings.isInteractable())
             clickableHologram.remove();
         super.remove(RemovalReason.DISCARDED);
         super.setHealth(0);
@@ -540,116 +330,11 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
      * */
     @Override
     public void moveTo(Vec3 v){
-        Bukkit.getScheduler().runTaskLater(plugin, () -> this.hologram.teleport(new Location(getWorld(), v.x(), clickable ? v.y() + 2.33 :v.y() + 2.05, v.z())), 3);
-        if(clickable)
+        Bukkit.getScheduler().runTaskLater(plugin, () -> this.hologram.teleport(new Location(getWorld(), v.x(), settings.isInteractable() ? v.y() + 2.33 :v.y() + 2.05, v.z())), 3);
+        if(settings.isInteractable())
             Bukkit.getScheduler().runTaskLater(plugin, () -> this.clickableHologram.teleport(new Location(getWorld(), v.x(), v.y() + 2.05, v.z())), 3);
 
         moveTo(v.x(), v.y(), v.z());
-    }
-
-    /**
-     * <p> Gets the signature of the NPC's skin
-     * </p>
-     * @return the signature of the NPC's skin
-     */
-    public String getSignature() {
-        return signature;
-    }
-
-    /**
-     * <p> Sets the NPC's skin signature
-     * </p>
-     * @param signature the skin's signature
-     */
-    public void setSignature(String signature) {
-        this.signature = signature;
-    }
-
-    /**
-     * <p> Gets the value of the NPC's skin
-     * </p>
-     * @return the value of the NPC's skin
-     */
-    public String getValue() {
-        return value;
-    }
-
-    /**
-     * <p> Sets the value of the NPC's skin
-     * </p>
-     * @param value The skin's value
-     */
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    /**
-     * Determines if the NPC should look at players
-     * @return if the npc has tunnelvision
-     */
-    public boolean isTunnelVision(){
-        return tunnelVision;
-    }
-
-    /**
-     * Determines if the NPC should look at players
-     */
-    public void setTunnelVision(boolean tunnelVision){
-        this.tunnelVision = tunnelVision;
-    }
-
-    /**
-     * <p> Sets the item in the NPC's offhand
-     * </p>
-     * @param offhandItem The item to put in the offhand
-     */
-    public void setOffhandItem(ItemStack offhandItem) {
-        this.offhandItem = offhandItem;
-    }
-
-    /**
-     * <p> Sets the NPC's display name
-     * </p>
-     * @param name The NPC's name
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * <p> Gets the display name of the NPC's Skin
-     * </p>
-     * @return the signature of the NPC's skin
-     */
-    public String getSkinName() {
-        return this.skinName;
-    }
-
-    /**
-     * <p> Sets the display name of the NPC's Skin
-     * </p>
-     * @param skinName The name of the skin
-     */
-    public void setSkinName(String skinName) {
-        this.skinName = skinName;
-    }
-
-    /**
-     * <p> Gets the direction the NPC is facing when there are no players within 5 blocks.
-     * </p>
-     * @return the NPC's heading
-     */
-    public double getFacingDirection() {
-        return direction;
-    }
-
-    /**
-     * <p> Sets the direction the NPC is facing when there are no players within 5 blocks.
-     * </p>
-     * @param direction the heading to face
-     */
-    public void setDirection(double direction) {
-        this.direction = direction;
     }
 
     /**
@@ -691,6 +376,38 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
     @Override
     public void swingArm() {
         super.swing(InteractionHand.MAIN_HAND, true);
+    }
+
+    @Override
+    public Equipment getEquipment() {
+        return equipment;
+    }
+
+    @Override
+    public Settings getSettings() {
+        return settings;
+    }
+
+    @Override
+    public void reloadSettings(){
+        hologram.remove();
+        if(settings.isInteractable())
+            clickableHologram.remove();
+
+        Bukkit.getScheduler().runTask(plugin, () -> this.hologram = setupHologram(settings.getName()));
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if(settings.isInteractable())
+                this.clickableHologram = setupClickableHologram(plugin.getConfig().getString("ClickText"));
+        });
+
+        setSkin();
+        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HAND, equipment.getHand(), true);
+        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.OFF_HAND, equipment.getOffhand(), true);
+        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HEAD, equipment.getHead(), true);
+        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.CHEST, equipment.getChest(), true);
+        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.LEGS, equipment.getLegs(), true);
+        super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
+        super.getBukkitEntity().setItemInHand(equipment.getHand());
     }
 
     @Override
