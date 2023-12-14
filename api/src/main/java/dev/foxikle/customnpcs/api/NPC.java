@@ -46,7 +46,7 @@ public class NPC {
         if(NPCApi.plugin == null) throw new IllegalStateException("You must initialize the api before using it!");
         if(world == null) throw new NullPointerException("world cannot be null.");
         UUID uuid = UUID.randomUUID();
-        this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), false, false, "", uuid, "",  "", null, 0, null,  new ArrayList<>(), true);
+        this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), new Equipment(), new Settings(), uuid, null, new ArrayList<>());
     }
 
     public NPC(InternalNPC npc) {
@@ -60,10 +60,13 @@ public class NPC {
      * @param name the new name
      * @return the NPC with the modified name
      * @since 1.5.2-pre3
+     * @deprecated in favour of {@link Settings#setName(String)}
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setName(@NotNull String name){
         Preconditions.checkArgument(name != null, "name cannot be null.");
-        npc.setName(name);
+        npc.getSettings().setName(name);
         return this;
     }
 
@@ -73,10 +76,13 @@ public class NPC {
      * @param name of the NPC as an Adventure Component
      * @return the NPC with the modified name
      * @since 1.5.2-pre3
+     * @deprecated in favour of {@link Settings#setName(Component)}
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setName(@NotNull Component name){
         Preconditions.checkArgument(name != null, "name cannot be null.");
-        npc.setName(NPCApi.plugin.getMiniMessage().serialize(name));
+        npc.getSettings().setName(NPCApi.plugin.getMiniMessage().serialize(name));
         return this;
     }
 
@@ -257,9 +263,12 @@ public class NPC {
      * @param heading the heading the NPC should face.
      * @return the NPC with the modified heading
      * @since 1.5.2-pre3
+     * @deprecated in favour of {@link Settings#setDirection(double)}
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setHeading(double heading){
-        npc.setDirection(heading);
+        npc.getSettings().setDirection(heading);
         return this;
     }
 
