@@ -77,51 +77,51 @@ public class NPCMenuListeners implements Listener {
                 player.closeInventory();
                 e.setCancelled(true);
             } else if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("direction")) {
-                double dir = npc.getFacingDirection();
+                double dir = npc.getSettings().getDirection();
                 if (e.getAction() == InventoryAction.PICKUP_ALL) {
                     switch ((int) dir) {
                         case 180 -> {
-                            npc.setDirection(-135.0);
+                            npc.getSettings().setDirection(-135.0);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case -135 -> {
-                            npc.setDirection(-90.0);
+                            npc.getSettings().setDirection(-90.0);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case -90 -> {
-                            npc.setDirection(-45.0);
+                            npc.getSettings().setDirection(-45.0);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case -45 -> {
-                            npc.setDirection(0.0);
+                            npc.getSettings().setDirection(0.0);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case 0 -> {
-                            npc.setDirection(45.0);
+                            npc.getSettings().setDirection(45.0);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case 45 -> {
-                            npc.setDirection(90.0);
+                            npc.getSettings().setDirection(90.0);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case 90 -> {
-                            npc.setDirection(135.0);
+                            npc.getSettings().setDirection(135.0);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case 135 -> {
-                            npc.setDirection(player.getLocation().getYaw());
+                            npc.getSettings().setDirection(player.getLocation().getYaw());
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         default -> {
-                            npc.setDirection(180);
+                            npc.getSettings().setDirection(180);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
@@ -129,47 +129,47 @@ public class NPCMenuListeners implements Listener {
                 } else if (e.getAction() == InventoryAction.PICKUP_HALF) {
                     switch ((int) dir) {
                         case 180 -> {
-                            npc.setDirection(player.getLocation().getYaw());
+                            npc.getSettings().setDirection(player.getLocation().getYaw());
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case -135 -> {
-                            npc.setDirection(180);
+                            npc.getSettings().setDirection(180);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case -90 -> {
-                            npc.setDirection(-135);
+                            npc.getSettings().setDirection(-135);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case -45 -> {
-                            npc.setDirection(-90);
+                            npc.getSettings().setDirection(-90);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case 0 -> {
-                            npc.setDirection(-45.0);
+                            npc.getSettings().setDirection(-45.0);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case 45 -> {
-                            npc.setDirection(0.0);
+                            npc.getSettings().setDirection(0.0);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case 90 -> {
-                            npc.setDirection(45);
+                            npc.getSettings().setDirection(45);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         case 135 -> {
-                            npc.setDirection(90);
+                            npc.getSettings().setDirection(90);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
                         default -> {
-                            npc.setDirection(135);
+                            npc.getSettings().setDirection(135);
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                             player.openInventory(mc.getMainMenu());
                         }
@@ -179,11 +179,11 @@ public class NPCMenuListeners implements Listener {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 e.setCancelled(true);
                 if (e.getCurrentItem().getItemMeta().getLore().contains(ChatColor.RED + "" + ChatColor.BOLD + "NOT RESILIENT")) {
-                    npc.setResilient(true);
+                    npc.getSettings().setResilient(true);
                     player.sendMessage(ChatColor.AQUA + "The NPC is now " + ChatColor.GREEN + "" + ChatColor.BOLD + "RESILIENT");
                     player.openInventory(mc.getMainMenu());
                 } else if (e.getCurrentItem().getItemMeta().getLore().contains(ChatColor.GREEN + "" + ChatColor.BOLD + "RESILIENT")) {
-                    npc.setResilient(false);
+                    npc.getSettings().setResilient(false);
                     player.openInventory(mc.getMainMenu());
                     player.sendMessage(ChatColor.AQUA + "The NPC is now " + ChatColor.RED + "" + ChatColor.BOLD + "NOT RESILIENT");
                 }
@@ -191,11 +191,11 @@ public class NPCMenuListeners implements Listener {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 e.setCancelled(true);
                 if (e.getCurrentItem().getItemMeta().getLore().contains(ChatColor.RED + "" + ChatColor.BOLD + "NOT INTERACTABLE")) {
-                    npc.setClickable(true);
+                    npc.getSettings().setInteractable(true);
                     player.sendMessage(ChatColor.AQUA + "The NPC is now " + ChatColor.GREEN + "" + ChatColor.BOLD + "INTERACTABLE");
                     player.openInventory(mc.getMainMenu());
                 } else if (e.getCurrentItem().getItemMeta().getLore().contains(ChatColor.GREEN + "" + ChatColor.BOLD + "INTERACTABLE")) {
-                    npc.setClickable(false);
+                    npc.getSettings().setInteractable(false);
                     player.openInventory(mc.getMainMenu());
                     player.sendMessage(ChatColor.AQUA + "The NPC is now " + ChatColor.RED + "" + ChatColor.BOLD + "NOT INTERACTABLE");
                 }
@@ -212,7 +212,7 @@ public class NPCMenuListeners implements Listener {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1), 1);
                 Bukkit.getScheduler().runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1), 3);
                 Bukkit.getScheduler().runTaskLater(plugin, npc::createNPC, 1);
-                player.sendMessage(npc.isResilient() ? ChatColor.GREEN + "Reslilient NPC created!" : ChatColor.GREEN + "Temporary NPC created!");
+                player.sendMessage(npc.getSettings().isResilient() ? ChatColor.GREEN + "Reslilient NPC created!" : ChatColor.GREEN + "Temporary NPC created!");
                 player.closeInventory();
                 e.setCancelled(true);
             } else if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("Cancel")) {
@@ -229,9 +229,9 @@ public class NPCMenuListeners implements Listener {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             e.setCancelled(true);
             String name = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "SkinButton"), PersistentDataType.STRING);
-            npc.setValue(plugin.getMenuUtils().getValue(name));
-            npc.setSignature(plugin.getMenuUtils().getSignature(name));
-            npc.setSkinName(name);
+            npc.getSettings().setValue(plugin.getMenuUtils().getValue(name));
+            npc.getSettings().setSignature(plugin.getMenuUtils().getSignature(name));
+            npc.getSettings().setSkinName(name);
             player.sendMessage(ChatColor.GREEN + "Skin changed to " + ChatColor.BOLD + name);
             plugin.pages.put(player, 0);
             player.closeInventory();
@@ -260,14 +260,14 @@ public class NPCMenuListeners implements Listener {
             switch (button) {
                 case "helm" -> {
                     if (!e.getCursor().getType().isAir()) {
-                        npc.setHeadItem(e.getCursor().clone());
+                        npc.getEquipment().setHead(e.getCursor().clone());
                         e.getCursor().setAmount(0);
                         player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                        player.sendMessage(ChatColor.GREEN + "Successfully set helmet slot to " + npc.getHeadItem().getType());
+                        player.sendMessage(ChatColor.GREEN + "Successfully set helmet slot to " + npc.getEquipment().getHead().getType());
                         player.openInventory(mc.getArmorMenu());
                     } else {
                         if (e.getAction() == InventoryAction.PICKUP_HALF) {
-                            npc.setHeadItem(new ItemStack(AIR));
+                            npc.getEquipment().setHead(new ItemStack(AIR));
                             player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                             player.sendMessage(ChatColor.RED + "Successfully reset helmet slot ");
                             player.openInventory(mc.getArmorMenu());
@@ -280,14 +280,14 @@ public class NPCMenuListeners implements Listener {
                         if (type != LEATHER_CHESTPLATE && type != CHAINMAIL_CHESTPLATE && type != IRON_CHESTPLATE && type != GOLDEN_CHESTPLATE && type != DIAMOND_CHESTPLATE && type != NETHERITE_CHESTPLATE) {
                             return;
                         }
-                        npc.setChestItem(e.getCursor().clone());
+                        npc.getEquipment().setChest(e.getCursor().clone());
                         e.getCursor().setAmount(0);
                         player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                        player.sendMessage(ChatColor.GREEN + "Successfully set helmet slot to " + npc.getChestItem().getType());
+                        player.sendMessage(ChatColor.GREEN + "Successfully set helmet slot to " + npc.getEquipment().getChest().getType());
                         player.openInventory(mc.getArmorMenu());
                     } else {
                         if (e.getAction() == InventoryAction.PICKUP_HALF) {
-                            npc.setChestItem(new ItemStack(AIR));
+                            npc.getEquipment().setChest(new ItemStack(AIR));
                             player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                             player.sendMessage(ChatColor.RED + "Successfully reset chestplate slot ");
                             player.openInventory(mc.getArmorMenu());
@@ -299,14 +299,14 @@ public class NPCMenuListeners implements Listener {
                         Material type = e.getCursor().getType();
                         if (type != LEATHER_LEGGINGS && type != CHAINMAIL_LEGGINGS && type != IRON_LEGGINGS && type != GOLDEN_LEGGINGS && type != DIAMOND_LEGGINGS && type != NETHERITE_LEGGINGS)
                             return;
-                        npc.setLegsItem(e.getCursor().clone());
+                        npc.getEquipment().setLegs(e.getCursor().clone());
                         e.getCursor().setAmount(0);
                         player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                        player.sendMessage(ChatColor.GREEN + "Successfully set helmet slot to " + npc.getLegsItem().getType());
+                        player.sendMessage(ChatColor.GREEN + "Successfully set helmet slot to " + npc.getEquipment().getLegs().getType());
                         player.openInventory(mc.getArmorMenu());
                     } else {
                         if (e.getAction() == InventoryAction.PICKUP_HALF) {
-                            npc.setLegsItem(new ItemStack(AIR));
+                            npc.getEquipment().setLegs(new ItemStack(AIR));
                             player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                             player.sendMessage(ChatColor.RED + "Successfully reset legs slot ");
                             player.openInventory(mc.getArmorMenu());
@@ -318,14 +318,14 @@ public class NPCMenuListeners implements Listener {
                         Material type = e.getCursor().getType();
                         if (type != LEATHER_BOOTS && type != CHAINMAIL_BOOTS && type != IRON_BOOTS && type != GOLDEN_BOOTS && type != DIAMOND_BOOTS && type != NETHERITE_BOOTS)
                             return;
-                        npc.setBootsItem(e.getCursor().clone());
+                        npc.getEquipment().setBoots(e.getCursor().clone());
                         e.getCursor().setAmount(0);
                         player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                        player.sendMessage(ChatColor.GREEN + "Successfully set helmet slot to " + npc.getBootsItem().getType());
+                        player.sendMessage(ChatColor.GREEN + "Successfully set helmet slot to " + npc.getEquipment().getBoots().getType());
                         player.openInventory(mc.getArmorMenu());
                     } else {
                         if (e.getAction() == InventoryAction.PICKUP_HALF) {
-                            npc.setBootsItem(new ItemStack(AIR));
+                            npc.getEquipment().setBoots(new ItemStack(AIR));
                             player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                             player.sendMessage(ChatColor.RED + "Successfully reset boots slot ");
                             player.openInventory(mc.getArmorMenu());
@@ -334,14 +334,14 @@ public class NPCMenuListeners implements Listener {
                 }
                 case "hand" -> {
                     if (!e.getCursor().getType().isAir()) {
-                        npc.setHandItem(e.getCursor().clone());
+                        npc.getEquipment().setHand(e.getCursor().clone());
                         e.getCursor().setAmount(0);
                         player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                        player.sendMessage(ChatColor.GREEN + "Successfully set helmet slot to " + npc.getHandItem().getType());
+                        player.sendMessage(ChatColor.GREEN + "Successfully set helmet slot to " + npc.getEquipment().getHand().getType());
                         player.openInventory(mc.getArmorMenu());
                     } else {
                         if (e.getAction() == InventoryAction.PICKUP_HALF) {
-                            npc.setHandItem(new ItemStack(AIR));
+                            npc.getEquipment().setHand(new ItemStack(AIR));
                             player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                             player.sendMessage(ChatColor.RED + "Successfully reset hand slot ");
                             player.openInventory(mc.getArmorMenu());
@@ -350,14 +350,14 @@ public class NPCMenuListeners implements Listener {
                 }
                 case "offhand" -> {
                     if (!e.getCursor().getType().isAir()) {
-                        npc.setOffhandItem(e.getCursor().clone());
+                        npc.getEquipment().setOffhand(e.getCursor().clone());
                         e.getCursor().setAmount(0);
                         player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                        player.sendMessage(ChatColor.GREEN + "Successfully set helmet slot to " + npc.getItemInOffhand().getType());
+                        player.sendMessage(ChatColor.GREEN + "Successfully set helmet slot to " + npc.getEquipment().getOffhand().getType());
                         player.openInventory(mc.getArmorMenu());
                     } else {
                         if (e.getAction() == InventoryAction.PICKUP_HALF) {
-                            npc.setOffhandItem(new ItemStack(AIR));
+                            npc.getEquipment().setOffhand(new ItemStack(AIR));
                             player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                             player.sendMessage(ChatColor.RED + "Successfully reset offhand slot ");
                             player.openInventory(mc.getArmorMenu());

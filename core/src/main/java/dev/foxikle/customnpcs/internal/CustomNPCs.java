@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.conditions.Conditional;
 import dev.foxikle.customnpcs.actions.conditions.ConditionalTypeAdapter;
+import dev.foxikle.customnpcs.data.Equipment;
+import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.commands.CommandCore;
 import dev.foxikle.customnpcs.internal.commands.NPCActionCommand;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
@@ -21,7 +23,6 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -369,12 +370,12 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         return miniMessage;
     }
 
-    public InternalNPC createNPC(World world, Location spawnLoc, ItemStack handItem, ItemStack offhandItem, ItemStack headItem, ItemStack chestItem, ItemStack legsItem, ItemStack bootsItem, boolean interactable, boolean resilient, String name, UUID uuid, String value, String signature, String skinName, double direction, @Nullable Player target, List<String> actions, boolean tunnelvision) {
+    public InternalNPC createNPC(World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<String> actions) {
         try {
             Class<?> clazz = Class.forName(String.format(NPC_CLASS, serverVersion));
             return (InternalNPC) clazz
-                    .getConstructor(this.getClass(), World.class, Location.class, ItemStack.class, ItemStack.class, ItemStack.class, ItemStack.class, ItemStack.class, ItemStack.class, boolean.class, boolean.class, String.class, UUID.class, String.class, String.class, String.class, double.class, Player.class, List.class, boolean.class)
-                    .newInstance(this, world, spawnLoc, handItem, offhandItem, headItem, chestItem, legsItem, bootsItem, interactable, resilient, name, uuid, value, signature, skinName, direction, target, actions, tunnelvision);
+                    .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class, UUID.class, Player.class, List.class)
+                    .newInstance(this, world, spawnLoc, equipment, settings, uuid, target, actions);
         } catch (ReflectiveOperationException e) {
             getLogger().severe(e.getMessage());
             return null;

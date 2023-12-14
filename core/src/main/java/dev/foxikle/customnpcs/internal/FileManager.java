@@ -3,6 +3,8 @@ package dev.foxikle.customnpcs.internal;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.ActionType;
 import dev.foxikle.customnpcs.actions.conditions.Conditional;
+import dev.foxikle.customnpcs.data.Equipment;
+import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
@@ -99,21 +101,21 @@ public class FileManager {
         List<String> actions = new ArrayList<>();
         npc.getActions().forEach(action -> actions.add(action.toJson()));
 
-        section.addDefault("value", npc.getValue());
-        section.addDefault("signature", npc.getSignature());
-        section.addDefault("skin", npc.getSkinName());
-        section.addDefault("clickable", npc.isClickable());
+        section.addDefault("value", npc.getSettings().getValue());
+        section.addDefault("signature", npc.getSettings().getSignature());
+        section.addDefault("skin", npc.getSettings().getSkinName());
+        section.addDefault("clickable", npc.getSettings().isInteractable());
         section.addDefault("location", npc.getSpawnLoc());
         section.addDefault("actions", actions);
-        section.addDefault("handItem", npc.getHandItem());
-        section.addDefault("offhandItem", npc.getItemInOffhand());
-        section.addDefault("headItem", npc.getHeadItem());
-        section.addDefault("chestItem", npc.getChestItem());
-        section.addDefault("legsItem", npc.getLegsItem());
-        section.addDefault("feetItem", npc.getBootsItem());
-        section.addDefault("name", npc.getHologramName());
+        section.addDefault("handItem", npc.getEquipment().getHand());
+        section.addDefault("offhandItem", npc.getEquipment().getOffhand());
+        section.addDefault("headItem", npc.getEquipment().getHead());
+        section.addDefault("chestItem", npc.getEquipment().getChest());
+        section.addDefault("legsItem", npc.getEquipment().getLegs());
+        section.addDefault("feetItem", npc.getEquipment().getBoots());
+        section.addDefault("name", npc.getSettings().getName());
         section.addDefault("world", npc.getWorld().getName());
-        section.addDefault("direction", npc.getFacingDirection());
+        section.addDefault("direction", npc.getSettings().getDirection());
         yml.options().copyDefaults(true);
         try {
             yml.save(file);
@@ -218,7 +220,7 @@ public class FileManager {
             return;
         }
 
-        InternalNPC npc = plugin.createNPC(Bukkit.getWorld(section.getString("world")), section.getLocation("location"), section.getItemStack("handItem"), section.getItemStack("offhandItem"), section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getBoolean("clickable"), true, section.getString("name"), uuid, section.getString("value"), section.getString("signature"), section.getString("skin"), section.getDouble("direction"), null,  section.getStringList("actions"), false);
+        InternalNPC npc = plugin.createNPC(Bukkit.getWorld(section.getString("world")), section.getLocation("location"), new Equipment(section.getItemStack("handItem"), section.getItemStack("offhandItem"), section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem")), new Settings( section.getBoolean("clickable"), false, true, section.getDouble("direction"), section.getString("value"), section.getString("signature"), section.getString("skin"), section.getString("name")), uuid, null,  section.getStringList("actions"));
         npc.createNPC();
     }
 

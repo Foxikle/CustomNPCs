@@ -56,7 +56,7 @@ public class MenuCore {
         ItemMeta nameMeta = nametag.getItemMeta();
         nameMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "NameTag");
         nameMeta.displayName(Component.text("Change Name", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        lore.add(Component.text("The current name is ", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(plugin.getMiniMessage().deserialize(npc.getHologramName())));
+        lore.add(Component.text("The current name is ", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(plugin.getMiniMessage().deserialize(npc.getSettings().getName())));
         nameMeta.lore(lore);
         nametag.setItemMeta(nameMeta);
 
@@ -66,12 +66,12 @@ public class MenuCore {
         handMeta.displayName(Component.text("Change Item", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         lore.clear();
         lore.add(Component.text("The current equipment is ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
-        lore.add(Component.text("Main Hand: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getHandItem().getType().toString()))));
-        lore.add(Component.text("Offhand: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text(npc.getItemInOffhand().getType().toString())));
-        lore.add(Component.text("Helmet: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getHeadItem().getType().toString()))));
-        lore.add(Component.text("Chestplate: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getChestItem().getType().toString()))));
-        lore.add(Component.text("Leggings: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getLegsItem().getType().toString()))));
-        lore.add(Component.text("Boots: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getBootsItem().getType().toString()))));
+        lore.add(Component.text("Main Hand: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getEquipment().getHand().getType().toString()))));
+        lore.add(Component.text("Offhand: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text(npc.getEquipment().getOffhand().getType().toString())));
+        lore.add(Component.text("Helmet: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getEquipment().getHead().getType().toString()))));
+        lore.add(Component.text("Chestplate: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getEquipment().getChest().getType().toString()))));
+        lore.add(Component.text("Leggings: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getEquipment().getLegs().getType().toString()))));
+        lore.add(Component.text("Boots: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getEquipment().getBoots().getType().toString()))));
 
         handMeta.lore(lore);
         equipment.setItemMeta(handMeta);
@@ -80,7 +80,7 @@ public class MenuCore {
         ItemMeta positionMeta = positionsItem.getItemMeta();
         positionMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "direction");
         positionMeta.displayName(Component.text("Facing Direction", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        double dir = npc.getFacingDirection();
+        double dir = npc.getSettings().getDirection();
         lore.clear();
         switch ((int) dir) {
             case 180 -> {
@@ -217,7 +217,7 @@ public class MenuCore {
         ItemStack resilientItem = new ItemStack(Material.BELL);
         ItemMeta resilientMeta = resilientItem.getItemMeta();
         lore.clear();
-        lore.add(npc.isResilient() ? Component.text("RESILIENT").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN).decorate(TextDecoration.BOLD) : Component.text("NOT RESILIENT").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.RED).decorate(TextDecoration.BOLD));
+        lore.add(npc.getSettings().isResilient() ? Component.text("RESILIENT").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN).decorate(TextDecoration.BOLD) : Component.text("NOT RESILIENT").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.RED).decorate(TextDecoration.BOLD));
         resilientMeta.lore(lore);
         resilientMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "resilience");
         resilientMeta.displayName(Component.text("Change resilience", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
@@ -229,9 +229,9 @@ public class MenuCore {
         confirmMeta.displayName(Component.text("CONFIRM", NamedTextColor.GREEN, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         confirmButton.setItemMeta(confirmMeta);
 
-        ItemStack clickableButton;
-        if (npc.isClickable()) {
-            clickableButton = new ItemStack(Material.OAK_SAPLING);
+        ItemStack interactableButton;
+        if (npc.getSettings().isInteractable()) {
+            interactableButton = new ItemStack(Material.OAK_SAPLING);
 
             ItemStack actionsButton = new ItemStack(Material.RECOVERY_COMPASS);
             ItemMeta actionsButtonMeta = actionsButton.getItemMeta();
@@ -245,26 +245,26 @@ public class MenuCore {
             actionsButton.setItemMeta(actionsButtonMeta);
             inv.setItem(34, actionsButton);
         } else {
-            clickableButton = new ItemStack(Material.DEAD_BUSH);
+            interactableButton = new ItemStack(Material.DEAD_BUSH);
         }
-        ItemMeta clickableMeta = clickableButton.getItemMeta();
+        ItemMeta clickableMeta = interactableButton.getItemMeta();
         clickableMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "clickable");
         clickableMeta.displayName(Component.text("Change interactability", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         lore.clear();
-        lore.add(npc.isClickable() ? Component.text("INTERACTABLE").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN).decorate(TextDecoration.BOLD) : Component.text("NOT INTERACTABLE").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.RED).decorate(TextDecoration.BOLD));
+        lore.add(npc.getSettings().isInteractable() ? Component.text("INTERACTABLE").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN).decorate(TextDecoration.BOLD) : Component.text("NOT INTERACTABLE").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.RED).decorate(TextDecoration.BOLD));
         clickableMeta.lore(lore);
-        clickableButton.setItemMeta(clickableMeta);
+        interactableButton.setItemMeta(clickableMeta);
 
         ItemStack cancelButton = new ItemStack(Material.BARRIER);
         ItemMeta cancelMeta = cancelButton.getItemMeta();
         cancelMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "Cancel");
         cancelMeta.displayName(Component.text("CANCEL", NamedTextColor.RED, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         cancelButton.setItemMeta(cancelMeta);
-        inv.setItem(13, plugin.getMenuUtils().getSkinIcon(key, "changeSkin", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9"));
+        inv.setItem(13, plugin.getMenuUtils().getSkinIcon(key, "changeSkin", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSettings().getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9"));
         inv.setItem(16, nametag);
         inv.setItem(10, positionsItem);
         inv.setItem(22, resilientItem);
-        inv.setItem(25, clickableButton);
+        inv.setItem(25, interactableButton);
         inv.setItem(31, confirmButton);
         inv.setItem(36, cancelButton);
         inv.setItem(19, equipment);
@@ -277,12 +277,12 @@ public class MenuCore {
      * @return The Inventory representing the Armor menu
      */
     public Inventory getArmorMenu() {
-        ItemStack helm = npc.getHeadItem();
-        ItemStack cp = npc.getChestItem();
-        ItemStack legs = npc.getLegsItem();
-        ItemStack boots = npc.getBootsItem();
-        ItemStack hand = npc.getHandItem();
-        ItemStack offhand = npc.getItemInOffhand();
+        ItemStack helm = npc.getEquipment().getHead();
+        ItemStack cp = npc.getEquipment().getChest();
+        ItemStack legs = npc.getEquipment().getLegs();
+        ItemStack boots = npc.getEquipment().getBoots();
+        ItemStack hand = npc.getEquipment().getHand();
+        ItemStack offhand = npc.getEquipment().getOffhand();
         Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 54, Component.text("     Edit NPC Equipment", NamedTextColor.BLACK, TextDecoration.BOLD)));
         NamespacedKey key = new NamespacedKey(plugin, "EquipmentInv");
 

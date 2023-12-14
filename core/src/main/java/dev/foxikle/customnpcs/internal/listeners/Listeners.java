@@ -60,7 +60,7 @@ public class Listeners implements Listener {
                     }
                     if (player.hasPermission("customnpcs.edit") && player.isSneaking()) {
                         player.performCommand("npc edit " + npc.getUniqueID());
-                    } else if (npc.isClickable()) {
+                    } else if (npc.getSettings().isInteractable()) {
                         npc.getActions().forEach(action -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), action.getCommand(e.getPlayer())));
                     }
                 }
@@ -89,7 +89,7 @@ public class Listeners implements Listener {
             e.setCancelled(true);
         } else if (plugin.nameWaiting.contains(e.getPlayer())) {
             plugin.nameWaiting.remove(e.getPlayer());
-            plugin.menuCores.get(e.getPlayer()).getNpc().setName(e.getMessage());
+            plugin.menuCores.get(e.getPlayer()).getNpc().getSettings().setName(e.getMessage());
             e.getPlayer().sendMessage(Component.text("Successfully set name to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(e.getMessage())).append(Component.text("'", NamedTextColor.GREEN)));
             Bukkit.getScheduler().runTask(plugin, () -> e.getPlayer().openInventory(plugin.menuCores.get(e.getPlayer()).getMainMenu()));
             e.setCancelled(true);
@@ -195,7 +195,7 @@ public class Listeners implements Listener {
         for (InternalNPC npc : plugin.npcs.values()) {
             if(npc.getTarget() != null) return;
             if(player.getWorld() != npc.getWorld()) return;
-            if(npc.isTunnelVision()) return;
+            if(npc.getSettings().isTunnelvision()) return;
             if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) <= 5) {
                 npc.lookAt(LookAtAnchor.HEAD, player);
             } else if (e.getFrom().distance(npc.getCurrentLocation()) >= 48 && e.getTo().distance(npc.getCurrentLocation()) <= 48) {
@@ -210,7 +210,7 @@ public class Listeners implements Listener {
                         return;
                     }
                 }
-                npc.setYRotation((float) npc.getFacingDirection());
+                npc.setYRotation((float) npc.getSettings().getDirection());
             }
         }
     }
@@ -246,7 +246,7 @@ public class Listeners implements Listener {
                             return;
                         }
                     }
-                    npc.setYRotation((float) npc.getFacingDirection());
+                    npc.setYRotation((float) npc.getSettings().getDirection());
                 }
             }
         }
@@ -279,7 +279,7 @@ public class Listeners implements Listener {
                         return;
                     }
                 }
-                npc.setYRotation((float) npc.getFacingDirection());
+                npc.setYRotation((float) npc.getSettings().getDirection());
             }
         }
     }

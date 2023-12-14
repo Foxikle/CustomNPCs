@@ -1,6 +1,8 @@
 package dev.foxikle.customnpcs.internal.commands;
 
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.data.Equipment;
+import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
@@ -11,12 +13,13 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.command.*;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -86,9 +89,9 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             """));
                     Component message = Component.empty();
                     for (InternalNPC npc : plugin.getNPCs()) {
-                        if (npc.isResilient()) {
+                        if (npc.getSettings().isResilient()) {
                             Component name = Component.text("  ")
-                                    .append(plugin.getMiniMessage().deserialize(npc.getHologramName())
+                                    .append(plugin.getMiniMessage().deserialize(npc.getSettings().getName())
                                             .hoverEvent(HoverEvent.showText(Component.text("Click to copy UUID", NamedTextColor.GREEN)))
                                             .clickEvent(net.kyori.adventure.text.event.ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, npc.getUniqueID().toString()))
                                     ).append(Component.text( " [EDIT]", NamedTextColor.YELLOW, TextDecoration.BOLD)
@@ -128,7 +131,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     UUID uuid = UUID.randomUUID();
-                    InternalNPC npc = plugin.createNPC(player.getWorld(), player.getLocation(), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), new ItemStack(Material.AIR), true, true,  "not set", uuid, "", "", "not set", 180, null, new ArrayList<>(), false);
+                    InternalNPC npc = plugin.createNPC(player.getWorld(), player.getLocation(), new Equipment(), new Settings(), uuid, null, new ArrayList<>());
                     MenuCore mc = new MenuCore(npc, plugin);
                     plugin.menuCores.put(player, mc);
                     plugin.pages.put(player, 0);
@@ -199,7 +202,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             npc.remove();
                             npc.delete();
                             plugin.npcs.remove(npc.getUniqueID());
-                            player.sendMessage(ChatColor.GREEN + "Successfully deleted the NPC: " + npc.getHologramName());
+                            player.sendMessage(ChatColor.GREEN + "Successfully deleted the NPC: " + npc.getSettings().getName());
 
                         } else {
                             player.sendMessage(RED + "The UUID provided does not match any NPC.");
@@ -214,7 +217,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                                 List<String> actionStrs = new ArrayList<>();
                                 npc.getActions().forEach(action -> actionStrs.add(action.toJson()));
-                                InternalNPC newNpc = plugin.createNPC(player.getWorld(), npc.getSpawnLoc(), npc.getHandItem(), npc.getItemInOffhand(), npc.getHeadItem(), npc.getChestItem(), npc.getLegsItem(), npc.getBootsItem(), npc.isClickable(), npc.isResilient(), npc.getHologramName(), uuid, npc.getValue(), npc.getSignature(), npc.getSkinName(), npc.getFacingDirection(), null, actionStrs, false);
+                                InternalNPC newNpc = plugin.createNPC(player.getWorld(), npc.getSpawnLoc(), npc.getEquipment(), npc.getSettings(), npc.getUniqueID(), null, actionStrs);
                                 MenuCore mc = new MenuCore(newNpc, plugin);
                                 plugin.menuCores.put(player, mc);
                                 plugin.pages.put(player, 0);
