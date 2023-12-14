@@ -1,0 +1,68 @@
+name: CustomNPCs
+version: ${version}
+main: dev.foxikle.customnpcs.internal.CustomNPCs
+api-version: '1.20'
+prefix: CustomNPCs
+authors: [ Foxikle ]
+website: https://foxikle.dev/plugins
+description: A simple NPC plugin.
+libraries:
+  - com.google.code.gson:gson:2.8.8
+commands:
+  npc:
+    description: The core command for Custom NPCs
+  npcaction:
+    description: no.
+permissions:
+  customnpcs.*:
+    description: A wildcard permission for CustomNPCs
+    default: op
+    children:
+    - customnpcs.edit
+    - customnpcs.create
+    - customnpcs.delete
+    - customnpcs.commands.*
+    - customnpcs.commands.manage
+    - customnpcs.commands.help
+    - customnpcs.commands.reload
+    - customnpcs.commands.list
+    - customnpcs.commands.removeHolograms
+    - customnpcs.alert
+  customnpcs.commands.*:
+    description: A wildcard permission for all command permissions
+    default: op
+    children:
+      - customnpcs.commands.manage
+      - customnpcs.commands.help
+      - customnpcs.commands.reload
+      - customnpcs.commands.list
+      - customnpcs.commands.removeHolograms
+  customnpcs.commands.manage:
+    description: A permission required to manage npcs with the /npc manage command.
+    default: op
+    children:
+      - customnpcs.edit
+      - customnpcs.create
+      - customnpcs.delete
+      - customnpcs.alert
+  customnpcs.commands.help:
+    description: A permission required for the /npc help or /npc command
+    default: op
+  customnpcs.commands.reload:
+    description: A permission required for the /npc reload command
+    default: op
+  customnpcs.edit:
+    description: A permission required to edit NPCs
+    default: op
+  customnpcs.create:
+    description: A permission required to create NPCs
+    default: op
+  customnpcs.delete:
+    description: A permission required to delete NPCs
+    default: op
+  customnpcs.commands.removeHolograms:
+    description: A permission required to use the /npc clear_holograms command.
+    default: op
+  customnpcs.alert:
+    description: A permission to alert if there is a new update available.
+    default: op
