@@ -381,4 +381,12 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             return null;
         }
     }
+
+    /**
+     * Gets the Updater object that holds data about any new updates available
+     * @return the Updater object
+     */
+    public AutoUpdater getUpdater() {
+        return updater;
+    }
 }

@@ -170,7 +170,7 @@ public class Listeners implements Listener {
     public void onPlayerLogin(PlayerJoinEvent e) {
         if(plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate")) {
             if(e.getPlayer().hasPermission("customnpcs.alert")) {
-                e.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&2&m----------------&r &6[&e!&6] &b&lCustomNPCs &6[&e!&6]  &2&m----------------\n&r&eA new update is available! I'd appreciate if you updated :) \n -&e&oFoxikle"));
+                e.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&2&m----------------&r &6[&e!&6] &b&lCustomNPCs &6[&e!&6]  &2&m----------------\n&r&eA new update (" + plugin.getUpdater().getNewestVersion() + ") is available! I'd appreciate if you updated :) \n -&e&oFoxikle"));
             }
         }
         for (InternalNPC npc : plugin.getNPCs()) {

@@ -14,6 +14,7 @@ public class AutoUpdater {
 
     private final String API_URL = "https://api.github.com/repos/foxikle/customnpcs/releases/latest";
     private final CustomNPCs plugin;
+    private String newestVersion = "UNKNOWN";
 
     public AutoUpdater(CustomNPCs plugin) {
         this.plugin = plugin;
@@ -26,6 +27,7 @@ public class AutoUpdater {
 
             if (updateAvailable) {
                 plugin.getLogger().warning("A new version (" + remoteVersion + ") is available!");
+                newestVersion = remoteVersion;
                 return true;
             }
         } catch (Exception e) {
@@ -83,5 +85,14 @@ public class AutoUpdater {
             // Handle non-numeric version parts, like "prex"
             return 0;
         }
+    }
+
+    /**
+     * Gets the latest version
+     * @apiNote May not be the latest version, as this value is cached on server start.
+     * @return the latest (cached) version
+     */
+    public String getNewestVersion() {
+        return newestVersion;
     }
 }
