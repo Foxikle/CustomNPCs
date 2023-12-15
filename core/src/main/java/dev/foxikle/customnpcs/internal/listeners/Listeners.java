@@ -19,9 +19,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The class that deals with misc listeners
@@ -196,12 +196,13 @@ public class Listeners implements Listener {
             if(npc.getTarget() != null) return;
             if(player.getWorld() != npc.getWorld()) return;
             if(npc.getSettings().isTunnelvision()) return;
-            if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) <= 5) {
+            double distance = e.getPlayer().getLocation().distance(npc.getCurrentLocation());
+            if (distance <= 5) {
                 npc.lookAt(LookAtAnchor.HEAD, player);
-            } else if (e.getFrom().distance(npc.getCurrentLocation()) >= 48 && e.getTo().distance(npc.getCurrentLocation()) <= 48) {
+            } else if (distance >= 48 && e.getTo().distance(npc.getCurrentLocation()) <= 48) {
                 npc.injectPlayer(player);
             }
-            if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) > 5) {
+            if (distance > 5) {
                 Collection<Entity> entities = npc.getWorld().getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
                 entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
                 for (Entity en : entities) {
@@ -223,21 +224,25 @@ public class Listeners implements Listener {
      */
     @EventHandler
     public void onEntityMove(EntityMoveEvent e) {
-        Entity et = e.getEntity();
-        List<Player> players = new ArrayList<>();
-        et.getPassengers().forEach(entity1 -> {
-            if(entity1 instanceof Player player) players.add(player);
-        });
-        for (Player player : players) {
+        Player player = null;
+        for (Entity entity : e.getEntity().getPassengers()) {
+            if(entity instanceof Player p){
+                player = p;
+                break;
+            }
+        }
+
+        if(player != null) {
             for (InternalNPC npc : plugin.npcs.values()) {
-                if(player.getWorld() != npc.getWorld()) return;
-                if(npc.getTarget() != null) return;
-                if (player.getLocation().distance(npc.getCurrentLocation()) <= 5) {
+                if (player.getWorld() != npc.getWorld()) return;
+                if (npc.getTarget() != null) return;
+                double distance = player.getLocation().distance(npc.getCurrentLocation());
+                if (distance <= 5) {
                     npc.lookAt(LookAtAnchor.HEAD, player);
-                } else if (e.getFrom().distance(npc.getCurrentLocation()) >= 48 && e.getTo().distance(npc.getCurrentLocation()) <= 48) {
+                } else if (distance >= 48 && e.getTo().distance(npc.getCurrentLocation()) <= 48) {
                     npc.injectPlayer(player);
                 }
-                if (player.getLocation().distance(npc.getCurrentLocation()) > 5) {
+                if (distance > 5) {
                     Collection<Entity> entities = npc.getWorld().getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
                     entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
                     for (Entity en : entities) {
@@ -250,7 +255,6 @@ public class Listeners implements Listener {
                 }
             }
         }
-
     }
 
     /**

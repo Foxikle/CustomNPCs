@@ -9,6 +9,8 @@ import dev.foxikle.customnpcs.actions.conditions.NumericConditional;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import dev.foxikle.customnpcs.internal.runnables.*;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -23,6 +25,7 @@ import org.bukkit.potion.PotionEffectType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.stream.Collectors.toList;
 import static org.bukkit.Material.*;
@@ -433,7 +436,17 @@ public class NPCMenuListeners implements Listener {
                 case "ACTION_BAR" -> action = new Action(ActionType.ACTION_BAR, new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                 case "TELEPORT" -> action = new Action(ActionType.TELEPORT, new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                 case "SEND_TO_SERVER" -> action = new Action(ActionType.SEND_TO_SERVER, new ArrayList<>(Arrays.asList("server", "name")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-                case "TOGGLE_FOLLOWING" -> action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Arrays.asList(npc.getUniqueID().toString())), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                case "TOGGLE_FOLLOWING" -> {
+                    AtomicBoolean hasAlready = new AtomicBoolean(false);
+                    npc.getActions().forEach(action1 -> {
+                        if(action1.getActionType() == ActionType.TOGGLE_FOLLOWING) hasAlready.set(true);
+                    });
+                    if(hasAlready.get()) {
+                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                    } else {
+                        action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Arrays.asList(npc.getUniqueID().toString())), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                    }
+                }
                 case "GIVE_EXP" -> action = new Action(ActionType.GIVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                 case "REMOVE_EXP" -> action = new Action(ActionType.REMOVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                 case "ADD_EFFECT" -> action = new Action(ActionType.ADD_EFFECT, new ArrayList<>(Arrays.asList("1", "1", "true", "SPEED")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());

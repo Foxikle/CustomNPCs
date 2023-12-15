@@ -1,6 +1,7 @@
 package dev.foxikle.customnpcs.internal.menu;
 
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.actions.ActionType;
 import dev.foxikle.customnpcs.actions.conditions.Conditional;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
@@ -516,7 +517,8 @@ public class MenuCore {
             ItemMeta meta = item.getItemMeta();
             List<Component> lore = new ArrayList<>();
             List<String> args = action.getArgsCopy();
-            lore.add(Component.text("Delay (ticks): " + action.getDelay()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
+            if(action.getActionType() != ActionType.TOGGLE_FOLLOWING)
+                lore.add(Component.text("Delay (ticks): " + action.getDelay()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
             lore.add(Component.empty());
             switch (action.getSubCommand()) {
                 case "DISPLAY_TITLE" -> {
