@@ -168,7 +168,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public MiniMessage miniMessage = MiniMessage.miniMessage();
 
     private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
-    private final String[] COMPATIBLE_VERSIONS = {"v1_20_R3", "v1_20_R2"};
+    private final String[] COMPATIBLE_VERSIONS = {"v1_20_R3", "v1_20_R2", "v1_20_R1"};
 
     /**
      * <p> Logic for when the plugin is enabled
