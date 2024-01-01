@@ -44,8 +44,10 @@ publishing {
             groupId = project.group.toString()
             artifactId = project.name
             version = project.version.toString()
-            artifact(tasks.named("jar")) {
-                classifier = null
+            println("Artifacts:$artifacts")
+            artifact(tasks["jar"]) {
+                print(classifier)
+                //classifier = null
             }
             from(components["java"])
         }
@@ -68,7 +70,7 @@ tasks {
     }
     javadoc {
         options.encoding = Charsets.UTF_8.name()
-        exclude("**/internal/**");
+        exclude("**/internal/**", "**/versions/**");
     }
     processResources {
         filteringCharset = Charsets.UTF_8.name()
