@@ -13,7 +13,7 @@
 #    will be automatically generated on the next server start.
 
 # DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.
-CONFIG_VERSION: 2
+CONFIG_VERSION: 3
 
 # DisplayClickText -> Should the plugin display a hologram above the NPC's head if it is interactable?
 DisplayClickText: true
