@@ -1,7 +1,6 @@
 plugins {
     `java-library`
     `maven-publish`
-    //id("io.papermc.paperweight.userdev") version "1.5.10"
     id("xyz.jpenilla.run-paper") version "2.2.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -67,8 +66,10 @@ tasks {
         options.release.set(17)
     }
     javadoc {
+        (options as StandardJavadocDocletOptions)
+                .tags("apiNote:a:API Note:")
         options.encoding = Charsets.UTF_8.name()
-        exclude("**/internal/**");
+        exclude("**/internal/**", "**/versions/**")
     }
     processResources {
         filteringCharset = Charsets.UTF_8.name()
@@ -84,13 +85,9 @@ tasks {
         }
     }
 
-    //reobfJar {
-    //    outputJar.set(layout.buildDirectory.file("C:/Users/tscal/Desktop/testserver/plugins/CustomNPCs-${project.version}.jar"))
-    //}
-
     shadowJar {
         archiveClassifier.set("")
         relocate("org.bstats", "dev.foxikle.dependencies.bstats")
+        destinationDirectory.set(file(providers.gradleProperty("plugin_dir").get()))
     }
 }
-
