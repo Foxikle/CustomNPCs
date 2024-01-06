@@ -4,6 +4,9 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.PacketFlow;
 
+/**
+ * A fake connection for the NPCs
+ */
 public class FakeConnection_v1_20_R3 extends Connection {
     /**
      * <p> Creates a fake Connection for NPC

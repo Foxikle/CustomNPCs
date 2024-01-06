@@ -10,16 +10,28 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.Scanner;
 
+/**
+ * A class to handle notifying the user if an update is available.
+ */
 public class AutoUpdater {
 
     private final String API_URL = "https://api.github.com/repos/foxikle/customnpcs/releases/latest";
     private final CustomNPCs plugin;
     private String newestVersion = "UNKNOWN";
 
+    /**
+     * The constructor for the updater class
+     * @param plugin the main plugin instance
+     */
+
     public AutoUpdater(CustomNPCs plugin) {
         this.plugin = plugin;
     }
 
+    /**
+     * Checks the GitHub repository to see if there is a newer release.
+     * @return if there is an update available
+     */
     public boolean checkForUpdates() {
         try {
             String remoteVersion = getRemoteVersion();
@@ -89,7 +101,8 @@ public class AutoUpdater {
 
     /**
      * Gets the latest version
-     * @apiNote May not be the latest version, as this value is cached on server start.
+     * <p>
+     * ** May not be the latest version, as this value is cached on server start. **
      * @return the latest (cached) version
      */
     public String getNewestVersion() {

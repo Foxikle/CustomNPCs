@@ -168,7 +168,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public MiniMessage miniMessage = MiniMessage.miniMessage();
 
     private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
-    private final String[] COMPATIBLE_VERSIONS = {"v1_20_R3", "v1_20_R2"};
+    private final String[] COMPATIBLE_VERSIONS = {"v1_20_R3", "v1_20_R2", "v1_20_R1"};
 
     /**
      * <p> Logic for when the plugin is enabled
@@ -362,7 +362,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
     /**
      * <p> Gets the plugin's minimessage parser.
-     * <p>
      *
      * @return the plugin's minimessage instance
      */
@@ -370,6 +369,17 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         return miniMessage;
     }
 
+    /**
+     * Creates an npc
+     * @param world the world
+     * @param spawnLoc the location to spawn it
+     * @param equipment the equipment object representing the NPC's items
+     * @param settings the settings object representing the NPC's settings
+     * @param uuid the NPC's UUID
+     * @param target the NPC's target to follow
+     * @param actions the NPC's actions
+     * @return the created NPC
+     */
     public InternalNPC createNPC(World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<String> actions) {
         try {
             Class<?> clazz = Class.forName(String.format(NPC_CLASS, serverVersion));

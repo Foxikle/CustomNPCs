@@ -56,6 +56,9 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
      * @param uuid The UUID of the NPC (Should be the same as the gameprofile's uuid)
      * @param spawnLoc The location to spawn the NPC
      * @param target The Entity the NPC should follow
+     * @param world The world to create the NPC in
+     * @param settings The settings for the NPC
+     * @param equipment The NPC's equipment
      */
     public NPC_v1_20_R3(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<String> actions) {
         super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uuid, uuid.toString().substring(0, 16)), ClientInformation.createDefault());

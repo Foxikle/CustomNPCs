@@ -199,6 +199,12 @@ public class MenuUtils {
         return head;
     }
 
+    /**
+     *
+     * @param base64 the string encoded with base64 holding the skin data
+     * @return the URL of the skin to mojang's servers
+     * @throws MalformedURLException if the base64 does not contain a valid url
+     */
     public static URL getUrlFromBase64(String base64) throws MalformedURLException {
         String decoded = new String(Base64.getDecoder().decode(base64));
         Matcher m = Pattern.compile("\"url\"\\s*:\\s*\"([^\"]+)\"").matcher(decoded);

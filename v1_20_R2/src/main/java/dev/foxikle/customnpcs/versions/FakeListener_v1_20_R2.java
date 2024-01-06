@@ -8,6 +8,9 @@ import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A fake packet listener for the NPCs
+ */
 public class FakeListener_v1_20_R2 extends ServerGamePacketListenerImpl {
     /**
      * <p> Creates a fake ServerGamePacketListenerImpl for NPCs

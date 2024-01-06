@@ -640,6 +640,11 @@ public class MenuCore {
         return inv;
     }
 
+    /**
+     * Gets the menu to customize an action's conditions
+     * @param action the action whose conditions are to be customized
+     * @return the inventory to be displayed
+     */
     public Inventory getConditionMenu(Action action) {
         Inventory inv = plugin.getMenuUtils().addBorder(Bukkit.createInventory(null, 36, Component.text("  Edit Action Conditionals", NamedTextColor.BLACK, TextDecoration.BOLD)));
         NamespacedKey key = new NamespacedKey(plugin, "ConditionInv");

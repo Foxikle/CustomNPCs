@@ -24,7 +24,14 @@ import java.util.logging.Level;
  */
 public class FileManager {
 
+    /**
+     * The config file version
+     */
     public static final int CONFIG_FILE_VERSION = 3;
+
+    /**
+     * The file version of the npcs.yml file
+     */
     public static final double NPCFILE_VERSION = 1.4;
 
     private final CustomNPCs plugin;
@@ -41,6 +48,7 @@ public class FileManager {
     /**
      * <p> Creates the files the plugin needs to run
      * </p>
+     * @return if creating the files was successful
      */
     public boolean createFiles(){
         if (!new File("plugins/CustomNPCs/npcs.yml").exists()) {

@@ -58,6 +58,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNPC {
      * @param target The Entity the NPC should follow
      * @param world The world the NPC resides in
      * @param equipment The NPC's equipment
+     * @param settings The NPC's settings
      */
     public NPC_v1_20_R1(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<String> actions) {
         super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uuid, uuid.toString().substring(0, 16)));
