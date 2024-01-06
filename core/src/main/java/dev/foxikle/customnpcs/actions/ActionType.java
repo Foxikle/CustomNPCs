@@ -32,7 +32,7 @@ public enum ActionType {
     /**
      * Represents starting/stopping following the player. There are no arugments.
      */
-    TOGGLE_FOLLOWING(true, true),
+    TOGGLE_FOLLOWING(false, false),
 
     /**
      * Represents playing a sound for the player. The argument syntax is as follows:
