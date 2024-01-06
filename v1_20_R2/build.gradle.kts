@@ -21,4 +21,8 @@ tasks {
             languageVersion.set(JavaLanguageVersion.of(17))
         }
     }
+
+    jar {
+        archiveClassifier = "v1_20_R2"
+    }
 }

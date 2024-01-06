@@ -43,17 +43,13 @@ publishing {
             groupId = project.group.toString()
             artifactId = project.name
             version = project.version.toString()
-            artifact(tasks.named("jar")) {
-                classifier = null
-            }
-            from(components["java"])
+            artifact(tasks["shadowJar"])
         }
     }
 }
 
 tasks {
     assemble {
-        //dependsOn(reobfJar)
         dependsOn(shadowJar)
     }
 

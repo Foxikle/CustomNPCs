@@ -29,4 +29,8 @@ tasks {
             expand("version" to version)
         }
     }
+
+    jar {
+        archiveClassifier = "api"
+    }
 }

@@ -28,4 +28,8 @@ tasks {
             expand("version" to version)
         }
     }
+
+    jar {
+        archiveClassifier = "core"
+    }
 }
