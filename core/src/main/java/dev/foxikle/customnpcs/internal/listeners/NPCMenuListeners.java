@@ -63,6 +63,7 @@ public class NPCMenuListeners implements Listener {
     public void OnInventoryClick(InventoryClickEvent e) {
         if (e.getCurrentItem() == null) return;
         if (e.getCurrentItem().getItemMeta() == null) return;
+        if(e.getAction() == InventoryAction.COLLECT_TO_CURSOR) return; // stop double-clicking
         NamespacedKey key = new NamespacedKey(plugin, "MenuButtonTag");
         ItemStack item = e.getCurrentItem();
         PersistentDataContainer persistentDataContainer = item.getItemMeta().getPersistentDataContainer();
@@ -81,7 +82,7 @@ public class NPCMenuListeners implements Listener {
                 e.setCancelled(true);
             } else if (persistentDataContainer.get(key, PersistentDataType.STRING).equals("direction")) {
                 double dir = npc.getSettings().getDirection();
-                if (e.getAction() == InventoryAction.PICKUP_ALL) {
+                if (e.isLeftClick()) {
                     switch ((int) dir) {
                         case 180 -> {
                             npc.getSettings().setDirection(-135.0);
@@ -129,7 +130,7 @@ public class NPCMenuListeners implements Listener {
                             player.openInventory(mc.getMainMenu());
                         }
                     }
-                } else if (e.getAction() == InventoryAction.PICKUP_HALF) {
+                } else if (e.isRightClick()) {
                     switch ((int) dir) {
                         case 180 -> {
                             npc.getSettings().setDirection(player.getLocation().getYaw());
@@ -383,16 +384,22 @@ public class NPCMenuListeners implements Listener {
                 player.openInventory(mc.getMainMenu());
             } else if (persistentDataContainer.getKeys().contains(new NamespacedKey(plugin, "SerializedAction"))){
                 Action action = Action.of(e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "SerializedAction"), PersistentDataType.STRING));
-                if (e.getAction() == InventoryAction.PICKUP_HALF) {
+                if (e.isRightClick()) {
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     npc.removeAction(action);
                     player.openInventory(mc.getActionMenu());
                     e.setCancelled(true);
                 } else {
-                    plugin.editingActions.put(player, action);
-                    plugin.originalEditingActions.put(player, action.toJson());
-                    player.openInventory(mc.getActionCustomizerMenu(action));
-                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    if(action.getActionType().isEditable()) {
+                        plugin.editingActions.put(player, action);
+                        plugin.originalEditingActions.put(player, action.toJson());
+                        player.openInventory(mc.getActionCustomizerMenu(action));
+                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    } else {
+                        player.sendMessage(Component.text("This action cannot be edited!", NamedTextColor.RED));
+                        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1F, 1F);
+                        e.setCancelled(true);
+                    }
                 }
             }
         } else if (persistentDataContainer.getKeys().contains(new NamespacedKey(plugin, "ConditionInv"))) {
@@ -445,13 +452,17 @@ public class NPCMenuListeners implements Listener {
             }
             if(action != null) {
                 if(!action.getActionType().canDubplicate()) {
+                    AtomicBoolean shouldReturn = new AtomicBoolean(false);
                     Action finalAction = action;
                     npc.getActions().forEach(a -> {
                         if (a.getActionType() == finalAction.getActionType()) {
                             e.setCancelled(true);
+                            shouldReturn.set(true);
                             player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                         }
                     });
+                    if(shouldReturn.get())
+                        return;
                 }
                 plugin.editingActions.put(player, action);
                 player.openInventory(mc.getActionCustomizerMenu(action));
