@@ -393,8 +393,9 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNPC {
 
     @Override
     public void reloadSettings(){
-        hologram.remove();
-        if(settings.isInteractable())
+        if(hologram != null)
+            hologram.remove();
+        if(settings.isInteractable() && clickableHologram != null)
             clickableHologram.remove();
 
         Bukkit.getScheduler().runTask(plugin, () -> this.hologram = setupHologram(settings.getName()));
