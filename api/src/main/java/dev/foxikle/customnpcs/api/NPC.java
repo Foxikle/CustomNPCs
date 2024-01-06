@@ -29,13 +29,21 @@ public class NPC {
 
     /**
      * The intended way to create an NPC
+     * <p>
      * By default, this npc has no actions
+     * <p>
      * By default, this npc has no skin
+     * <p>
      * By default, this npc has no name
+     * <p>
      * By default, this npc is not interactable
+     * <p>
      * By default, this npc is not resilient
+     * <p>
      * By default, this npc has a yaw of 0
+     * <p>
      * By default, this npc has tunnelvision
+     *
      * @param world The world for the NPC to be created in
      * @author Foxikle
      * @since 1.5-pre5
@@ -49,6 +57,10 @@ public class NPC {
         this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), new Equipment(), new Settings(), uuid, null, new ArrayList<>());
     }
 
+    /**
+     * A constructor for creating an api friendly npc object using an internal npc object.
+     * @param npc the internal npc to wrap for the api
+     */
     public NPC(InternalNPC npc) {
         this.npc = npc;
     }
@@ -100,7 +112,7 @@ public class NPC {
     }
 
     /**
-     *
+     * Sets the tunnelvision of the npc
      * @param tunnelVision if the npc should have TunnelVision (Not looking at players)
      * @return the npc with the modified TunnelVision
      * @deprecated in favour of {@link Settings#setTunnelvision(boolean)}
