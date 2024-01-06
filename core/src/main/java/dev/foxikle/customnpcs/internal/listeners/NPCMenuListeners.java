@@ -436,17 +436,7 @@ public class NPCMenuListeners implements Listener {
                 case "ACTION_BAR" -> action = new Action(ActionType.ACTION_BAR, new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                 case "TELEPORT" -> action = new Action(ActionType.TELEPORT, new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                 case "SEND_TO_SERVER" -> action = new Action(ActionType.SEND_TO_SERVER, new ArrayList<>(Arrays.asList("server", "name")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-                case "TOGGLE_FOLLOWING" -> {
-                    AtomicBoolean hasAlready = new AtomicBoolean(false);
-                    npc.getActions().forEach(action1 -> {
-                        if(action1.getActionType() == ActionType.TOGGLE_FOLLOWING) hasAlready.set(true);
-                    });
-                    if(hasAlready.get()) {
-                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
-                    } else {
-                        action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Arrays.asList(npc.getUniqueID().toString())), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-                    }
-                }
+                case "TOGGLE_FOLLOWING" -> action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Arrays.asList(npc.getUniqueID().toString())), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                 case "GIVE_EXP" -> action = new Action(ActionType.GIVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                 case "REMOVE_EXP" -> action = new Action(ActionType.REMOVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                 case "ADD_EFFECT" -> action = new Action(ActionType.ADD_EFFECT, new ArrayList<>(Arrays.asList("1", "1", "true", "SPEED")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
@@ -454,6 +444,15 @@ public class NPCMenuListeners implements Listener {
                 case "go_back" -> player.openInventory(mc.getActionMenu());
             }
             if(action != null) {
+                if(!action.getActionType().canDubplicate()) {
+                    Action finalAction = action;
+                    npc.getActions().forEach(a -> {
+                        if (a.getActionType() == finalAction.getActionType()) {
+                            e.setCancelled(true);
+                            player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                        }
+                    });
+                }
                 plugin.editingActions.put(player, action);
                 player.openInventory(mc.getActionCustomizerMenu(action));
             }
