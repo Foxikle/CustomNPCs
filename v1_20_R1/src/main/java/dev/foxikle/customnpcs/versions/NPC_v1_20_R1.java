@@ -39,8 +39,8 @@ import java.util.*;
 public class NPC_v1_20_R1 extends ServerPlayer implements InternalNPC {
     private final UUID uuid;
     private final CustomNPCs plugin;
-    private final Equipment equipment;
-    private final Settings settings;
+    private Equipment equipment;
+    private Settings settings;
     private Location spawnLoc;
     private final World world;
     private TextDisplay clickableHologram;
@@ -441,6 +441,16 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNPC {
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.LEGS, equipment.getLegs(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
         super.getBukkitEntity().setItemInHand(equipment.getHand());
+    }
+
+    @Override
+    public void setSettings(Settings s) {
+        this.settings = s;
+    }
+
+    @Override
+    public void setEquipment(Equipment e) {
+        this.equipment = e;
     }
 }
 

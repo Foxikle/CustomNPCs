@@ -396,4 +396,22 @@ public class NPC {
     public void reloadSettings() {
          npc.reloadSettings();
     }
+
+    /**
+     * Sets the npc's settings
+     * @param settings the settings to set
+     * @see NPC#reloadSettings() Make sure to reload the settings after changing them!
+     */
+    public void setSettings(Settings settings) {
+        npc.setSettings(settings);
+    }
+
+    /**
+     * Sets the npc's equipment
+     * @param equipment the equipment to set
+     * @see NPC#reloadSettings() Make sure to reload the equipment after changing them!
+     */
+    public void setEquipment(Equipment equipment) {
+        npc.setEquipment(equipment);
+    }
 }

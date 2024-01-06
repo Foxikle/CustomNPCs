@@ -234,4 +234,16 @@ public interface InternalNPC {
      * Reloads the NPC's settings and equipment
      */
     void reloadSettings();
+
+    /**
+     * Set the settings of the NPC
+     * @param s The settings object
+     */
+    void setSettings(Settings s);
+
+    /**
+     * Sets the NPC's equipment.
+     * @param e the equipment
+     */
+    void setEquipment(Equipment e);
 }
