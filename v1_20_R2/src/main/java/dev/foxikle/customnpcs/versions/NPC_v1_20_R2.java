@@ -310,7 +310,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNPC {
      */
     public void remove() {
         hologram.remove();
-        if(settings.isInteractable())
+        if(settings.isInteractable() && clickableHologram != null)
             clickableHologram.remove();
         super.remove(RemovalReason.DISCARDED);
         super.setHealth(0);
