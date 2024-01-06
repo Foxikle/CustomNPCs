@@ -14,6 +14,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -21,6 +23,9 @@ import java.util.logging.Level;
  * The class that deals with all file related things
  */
 public class FileManager {
+
+    public static final int CONFIG_FILE_VERSION = 3;
+    public static final double NPCFILE_VERSION = 1.4;
 
     private final CustomNPCs plugin;
 
@@ -42,18 +47,36 @@ public class FileManager {
             plugin.saveResource("npcs.yml", false);
         } else if (!new File("plugins/CustomNPCs/config.yml").exists()) {
             plugin.saveResource("config.yml", false);
+            return true;
         }
         File file = new File("plugins/CustomNPCs/config.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
 
         if(!yml.contains("Skins")){
-            plugin.getLogger().warning("Adding Skin Section to config.");
+            plugin.getLogger().warning("new file");
+            File f = Paths.get("/plugins/CustomNPCs/" + Instant.now().toString() + "_config.yml").toFile();
+            plugin.getLogger().warning(f.getAbsolutePath());
+            plugin.getLogger().warning("mkdirs");
+            f.mkdirs();
+            plugin.getLogger().warning("try");
+            try {
+                plugin.getLogger().warning("create");
+                if(f.createNewFile()) {
+                    plugin.getLogger().warning("save");
+                    yml.save(f);
+                } else {
+                    throw new RuntimeException("An error occoured whilst formatting the skins section of the config. This error means that the plugin tried to format the 'Skins' section of the config more than once during this instant.");
+                }
+            } catch (IOException e) {
+                plugin.getLogger().log(Level.SEVERE, "An error occoured whilst creating a backup of the config!", e);
+            }
+            plugin.getLogger().warning("The config is irreperably damaged! Resetting config. Your old config was saved to the file \"/plugins/CustomNPCs/OLD_config.yml\"");
             plugin.saveResource("config.yml", true);
         }
 
         int version = yml.getInt("CONFIG_VERSION");
         if(version == 0) { // doesn't exist?
-            plugin.getLogger().log(Level.WARNING, "Outdated Config version! Converting config (" + version + " -> 2).");
+            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
             yml.set("CONFIG_VERSION", 1);
             yml.setComments("CONFIG_VERSION", List.of(" DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.", ""));
             yml.set("ClickText", "&e&lCLICK");
@@ -66,7 +89,7 @@ public class FileManager {
                 throw new RuntimeException(e);
             }
         } else if (version < 2) { // prior to 1.4-pre2
-            plugin.getLogger().log(Level.WARNING, "Outdated Config version! Converting config (" + version + " -> 2).");
+            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
             yml.set("CONFIG_VERSION", 2);
             yml.set("AlertOnUpdate", true);
             try {
@@ -75,7 +98,7 @@ public class FileManager {
                 throw new RuntimeException(e);
             }
         } else if(version < 3) { // prior to 1.5.2-pre1
-            plugin.getLogger().log(Level.WARNING, "Outdated Config version! Converting config (" + version + " -> 3).");
+            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
             yml.set("CONFIG_VERSION", 3);
             yml.set("ClickText", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(yml.getString("ClickText"))));
             try {
@@ -137,7 +160,7 @@ public class FileManager {
         if(section == null) throw new IllegalArgumentException("NPC uuid cannot be null.");
         List<Action> actions = new ArrayList<>();
         if(yml.getString("version") == null) { // Config is from before 1.3-pre4
-            yml.set("version", "1.3");
+            yml.set("version", "1.4");
             // save updating the version
             try {
                 yml.save(file);
