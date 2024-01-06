@@ -323,12 +323,11 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @param uuid The UUID of the npc
      * @return the NPC of the specified UUID
      * @throws NullPointerException     if the specified UUID is null
-     * @throws IllegalArgumentException if an NPC with the specified UUID does not exist
      */
     public InternalNPC getNPCByID(UUID uuid) {
         if (uuid == null) throw new NullPointerException("uuid cannot be null");
         if (!npcs.containsKey(uuid))
-            throw new IllegalArgumentException("An NPC with the uuid '" + uuid + "' does not exist");
+            return null;
         return npcs.get(uuid);
     }
 
