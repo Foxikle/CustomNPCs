@@ -14,6 +14,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
@@ -34,6 +36,8 @@ public class FileManager {
      */
     public static final double NPCFILE_VERSION = 1.4;
 
+    public static File PARENT_DIRECTORY = new File("plugins/CustomNPCs/");
+
     private final CustomNPCs plugin;
 
     /**
@@ -51,35 +55,21 @@ public class FileManager {
      * @return if creating the files was successful
      */
     public boolean createFiles(){
-        if (!new File("plugins/CustomNPCs/npcs.yml").exists()) {
+        if (!new File(PARENT_DIRECTORY, "/npcs.yml").exists()) {
             plugin.saveResource("npcs.yml", false);
-        } else if (!new File("plugins/CustomNPCs/config.yml").exists()) {
+        } else if (!new File(PARENT_DIRECTORY, "config.yml").exists()) {
             plugin.saveResource("config.yml", false);
             return true;
         }
-        File file = new File("plugins/CustomNPCs/config.yml");
+        File file = new File(PARENT_DIRECTORY, "config.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
 
         if(!yml.contains("Skins")){
-            plugin.getLogger().warning("new file");
-            File f = Paths.get("/plugins/CustomNPCs/" + Instant.now().toString() + "_config.yml").toFile();
-            plugin.getLogger().warning(f.getAbsolutePath());
-            plugin.getLogger().warning("mkdirs");
-            f.mkdirs();
-            plugin.getLogger().warning("try");
-            try {
-                plugin.getLogger().warning("create");
-                if(f.createNewFile()) {
-                    plugin.getLogger().warning("save");
-                    yml.save(f);
-                } else {
-                    throw new RuntimeException("An error occoured whilst formatting the skins section of the config. This error means that the plugin tried to format the 'Skins' section of the config more than once during this instant.");
-                }
-            } catch (IOException e) {
-                plugin.getLogger().log(Level.SEVERE, "An error occoured whilst creating a backup of the config!", e);
+            BackupResult br =  createBackup(file);
+            if(br.success) {
+                plugin.getLogger().warning("The config is irreperably damaged! Resetting config. Your old config was saved to the file \"" + br.filePath.toString() + "\"");
+                plugin.saveResource("config.yml", true);
             }
-            plugin.getLogger().warning("The config is irreperably damaged! Resetting config. Your old config was saved to the file \"/plugins/CustomNPCs/OLD_config.yml\"");
-            plugin.saveResource("config.yml", true);
         }
 
         int version = yml.getInt("CONFIG_VERSION");
@@ -287,4 +277,22 @@ public class FileManager {
             e.printStackTrace();
         }
     }
+
+    private BackupResult createBackup(File file) {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+        File f = new File(PARENT_DIRECTORY, new Date().toGMTString().replace(" ", "_").replace(":", "_") + "_backup_of_" + file.getName());
+        try {
+            if(f.createNewFile()) {
+                yml.save(f);
+            } else {
+                throw new RuntimeException("A duplicate file of file '" + f.getName() + "' exists! This means the plugin attempted to back up the file '" + file.getName() + "' multiple times within this milisecond! This is a serious issue that should be reported to @foxikle on discord!");
+            }
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "An error occoured whilst creating a backup of the file '" + file.getName() + "'", e);
+            return new BackupResult(null, false);
+        }
+        return new BackupResult(f.toPath(), true);
+    }
+
+    private record BackupResult(Path filePath, boolean success) {}
 }
