@@ -11,7 +11,6 @@ import dev.foxikle.customnpcs.internal.commands.CommandCore;
 import dev.foxikle.customnpcs.internal.commands.NPCActionCommand;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
-import dev.foxikle.customnpcs.internal.listeners.NPCMenuListeners;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import me.flame.menus.menu.PaginatedMenu;
@@ -23,7 +22,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -194,7 +192,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             team.setPrefix(ChatColor.DARK_GRAY + "[NPC] ");
         }
 
-        this.getServer().getPluginManager().registerEvents(new NPCMenuListeners(this), this);
         this.getServer().getPluginManager().registerEvents(new Listeners(this), this);
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
