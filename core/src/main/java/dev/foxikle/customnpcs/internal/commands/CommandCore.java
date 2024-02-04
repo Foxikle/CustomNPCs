@@ -135,7 +135,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     MenuCore mc = new MenuCore(npc, plugin);
                     plugin.menuCores.put(player, mc);
                     plugin.pages.put(player, 0);
-                    player.openInventory(mc.getMainMenu());
+                    mc.getMainMenu().open(player);
                 } else if (args[0].equalsIgnoreCase("reload")) {
                     if(!player.hasPermission("customnpcs.commands.reload")){
                         player.sendMessage(RED + "You lack the propper permissions to reload npcs.");
@@ -179,7 +179,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             currentArgs.add(1, argsCopy.get(1));
                             currentArgs.add(2, args[1]);
                             player.sendMessage(ChatColor.GREEN + "Successfully set sound to be '" + ChatColor.RESET + args[1] + ChatColor.GREEN + "'");
-                            Bukkit.getScheduler().runTask(plugin, () -> player.openInventory(plugin.menuCores.get(player).getActionCustomizerMenu(action)));
+                            plugin.menuCores.get(player).getActionCustomizerMenu(action).open(player);
                         });
                     } else {
                         player.sendMessage(ChatColor.RED + "Unccessfully set NPC sound. I wasn't waiting for a response. Please contact Foxikle if you think this is a mistake.");
@@ -221,7 +221,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                                 MenuCore mc = new MenuCore(newNpc, plugin);
                                 plugin.menuCores.put(player, mc);
                                 plugin.pages.put(player, 0);
-                                player.openInventory(mc.getMainMenu());
+                                mc.getMainMenu().open(player);
                             }, 1);
                         } else {
                             player.sendMessage(RED + "The UUID provided does not match any NPC.");

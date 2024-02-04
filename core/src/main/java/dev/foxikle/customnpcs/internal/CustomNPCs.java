@@ -14,6 +14,7 @@ import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.listeners.NPCMenuListeners;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import me.flame.menus.menu.PaginatedMenu;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -40,7 +41,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * The List of inventories that make up the skin selection menus
      */
-    public List<Inventory> catalogueInventories;
+    public PaginatedMenu skinCatalogue;
 
     /**
      * The List of players the plugin is waiting for title text input
@@ -213,7 +214,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                 fileManager.loadNPC(uuid);
             }
             Bukkit.getScheduler().runTaskLater(this, () -> Bukkit.getOnlinePlayers().forEach(player -> npcs.values().forEach(npc -> Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> npc.injectPlayer(player), 5))), 20);
-            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> catalogueInventories = this.getMenuUtils().getCatalogueInventories(), 20);
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> skinCatalogue = this.getMenuUtils().getSkinCatalogue(), 20);
             // setup bstats
             Metrics metrics = new Metrics(this, 18898);
 
