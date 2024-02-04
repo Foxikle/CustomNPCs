@@ -57,7 +57,8 @@ public class FileManager {
     public boolean createFiles(){
         if (!new File(PARENT_DIRECTORY, "/npcs.yml").exists()) {
             plugin.saveResource("npcs.yml", false);
-        } else if (!new File(PARENT_DIRECTORY, "config.yml").exists()) {
+        }
+        if (!new File(PARENT_DIRECTORY, "config.yml").exists()) {
             plugin.saveResource("config.yml", false);
             return true;
         }
