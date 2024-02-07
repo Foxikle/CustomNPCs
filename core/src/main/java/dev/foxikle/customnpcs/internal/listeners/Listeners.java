@@ -84,14 +84,14 @@ public class Listeners implements Listener {
                 currentArgs.clear();
                 currentArgs.addAll(List.of(e.getMessage().split(" ")));
                 e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set command to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
-                plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer());
+                Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer()));
             });
             e.setCancelled(true);
         } else if (plugin.nameWaiting.contains(e.getPlayer())) {
             plugin.nameWaiting.remove(e.getPlayer());
             plugin.menuCores.get(e.getPlayer()).getNpc().getSettings().setName(e.getMessage());
             e.getPlayer().sendMessage(Component.text("Successfully set name to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(e.getMessage())).append(Component.text("'", NamedTextColor.GREEN)));
-            plugin.menuCores.get(e.getPlayer()).getMainMenu().open(e.getPlayer());
+            Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getMainMenu().open(e.getPlayer()));
             e.setCancelled(true);
         } else if (plugin.targetWaiting.contains(e.getPlayer())) {
 
@@ -107,7 +107,7 @@ public class Listeners implements Listener {
             plugin.targetWaiting.remove(e.getPlayer());
             conditional.setTargetValue(e.getMessage());
             e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set target to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + ChatColor.GREEN + "'");
-            plugin.menuCores.get(e.getPlayer()).getConditionalCustomizerMenu(plugin.editingConditionals.get(e.getPlayer())).open(e.getPlayer());
+            Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getConditionalCustomizerMenu(plugin.editingConditionals.get(e.getPlayer())).open(e.getPlayer()));
             e.setCancelled(true);
         } else if (plugin.titleWaiting.contains(e.getPlayer())) {
             Bukkit.getScheduler().runTask(plugin, () -> {
@@ -121,7 +121,7 @@ public class Listeners implements Listener {
                 currentArgs.add(2, args.get(2));
                 currentArgs.addAll(List.of(e.getMessage().split(" ")));
                 e.getPlayer().sendMessage(Component.text("Successfully set title to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(e.getMessage())).append(Component.text("'", NamedTextColor.GREEN)));
-                plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer());
+                Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer()));
             });
             e.setCancelled(true);
         } else if (plugin.messageWaiting.contains(e.getPlayer())) {
@@ -132,7 +132,7 @@ public class Listeners implements Listener {
                 currentArgs.clear();
                 currentArgs.addAll(List.of(e.getMessage().split(" ")));
                 e.getPlayer().sendMessage(Component.text("Successfully set message to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(e.getMessage())).append(Component.text("'", NamedTextColor.GREEN)));
-                plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer());
+                Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer()));
             });
             e.setCancelled(true);
         } else if (plugin.serverWaiting.contains(e.getPlayer())) {
@@ -143,7 +143,7 @@ public class Listeners implements Listener {
                 currentArgs.clear();
                 currentArgs.addAll(List.of(e.getMessage().split(" ")));
                 e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set server to be '" + ChatColor.RESET +  e.getMessage() + ChatColor.RESET + "" + ChatColor.GREEN + "'");
-                plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer());
+                Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer()));
             });
             e.setCancelled(true);
         } else if (plugin.actionbarWaiting.contains(e.getPlayer())) {
@@ -154,7 +154,7 @@ public class Listeners implements Listener {
                 currentArgs.clear();
                 currentArgs.addAll(List.of(e.getMessage().split(" ")));
                 e.getPlayer().sendMessage(Component.text("Successfully set actionbar to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(e.getMessage())).append(Component.text("'", NamedTextColor.GREEN)));
-                plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer());
+                Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer()));
             });
             e.setCancelled(true);
         }
