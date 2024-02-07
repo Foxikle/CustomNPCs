@@ -169,6 +169,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
     private final String[] COMPATIBLE_VERSIONS = {"v1_20_R3", "v1_20_R2", "v1_20_R1"};
 
+    private static boolean wasPreviouslyEnabled = false;
+
     /**
      * <p> Logic for when the plugin is enabled
      * </p>
@@ -191,10 +193,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
             team.setPrefix(ChatColor.DARK_GRAY + "[NPC] ");
         }
-
-        this.getServer().getPluginManager().registerEvents(new Listeners(this), this);
-        this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
 
         gson = new GsonBuilder()
                 .registerTypeAdapter(Conditional.class, new ConditionalTypeAdapter())
@@ -227,7 +225,13 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                 this.getLogger().warning("Could not find PlaceholderAPI! PlaceholderAPI isn't required, but CustomNPCs does support it.");
             }
         }
-
+        if(wasPreviouslyEnabled) {
+            this.getServer().getPluginManager().registerEvents(new Listeners(this), this);
+            this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+            this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
+        }
+        // detecting reloads
+        wasPreviouslyEnabled = true;
     }
 
     /**

@@ -28,6 +28,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.bukkit.ChatColor.RED;
+
 /**
  * The class to handle the core command
  */
@@ -39,53 +40,56 @@ public class CommandCore implements CommandExecutor, TabCompleter {
 
     /**
      * Creates the command handler
+     *
      * @param plugin the instance of the Main Class
      */
     public CommandCore(CustomNPCs plugin) {
         this.plugin = plugin;
     }
+
     /**
      * <p>The generic handler for any command
      * </p>
+     *
      * @param command The command used
-     * @param sender The sender of the command
-     * @param label The label of the command (/label args[])
-     * @param args The arguments of the commands
+     * @param sender  The sender of the command
+     * @param label   The label of the command (/label args[])
+     * @param args    The arguments of the commands
      * @return if the command was handled
      * @since 1.3-pre5
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if(sender instanceof Player player) {
+        if (sender instanceof Player player) {
             if (args.length == 0) {
                 player.performCommand("npc help");
             } else if (args.length == 1) {
                 if (args[0].equalsIgnoreCase("help")) {
-                    if(!player.hasPermission("customnpcs.commands.help")){
+                    if (!player.hasPermission("customnpcs.commands.help")) {
                         player.sendMessage(RED + "You lack the propper permissions to execute this.");
                         return true;
                     }
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', """
                             &2&m                      &r&3&l Custom NPCs &r&7[&8v${version}&7] &r&2&m                      \s
                             &r                                 &r&6By Foxikle \n
-                            
+                                                        
                             """).replace("${version}", plugin.getDescription().getVersion()));
 
 
                     player.sendMessage(getHelpComponent());
                 } else if (args[0].equalsIgnoreCase("manage")) {
-                    if(!player.hasPermission("customnpcs.commands.manage")){
+                    if (!player.hasPermission("customnpcs.commands.manage")) {
                         player.sendMessage(RED + "You lack the propper permissions to manage npcs.");
                         return true;
                     }
-                    if(plugin.getNPCs().isEmpty()) {
+                    if (plugin.getNPCs().isEmpty()) {
                         player.sendMessage(RED + "There are no npcs to manage!");
                         return true;
                     }
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', """
                             &2&m                           &r&3&l Manage NPCs  &r&2&m                           \s
                             &r                                 \n
-                            
+                                                        
                             """));
                     Component message = Component.empty();
                     for (InternalNPC npc : plugin.getNPCs()) {
@@ -94,7 +98,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                                     .append(plugin.getMiniMessage().deserialize(npc.getSettings().getName())
                                             .hoverEvent(HoverEvent.showText(Component.text("Click to copy UUID", NamedTextColor.GREEN)))
                                             .clickEvent(net.kyori.adventure.text.event.ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, npc.getUniqueID().toString()))
-                                    ).append(Component.text( " [EDIT]", NamedTextColor.YELLOW, TextDecoration.BOLD)
+                                    ).append(Component.text(" [EDIT]", NamedTextColor.YELLOW, TextDecoration.BOLD)
                                             .hoverEvent(HoverEvent.showText(Component.text("Click to edit NPC", NamedTextColor.DARK_AQUA)))
                                             .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc edit " + npc.getUniqueID()))
                                     ).append(Component.text(" [DELETE]", NamedTextColor.RED, TextDecoration.BOLD)
@@ -112,10 +116,10 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 } else if (args[0].equalsIgnoreCase("list")) {
                     player.performCommand("npc manage");
                 } else if (args[0].equalsIgnoreCase("clear_holograms")) {
-                    if(player.hasPermission("customnpcs.commands.removeHolograms")){
+                    if (player.hasPermission("customnpcs.commands.removeHolograms")) {
                         AtomicInteger stands = new AtomicInteger();
                         player.getWorld().getEntities().forEach(entity -> {
-                            if(entity.getScoreboardTags().contains("npcHologram")){
+                            if (entity.getScoreboardTags().contains("npcHologram")) {
                                 entity.remove();
                                 stands.getAndIncrement();
                             }
@@ -126,7 +130,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                 } else if (args[0].equalsIgnoreCase("create")) {
-                    if(!player.hasPermission("customnpcs.create")){
+                    if (!player.hasPermission("customnpcs.create")) {
                         player.sendMessage(RED + "You lack the propper permissions to create npcs.");
                         return true;
                     }
@@ -137,7 +141,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     plugin.pages.put(player, 0);
                     mc.getMainMenu().open(player);
                 } else if (args[0].equalsIgnoreCase("reload")) {
-                    if(!player.hasPermission("customnpcs.commands.reload")){
+                    if (!player.hasPermission("customnpcs.commands.reload")) {
                         player.sendMessage(RED + "You lack the propper permissions to reload npcs.");
                         return true;
                     }
@@ -147,8 +151,8 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     plugin.reloadConfig();
                     try {
                         Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
-                    } catch (IllegalArgumentException ignored) {}
-                    HandlerList.unregisterAll(plugin);
+                    } catch (IllegalArgumentException ignored) {
+                    }
                     List<InternalNPC> npcs = new ArrayList<>(plugin.npcs.values());
                     for (InternalNPC npc : npcs) {
                         plugin.npcs.remove(npc.getUniqueID());
@@ -162,8 +166,8 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 }
             } else if (args.length >= 2) {
                 if (args[0].equalsIgnoreCase("setsound")) {
-                    if(plugin.soundWaiting.contains(player)) {
-                        try{
+                    if (plugin.soundWaiting.contains(player)) {
+                        try {
                             Sound.valueOf(args[1]);
                         } catch (IllegalArgumentException ex) {
                             player.sendMessage(RED + "Unrecognised sound, please use tab completions.");
@@ -231,39 +235,30 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     }
                 }
             }
-        } else if(args[0].equalsIgnoreCase("reload")) {
-            if(args.length >= 2) {
+        } else if (args[0].equalsIgnoreCase("reload")) {
+            boolean silent = false;
+            if (args.length >= 2) {
                 if (args[1].equalsIgnoreCase("silent")) {
-                    try {
-                        Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
-                    } catch (IllegalArgumentException ignored) {
-                    }
-                    HandlerList.unregisterAll(plugin);
-                    List<InternalNPC> npcs = new ArrayList<>(plugin.npcs.values());
-                    for (InternalNPC npc : npcs) {
-                        plugin.npcs.remove(npc.getUniqueID());
-                        npc.remove();
-                    }
-                    plugin.npcs.clear();
-                    plugin.holograms.clear();
-                    plugin.onEnable();
+                    silent = true;
                 }
-            } else {
-                sender.sendMessage(ChatColor.YELLOW + "Reloading NPCs!");
-                try {
-                    Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
-                } catch (IllegalArgumentException ignored) {}
-                HandlerList.unregisterAll(plugin);
-                List<InternalNPC> npcs = new ArrayList<>(plugin.npcs.values());
-                for (InternalNPC npc : npcs) {
-                    plugin.npcs.remove(npc.getUniqueID());
-                    npc.remove();
-                }
-                plugin.npcs.clear();
-                plugin.holograms.clear();
-                plugin.onEnable();
-                sender.sendMessage(ChatColor.GREEN + "NPCs successfully reloaded.");
             }
+
+            if (!silent) sender.sendMessage(ChatColor.YELLOW + "Reloading NPCs!");
+            try {
+                Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
+            } catch (IllegalArgumentException ignored) {
+                plugin.getLogger().info("Failed to unregister the \"npc\" team during reload, this isn't an issue, but might be helpful for debugging purposes.");
+            }
+            List<InternalNPC> npcs = new ArrayList<>(plugin.npcs.values());
+            for (InternalNPC npc : npcs) {
+                plugin.npcs.remove(npc.getUniqueID());
+                npc.remove();
+            }
+            plugin.npcs.clear();
+            plugin.holograms.clear();
+            plugin.onEnable();
+            if (!silent) sender.sendMessage(ChatColor.GREEN + "NPCs successfully reloaded.");
+
         }
         return false;
     }
@@ -272,62 +267,63 @@ public class CommandCore implements CommandExecutor, TabCompleter {
     private Component getHelpComponent() {
         Component component = Component.empty();
         component = component.append(Component.text("\n\n- /npc help  ", NamedTextColor.GOLD)
-        .hoverEvent(HoverEvent.showText(Component.text("Displays this message.", NamedTextColor.WHITE)))
-        .append(Component.text("Displays this message.", NamedTextColor.AQUA))
-        .appendNewline()
-        .append(Component.text("- /npc manage  ", NamedTextColor.GOLD)
-                .hoverEvent(HoverEvent.showText(Component.text("Displays the current NPCs with buttons to edit or delete them.", NamedTextColor.WHITE)))
-        )
-        .append(Component.text("Displays the current NPCs", NamedTextColor.AQUA))
-        .appendNewline()
-        .append(Component.text("- /npc create  ", NamedTextColor.GOLD)
-            .hoverEvent(HoverEvent.showText(Component.text("Opens the NPC customizer", NamedTextColor.WHITE)))
-        )
-        .append(Component.text("Creates a new NPC", NamedTextColor.AQUA))
-        .appendNewline()
-        .append(Component.text("- /npc delete <UUID>  ", NamedTextColor.GOLD)
-                .hoverEvent(HoverEvent.showText(Component.text("Permanantly deletes the NPC", NamedTextColor.DARK_RED)))
-        )
-        .append(Component.text("Permanantly deletes the NPC  ", NamedTextColor.AQUA))
-        .appendNewline()
-        .append(Component.text("- /npc edit <UUID>  ", NamedTextColor.GOLD)
-                .hoverEvent(HoverEvent.showText(Component.text("Brings up the NPC edit dialogue", NamedTextColor.WHITE)))
-        )
-        .append(Component.text("Edits the specified NPC", NamedTextColor.AQUA))
-        .appendNewline()
-        .append(Component.text("- /npc create  ", NamedTextColor.GOLD)
-                .hoverEvent(HoverEvent.showText(Component.text("Opens the NPC customizer", NamedTextColor.WHITE)))
-        )
-        .append(Component.text("Creates a new NPC  ", NamedTextColor.AQUA))
-        .appendNewline()
-        .append(Component.text("- /npc clear_holograms  ", NamedTextColor.GOLD)
-                .hoverEvent(HoverEvent.showText(Component.text("Deletes ALL NPC holograms. (Includes holograms without NPCs correlated to them)", NamedTextColor.WHITE)))
-        )
-        .append(Component.text("Forcfully deletes NPC holograms", NamedTextColor.AQUA))
-        .appendNewline()
-        .append(Component.text("- /npc reload  ", NamedTextColor.GOLD)
-                .hoverEvent(HoverEvent.showText(Component.text("Reloads the plugin and config", NamedTextColor.WHITE)))
-        )
-        .append(Component.text("Reloads CustomNPCs", NamedTextColor.AQUA))
-        .appendNewline()
-        .append(Component.text("                                                                                 ", NamedTextColor.DARK_GREEN, TextDecoration.STRIKETHROUGH)));
+                .hoverEvent(HoverEvent.showText(Component.text("Displays this message.", NamedTextColor.WHITE)))
+                .append(Component.text("Displays this message.", NamedTextColor.AQUA))
+                .appendNewline()
+                .append(Component.text("- /npc manage  ", NamedTextColor.GOLD)
+                        .hoverEvent(HoverEvent.showText(Component.text("Displays the current NPCs with buttons to edit or delete them.", NamedTextColor.WHITE)))
+                )
+                .append(Component.text("Displays the current NPCs", NamedTextColor.AQUA))
+                .appendNewline()
+                .append(Component.text("- /npc create  ", NamedTextColor.GOLD)
+                        .hoverEvent(HoverEvent.showText(Component.text("Opens the NPC customizer", NamedTextColor.WHITE)))
+                )
+                .append(Component.text("Creates a new NPC", NamedTextColor.AQUA))
+                .appendNewline()
+                .append(Component.text("- /npc delete <UUID>  ", NamedTextColor.GOLD)
+                        .hoverEvent(HoverEvent.showText(Component.text("Permanantly deletes the NPC", NamedTextColor.DARK_RED)))
+                )
+                .append(Component.text("Permanantly deletes the NPC  ", NamedTextColor.AQUA))
+                .appendNewline()
+                .append(Component.text("- /npc edit <UUID>  ", NamedTextColor.GOLD)
+                        .hoverEvent(HoverEvent.showText(Component.text("Brings up the NPC edit dialogue", NamedTextColor.WHITE)))
+                )
+                .append(Component.text("Edits the specified NPC", NamedTextColor.AQUA))
+                .appendNewline()
+                .append(Component.text("- /npc create  ", NamedTextColor.GOLD)
+                        .hoverEvent(HoverEvent.showText(Component.text("Opens the NPC customizer", NamedTextColor.WHITE)))
+                )
+                .append(Component.text("Creates a new NPC  ", NamedTextColor.AQUA))
+                .appendNewline()
+                .append(Component.text("- /npc clear_holograms  ", NamedTextColor.GOLD)
+                        .hoverEvent(HoverEvent.showText(Component.text("Deletes ALL NPC holograms. (Includes holograms without NPCs correlated to them)", NamedTextColor.WHITE)))
+                )
+                .append(Component.text("Forcfully deletes NPC holograms", NamedTextColor.AQUA))
+                .appendNewline()
+                .append(Component.text("- /npc reload  ", NamedTextColor.GOLD)
+                        .hoverEvent(HoverEvent.showText(Component.text("Reloads the plugin and config", NamedTextColor.WHITE)))
+                )
+                .append(Component.text("Reloads CustomNPCs", NamedTextColor.AQUA))
+                .appendNewline()
+                .append(Component.text("                                                                                 ", NamedTextColor.DARK_GREEN, TextDecoration.STRIKETHROUGH)));
         return component;
     }
 
     /**
      * <p>The generic handler for any tab completion
      * </p>
+     *
      * @param command The command used
-     * @param sender The sender of the command
-     * @param label The label of the command (/label args[])
-     * @param args The arguments of the commands
+     * @param sender  The sender of the command
+     * @param label   The label of the command (/label args[])
+     * @param args    The arguments of the commands
      * @return the options to tab-complete
      * @since 1.3-pre5
      */
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> list = new ArrayList<>();
-        if(args.length == 1){
+        if (args.length == 1) {
             list.add("help");
             list.add("manage");
             list.add("create");
@@ -335,7 +331,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             list.add("edit");
             list.add("reload");
             list.add("clear_holograms");
-            if(plugin.soundWaiting.contains((Player) sender)) list.add("setsound");
+            if (plugin.soundWaiting.contains((Player) sender)) list.add("setsound");
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("setsound")) {
                 for (Sound sound : Sound.values()) {
