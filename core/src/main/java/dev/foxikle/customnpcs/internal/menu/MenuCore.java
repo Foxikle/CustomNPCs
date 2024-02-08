@@ -2503,9 +2503,6 @@ public class MenuCore {
             return ActionResponse.DONE;
         }));
 
-        // make and add the npc action types.
-        ItemStack item = new ItemStack(Material.BEDROCK);
-
         menu.addItem(ItemBuilder.of(OAK_SIGN)
                 .setName("§bDisplay Title")
                 .setLore("§eDisplays a title for the player.")
@@ -2806,55 +2803,41 @@ public class MenuCore {
     public Menu getNewConditionMenu() {
         Menu menu = Menu.builder().title("       New Action Condition").rows(3).addAllModifiers().normal();
         menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
-        ItemStack goBack = new ItemStack(Material.ARROW);
-        ItemMeta goBackMeta = goBack.getItemMeta();
-        goBackMeta.displayName(Component.text("Go Back", NamedTextColor.GOLD));
-        goBack.setItemMeta(goBackMeta);
-        menu.setItem(18, ItemBuilder.of(goBack).buildItem((i, event) -> {
-            getConditionMenu(plugin.editingActions.get(event.getPlayer()));
-            return ActionResponse.DONE;
-        }));
 
-        // make and add the npc action types.
-        ItemStack numeric = new ItemStack(Material.BEDROCK);
-        ItemMeta meta = numeric.getItemMeta();
-        List<Component> lore = new ArrayList<>();
+        menu.setItem(18, ItemBuilder.of(ARROW)
+                .setName("§6Go Back")
+                .buildItem((i, event) -> {
+                    getConditionMenu(plugin.editingActions.get(event.getPlayer()));
+                    return ActionResponse.DONE;
+                }));
 
+        menu.addItem(ItemBuilder.of(POPPED_CHORUS_FRUIT)
+                .setName("§3Numeric Condition")
+                .setLore("§eCompares numbers.")
+                .buildItem((i, event) -> {
+                    Player player = event.getPlayer();
 
-        numeric.setType(Material.POPPED_CHORUS_FRUIT);
-        meta.displayName(Component.text("Numeric Condition", NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        lore.add(Component.text("Compares numbers.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        meta.lore(lore);
-        numeric.setItemMeta(meta);
-        lore.clear();
-        menu.addItem(ItemBuilder.of(numeric).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    Conditional conditional = new NumericConditional(Conditional.Comparator.EQUAL_TO, Conditional.Value.EXP_LEVELS, 0.0);
+                    plugin.editingConditionals.put(player, conditional);
+                    getConditionalCustomizerMenu(conditional).open(player);
 
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Conditional conditional = new NumericConditional(Conditional.Comparator.EQUAL_TO, Conditional.Value.EXP_LEVELS, 0.0);
-            plugin.editingConditionals.put(player, conditional);
-            getConditionalCustomizerMenu(conditional).open(player);
+                    return ActionResponse.DONE;
+                }));
 
-            return ActionResponse.DONE;
-        }));
+        menu.addItem(ItemBuilder.of(COMPARATOR)
+                .setName("§3Logical Condition")
+                .setLore("§eCompares things with", "§enumbered options.")
+                .buildItem((i, event) -> {
+                    Player player = event.getPlayer();
 
-        ItemStack logical = new ItemStack(COMPARATOR);
-        ItemMeta logicalMeta = logical.getItemMeta();
-        logicalMeta.displayName(Component.text("Logical Condition", NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        lore.add(Component.text("Compares things with numbered options", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        logicalMeta.lore(lore);
-        numeric.setItemMeta(meta);
-        lore.clear();
-        menu.addItem(ItemBuilder.of(numeric).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    Conditional conditional = new LogicalConditional(Conditional.Comparator.EQUAL_TO, Conditional.Value.GAMEMODE, "SURVIVAL");
+                    plugin.editingConditionals.put(player, conditional);
+                    getConditionalCustomizerMenu(conditional).open(player);
 
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Conditional conditional = new LogicalConditional(Conditional.Comparator.EQUAL_TO, Conditional.Value.GAMEMODE, "SURVIVAL");
-            plugin.editingConditionals.put(player, conditional);
-            getConditionalCustomizerMenu(conditional).open(player);
-
-            return ActionResponse.DONE;
-        }));
+                    return ActionResponse.DONE;
+                }));
         menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
     }
