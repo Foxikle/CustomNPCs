@@ -16,20 +16,19 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.tags.ItemTagType;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffectType;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static java.util.stream.Collectors.toList;
 import static org.bukkit.Material.*;
 
 /**
@@ -60,7 +59,7 @@ public class MenuCore {
      */
     public Menu getMainMenu() {
         List<Component> lore = new ArrayList<>();
-        Menu menu = Menu.builder().title("     Create a New NPC").rows(5).addAllModifiers().normal();
+        Menu menu = Menu.builder().title("       Create a New NPC").rows(5).addAllModifiers().normal();
 
         ItemStack nametag = new ItemStack(Material.NAME_TAG);
         ItemMeta nameMeta = nametag.getItemMeta();
@@ -251,7 +250,7 @@ public class MenuCore {
                 Player player = event.getPlayer();
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 event.setCancelled(true);
-                getArmorMenu().open(player);
+                getActionMenu().open(player);
                 return ActionResponse.DONE;
             }));
         } else {
@@ -320,6 +319,7 @@ public class MenuCore {
             event.setCancelled(true);
             player.sendMessage(ChatColor.AQUA + "The NPC is now " + (npc.getSettings().isResilient() ? ChatColor.RED + "" + ChatColor.BOLD + "NOT RESILIENT" : ChatColor.GREEN + "" + ChatColor.BOLD + "RESILIENT"));
             npc.getSettings().setResilient(!npc.getSettings().isResilient());
+            getMainMenu().open(event.getPlayer());
             return ActionResponse.DONE;
         }));
         menu.setItem(25, ItemBuilder.of(interactableButton).buildItem((i, event) -> {
@@ -353,9 +353,10 @@ public class MenuCore {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
-            getMainMenu().open(player);
+            getArmorMenu().open(player);
             return ActionResponse.DONE;
         }));
+        menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
     }
 
@@ -372,7 +373,8 @@ public class MenuCore {
         ItemStack boots = npc.getEquipment().getBoots();
         ItemStack hand = npc.getEquipment().getHand();
         ItemStack offhand = npc.getEquipment().getOffhand();
-        Menu menu = Menu.builder().rows(6).addAllModifiers().title("     Edit NPC Equipment").normal();
+        Menu menu = Menu.builder().rows(6).addAllModifiers().title("      Edit NPC Equipment").normal();
+        menu.getFiller().fill(MenuItems.MENU_GLASS);
 
         if (helm.getType().isAir()) {
             ItemStack item = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
@@ -441,11 +443,11 @@ public class MenuCore {
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage(ChatColor.GREEN + "Successfully set chestplate slot to " + npc.getEquipment().getChest().getType());
-                    getArmorMenu().open(player);
                 } else {
                     event.setCancelled(true);
                     player.sendMessage(ChatColor.RED + "That is not a chestplate!");
                 }
+                getArmorMenu().open(player);
                 return ActionResponse.DONE;
             }));
         } else {
@@ -471,11 +473,11 @@ public class MenuCore {
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage(ChatColor.GREEN + "Successfully set chestplate slot to " + npc.getEquipment().getChest().getType());
-                    getArmorMenu().open(player);
                 } else {
                     event.setCancelled(true);
                     player.sendMessage(ChatColor.RED + "That is not a chestplate!");
                 }
+                getArmorMenu().open(player);
                 return ActionResponse.DONE;
             }));
         }
@@ -498,11 +500,12 @@ public class MenuCore {
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage(ChatColor.GREEN + "Successfully set leggings slot to " + npc.getEquipment().getLegs().getType());
-                    getArmorMenu().open(player);
+
                 } else {
                     event.setCancelled(true);
                     player.sendMessage(ChatColor.RED + "That is not a pair of leggings!");
                 }
+                getArmorMenu().open(player);
                 return ActionResponse.DONE;
             }));
         } else {
@@ -555,11 +558,11 @@ public class MenuCore {
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage(ChatColor.GREEN + "Successfully set boots slot to " + npc.getEquipment().getBoots().getType());
-                    getArmorMenu().open(player);
                 } else {
                     event.setCancelled(true);
                     player.sendMessage(ChatColor.RED + "That is not a pair of boots!");
                 }
+                getArmorMenu().open(player);
                 return ActionResponse.DONE;
             }));
         } else {
@@ -580,17 +583,16 @@ public class MenuCore {
                     npc.getEquipment().setBoots(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     player.sendMessage(ChatColor.RED + "Successfully reset boots slot ");
-                    getArmorMenu().open(player);
                 } else if (event.getCursorItem().getType().name().contains("LEGGINGS")) {
                     npc.getEquipment().setBoots(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage(ChatColor.GREEN + "Successfully set boots slot to " + npc.getEquipment().getBoots().getType());
-                    getArmorMenu().open(player);
                 } else {
                     event.setCancelled(true);
                     player.sendMessage(ChatColor.RED + "That is not a pair of boots!");
                 }
+                getArmorMenu().open(player);
                 return ActionResponse.DONE;
             }));
         }
@@ -607,7 +609,7 @@ public class MenuCore {
             item.setItemMeta(meta);
             menu.setItem(23, ItemBuilder.of(item).buildItem((i, event) -> {
                 Player player = event.getPlayer();
-                npc.getEquipment().setLegs(event.getCursor().clone());
+                npc.getEquipment().setHand(event.getCursor().clone());
                 event.getCursor().setAmount(0);
                 player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                 player.sendMessage(ChatColor.GREEN + "Successfully set hand slot to " + npc.getEquipment().getHand().getType());
@@ -628,15 +630,15 @@ public class MenuCore {
             menu.setItem(23, ItemBuilder.of(hand).buildItem((i, event) -> {
                 Player player = event.getPlayer();
                 if (event.isRightClick()) {
-                    npc.getEquipment().setLegs(new ItemStack(AIR));
+                    npc.getEquipment().setHand(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
-                    player.sendMessage(ChatColor.RED + "Successfully reset offhand slot ");
+                    player.sendMessage(ChatColor.RED + "Successfully reset hand slot ");
                     getArmorMenu().open(player);
                 } else {
-                    npc.getEquipment().setLegs(event.getCursor().clone());
+                    npc.getEquipment().setHand(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                    player.sendMessage(ChatColor.GREEN + "Successfully set offhand slot to " + npc.getEquipment().getLegs().getType());
+                    player.sendMessage(ChatColor.GREEN + "Successfully set offhand slot to " + npc.getEquipment().getHand().getType());
                     getArmorMenu().open(player);
                 }
                 return ActionResponse.DONE;
@@ -655,10 +657,10 @@ public class MenuCore {
             item.setItemMeta(meta);
             menu.setItem(21, ItemBuilder.of(item).buildItem((i, event) -> {
                 Player player = event.getPlayer();
-                npc.getEquipment().setLegs(event.getCursor().clone());
+                npc.getEquipment().setOffhand(event.getCursor().clone());
                 event.getCursor().setAmount(0);
                 player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                player.sendMessage(ChatColor.GREEN + "Successfully set offhand slot to " + npc.getEquipment().getLegs().getType());
+                player.sendMessage(ChatColor.GREEN + "Successfully set offhand slot to " + npc.getEquipment().getOffhand().getType());
                 getArmorMenu().open(player);
                 return ActionResponse.DONE;
             }));
@@ -674,18 +676,18 @@ public class MenuCore {
             meta.lore(lore);
             offhand.setItemMeta(meta);
 
-            menu.setItem(31, ItemBuilder.of(offhand).buildItem((i, event) -> {
+            menu.setItem(21, ItemBuilder.of(offhand).buildItem((i, event) -> {
                 Player player = event.getPlayer();
                 if (event.isRightClick()) {
-                    npc.getEquipment().setLegs(new ItemStack(AIR));
+                    npc.getEquipment().setOffhand(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     player.sendMessage(ChatColor.RED + "Successfully reset offhand slot ");
                     getArmorMenu().open(player);
                 } else {
-                    npc.getEquipment().setLegs(event.getCursor().clone());
+                    npc.getEquipment().setOffhand(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                    player.sendMessage(ChatColor.GREEN + "Successfully set offhand slot to " + npc.getEquipment().getLegs().getType());
+                    player.sendMessage(ChatColor.GREEN + "Successfully set offhand slot to " + npc.getEquipment().getOffhand().getType());
                     getArmorMenu().open(player);
                 }
                 return ActionResponse.DONE;
@@ -711,8 +713,8 @@ public class MenuCore {
      * @return The Inventory representing the Actions menu
      */
     public Menu getActionMenu() {
-        Menu menu = Menu.builder().rows(6).title("      Edit NPC Actions").addAllModifiers().normal();
-
+        Menu menu = Menu.builder().rows(6).title("          Edit NPC Actions").addAllModifiers().normal();
+        menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
         List<Action> actions = npc.getActions();
 
         for (Action action : actions) {
@@ -816,8 +818,6 @@ public class MenuCore {
             lore.add(Component.text("Right Click to remove.", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             if (action.getActionType().isEditable())
                 lore.add(Component.text("Left Click to edit.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            NamespacedKey actionKey = new NamespacedKey(plugin, "SerializedAction");
-            meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action.toJson());
             meta.lore(lore);
             item.setItemMeta(meta);
             menu.addItem(ItemBuilder.of(item).buildItem((i, event) -> {
@@ -864,7 +864,6 @@ public class MenuCore {
             getNewActionMenu().open(player);
             return ActionResponse.DONE;
         }));
-
         return menu;
     }
 
@@ -875,7 +874,8 @@ public class MenuCore {
      * @return the inventory to be displayed
      */
     public Menu getConditionMenu(Action action) {
-        Menu menu = Menu.builder().title("  Edit Action Conditionals").rows(4).addAllModifiers().normal();
+        Menu menu = Menu.builder().title("   Edit Action Conditionals").rows(4).addAllModifiers().normal();
+        menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
         if (action.getConditionals() != null) {
             for (Conditional c : action.getConditionals()) {
                 ItemStack item = new ItemStack(Material.BEDROCK);
@@ -959,7 +959,6 @@ public class MenuCore {
             getConditionMenu(action).open(player);
             return ActionResponse.DONE;
         }));
-
         return menu;
     }
 
@@ -971,7 +970,7 @@ public class MenuCore {
      * @return The Inventory representing the action to customize
      */
     public Menu getActionCustomizerMenu(Action action) {
-        Menu menu = Menu.builder().addAllModifiers().title("       Edit NPC Action").normal();
+        Menu menu = Menu.builder().addAllModifiers().rows(5).title("       Edit NPC Action").normal();
 
         // lores
         List<Component> incLore = new ArrayList<>();
@@ -984,12 +983,7 @@ public class MenuCore {
         decLore.add(Component.text("Right Click to remove 5", NamedTextColor.DARK_GRAY).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         decLore.add(Component.text("Shift + Click to remove 20", NamedTextColor.DARK_GRAY).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
 
-        // Go back to actions menu
-        ItemStack decDelay = new ItemStack(Material.RED_DYE);
-        ItemMeta decDelayItemMeta = decDelay.getItemMeta();
-        decDelayItemMeta.displayName(Component.text("Decrement Delay", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        decDelay.setItemMeta(decDelayItemMeta);
-        menu.setItem(3, ItemBuilder.of(decDelay).buildItem((i, event) -> {
+        menu.setItem(3, ItemBuilder.of(RED_DYE).setName("§eDecrement Delay").buildItem((i, event) -> {
             Player player = event.getPlayer();
             if (event.isLeftClick()) { // Left click (1)
                 if (!(action.getDelay() - 1 < 0)) {
@@ -1012,21 +1006,11 @@ public class MenuCore {
             }
             return ActionResponse.DONE;
         }));// Go back to actions menu
-
-        ItemStack displayDelay = new ItemStack(Material.CLOCK);
-        ItemMeta delayMeta = displayDelay.getItemMeta();
-        delayMeta.displayName(Component.text("Delay ticks: " + action.getDelay(), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        displayDelay.setItemMeta(delayMeta);
-        menu.setItem(4, ItemBuilder.of(displayDelay).buildItem((i, event) -> {
+        menu.setItem(4, ItemBuilder.of(CLOCK).setName("§eDelay Ticks: " + action.getDelay()).buildItem((i, event) -> {
             event.setCancelled(true);
             return ActionResponse.DONE;
         }));
-
-        ItemStack incDelay = new ItemStack(Material.LIME_DYE);
-        ItemMeta incDelayItemMeta = incDelay.getItemMeta();
-        incDelayItemMeta.displayName(Component.text("Increment Delay", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        incDelay.setItemMeta(incDelayItemMeta);
-        menu.setItem(5, ItemBuilder.of(incDelay).buildItem((i, event) -> {
+        menu.setItem(5, ItemBuilder.of(LIME_DYE).setName("§eIncrement Delay").buildItem((i, event) -> {
             if (event.isLeftClick()) {
                 action.setDelay(action.getDelay() + 1);
             } else if (event.isRightClick()) {
@@ -1036,33 +1020,15 @@ public class MenuCore {
             }
             return ActionResponse.DONE;
         }));
-
-        // Go back to actions menu
-        ItemStack goBack = new ItemStack(Material.ARROW);
-        ItemMeta goBackMeta = goBack.getItemMeta();
-        goBackMeta.displayName(Component.text("Go Back", NamedTextColor.GOLD));
-        goBack.setItemMeta(goBackMeta);
-        menu.setItem(36, ItemBuilder.of(goBack).buildItem((i, event) -> {
-            getActionMenu().open(event.getPlayer());
+        menu.setItem(36, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((i, event) -> {
+            //getActionMenu().open(event.getPlayer());
             return ActionResponse.DONE;
         }));
-
-        //Edit conditionals
-        ItemStack editConditionals = new ItemStack(Material.COMPARATOR);
-        ItemMeta editConditionalsMeta = editConditionals.getItemMeta();
-        editConditionalsMeta.displayName(Component.text("Edit Conditionals", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        editConditionals.setItemMeta(editConditionalsMeta);
-        menu.setItem(44, ItemBuilder.of(editConditionals).buildItem((i, event) -> {
+        menu.setItem(44, ItemBuilder.of(COMPARATOR).setName("§cEdit Conditions").buildItem((i, event) -> {
             getConditionMenu(action).open(event.getPlayer());
             return ActionResponse.DONE;
         }));
-
-        // Confirm the action creation
-        ItemStack confirm = new ItemStack(Material.LILY_PAD);
-        ItemMeta confirmMeta = confirm.getItemMeta();
-        confirmMeta.displayName(Component.text("Confirm", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        confirm.setItemMeta(confirmMeta);
-        menu.setItem(40, ItemBuilder.of(confirm).buildItem((i, event) -> {
+        menu.setItem(40, ItemBuilder.of(LILY_PAD).setName("§aConfirm").buildItem((i, event) -> {
             Player player = event.getPlayer();
             if (plugin.originalEditingActions.get(player) != null)
                 npc.removeAction(Action.of(plugin.originalEditingActions.remove(player)));
@@ -1072,9 +1038,8 @@ public class MenuCore {
         }));
 
         List<String> args = action.getArgsCopy();
-
-        switch (action.getSubCommand()) {
-            case "RUN_COMMAND" -> {
+        switch (action.getActionType()) {
+            case RUN_COMMAND -> {
                 ItemStack selectCommand = new ItemStack(Material.ANVIL);
                 ItemMeta meta = selectCommand.getItemMeta();
                 List<Component> lore = new ArrayList<>();
@@ -1092,7 +1057,7 @@ public class MenuCore {
                     return ActionResponse.DONE;
                 }));
             }
-            case "DISPLAY_TITLE" -> {
+            case DISPLAY_TITLE -> {
 
                 /* 6 buttons. 3 "displays" Fade in, stay, fade out. 3 buttons increment, 3 decrement.  1 button to edit title
 
@@ -1265,7 +1230,7 @@ public class MenuCore {
                     return ActionResponse.DONE;
                 }));
             }
-            case "ADD_EFFECT" -> {
+            case ADD_EFFECT -> {
 
                 /*
                  # # # # # # # # #
@@ -1483,7 +1448,7 @@ public class MenuCore {
                 }));
 
             }
-            case "REMOVE_EFFECT" -> {
+            case REMOVE_EFFECT -> {
 
                 /*
                  # # # # # # # # #
@@ -1534,7 +1499,7 @@ public class MenuCore {
                 }));
 
             }
-            case "GIVE_EXP" -> {
+            case GIVE_EXP -> {
 
                 /*
                  # # # # # # # # #
@@ -1625,7 +1590,7 @@ public class MenuCore {
                 }));
 
             }
-            case "REMOVE_EXP" -> {
+            case REMOVE_EXP -> {
 
                 /*
                  # # # # # # # # #
@@ -1717,7 +1682,7 @@ public class MenuCore {
                 }));
 
             }
-            case "SEND_MESSAGE" -> {
+            case SEND_MESSAGE -> {
                 /* 1 button to edit message
 
                  # # # # # # # # #
@@ -1743,7 +1708,7 @@ public class MenuCore {
                     return ActionResponse.DONE;
                 }));
             }
-            case "PLAY_SOUND" -> {
+            case PLAY_SOUND -> {
                 /* 4 buttons.
                 2 "displays" pitch, volume,
                 2 buttons increment,
@@ -1881,7 +1846,7 @@ public class MenuCore {
                     return ActionResponse.DONE;
                 }));
             }
-            case "ACTION_BAR" -> {
+            case ACTION_BAR -> {
                 /* 1 button to edit message
 
                  # # # # # # # # #
@@ -1907,7 +1872,7 @@ public class MenuCore {
                     return ActionResponse.DONE;
                 }));
             }
-            case "TELEPORT" -> {
+            case TELEPORT -> {
 
                  /* 6 buttons.
                  3 "displays" F
@@ -2237,7 +2202,7 @@ public class MenuCore {
                     return ActionResponse.DONE;
                 }));
             }
-            case "SEND_TO_SERVER" -> {
+            case SEND_TO_SERVER -> {
                 /* 1 button to edit message
 
                  # # # # # # # # #
@@ -2263,11 +2228,12 @@ public class MenuCore {
                     return ActionResponse.DONE;
                 }));
             }
-            case "TOGGLE_FOLLOWING" -> {
+            case TOGGLE_FOLLOWING -> {
                 npc.addAction(action);
                 return getActionMenu();
             }
         }
+        menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
     }
 
@@ -2279,7 +2245,7 @@ public class MenuCore {
      * @return The Inventory representing the conditional to customize
      */
     public Menu getConditionalCustomizerMenu(Conditional conditional) {
-        Menu menu = Menu.builder().rows(3).title("  Edit Action Conditional").addAllModifiers().normal();
+        Menu menu = Menu.builder().rows(3).title("   Edit Action Conditional").addAllModifiers().normal();
 
         // Go back to actions menu
         ItemStack goBack = new ItemStack(Material.ARROW);
@@ -2518,6 +2484,7 @@ public class MenuCore {
                 }));
             }
         }
+        menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
     }
 
@@ -2528,8 +2495,8 @@ public class MenuCore {
      * @return The Inventory representing the new Action menu
      */
     public Menu getNewActionMenu() {
-        Menu menu = Menu.builder().rows(4).addAllModifiers().title("       New NPC Action").normal();
-
+        Menu menu = Menu.builder().rows(4).addAllModifiers().title("          New NPC Action").normal();
+        menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
         ItemStack goBack = new ItemStack(Material.ARROW);
         ItemMeta goBackMeta = goBack.getItemMeta();
         goBackMeta.displayName(Component.text("Go Back", NamedTextColor.GOLD));
@@ -2541,8 +2508,6 @@ public class MenuCore {
 
         // make and add the npc action types.
         ItemStack item = new ItemStack(Material.BEDROCK);
-        ItemMeta meta = item.getItemMeta();
-        List<Component> lore = new ArrayList<>();
 
         menu.addItem(ItemBuilder.of(OAK_SIGN)
                 .setName("§bDisplay Title")
@@ -2551,19 +2516,28 @@ public class MenuCore {
                     Player player = event.getPlayer();
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     Action action = new Action(ActionType.DISPLAY_TITLE, new ArrayList<>(Arrays.asList("10", "20", "10", "title!")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                    player.sendMessage("[DEBUG] hi");
                     if (!action.getActionType().canDubplicate()) {
+                        player.sendMessage("[DEBUG] hii");
                         AtomicBoolean shouldReturn = new AtomicBoolean(false);
                         npc.getActions().forEach(a -> {
+                            player.sendMessage("[DEBUG] hiii");
                             if (a.getActionType() == action.getActionType()) {
                                 event.setCancelled(true);
                                 shouldReturn.set(true);
                                 player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                             }
+                            player.sendMessage("[DEBUG] hiiii");
                         });
+                        player.sendMessage("[DEBUG] hiiiii");
                         if (shouldReturn.get()) return ActionResponse.DONE;
+                        player.sendMessage("[DEBUG] hiiiiii");
                     }
+                    player.sendMessage("[DEBUG] bye");
                     plugin.editingActions.put(player, action);
+                    player.sendMessage("[DEBUG] byee");
                     getActionCustomizerMenu(action).open(player);
+                    player.sendMessage("[DEBUG] hi");
                     return ActionResponse.DONE;
                 })
         );
@@ -2831,6 +2805,7 @@ public class MenuCore {
                     return ActionResponse.DONE;
                 })
         );
+        menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
     }
 
@@ -2841,8 +2816,8 @@ public class MenuCore {
      * @return The Inventory representing the new Action menu
      */
     public Menu getNewConditionMenu() {
-        Menu menu = Menu.builder().title("   New Action Condition").rows(3).addAllModifiers().normal();
-
+        Menu menu = Menu.builder().title("       New Action Condition").rows(3).addAllModifiers().normal();
+        menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
         ItemStack goBack = new ItemStack(Material.ARROW);
         ItemMeta goBackMeta = goBack.getItemMeta();
         goBackMeta.displayName(Component.text("Go Back", NamedTextColor.GOLD));
@@ -2892,7 +2867,7 @@ public class MenuCore {
 
             return ActionResponse.DONE;
         }));
-
+        menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
     }
 
