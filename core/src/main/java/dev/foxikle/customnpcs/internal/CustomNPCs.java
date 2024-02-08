@@ -225,7 +225,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                 this.getLogger().warning("Could not find PlaceholderAPI! PlaceholderAPI isn't required, but CustomNPCs does support it.");
             }
         }
-        if(wasPreviouslyEnabled) {
+        if(!wasPreviouslyEnabled) {
             this.getServer().getPluginManager().registerEvents(new Listeners(this), this);
             this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
             this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
