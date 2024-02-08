@@ -326,7 +326,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNPC {
     @Override
     public void remove() {
         hologram.remove();
-        if(settings.isInteractable() && clickableHologram != null)
+        if(clickableHologram != null)
             clickableHologram.remove();
         super.remove(RemovalReason.DISCARDED);
         super.setHealth(0);
@@ -339,7 +339,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNPC {
 
     @Override
     public void moveTo(Location v) {
-
+        moveTo(new Vec3(v.x(), v.y(), v.z()));
     }
 
     /**
@@ -348,9 +348,12 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNPC {
      * */
     @Override
     public void moveTo(@NotNull Vec3 v){
-        Bukkit.getScheduler().runTaskLater(plugin, () -> this.hologram.teleport(new Location(getWorld(), v.x(), settings.isInteractable() ? v.y() + 2.33 :v.y() + 2.05, v.z())), 3);
-        if(settings.isInteractable())
-            Bukkit.getScheduler().runTaskLater(plugin, () -> this.clickableHologram.teleport(new Location(getWorld(), v.x(), v.y() + 2.05, v.z())), 3);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            this.hologram.teleport(new Location(getWorld(), v.x(), settings.isInteractable() ? v.y() + 2.33 :v.y() + 2.05, v.z()));
+            if(settings.isInteractable())
+                this.clickableHologram.teleport(new Location(getWorld(), v.x(), v.y() + 2.05, v.z()));
+        }, 3);
+
 
         moveTo(v.x(), v.y(), v.z());
     }
@@ -425,11 +428,11 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNPC {
     public void reloadSettings(){
         if(hologram != null)
             hologram.remove();
-        if(settings.isInteractable() && clickableHologram != null)
+        if(clickableHologram != null)
             clickableHologram.remove();
 
-        Bukkit.getScheduler().runTask(plugin, () -> this.hologram = setupHologram(settings.getName()));
         Bukkit.getScheduler().runTask(plugin, () -> {
+            this.hologram = setupHologram(settings.getName());
             if(settings.isInteractable())
                 this.clickableHologram = setupClickableHologram(plugin.getConfig().getString("ClickText"));
         });
