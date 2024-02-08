@@ -37,139 +37,122 @@ import java.util.*;
  */
 public final class CustomNPCs extends JavaPlugin implements PluginMessageListener {
     /**
+     * Singleton for the NPCBuilder
+     */
+    private static CustomNPCs instance;
+    /**
+     * The plugin's json handler
+     */
+    private static Gson gson;
+    private static boolean wasPreviouslyEnabled = false;
+    private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
+    private final String[] COMPATIBLE_VERSIONS = {"v1_20_R3", "v1_20_R2", "v1_20_R1"};
+    /**
      * The List of inventories that make up the skin selection menus
      */
     public PaginatedMenu skinCatalogue;
-
     /**
      * The List of players the plugin is waiting for title text input
      */
     public List<Player> titleWaiting = new ArrayList<>();
-
     /**
      * The List of players the plugin is waiting for title text input
      */
     public List<Player> targetWaiting = new ArrayList<>();
-
     /**
      * The List of players the plugin is waiting for server name text input
      */
     public List<Player> serverWaiting = new ArrayList<>();
-
     /**
      * The List of players the plugin is waiting for action bar text input
      */
     public List<Player> actionbarWaiting = new ArrayList<>();
-
     /**
      * The List of players the plugin is waiting for message text input
      */
     public List<Player> messageWaiting = new ArrayList<>();
-
     /**
      * The List of players the plugin is waiting for command command input
      */
     public List<Player> commandWaiting = new ArrayList<>();
-
     /**
      * The List of players the plugin is waiting for name text input
      */
     public List<Player> nameWaiting = new ArrayList<>();
-
     /**
      * The List of players the plugin is waiting for sound text input
      */
     public List<Player> soundWaiting = new ArrayList<>();
-
     /**
      * The List of NPC holograms
      */
     public List<TextDisplay> holograms = new ArrayList<>();
-
     /**
      * The Singleton of the FileManager class
      */
     public FileManager fileManager;
-
     /**
      * The Map of the pages players are on. Keyed by player.
      */
     public Map<Player, Integer> pages = new HashMap<>();
-
     /**
      * The Map of NPCs keyed by their UUIDs
      */
     public Map<UUID, InternalNPC> npcs = new HashMap<>();
-
     /**
      * The Map of player's MenuCores
      */
     public Map<Player, MenuCore> menuCores = new HashMap<>();
-
     /**
      * The Map of the action a player is editing
      */
     public Map<Player, Action> editingActions = new HashMap<>();
-
     /**
      * The Map of the original actions a player is editing
      */
     public Map<Player, String> originalEditingActions = new HashMap<>();
-
     /**
      * The Map of the action a player is editing
      */
     public Map<Player, Conditional> editingConditionals = new HashMap<>();
-
     /**
      * The Map of the original actions a player is editing
      */
     public Map<Player, String> originalEditingConditionals = new HashMap<>();
-
     /**
-     * Singleton for the NPCBuilder
+     * If the plugin should try to format messages with PlaceholderAPI
      */
-    private static CustomNPCs instance;
-
+    public boolean papi = false;
+    /**
+     * If there is a new update available
+     */
+    public boolean update;
+    /**
+     * keeps track of the current server version
+     */
+    public String serverVersion;
+    /**
+     * The plugin's MiniMessage instance
+     */
+    public MiniMessage miniMessage = MiniMessage.miniMessage();
     /**
      * Singleton for menu utilites
      */
     private MenuUtils mu;
-
     /**
      * Singleton for automatic updates
      */
     private AutoUpdater updater;
 
     /**
-     * If the plugin should try to format messages with PlaceholderAPI
+     * <p> Gets the Gson object
+     * </p>
+     *
+     * @return the Gson object
      */
-    public boolean papi = false;
-
-    /**
-     * The plugin's json handler
-     */
-    private static Gson gson;
-
-    /**
-     * If there is a new update available
-     */
-    public boolean update;
-
-    /**
-     * keeps track of the current server version
-     */
-    public String serverVersion;
-
-    /**
-     * The plugin's MiniMessage instance
-     */
-    public MiniMessage miniMessage = MiniMessage.miniMessage();
-
-    private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
-    private final String[] COMPATIBLE_VERSIONS = {"v1_20_R3", "v1_20_R2", "v1_20_R1"};
-
-    private static boolean wasPreviouslyEnabled = false;
+    public static Gson getGson() {
+        return gson;
+    }
 
     /**
      * <p> Logic for when the plugin is enabled
@@ -225,7 +208,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                 this.getLogger().warning("Could not find PlaceholderAPI! PlaceholderAPI isn't required, but CustomNPCs does support it.");
             }
         }
-        if(!wasPreviouslyEnabled) {
+        if (!wasPreviouslyEnabled) {
             this.getServer().getPluginManager().registerEvents(new Listeners(this), this);
             this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
             this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
@@ -324,7 +307,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      *
      * @param uuid The UUID of the npc
      * @return the NPC of the specified UUID
-     * @throws NullPointerException     if the specified UUID is null
+     * @throws NullPointerException if the specified UUID is null
      */
     public InternalNPC getNPCByID(UUID uuid) {
         if (uuid == null) throw new NullPointerException("uuid cannot be null");
@@ -341,16 +324,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     public MenuUtils getMenuUtils() {
         return mu;
-    }
-
-    /**
-     * <p> Gets the Gson object
-     * </p>
-     *
-     * @return the Gson object
-     */
-    public static Gson getGson() {
-        return gson;
     }
 
     /**
@@ -372,13 +345,14 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
     /**
      * Creates an npc
-     * @param world the world
-     * @param spawnLoc the location to spawn it
+     *
+     * @param world     the world
+     * @param spawnLoc  the location to spawn it
      * @param equipment the equipment object representing the NPC's items
-     * @param settings the settings object representing the NPC's settings
-     * @param uuid the NPC's UUID
-     * @param target the NPC's target to follow
-     * @param actions the NPC's actions
+     * @param settings  the settings object representing the NPC's settings
+     * @param uuid      the NPC's UUID
+     * @param target    the NPC's target to follow
+     * @param actions   the NPC's actions
      * @return the created NPC
      */
     public InternalNPC createNPC(World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<String> actions) {
@@ -395,6 +369,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
     /**
      * Gets the Updater object that holds data about any new updates available
+     *
      * @return the Updater object
      */
     public AutoUpdater getUpdater() {
