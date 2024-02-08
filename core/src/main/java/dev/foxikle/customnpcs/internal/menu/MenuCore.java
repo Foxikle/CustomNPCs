@@ -23,10 +23,7 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.bukkit.Material.*;
@@ -2516,28 +2513,19 @@ public class MenuCore {
                     Player player = event.getPlayer();
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     Action action = new Action(ActionType.DISPLAY_TITLE, new ArrayList<>(Arrays.asList("10", "20", "10", "title!")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-                    player.sendMessage("[DEBUG] hi");
                     if (!action.getActionType().canDubplicate()) {
-                        player.sendMessage("[DEBUG] hii");
                         AtomicBoolean shouldReturn = new AtomicBoolean(false);
                         npc.getActions().forEach(a -> {
-                            player.sendMessage("[DEBUG] hiii");
                             if (a.getActionType() == action.getActionType()) {
                                 event.setCancelled(true);
                                 shouldReturn.set(true);
                                 player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                             }
-                            player.sendMessage("[DEBUG] hiiii");
                         });
-                        player.sendMessage("[DEBUG] hiiiii");
                         if (shouldReturn.get()) return ActionResponse.DONE;
-                        player.sendMessage("[DEBUG] hiiiiii");
                     }
-                    player.sendMessage("[DEBUG] bye");
                     plugin.editingActions.put(player, action);
-                    player.sendMessage("[DEBUG] byee");
                     getActionCustomizerMenu(action).open(player);
-                    player.sendMessage("[DEBUG] hi");
                     return ActionResponse.DONE;
                 })
         );
@@ -2692,7 +2680,7 @@ public class MenuCore {
                 .buildItem((i, event) -> {
                     Player player = event.getPlayer();
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    Action action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Arrays.asList(npc.getUniqueID().toString())), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+                    Action action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Collections.singletonList(npc.getUniqueID().toString())), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                     if (!action.getActionType().canDubplicate()) {
                         AtomicBoolean shouldReturn = new AtomicBoolean(false);
                         npc.getActions().forEach(a -> {
