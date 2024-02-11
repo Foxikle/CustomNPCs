@@ -313,7 +313,7 @@ public class MenuCore {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
-            player.sendMessage(ChatColor.AQUA + "The NPC is now " + (npc.getSettings().isResilient() ? "§c§lNOT RESILIENT" : "§a§lRESILIENT"));
+            player.sendMessage("§bThe NPC is now " + (npc.getSettings().isResilient() ? "§c§lNOT RESILIENT" : "§a§lRESILIENT"));
             npc.getSettings().setResilient(!npc.getSettings().isResilient());
             getMainMenu().open(event.getPlayer());
             return ActionResponse.DONE;
@@ -322,7 +322,7 @@ public class MenuCore {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
-            player.sendMessage(ChatColor.AQUA + "The NPC is now " + (npc.getSettings().isInteractable() ? "§c§lNOT INTERACTABLE" : "a§lINTERACTABLE"));
+            player.sendMessage("§bThe NPC is now " + (npc.getSettings().isInteractable() ? "§c§lNOT INTERACTABLE" : "a§lINTERACTABLE"));
             npc.getSettings().setInteractable(!npc.getSettings().isInteractable());
             getMainMenu().open(player);
             return ActionResponse.DONE;
@@ -1051,23 +1051,6 @@ public class MenuCore {
                         return ActionResponse.DONE;
                     }));
             case DISPLAY_TITLE -> {
-
-                /* 6 buttons. 3 "displays" Fade in, stay, fade out. 3 buttons increment, 3 decrement.  1 button to edit title
-
-                 # # # # # # # # #
-                 # I # I # I # # #
-                 # O # O # O # E #
-                 # D # D # D # # #
-                 # # # # # # # # #
-
-                 ^^ Example inventory layout.
-                 - I = increment
-                 - D = decrement
-                 - O = display
-                 - E = title displayed
-                 - # = empty space
-                */
-
                 // Increments
                 menu.setItem(10, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease fade in duration")
@@ -1177,21 +1160,6 @@ public class MenuCore {
                         }));
             }
             case ADD_EFFECT -> {
-
-                /*
-                 # # # # # # # # #
-                 # I # I # # # # #
-                 # O # O # O # O #
-                 # D # D # # # # #
-                 # # # # # # # # #
-
-                 ^^ Example inventory layout.
-                 - I = increment
-                 - D = decrement
-                 - O = display
-                 - # = empty space
-                */
-
                 // Increments
                 menu.setItem(10, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease effect duration")
@@ -1316,7 +1284,7 @@ public class MenuCore {
                 menu.setItem(19, ItemBuilder.of(CLOCK).setName("§eDuration: " + args.get(0)).setLore(displayLore).buildItem());
                 menu.setItem(21, ItemBuilder.of(CLOCK).setName("§eAmplifier: " + args.get(1)).setName(displayLore).buildItem());
 
-                boolean particles = Boolean.valueOf(args.get(2));
+                boolean particles = Boolean.parseBoolean(args.get(2));
                 menu.setItem(23, ItemBuilder.of(particles ? GREEN_CANDLE : RED_CANDLE)
                         .setName("§eHide Particles: " + particles)
                         .buildItem((i, event) -> {
@@ -1361,20 +1329,6 @@ public class MenuCore {
                         }));
             }
             case REMOVE_EFFECT -> {
-
-                /*
-                 # # # # # # # # #
-                 # # # # # # # # #
-                 # # # # O # # # #
-                 # # # # # # # # #
-                 # # # # # # # # #
-
-                 ^^ Example inventory layout.
-                 - O = display
-                 - # = empty space
-                */
-
-
                 List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
                 List<String> lore = new ArrayList<>();
                 fields.forEach(field -> {
@@ -1411,19 +1365,6 @@ public class MenuCore {
                         }));
             }
             case GIVE_EXP -> {
-
-                /*
-                 # # # # # # # # #
-                 # # # I # # # # #
-                 # # # O # O # # #
-                 # # # D # # # # #
-                 # # # # # # # # #
-
-                 ^^ Example inventory layout.
-                 - O = display
-                 - # = empty space
-                */
-
                 menu.setItem(11, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease xp")
                         .setLore(incLore)
@@ -1485,19 +1426,6 @@ public class MenuCore {
                         }));
             }
             case REMOVE_EXP -> {
-
-                /*
-                 # # # # # # # # #
-                 # # # I # # # # #
-                 # # # O # O # # #
-                 # # # D # # # # #
-                 # # # # # # # # #
-
-                 ^^ Example inventory layout.
-                 - O = display
-                 - # = empty space
-                */
-
                 menu.setItem(11, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease xp")
                         .setLore(incLore)
@@ -1559,53 +1487,18 @@ public class MenuCore {
                         }));
 
             }
-            case SEND_MESSAGE -> {
-                /* 1 button to edit message
-
-                 # # # # # # # # #
-                 # # # # # # # # #
-                 # # # # E # # # #
-                 # # # # # # # # #
-                 # # # # # # # # #
-
-                 - E = Message sent
-                 - # = empty space
-                */
-
-                menu.setItem(22, ItemBuilder.of(OAK_HANGING_SIGN)
-                        .setName(String.join(" ", args))
-                        .setLore("§eClick to change!")
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
-                            player.closeInventory();
-                            plugin.messageWaiting.add(player);
-                            new MessageRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
-                            event.setCancelled(true);
-                            return ActionResponse.DONE;
-                        }));
-            }
-            //todo: Continue converting Bukkit items to MenuItems
+            case SEND_MESSAGE -> menu.setItem(22, ItemBuilder.of(OAK_HANGING_SIGN)
+                    .setName(String.join(" ", args))
+                    .setLore("§eClick to change!")
+                    .buildItem((i, event) -> {
+                        Player player = event.getPlayer();
+                        player.closeInventory();
+                        plugin.messageWaiting.add(player);
+                        new MessageRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
+                        event.setCancelled(true);
+                        return ActionResponse.DONE;
+                    }));
             case PLAY_SOUND -> {
-                /* 4 buttons.
-                2 "displays" pitch, volume,
-                2 buttons increment,
-                2 decrement.
-                1 button to edit sound Enter it with a command for auto complete.
-
-                 # # # # # # # # #
-                 # I # I # # # # #
-                 # O # O # # E # #
-                 # D # D # # # # #
-                 # # # # # # # # #
-
-                 ^^ Example inventory layout.
-                 - I = increment
-                 - D = decrement
-                 - O = display
-                 - E = Sound played
-                 - # = empty space
-                */
-
 
                 String smallIncLore = "§eCLick to add .1";
 
@@ -1696,56 +1589,17 @@ public class MenuCore {
                             return ActionResponse.DONE;
                         }));
             }
-            case ACTION_BAR -> {
-                /* 1 button to edit message
-
-                 # # # # # # # # #
-                 # # # # # # # # #
-                 # # # # E # # # #
-                 # # # # # # # # #
-                 # # # # # # # # #
-
-                 - E = Message sent
-                 - # = empty space
-                */
-
-                menu.setItem(22, ItemBuilder.of(OAK_HANGING_SIGN)
-                        .setName(String.join(" ", args))
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
-                            player.closeInventory();
-                            plugin.actionbarWaiting.add(player);
-                            new ActionbarRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
-                            event.setCancelled(true);
-                            return ActionResponse.DONE;
-                        }));
-            }
+            case ACTION_BAR -> menu.setItem(22, ItemBuilder.of(OAK_HANGING_SIGN)
+                    .setName(String.join(" ", args))
+                    .buildItem((i, event) -> {
+                        Player player = event.getPlayer();
+                        player.closeInventory();
+                        plugin.actionbarWaiting.add(player);
+                        new ActionbarRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
+                        event.setCancelled(true);
+                        return ActionResponse.DONE;
+                    }));
             case TELEPORT -> {
-
-                 /* 6 buttons.
-                 3 "displays"
-                 Fade in,
-                 stay,
-                 fade out.
-
-                 3 buttons increment,
-                 3 decrement.
-                 1 button to edit YAW
-
-                 # # # # # # # # #
-                 # I I I # I # I #
-                 # x y z # P # Y #
-                 # D D D # D # D #
-                 # # # # # # # # #
-
-                 ^^ Example inventory layout.
-                 - I = increment
-                 - D = decrement
-                 - O = display
-                 - Y = Yaw
-                 - # = empty space
-                */
-
                 menu.setItem(10, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease X Coordinate")
                         .setLore(incLore)
@@ -1983,30 +1837,16 @@ public class MenuCore {
                 menu.setItem(25, ItemBuilder.of(COMPASS).setName("§eYaw: §b" + args.get(3)).setName(displayLore).buildItem());
                 menu.setItem(23, ItemBuilder.of(COMPASS).setName("§ePitch: §b" + args.get(4)).setName(displayLore).buildItem());
             }
-            case SEND_TO_SERVER -> {
-                /* 1 button to edit message
-
-                 # # # # # # # # #
-                 # # # # # # # # #
-                 # # # # S # # # #
-                 # # # # # # # # #
-                 # # # # # # # # #
-
-                 - S = Server Name
-                 - # = empty space
-                */
-
-                menu.setItem(22, ItemBuilder.of(GRASS_BLOCK)
-                        .setName("§Server: " + String.join(" ", args))
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
-                            player.closeInventory();
-                            plugin.serverWaiting.add(player);
-                            new ServerRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
-                            event.setCancelled(true);
-                            return ActionResponse.DONE;
-                        }));
-            }
+            case SEND_TO_SERVER -> menu.setItem(22, ItemBuilder.of(GRASS_BLOCK)
+                    .setName("§Server: " + String.join(" ", args))
+                    .buildItem((i, event) -> {
+                        Player player = event.getPlayer();
+                        player.closeInventory();
+                        plugin.serverWaiting.add(player);
+                        new ServerRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
+                        event.setCancelled(true);
+                        return ActionResponse.DONE;
+                    }));
             case TOGGLE_FOLLOWING -> {
                 npc.addAction(action);
                 return getActionMenu();
