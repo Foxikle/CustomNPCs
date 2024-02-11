@@ -5,7 +5,6 @@ import dev.foxikle.customnpcs.actions.ActionType;
 import dev.foxikle.customnpcs.actions.conditions.Conditional;
 import dev.foxikle.customnpcs.actions.conditions.LogicalConditional;
 import dev.foxikle.customnpcs.actions.conditions.NumericConditional;
-import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
 import dev.foxikle.customnpcs.internal.runnables.*;
