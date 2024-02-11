@@ -5,6 +5,7 @@ import dev.foxikle.customnpcs.actions.ActionType;
 import dev.foxikle.customnpcs.actions.conditions.Conditional;
 import dev.foxikle.customnpcs.actions.conditions.LogicalConditional;
 import dev.foxikle.customnpcs.actions.conditions.NumericConditional;
+import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
 import dev.foxikle.customnpcs.internal.runnables.*;
@@ -349,7 +350,7 @@ public class MenuCore {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
-            getArmorMenu().open(player);
+            getEquipmentMenu().open(player);
             return ActionResponse.DONE;
         }));
         menu.getFiller().fill(MenuItems.MENU_GLASS);
@@ -362,7 +363,7 @@ public class MenuCore {
      *
      * @return The Menu representing the Armor menu
      */
-    public Menu getArmorMenu() {
+    public Menu getEquipmentMenu() {
         ItemStack helm = npc.getEquipment().getHead();
         ItemStack cp = npc.getEquipment().getChest();
         ItemStack legs = npc.getEquipment().getLegs();
@@ -390,7 +391,7 @@ public class MenuCore {
                 event.getCursor().setAmount(0);
                 player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                 player.sendMessage("§aSuccessfully set helmet slot to " + npc.getEquipment().getHead().getType());
-                getArmorMenu().open(player);
+                getEquipmentMenu().open(player);
                 return ActionResponse.DONE;
             }));
         } else {
@@ -410,14 +411,14 @@ public class MenuCore {
                     npc.getEquipment().setHead(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     player.sendMessage("§cSuccessfully reset helmet slot ");
-                    getArmorMenu().open(player);
+                    getEquipmentMenu().open(player);
                 } else {
                     if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
                     npc.getEquipment().setHead(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set helmet slot to " + npc.getEquipment().getHead().getType());
-                    getArmorMenu().open(player);
+                    getEquipmentMenu().open(player);
                 }
                 return ActionResponse.DONE;
             }));
@@ -445,7 +446,7 @@ public class MenuCore {
                     event.setCancelled(true);
                     player.sendMessage("§cThat is not a chestplate!");
                 }
-                getArmorMenu().open(player);
+                getEquipmentMenu().open(player);
                 return ActionResponse.DONE;
             }));
         } else {
@@ -465,7 +466,7 @@ public class MenuCore {
                     npc.getEquipment().setChest(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     player.sendMessage("§cSuccessfully reset chestplate slot ");
-                    getArmorMenu().open(player);
+                    getEquipmentMenu().open(player);
                 } else if (event.getCursorItem().getType().name().contains("CHESTPLATE")) {
                     npc.getEquipment().setChest(event.getCursor().clone());
                     event.getCursor().setAmount(0);
@@ -476,7 +477,7 @@ public class MenuCore {
                 }
                 event.setCancelled(true);
                 player.sendMessage("§cThat is not a chestplate!");
-                getArmorMenu().open(player);
+                getEquipmentMenu().open(player);
                 return ActionResponse.DONE;
             }));
         }
@@ -505,7 +506,7 @@ public class MenuCore {
                     event.setCancelled(true);
                     player.sendMessage("§cThat is not a pair of leggings!");
                 }
-                getArmorMenu().open(player);
+                getEquipmentMenu().open(player);
                 return ActionResponse.DONE;
             }));
         } else {
@@ -526,13 +527,13 @@ public class MenuCore {
                     npc.getEquipment().setLegs(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     player.sendMessage("§cSuccessfully reset leggings slot ");
-                    getArmorMenu().open(player);
+                    getEquipmentMenu().open(player);
                 } else if (event.getCursorItem().getType().name().contains("LEGGINGS")) {
                     npc.getEquipment().setLegs(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set leggings slot to " + npc.getEquipment().getLegs().getType());
-                    getArmorMenu().open(player);
+                    getEquipmentMenu().open(player);
                 } else {
                     if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
                     event.setCancelled(true);
@@ -564,7 +565,7 @@ public class MenuCore {
                     event.setCancelled(true);
                     player.sendMessage("§cThat is not a pair of boots!");
                 }
-                getArmorMenu().open(player);
+                getEquipmentMenu().open(player);
                 return ActionResponse.DONE;
             }));
         } else {
@@ -596,7 +597,7 @@ public class MenuCore {
                     event.setCancelled(true);
                     player.sendMessage("§cThat is not a pair of boots!");
                 }
-                getArmorMenu().open(player);
+                getEquipmentMenu().open(player);
                 return ActionResponse.DONE;
             }));
         }
@@ -618,7 +619,7 @@ public class MenuCore {
                 event.getCursor().setAmount(0);
                 player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                 player.sendMessage("§aSuccessfully set hand slot to " + npc.getEquipment().getHand().getType());
-                getArmorMenu().open(player);
+                getEquipmentMenu().open(player);
                 return ActionResponse.DONE;
             }));
         } else {
@@ -638,14 +639,14 @@ public class MenuCore {
                     npc.getEquipment().setHand(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     player.sendMessage("§cSuccessfully reset hand slot ");
-                    getArmorMenu().open(player);
+                    getEquipmentMenu().open(player);
                 } else {
                     if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
                     npc.getEquipment().setHand(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set offhand slot to " + npc.getEquipment().getHand().getType());
-                    getArmorMenu().open(player);
+                    getEquipmentMenu().open(player);
                 }
                 return ActionResponse.DONE;
             }));
@@ -668,7 +669,7 @@ public class MenuCore {
                 event.getCursor().setAmount(0);
                 player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                 player.sendMessage("§aSuccessfully set offhand slot to " + npc.getEquipment().getOffhand().getType());
-                getArmorMenu().open(player);
+                getEquipmentMenu().open(player);
                 return ActionResponse.DONE;
             }));
         } else {
@@ -689,18 +690,28 @@ public class MenuCore {
                     npc.getEquipment().setOffhand(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     player.sendMessage("§cSuccessfully reset offhand slot ");
-                    getArmorMenu().open(player);
+                    getEquipmentMenu().open(player);
                 } else {
                     if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
                     npc.getEquipment().setOffhand(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set offhand slot to " + npc.getEquipment().getOffhand().getType());
-                    getArmorMenu().open(player);
+                    getEquipmentMenu().open(player);
                 }
                 return ActionResponse.DONE;
             }));
         }
+
+        menu.setItem(8, ItemBuilder.of(ARMOR_STAND)
+                .setName("§bImport Player Armor")
+                .setLore("§eImports your current armor to the NPC")
+                .buildItem((i, event) -> {
+                    Player player = event.getPlayer();
+                    npc.getEquipment().importFromEntityEquipment(player.getEquipment());
+                    getMainMenu().open(player);
+                    return ActionResponse.DONE;
+                }));
 
         menu.setItem(49, ItemBuilder.of(BARRIER).setName("§cClose").buildItem((i, event) -> {
             Player player = event.getPlayer();

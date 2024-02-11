@@ -1,6 +1,7 @@
 package dev.foxikle.customnpcs.data;
 
 import org.bukkit.Material;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -159,5 +160,18 @@ public class Equipment {
      */
     public void setOffhand(ItemStack offhand) {
         this.offhand = offhand;
+    }
+
+    /**
+     * Imports the relevant items from an EntityEquipment Object
+     * @param e The entity equipment to pull items from.
+     */
+    public void importFromEntityEquipment(EntityEquipment e) {
+        this.head = e.getHelmet();
+        this.chest = e.getChestplate();
+        this.legs = e.getLeggings();
+        this.boots = e.getBoots();
+        this.hand = e.getItemInMainHand();
+        this.offhand = e.getItemInOffHand();
     }
 }
