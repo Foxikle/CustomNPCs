@@ -1,43 +1,172 @@
 package dev.foxikle.customnpcs.internal.listeners;
 
-import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.internal.menu.MenuCore;
+import dev.foxikle.customnpcs.api.Action;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.actions.conditions.Conditional;
-import dev.foxikle.customnpcs.internal.LookAtAnchor;
-import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
+import dev.foxikle.customnpcs.internal.InternalNpc;
+import dev.foxikle.customnpcs.api.conditions.Conditional;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.inventory.EquipmentSlot;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.UUID;
 
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
+import java.util.regex.Pattern;
 /**
  * The class that deals with misc listeners
  */
 public class Listeners implements Listener {
+	/**
+	 * Player Movement Data that keeps track of old movements to replace PlayerMoveEvent
+	 * @since *Insert_Version*
+	 */
+	private static final ConcurrentMap<UUID, MovementData> playerMovementData = new ConcurrentHashMap<>();
+	
+	// Helper Constants
+	// since *Insert_Version*
+	private static final int FIVE_BLOCKS = 25;
+	private static final int FIFTY_BLOCKS = 2500; // 50 * 50
+	private static final int FOURTY_BLOCKS = 2304; // 48 * 48
+	private static final double HALF_BLOCK = 0.25;
+	
+	// Writing Constants
+	// since *Insert_Version*
+	private static final BukkitScheduler SCHEDULER = Bukkit.getScheduler();
+	
+	private static final String SHOULD_UPDATE_MESSAGE =
+		ChatColor.translateAlternateColorCodes('&', "&2&m----------------&r &6[&e!&6] &b&lCustomNPCs &6[&e!&6]  &2&m----------------\n&r&eA new update is available! I'd appreciate if you updated :) \n -&e&oFoxikle");
+		
+	private static final ConsoleCommandSender sender = Bukkit.getConsoleSender();
+	
+	private static final Pattern PATTERN = Pattern.compile(" ");
+	
     /**
      * The instance of the main Class
      */
     private final CustomNPCs plugin;
-
+    
+    // Executors for better handling of async scheduling than that bukkit scheduler
+    private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+    //private final ExecutorService executorService = Executors.newFixedThreadPool(1);
     /**
      * Constructor for generic listners class
      * @param plugin The instance of the main class
      */
     public Listeners(CustomNPCs plugin) {
         this.plugin = plugin;
+        service.scheduleAtFixedRate(() -> Bukkit.getOnlinePlayers().forEach(this::actionPlayerMovement), 1000, 220, TimeUnit.MILLISECONDS);
+    }
+    
+    public void stop() {
+		service.shutdown();
+		//executorService.shutdown();
+		CompletableFuture.runAsync(() -> {
+			try {
+				if (/*!executorService.awaitTermination(2, TimeUnit.SECONDS) 
+						|| */!service.awaitTermination(2, TimeUnit.SECONDS)) {
+					//executorService.shutdownNow();
+					service.shutdownNow();
+				}
+			} catch (InterruptedException e) {
+				//executorService.shutdownNow();
+				service.shutdownNow();
+				Thread.currentThread().interrupt();
+			}
+		});
+	}
+    
+    private final void actionPlayerMovement(Player player) {
+		final Location location = player.getLocation();
+		final World world = player.getWorld();
+		
+		final UUID uuid = player.getUniqueId();
+		for (InternalNpc npc : plugin.npcs.values()) {
+			if (npc.getTarget() != null) continue;
+			
+			World npcWorld = npc.getWorld();
+			if (world != npcWorld) continue;
+			if (npc.isTunnelVision()) continue;
+			processPlayerMovement(player, npc, world, npcWorld, location, uuid);
+		}
+	}
+    
+    private final void processPlayerMovement(final Player player, 
+    									final InternalNpc npc, 
+    									final World world, 
+    									final World npcWorld,
+    									final Location location,
+    									final UUID uuid) {
+    	final Location npcLocation = npc.getCurrentLocation(); 
+    	MovementData oldMovementData; // difference in order of initialization in if/else statement
+        final MovementData movementData = playerMovementData.get(uuid);
+        final double distanceSquared = location.distanceSquared(npcLocation);
+        if (movementData == null) {
+        	playerMovementData.put(uuid, new MovementData(uuid, location, distanceSquared));
+        	movementData = playerMovementData.get(uuid);
+        	oldMovementData = movementData;
+        } else {
+        	oldMovementData = movementData;
+			movementData.setLastLocation(location);
+			movementData.setDistanceSquared(distanceSquared);
+		}
+    	trackFromTo(player, npc, world, npcWorld, location, npcLocation, uuid, movementData, oldMovementData);
+        if (distanceSquared > FIVE_BLOCKS) {
+            Collection<Entity> entities = npcWorld.getNearbyEntities(location, 2.5, 2.5, 2.5);
+            entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
+            for (Entity en : entities) {
+                if (!(en instanceof Player p)) continue;
+                npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) p).getHandle(), EntityAnchorArgument.Anchor.EYES);
+            }
+            float direction = (float) npc.getFacingDirection();
+            npc.setYBodyRot(direction);
+            npc.setYRot(direction);
+            npc.setYHeadRot(direction);
+        }
+    }
+    
+    private final void trackFromTo(Player player, 
+    							   InternalNpc npc, 
+    							   World world, 
+    							   World npcWorld,
+    							   Location location,
+    							   Location npcLocation,
+    							   UUID uuid, 
+    							   MovementData data,
+    							   MovementData oldData) {
+    	if (data.distanceSquared <= FIVE_BLOCKS) {
+            npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
+        	return;
+        } else if (oldData.distanceSquared >= FOURTY_BLOCKS && data.distanceSquared <= FIFTY_BLOCKS) {
+            npc.injectPlayer(player);
+        }
     }
 
     /**
@@ -46,25 +175,26 @@ public class Listeners implements Listener {
      * @param e The event callback
      * @since 1.0
      */
-    @EventHandler (priority = EventPriority.HIGHEST)
+    @EventHandler
     public void onPlayerInteract(PlayerInteractEntityEvent e) {
-        if (e.getHand() == EquipmentSlot.HAND) {
-            if (e.getRightClicked() instanceof Player p) {
-                Player player = e.getPlayer();
-                if(plugin.getNPCByID(p.getUniqueId()) != null) {
-                    InternalNPC npc;
-                    try {
-                        npc = plugin.getNPCByID(p.getUniqueId());
-                    } catch (IllegalArgumentException ignored){
-                        return;
-                    }
-                    if (player.hasPermission("customnpcs.edit") && player.isSneaking()) {
-                        player.performCommand("npc edit " + npc.getUniqueID());
-                    } else if (npc.getSettings().isInteractable()) {
-                        npc.getActions().forEach(action -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), action.getCommand(e.getPlayer())));
-                    }
-                }
-            }
+    	Player player = e.getPlayer();
+    	
+        if (e.getHand() != EquipmentSlot.HAND) return; 
+        if (e.getRightClicked().getType() != EntityType.PLAYER) return;
+        Player rightClicked = (Player) e.getRightClicked();
+        ServerPlayer sp = ((CraftPlayer) rightClicked).getHandle();
+        InternalNpc npc;
+        
+        UUID uuid = sp.getUUID();
+        try {
+            npc = plugin.getNPCByID(uuid);
+        } catch (IllegalArgumentException ignored){
+            return;
+        }
+        if (player.hasPermission("customnpcs.edit") && player.isSneaking()) {
+            player.performCommand("npc edit " + uuid);
+        } else if (npc.isClickable()) {
+            npc.getActions().forEach(action -> Bukkit.dispatchCommand(sender, action.getCommand(player)));
         }
     }
 
@@ -76,88 +206,75 @@ public class Listeners implements Listener {
      */
     @EventHandler (priority = EventPriority.HIGHEST)
     public void onChat(AsyncPlayerChatEvent e) {
-        if (plugin.commandWaiting.contains(e.getPlayer())) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                plugin.commandWaiting.remove(e.getPlayer());
-                Action action = plugin.editingActions.get(e.getPlayer());
-                List<String> currentArgs = action.getArgs();
-                currentArgs.clear();
-                currentArgs.addAll(List.of(e.getMessage().split(" ")));
-                e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set command to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
-                Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer()));
-            });
-            e.setCancelled(true);
-        } else if (plugin.nameWaiting.contains(e.getPlayer())) {
-            plugin.nameWaiting.remove(e.getPlayer());
-            plugin.menuCores.get(e.getPlayer()).getNpc().getSettings().setName(e.getMessage());
-            e.getPlayer().sendMessage(Component.text("Successfully set name to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(e.getMessage())).append(Component.text("'", NamedTextColor.GREEN)));
-            Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getMainMenu().open(e.getPlayer()));
-            e.setCancelled(true);
-        } else if (plugin.targetWaiting.contains(e.getPlayer())) {
+    	Player player = e.getPlayer();  
+    	String message = e.getMessage();
+    	MenuCore core = plugin.menuCores.get(player);
+        if (plugin.commandWaiting.contains(player)) {
+            plugin.commandWaiting.remove(player);
+            Action action = plugin.editingActions.get(player);
+            List<String> currentArgs = action.getArgs();
+            currentArgs.clear();
+            currentArgs.addAll(List.of(PATTERN.split(message)));
+            player.sendMessage(ChatColor.GREEN + "Successfully set command to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', message) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
+            SCHEDULER.runTask(plugin, () -> player.openInventory(core.getActionCustomizerMenu(action)));
+        } else if (plugin.nameWaiting.contains(player)) {
+            plugin.nameWaiting.remove(player);
+            core.getNpc().setName(message);
+            player.sendMessage(Component.text("Successfully set name to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(message)).append(Component.text("'", NamedTextColor.GREEN)));
+            SCHEDULER.runTask(plugin, () -> player.openInventory(core.getMainMenu()));
+        } else if (plugin.targetWaiting.contains(player)) {
 
-            Conditional conditional = plugin.editingConditionals.get(e.getPlayer());
-            if(conditional.getType() == Conditional.Type.NUMERIC) {
+            Conditional conditional = plugin.editingConditionals.get(player);
+            if (conditional.getType() == Conditional.Type.NUMERIC) {
                 try {
-                    Double.parseDouble(e.getMessage());
+                    Double.parseDouble(message);
                 } catch (NumberFormatException ignored) {
-                    e.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCannot parse the number '&f" + e.getMessage() + "&c'. Please try again."));
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCannot parse the number '&f" + message + "&c'. Please try again."));
                     return;
                 }
             }
-            plugin.targetWaiting.remove(e.getPlayer());
-            conditional.setTargetValue(e.getMessage());
-            e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set target to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', e.getMessage()) + ChatColor.RESET + ChatColor.GREEN + "'");
-            Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getConditionalCustomizerMenu(plugin.editingConditionals.get(e.getPlayer())).open(e.getPlayer()));
-            e.setCancelled(true);
-        } else if (plugin.titleWaiting.contains(e.getPlayer())) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                plugin.titleWaiting.remove(e.getPlayer());
-                List<String> args = plugin.editingActions.get(e.getPlayer()).getArgsCopy();
-                Action action = plugin.editingActions.get(e.getPlayer());
-                List<String> currentArgs = action.getArgs();
-                currentArgs.clear();
-                currentArgs.add(0, args.get(0));
-                currentArgs.add(1, args.get(1));
-                currentArgs.add(2, args.get(2));
-                currentArgs.addAll(List.of(e.getMessage().split(" ")));
-                e.getPlayer().sendMessage(Component.text("Successfully set title to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(e.getMessage())).append(Component.text("'", NamedTextColor.GREEN)));
-                Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer()));
-            });
-            e.setCancelled(true);
-        } else if (plugin.messageWaiting.contains(e.getPlayer())) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                plugin.messageWaiting.remove(e.getPlayer());
-                Action action = plugin.editingActions.get(e.getPlayer());
-                List<String> currentArgs = action.getArgs();
-                currentArgs.clear();
-                currentArgs.addAll(List.of(e.getMessage().split(" ")));
-                e.getPlayer().sendMessage(Component.text("Successfully set message to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(e.getMessage())).append(Component.text("'", NamedTextColor.GREEN)));
-                Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer()));
-            });
-            e.setCancelled(true);
-        } else if (plugin.serverWaiting.contains(e.getPlayer())) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                plugin.serverWaiting.remove(e.getPlayer());
-                Action action = plugin.editingActions.get(e.getPlayer());
-                List<String> currentArgs = action.getArgs();
-                currentArgs.clear();
-                currentArgs.addAll(List.of(e.getMessage().split(" ")));
-                e.getPlayer().sendMessage(ChatColor.GREEN + "Successfully set server to be '" + ChatColor.RESET +  e.getMessage() + ChatColor.RESET + "" + ChatColor.GREEN + "'");
-                Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer()));
-            });
-            e.setCancelled(true);
-        } else if (plugin.actionbarWaiting.contains(e.getPlayer())) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                plugin.actionbarWaiting.remove(e.getPlayer());
-                Action action = plugin.editingActions.get(e.getPlayer());
-                List<String> currentArgs = action.getArgs();
-                currentArgs.clear();
-                currentArgs.addAll(List.of(e.getMessage().split(" ")));
-                e.getPlayer().sendMessage(Component.text("Successfully set actionbar to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(e.getMessage())).append(Component.text("'", NamedTextColor.GREEN)));
-                Bukkit.getScheduler().runTask(plugin, () -> plugin.menuCores.get(e.getPlayer()).getActionCustomizerMenu(action).open(e.getPlayer()));
-            });
-            e.setCancelled(true);
+            plugin.targetWaiting.remove(player);
+            conditional.setTargetValue(message);
+            player.sendMessage(ChatColor.translateAlternateColorCodes("&aSuccessfully set target to be '&r" + message + "&a'"));
+            SCHEDULER.runTask(plugin, () -> player.openInventory(core.getConditionalCustomizerMenu(plugin.editingConditionals.get(player))));
+        } else if (plugin.titleWaiting.contains(player)) {
+            plugin.titleWaiting.remove(player);
+            List<String> args = plugin.editingActions.get(player).getArgsCopy();
+            Action action = plugin.editingActions.get(player);
+            List<String> currentArgs = action.getArgs();
+            currentArgs.clear();
+            currentArgs.add(0, args.get(0));
+            currentArgs.add(1, args.get(1));
+            currentArgs.add(2, args.get(2));
+            currentArgs.addAll(List.of(PATTERN.split(message)));
+            player.sendMessage(Component.text("Successfully set title to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(message)).append(Component.text("'", NamedTextColor.GREEN)));
+            SCHEDULER.runTask(plugin, () -> player.openInventory(core.getActionCustomizerMenu(action)));
+        } else if (plugin.messageWaiting.contains(player)) {
+            plugin.messageWaiting.remove(player);
+            Action action = plugin.editingActions.get(player);
+            List<String> currentArgs = action.getArgs();
+            currentArgs.clear();
+            currentArgs.addAll(List.of(PATTERN.split(message)));
+            player.sendMessage(Component.text("Successfully set message to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(message)).append(Component.text("'", NamedTextColor.GREEN)));
+            SCHEDULER.runTask(plugin, () -> player.openInventory(core.getActionCustomizerMenu(action)));
+        } else if (plugin.serverWaiting.contains(player)) {
+            plugin.serverWaiting.remove(player);
+            Action action = plugin.editingActions.get(player);
+            List<String> currentArgs = action.getArgs();
+            currentArgs.clear();
+            currentArgs.addAll(List.of(PATTERN.split(message)));
+            player.sendMessage(ChatColor.GREEN + "Successfully set server to be '" + ChatColor.RESET +  message + ChatColor.RESET + "" + ChatColor.GREEN + "'");
+            SCHEDULER.runTask(plugin, () -> player.openInventory(core.getActionCustomizerMenu(action)));
+        } else if (plugin.actionbarWaiting.contains(player)) {
+            plugin.actionbarWaiting.remove(player);
+            Action action = plugin.editingActions.get(player);
+            List<String> currentArgs = action.getArgs();
+            currentArgs.clear();
+            currentArgs.addAll(List.of(PATTERN.split(message)));
+            player.sendMessage(Component.text("Successfully set actionbar to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(message)).append(Component.text("'", NamedTextColor.GREEN)));
+            SCHEDULER.runTask(plugin, () -> player.openInventory(core.getActionCustomizerMenu(action)));
         }
+        e.setCancelled(true);
     }
 
     /**
@@ -168,52 +285,13 @@ public class Listeners implements Listener {
      */
     @EventHandler
     public void onPlayerLogin(PlayerJoinEvent e) {
-        if(plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate")) {
-            if(e.getPlayer().hasPermission("customnpcs.alert")) {
-                e.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&2&m----------------&r &6[&e!&6] &b&lCustomNPCs &6[&e!&6]  &2&m----------------\n&r&eA new update (" + plugin.getUpdater().getNewestVersion() + ") is available! I'd appreciate if you updated :) \n -&e&oFoxikle"));
-            }
+    	Player player = e.getPlayer();
+        if (plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate") && player.hasPermission("customnpcs.alert")) {
+        	player.sendMessage(SHOULD_UPDATE_MESSAGE);
         }
-        for (InternalNPC npc : plugin.getNPCs()) {
-            npc.injectPlayer(e.getPlayer());
-        }
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            for (InternalNPC npc : plugin.getNPCs()) {
-                npc.injectPlayer(e.getPlayer());
-            }
-        }, 10);
-    }
-
-    /**
-     * <p>The npc look handler
-     * </p>
-     * @param e The event callback
-     * @since 1.0
-     */
-    @EventHandler
-    public void onMove(PlayerMoveEvent e) {
-        Player player = e.getPlayer();
-        for (InternalNPC npc : plugin.npcs.values()) {
-            if(npc.getTarget() != null) return;
-            if(player.getWorld() != npc.getWorld()) return;
-            if(npc.getSettings().isTunnelvision()) return;
-            double distance = e.getPlayer().getLocation().distance(npc.getCurrentLocation());
-            if (distance <= 5) {
-                npc.lookAt(LookAtAnchor.HEAD, player);
-            } else if (distance >= 48 && e.getTo().distance(npc.getCurrentLocation()) <= 48) {
-                npc.injectPlayer(player);
-            }
-            if (distance > 5) {
-                Collection<Entity> entities = npc.getWorld().getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
-                entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
-                for (Entity en : entities) {
-                    if (en.getType() == EntityType.PLAYER) {
-                        npc.lookAt(LookAtAnchor.HEAD, player);
-                        return;
-                    }
-                }
-                npc.setYRotation((float) npc.getSettings().getDirection());
-            }
-        }
+        List<InternalNpc> npcs = plugin.getNPCs();
+        for (InternalNpc npc : npcs) npc.injectPlayer(player);
+        SCHEDULER.runTaskLater(plugin, () -> npcs.forEach(npc -> npc.injectPlayer(player)), 10);
     }
 
     /**
@@ -222,40 +300,18 @@ public class Listeners implements Listener {
      * @param e The event callback
      * @since 1.3-pre4
      */
+     
+     /*
     @EventHandler
     public void onEntityMove(EntityMoveEvent e) {
-        Player player = null;
-        for (Entity entity : e.getEntity().getPassengers()) {
-            if(entity instanceof Player p){
-                player = p;
-                break;
-            }
-        }
-
-        if(player != null) {
-            for (InternalNPC npc : plugin.npcs.values()) {
-                if (player.getWorld() != npc.getWorld()) return;
-                if (npc.getTarget() != null) return;
-                double distance = player.getLocation().distance(npc.getCurrentLocation());
-                if (distance <= 5) {
-                    npc.lookAt(LookAtAnchor.HEAD, player);
-                } else if (distance >= 48 && e.getTo().distance(npc.getCurrentLocation()) <= 48) {
-                    npc.injectPlayer(player);
-                }
-                if (distance > 5) {
-                    Collection<Entity> entities = npc.getWorld().getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
-                    entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
-                    for (Entity en : entities) {
-                        if (en.getType() == EntityType.PLAYER) {
-                            npc.lookAt(LookAtAnchor.HEAD, player);
-                            return;
-                        }
-                    }
-                    npc.setYRotation((float) npc.getSettings().getDirection());
-                }
-            }
-        }
+        final Entity et = e.getEntity();
+        List<Player> players = new ArrayList<>();
+		et.getPassengers().forEach(entity1 -> {
+			if(entity1 instanceof Player player) players.add(player);
+		});
+        executorService.submit(() -> players.forEach(this::actionPlayerMovement));
     }
+    */
 
     /**
      * <p>The npc injection handler on velocity
@@ -265,31 +321,12 @@ public class Listeners implements Listener {
      */
     @EventHandler
     public void onVelocity(PlayerVelocityEvent e) {
-        Player player = e.getPlayer();
-        for (InternalNPC npc : plugin.npcs.values()) {
-            if(player.getWorld() != npc.getWorld()) return;
-            if(npc.getTarget() != null) return;
-            if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) <= 5) {
-                npc.lookAt(LookAtAnchor.HEAD, player);
-            } else if (player.getLocation().distance(npc.getCurrentLocation()) >= 48) {
-                npc.injectPlayer(player);
-            }
-            if (e.getPlayer().getLocation().distance(npc.getCurrentLocation()) > 5) {
-                Collection<Entity> entities = npc.getWorld().getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
-                entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
-                for (Entity en : entities) {
-                    if (en.getType() == EntityType.PLAYER) {
-                        npc.lookAt(LookAtAnchor.HEAD, player);
-                        return;
-                    }
-                }
-                npc.setYRotation((float) npc.getSettings().getDirection());
-            }
-        }
+        actionPlayerMovement(e.getPlayer());
     }
 
     /**
      * <p>The npc follow handler
+     * TODO: Replace with proper Pathfinding.
      * </p>
      * @param e The event callback
      * @since 1.3-pre2
@@ -297,16 +334,17 @@ public class Listeners implements Listener {
     @EventHandler
     public void followHandler(PlayerMoveEvent e) {
         Player player = e.getPlayer();
-        for (InternalNPC npc : plugin.npcs.values()) {
-            if(player.getWorld() != npc.getWorld()) return; //TODO: Make npc travel between dimensions
-            if(npc.getTarget() == player){
-                npc.lookAt(LookAtAnchor.HEAD, player);
-                if(npc.getCurrentLocation().distance(e.getTo()) >= .5){
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                        if(e.getTo().distance(player.getLocation()) >= 1)
-                            npc.moveTo(e.getTo());
-                    }, 30);
-                }
+        World world = player.getWorld();
+        Location location = player.getLocation();
+        Location to = e.getTo();
+        for (InternalNpc npc : plugin.npcs.values()) {
+            if (world != npc.getWorld()) continue; //TODO: Make npc travel between dimensions
+            if (npc.getTarget() != player) continue;
+            npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
+            if(npc.getCurrentLocation().distanceSquared(to) >= HALF_BLOCK){
+                SCHEDULER.runTaskLater(plugin, () -> {
+                    if (to.distanceSquared(location) >= 1) npc.moveTo(new Vec3(to.x(), to.y(), to.z()));
+                }, 30);
             }
         }
     }
@@ -320,11 +358,16 @@ public class Listeners implements Listener {
     @EventHandler
     public void onTeleport(PlayerTeleportEvent e) {
         Player player = e.getPlayer();
-        for (InternalNPC npc : plugin.npcs.values()) {
-            if(player.getWorld() != npc.getWorld()) return;
-            if (player.getLocation().distance(npc.getSpawnLoc()) <= 5) {
-                npc.lookAt(LookAtAnchor.HEAD, player);
-            } else if (player.getLocation().distance(npc.getSpawnLoc()) >= 48 && player.getLocation().distance(npc.getSpawnLoc()) <= 48) {
+        Location location = player.getLocation();
+        World world = player.getWorld();
+        for (InternalNpc npc : plugin.npcs.values()) {
+        	Location spawnLocation = npc.getSpawnLoc();
+            if (world != npc.getWorld()) return;
+            
+            double distanceSquared = location.distanceSquared(spawnLocation);
+            if (distanceSquared <= FIVE_BLOCKS) {
+                npc.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftPlayer) player).getHandle(), EntityAnchorArgument.Anchor.EYES);
+            } else if (distanceSquared >= FOURTY_BLOCKS && distanceSquared <= FIFTY_BLOCKS) {
                 npc.injectPlayer(player);
             }
         }
@@ -337,25 +380,35 @@ public class Listeners implements Listener {
      */
     @EventHandler
     public void onDimentionChange(PlayerChangedWorldEvent e) {
-        for (InternalNPC npc : plugin.npcs.values()) {
-            if(e.getPlayer().getWorld() == npc.getWorld()) {
-                if(e.getPlayer().getLocation().distance(npc.getCurrentLocation()) <= 48){
-                    npc.injectPlayer(e.getPlayer());
-                }
-            }
+    	Player player = e.getPlayer();
+    	Location location = player.getLocation();
+    	World world = player.getWorld();
+        for (InternalNpc npc : plugin.npcs.values()) {
+            if (world != npc.getWorld()) continue; 
+            if (location.distanceSquared(npc.getCurrentLocation()) <= FOURTY_BLOCKS) npc.injectPlayer(player);
         }
     }
 
     /**
-     * <p>The npc leave message handler. Cancles the leave message.
+     * <p>The npc leave message handler. Cancels the leave message.
      * </p>
      * @param e The event callback
      * @since 1.0
      */
     @EventHandler
     public void onLeave(PlayerQuitEvent e){
-        if(plugin.getNPCByID(e.getPlayer().getUniqueId()) != null)
-            e.quitMessage(Component.empty());
+    	Player player = e.getPlayer();
+        for (InternalNpc npc : plugin.npcs.values()) {
+            if (npc.getPlayer().getBukkitEntity().getPlayer() != player) continue;
+            e.setQuitMessage("");
+        }
+        plugin.commandWaiting.remove(player);
+     	plugin.nameWaiting.remove(player);
+     	plugin.targetWaiting.remove(player);
+     	plugin.titleWaiting.remove(player);
+     	plugin.messageWaiting.remove(player);
+     	plugin.serverWaiting.remove(player);
+     	plugin.actionbarWaiting.remove(player);
     }
 
     /**
@@ -365,11 +418,36 @@ public class Listeners implements Listener {
      * @since 1.2
      */
     @EventHandler
-    public void onRespawn(PlayerRespawnEvent e){
-        for (InternalNPC npc : plugin.npcs.values()) {
-            if(e.getRespawnLocation().distance(npc.getCurrentLocation()) <= 48){
-                npc.injectPlayer(e.getPlayer());
-            }
+    public void onRespawn(PlayerRespawnEvent e) {
+    	Player player = e.getPlayer();
+    	Location respawnLocation = e.getRespawnLocation();
+        for (InternalNpc npc : plugin.npcs.values()) {
+            if (!respawnLocation.distanceSquared(npc.getCurrentLocation()) <= FOURTY_BLOCKS) continue;
+            npc.injectPlayer(player);
         }
+    }
+    
+    private static class MovementData {
+    	private final UUID uniqueId;
+    	private Location lastLocation;
+    	private double distanceSquared;
+    	
+    	MovementData(UUID uniqueId, Location lastLocation, double distanceSquared) {
+    		this.uniqueId = uniqueId;
+    		this.lastLocation = lastLocation;
+    		this.distanceSquared = distanceSquared;
+    	}
+    	
+    	public UUID getUniqueId() { return uniqueId; }
+    	
+    	public Location getLastLocation() { return lastLocation; }
+    	
+    	public double getDistanceSquared() { return distanceSquared; }
+    	
+    	public void setDistanceSquared(double distanceSquared) { this.distanceSquared = distanceSquared; }
+    	
+    	public void setLastLocation(Location location) { this.lastLocation = location; }
+    	
+    	public MovementData copy() { return new MovementData(uuid, location, distanceSquared); }
     }
 }
