@@ -18,7 +18,7 @@ import java.util.UUID;
 /**
  * An interface to provide multiversion support
  */
-public interface InternalNPC {
+public interface InternalNpc {
 
 
     /**

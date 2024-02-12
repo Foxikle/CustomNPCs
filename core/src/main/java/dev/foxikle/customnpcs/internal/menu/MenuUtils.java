@@ -1,32 +1,22 @@
 package dev.foxikle.customnpcs.internal.menu;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
+import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import me.flame.menus.builders.items.ItemBuilder;
 import me.flame.menus.items.MenuItem;
 import me.flame.menus.menu.ActionResponse;
 import me.flame.menus.menu.Menu;
-import me.flame.menus.menu.MenuBuilder;
 import me.flame.menus.menu.PaginatedMenu;
-import me.flame.menus.modifiers.Modifier;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.inventory.meta.tags.ItemTagType;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 
-import java.awt.*;
-import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -160,7 +150,7 @@ public class MenuUtils {
 
         return ItemBuilder.of(head).buildItem((i, event) -> {
             Player player = event.getPlayer();
-            InternalNPC npc = plugin.menuCores.get(player).getNpc();
+            InternalNpc npc = plugin.menuCores.get(player).getNpc();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
             npc.getSettings().setValue(texture[0]);

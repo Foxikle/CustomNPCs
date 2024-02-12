@@ -4,7 +4,7 @@ import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
+import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -19,7 +19,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -92,7 +91,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                                                         
                             """));
                     Component message = Component.empty();
-                    for (InternalNPC npc : plugin.getNPCs()) {
+                    for (InternalNpc npc : plugin.getNPCs()) {
                         if (npc.getSettings().isResilient()) {
                             Component name = Component.text("  ")
                                     .append(plugin.getMiniMessage().deserialize(npc.getSettings().getName())
@@ -135,7 +134,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     UUID uuid = UUID.randomUUID();
-                    InternalNPC npc = plugin.createNPC(player.getWorld(), player.getLocation(), new Equipment(), new Settings(), uuid, null, new ArrayList<>());
+                    InternalNpc npc = plugin.createNPC(player.getWorld(), player.getLocation(), new Equipment(), new Settings(), uuid, null, new ArrayList<>());
                     MenuCore mc = new MenuCore(npc, plugin);
                     plugin.menuCores.put(player, mc);
                     plugin.pages.put(player, 0);
@@ -151,8 +150,8 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
                     } catch (IllegalArgumentException ignored) {
                     }
-                    List<InternalNPC> npcs = new ArrayList<>(plugin.npcs.values());
-                    for (InternalNPC npc : npcs) {
+                    List<InternalNpc> npcs = new ArrayList<>(plugin.npcs.values());
+                    for (InternalNpc npc : npcs) {
                         plugin.npcs.remove(npc.getUniqueID());
                         npc.remove();
                     }
@@ -200,7 +199,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             return true;
                         }
                         if (plugin.npcs.keySet().contains(uuid)) {
-                            InternalNPC npc = plugin.getNPCByID(uuid);
+                            InternalNpc npc = plugin.getNPCByID(uuid);
                             npc.remove();
                             npc.delete();
                             plugin.npcs.remove(npc.getUniqueID());
@@ -215,11 +214,11 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             return true;
                         }
                         if (plugin.npcs.containsKey(uuid)) {
-                            InternalNPC npc = plugin.getNPCByID(uuid);
+                            InternalNpc npc = plugin.getNPCByID(uuid);
                             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                                 List<String> actionStrs = new ArrayList<>();
                                 npc.getActions().forEach(action -> actionStrs.add(action.toJson()));
-                                InternalNPC newNpc = plugin.createNPC(player.getWorld(), npc.getSpawnLoc(), npc.getEquipment(), npc.getSettings(), npc.getUniqueID(), null, actionStrs);
+                                InternalNpc newNpc = plugin.createNPC(player.getWorld(), npc.getSpawnLoc(), npc.getEquipment(), npc.getSettings(), npc.getUniqueID(), null, actionStrs);
                                 MenuCore mc = new MenuCore(newNpc, plugin);
                                 plugin.menuCores.put(player, mc);
                                 plugin.pages.put(player, 0);
@@ -247,8 +246,8 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             } catch (IllegalArgumentException ignored) {
                 plugin.getLogger().info("Failed to unregister the \"npc\" team during reload, this isn't an issue, but might be helpful for debugging purposes.");
             }
-            List<InternalNPC> npcs = new ArrayList<>(plugin.npcs.values());
-            for (InternalNPC npc : npcs) {
+            List<InternalNpc> npcs = new ArrayList<>(plugin.npcs.values());
+            for (InternalNpc npc : npcs) {
                 plugin.npcs.remove(npc.getUniqueID());
                 npc.remove();
             }

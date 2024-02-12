@@ -5,7 +5,7 @@ import dev.foxikle.customnpcs.actions.ActionType;
 import dev.foxikle.customnpcs.actions.conditions.Conditional;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
-import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
+import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -111,7 +111,7 @@ public class FileManager {
      * </p>
      * @param npc The NPC to store
      */
-    public void addNPC(InternalNPC npc){
+    public void addNPC(InternalNpc npc){
         File file = new File("plugins/CustomNPCs/npcs.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         yml.createSection(npc.getUniqueID().toString());
@@ -239,7 +239,7 @@ public class FileManager {
             return;
         }
 
-        InternalNPC npc = plugin.createNPC(Bukkit.getWorld(section.getString("world")), section.getLocation("location"), new Equipment(section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getItemStack("handItem"), section.getItemStack("offhandItem")), new Settings( section.getBoolean("clickable"), false, true, section.getDouble("direction"), section.getString("value"), section.getString("signature"), section.getString("skin"), section.getString("name")), uuid, null,  section.getStringList("actions"));
+        InternalNpc npc = plugin.createNPC(Bukkit.getWorld(section.getString("world")), section.getLocation("location"), new Equipment(section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getItemStack("handItem"), section.getItemStack("offhandItem")), new Settings( section.getBoolean("clickable"), false, true, section.getDouble("direction"), section.getString("value"), section.getString("signature"), section.getString("skin"), section.getString("name")), uuid, null,  section.getStringList("actions"));
         npc.createNPC();
     }
 

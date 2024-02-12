@@ -8,7 +8,7 @@ import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
-import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
+import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -21,7 +21,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_20_R2.CraftServer;
 import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
@@ -30,7 +29,6 @@ import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -39,7 +37,7 @@ import java.util.*;
 /**
  * The object representing the NPC
  */
-public class NPC_v1_20_R2 extends ServerPlayer implements InternalNPC {
+public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
     private final UUID uuid;
     private final CustomNPCs plugin;
     private Settings settings;

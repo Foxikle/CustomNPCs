@@ -5,10 +5,9 @@ import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
-import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
+import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -25,7 +24,7 @@ import java.util.UUID;
  */
 public class NPC {
 
-    private final InternalNPC npc;
+    private final InternalNpc npc;
 
     /**
      * The intended way to create an NPC
@@ -61,7 +60,7 @@ public class NPC {
      * A constructor for creating an api friendly npc object using an internal npc object.
      * @param npc the internal npc to wrap for the api
      */
-    public NPC(InternalNPC npc) {
+    public NPC(InternalNpc npc) {
         this.npc = npc;
     }
 
