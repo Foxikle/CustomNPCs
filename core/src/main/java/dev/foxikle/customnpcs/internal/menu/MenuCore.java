@@ -2415,6 +2415,48 @@ public class MenuCore {
         return menu;
     }
 
+    public Menu getSkinMenu() {
+        Menu menu = Menu.builder().title("     Edit NPC Skin").rows(3).addAllModifiers().normal();
+
+        menu.setItem(18, ItemBuilder.of(ARROW)
+                .setName("§6Go Back")
+                .setLore("§eGo back to the main menu")
+                .buildItem((i, event) -> {
+                    Player player = event.getPlayer();
+                    player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
+                    getMainMenu().open(player);
+                    return ActionResponse.DONE;
+                }));
+
+        menu.setItem(11, ItemBuilder.of(ANVIL)
+                .setName("§eImport from Player")
+                .setLore("Fetches a player's skin by name")
+                .buildItem((i, event) -> {
+                    //todo: actually do stuff
+                    return ActionResponse.DONE;
+                }));
+
+        menu.setItem(13, ItemBuilder.of(ARMOR_STAND)
+                .setName("§eBrowse Skin Catalogue")
+                .setLore("Use a preset skin")
+                .buildItem((i, event) -> {
+                    //todo: actually do stuff
+                    return ActionResponse.DONE;
+                }));
+
+        menu.setItem(13, ItemBuilder.of(WRITABLE_BOOK)
+                .setName("§eImport from URL")
+                .setLore("Fetches a skin from a URL")
+                .buildItem((i, event) -> {
+                    //todo: actually do stuff
+                    return ActionResponse.DONE;
+                }));
+
+        menu.getFiller().fill(MenuItems.MENU_GLASS);
+
+        return menu;
+    }
+
     /**
      * <p> Gets the NPC object associated with the Menus
      * </p>
