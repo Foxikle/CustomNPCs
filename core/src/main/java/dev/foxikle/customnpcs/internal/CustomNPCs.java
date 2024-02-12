@@ -9,7 +9,7 @@ import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.commands.CommandCore;
 import dev.foxikle.customnpcs.internal.commands.NPCActionCommand;
-import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
+import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
@@ -98,7 +98,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * The Map of NPCs keyed by their UUIDs
      */
-    public Map<UUID, InternalNPC> npcs = new HashMap<>();
+    public Map<UUID, InternalNpc> npcs = new HashMap<>();
     /**
      * The Map of player's MenuCores
      */
@@ -153,6 +153,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public static Gson getGson() {
         return gson;
     }
+
+    Listeners listeners;
 
     /**
      * <p> Logic for when the plugin is enabled
@@ -209,7 +211,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             }
         }
         if (!wasPreviouslyEnabled) {
-            this.getServer().getPluginManager().registerEvents(new Listeners(this), this);
+            listeners = new Listeners(this);
+            this.getServer().getPluginManager().registerEvents(listeners, this);
             this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
             this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
         }
@@ -235,6 +238,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     @Override
     public void onDisable() {
+        if(listeners != null) listeners.stop();
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
         Bukkit.getServicesManager().unregister(this);
@@ -242,7 +246,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
         } catch (IllegalArgumentException | NullPointerException ignored) {
         }
-        for (InternalNPC npc : npcs.values()) {
+        for (InternalNpc npc : npcs.values()) {
             npc.remove();
         }
     }
@@ -253,7 +257,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      *
      * @return the list of current NPCs
      */
-    public List<InternalNPC> getNPCs() {
+    public List<InternalNpc> getNPCs() {
         return npcs.values().stream().toList();
     }
 
@@ -264,7 +268,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @param npc      The NPC to add
      * @param hologram the TextDisplay representing the NPC's name
      */
-    public void addNPC(InternalNPC npc, TextDisplay hologram) {
+    public void addNPC(InternalNpc npc, TextDisplay hologram) {
         holograms.add(hologram);
         npcs.put(npc.getUniqueID(), npc);
     }
@@ -309,7 +313,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @return the NPC of the specified UUID
      * @throws NullPointerException if the specified UUID is null
      */
-    public InternalNPC getNPCByID(UUID uuid) {
+    public InternalNpc getNPCByID(UUID uuid) {
         if (uuid == null) throw new NullPointerException("uuid cannot be null");
         if (!npcs.containsKey(uuid))
             return null;
@@ -355,10 +359,10 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @param actions   the NPC's actions
      * @return the created NPC
      */
-    public InternalNPC createNPC(World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<String> actions) {
+    public InternalNpc createNPC(World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<String> actions) {
         try {
             Class<?> clazz = Class.forName(String.format(NPC_CLASS, serverVersion));
-            return (InternalNPC) clazz
+            return (InternalNpc) clazz
                     .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class, UUID.class, Player.class, List.class)
                     .newInstance(this, world, spawnLoc, equipment, settings, uuid, target, actions);
         } catch (ReflectiveOperationException e) {
