@@ -6,7 +6,7 @@ import dev.foxikle.customnpcs.actions.conditions.Conditional;
 import dev.foxikle.customnpcs.actions.conditions.LogicalConditional;
 import dev.foxikle.customnpcs.actions.conditions.NumericConditional;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.interfaces.InternalNPC;
+import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.runnables.*;
 import me.flame.menus.builders.items.ItemBuilder;
 import me.flame.menus.menu.ActionResponse;
@@ -33,7 +33,7 @@ import static org.bukkit.Material.*;
  */
 public class MenuCore {
 
-    private final InternalNPC npc;
+    private final InternalNpc npc;
     private final CustomNPCs plugin;
 
     /**
@@ -43,7 +43,7 @@ public class MenuCore {
      * @param npc    The NPC to edit
      * @param plugin The instance of the Main class
      */
-    public MenuCore(InternalNPC npc, CustomNPCs plugin) {
+    public MenuCore(InternalNpc npc, CustomNPCs plugin) {
         this.npc = npc;
         this.plugin = plugin;
     }
@@ -2463,7 +2463,7 @@ public class MenuCore {
      *
      * @return The npc
      */
-    public InternalNPC getNpc() {
+    public InternalNpc getNpc() {
         return this.npc;
     }
 }
