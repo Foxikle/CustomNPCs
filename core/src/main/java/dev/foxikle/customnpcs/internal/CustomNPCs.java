@@ -46,7 +46,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     private static Gson gson;
     private static boolean wasPreviouslyEnabled = false;
     private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
-    private final String[] COMPATIBLE_VERSIONS = {"v1_20_R3", "v1_20_R2", "v1_20_R1"};
+    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4"};
     /**
      * The List of inventories that make up the skin selection menus
      */
@@ -228,7 +228,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
 
     public boolean setup() {
-        serverVersion = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+        serverVersion = Bukkit.getMinecraftVersion();
         return Arrays.stream(COMPATIBLE_VERSIONS).toList().contains(serverVersion);
     }
 
@@ -361,7 +361,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     public InternalNpc createNPC(World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<String> actions) {
         try {
-            Class<?> clazz = Class.forName(String.format(NPC_CLASS, serverVersion));
+            Class<?> clazz = Class.forName(String.format(NPC_CLASS, translateVersion()));
             return (InternalNpc) clazz
                     .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class, UUID.class, Player.class, List.class)
                     .newInstance(this, world, spawnLoc, equipment, settings, uuid, target, actions);
@@ -378,5 +378,20 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     public AutoUpdater getUpdater() {
         return updater;
+    }
+
+    public String translateVersion() {
+        switch (serverVersion) {
+            case "1.20", "1.20.1" -> {
+                return "v1_20_R1";
+            }
+            case "1.20.2" -> {
+                return "v1_20_R2";
+            }
+            case "1.20.3", "1.20.4" -> {
+                return "v1_20_R3";
+            }
+        }
+        return "";
     }
 }
