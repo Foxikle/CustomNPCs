@@ -10,7 +10,7 @@ libraries:
   - com.google.code.gson:gson:2.8.8
 commands:
   npc:
-    description: The core command for Custom NPCs
+    description: The core command for CustomNPCs
   npcaction:
     description: no.
 permissions:
