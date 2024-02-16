@@ -212,4 +212,16 @@ public class Settings {
     public void setValue(String value) {
         this.value = value;
     }
+
+    /**
+     * Sets the skin data in on fell swoop
+     * @param signature the skin signature
+     * @param value the skin value
+     * @param skinName the cosmetic name
+     */
+    public void setSkinData(String signature, String value, String skinName) {
+        this.signature = signature;
+        this.value = value;
+        this.skinName = skinName;
+    }
 }
