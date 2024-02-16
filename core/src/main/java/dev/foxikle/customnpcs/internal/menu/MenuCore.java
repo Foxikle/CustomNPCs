@@ -265,7 +265,7 @@ public class MenuCore {
         cancelMeta.displayName(Component.text("CANCEL", NamedTextColor.RED, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         cancelButton.setItemMeta(cancelMeta);
         menu.setItem(13, ItemBuilder.of(plugin.getMenuUtils().getSkinIcon(new NamespacedKey(plugin, "nothing_lol_this_should_be_changed_tbh"), "", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSettings().getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9").getItemStack()).buildItem((i, event) -> {
-            plugin.skinCatalogue.open(event.getPlayer(), 1);
+            getSkinMenu().open(event.getPlayer());
             return ActionResponse.DONE;
         }));
         menu.setItem(16, ItemBuilder.of(nametag).buildItem((i, event) -> {
@@ -2432,7 +2432,11 @@ public class MenuCore {
                 .setName("§eImport from Player")
                 .setLore("Fetches a player's skin by name")
                 .buildItem((i, event) -> {
-                    //todo: actually do stuff
+                    Player player = event.getPlayer();
+                    player.closeInventory();
+                    plugin.playernameWating.add(player);
+                    new PlayerNameRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
+                    event.setCancelled(true);
                     return ActionResponse.DONE;
                 }));
 
@@ -2448,7 +2452,11 @@ public class MenuCore {
                 .setName("§eImport from URL")
                 .setLore("Fetches a skin from a URL")
                 .buildItem((i, event) -> {
-                    //todo: actually do stuff
+                    Player player = event.getPlayer();
+                    player.closeInventory();
+                    plugin.urlWaiting.add(player);
+                    new UrlRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
+                    event.setCancelled(true);
                     return ActionResponse.DONE;
                 }));
 
