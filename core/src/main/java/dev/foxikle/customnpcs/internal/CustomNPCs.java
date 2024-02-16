@@ -27,6 +27,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
+import org.mineskin.MineskinClient;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -47,6 +48,11 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     private static boolean wasPreviouslyEnabled = false;
     private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
     private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4"};
+
+    /**
+     * The client for the MineSkin API
+     */
+    public final MineskinClient MINESKIN_CLIENT = new MineskinClient("MineSkin-JavaClient");
     /**
      * The List of inventories that make up the skin selection menus
      */
@@ -83,6 +89,14 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * The List of players the plugin is waiting for sound text input
      */
     public List<Player> soundWaiting = new ArrayList<>();
+    /**
+     * The List of players the plugin is waiting for url input
+     */
+    public List<Player> urlWaiting = new ArrayList<>();
+    /**
+     * The List of players the plugin is waiting for player name input
+     */
+    public List<Player> playernameWating = new ArrayList<>();
     /**
      * The List of NPC holograms
      */
