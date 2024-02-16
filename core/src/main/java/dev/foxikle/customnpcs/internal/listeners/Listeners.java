@@ -26,13 +26,11 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.*;
-import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 /**
@@ -277,7 +275,17 @@ public class Listeners implements Listener {
             player.sendMessage(Component.text("Successfully set actionbar to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(message)).append(Component.text("'", NamedTextColor.GREEN)));
             SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
         } else if (plugin.playernameWating.contains(player)) {
+            if(message.equalsIgnoreCase("quit") ||
+                    message.equalsIgnoreCase("exit")||
+                    message.equalsIgnoreCase("stop")||
+                    message.equalsIgnoreCase("cancel")) {
+                plugin.urlWaiting.remove(player);
+                SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
+                e.setCancelled(true);
+                return;
+            }
             // this runs on an async thread, so there isn't any need to do this async :)
+            player.sendMessage("§e§oAttempting to fetch " + message + "'s skin from Mojang's API. This may take a moment!");
             String name = e.getMessage();
             try {
                 URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + name);
@@ -293,7 +301,6 @@ public class Listeners implements Listener {
                 String signature = property.get("signature").getAsString();
                 core.getNpc().getSettings().setSkinData(signature, value, name + "'s skin (imported via player name)");
             } catch (Exception ignored) {
-                ignored.printStackTrace();
                 player.sendMessage(ChatColor.RED + "There was an error parsing " + name + "'s skin? Does this player exist?");
                 e.setCancelled(true);
                 return;
@@ -302,24 +309,32 @@ public class Listeners implements Listener {
             player.sendMessage(ChatColor.GREEN + "Successfully set NPC's skin to " + name + "'s skin!");
             SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
         } else if (plugin.urlWaiting.contains(player)) {
+            if(message.equalsIgnoreCase("quit") ||
+                    message.equalsIgnoreCase("exit")||
+                    message.equalsIgnoreCase("stop")||
+                    message.equalsIgnoreCase("cancel")) {
+                plugin.urlWaiting.remove(player);
+                SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
+                e.setCancelled(true);
+                return;
+            }
+            e.setCancelled(true);
+            player.sendMessage("§e§oAttempting to fetch the skin from a URL. This may take a moment!");
             try {
                 URL url = new URL(message);
                 plugin.MINESKIN_CLIENT.generateUrl(url.toString()).whenComplete((skin, throwable) -> {
                     if(throwable != null) {
-                        player.sendMessage(ChatColor.RED + "An error occured whilst parsing NPC skin. Check the console for more details.");
-                        plugin.getLogger().log(Level.SEVERE, "An error occoured whilst fetching a skin from MineSkin! Please report the following stacktrace to @foxikle on discord, or join his support server. Thanks!", throwable);
-                        e.setCancelled(true);
+                        player.sendMessage(ChatColor.RED + "An error occured whilst parsing this skin.");
                         return;
                     }
                     core.getNpc().getSettings().setSkinData(skin.data.texture.signature, skin.data.texture.value, "A skin imported via a URL");
+                    plugin.urlWaiting.remove(player);
+                    player.sendMessage(ChatColor.GREEN + "Successfully set NPC's skin from " + message);
+                    SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
                 });
-            } catch (MalformedURLException ex) {
+            } catch (Exception ex) {
                 player.sendMessage(ChatColor.RED + "An error occured whilst parsing NPC skin. Is this URL valid?");
-                return;
             }
-            plugin.urlWaiting.remove(player);
-            player.sendMessage(ChatColor.GREEN + "Successfully set NPC's skin from " + message);
-            SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
         } else return;
 
         e.setCancelled(true);
