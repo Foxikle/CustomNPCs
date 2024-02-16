@@ -2429,8 +2429,8 @@ public class MenuCore {
                 }));
 
         menu.setItem(11, ItemBuilder.of(ANVIL)
-                .setName("§eImport from Player")
-                .setLore("Fetches a player's skin by name")
+                .setName("§bImport from Player")
+                .setLore("§eFetches a player's skin by name")
                 .buildItem((i, event) -> {
                     Player player = event.getPlayer();
                     player.closeInventory();
@@ -2441,16 +2441,16 @@ public class MenuCore {
                 }));
 
         menu.setItem(13, ItemBuilder.of(ARMOR_STAND)
-                .setName("§eBrowse Skin Catalogue")
-                .setLore("Use a preset skin")
+                .setName("§bBrowse Skin Catalogue")
+                .setLore("§eUse a preset skin")
                 .buildItem((i, event) -> {
                     //todo: actually do stuff
                     return ActionResponse.DONE;
                 }));
 
-        menu.setItem(13, ItemBuilder.of(WRITABLE_BOOK)
-                .setName("§eImport from URL")
-                .setLore("Fetches a skin from a URL")
+        menu.setItem(15, ItemBuilder.of(WRITABLE_BOOK)
+                .setName("§bImport from URL")
+                .setLore("§eFetches a skin from a URL")
                 .buildItem((i, event) -> {
                     Player player = event.getPlayer();
                     player.closeInventory();
