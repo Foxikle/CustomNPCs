@@ -40,18 +40,20 @@ public class FileManager {
     /**
      * <p> Gets the file manager object.
      * </p>
+     *
      * @param plugin The instance of the Main class
      */
-    public FileManager (CustomNPCs plugin){
+    public FileManager(CustomNPCs plugin) {
         this.plugin = plugin;
     }
 
     /**
      * <p> Creates the files the plugin needs to run
      * </p>
+     *
      * @return if creating the files was successful
      */
-    public boolean createFiles(){
+    public boolean createFiles() {
         if (!new File(PARENT_DIRECTORY, "/npcs.yml").exists()) {
             plugin.saveResource("npcs.yml", false);
         }
@@ -62,16 +64,16 @@ public class FileManager {
         File file = new File(PARENT_DIRECTORY, "config.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
 
-        if(!yml.contains("Skins")){
-            BackupResult br =  createBackup(file);
-            if(br.success) {
+        if (!yml.contains("Skins")) {
+            BackupResult br = createBackup(file);
+            if (br.success) {
                 plugin.getLogger().warning("The config is irreperably damaged! Resetting config. Your old config was saved to the file \"" + br.filePath.toString() + "\"");
                 plugin.saveResource("config.yml", true);
             }
         }
 
         int version = yml.getInt("CONFIG_VERSION");
-        if(version == 0) { // doesn't exist?
+        if (version == 0) { // doesn't exist?
             plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
             yml.set("CONFIG_VERSION", 1);
             yml.setComments("CONFIG_VERSION", List.of(" DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.", ""));
@@ -93,7 +95,7 @@ public class FileManager {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        } else if(version < 3) { // prior to 1.5.2-pre1
+        } else if (version < 3) { // prior to 1.5.2-pre1
             plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
             yml.set("CONFIG_VERSION", 3);
             yml.set("ClickText", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(yml.getString("ClickText"))));
@@ -109,9 +111,10 @@ public class FileManager {
     /**
      * <p> Adds an NPC to the `npcs.yml` file.
      * </p>
+     *
      * @param npc The NPC to store
      */
-    public void addNPC(InternalNpc npc){
+    public void addNPC(InternalNpc npc) {
         File file = new File("plugins/CustomNPCs/npcs.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         yml.createSection(npc.getUniqueID().toString());
@@ -148,15 +151,16 @@ public class FileManager {
     /**
      * <p> Gets the NPC of the specified UUID
      * </p>
+     *
      * @param uuid The NPC to load from the file
      */
-    public void loadNPC(UUID uuid){
+    public void loadNPC(UUID uuid) {
         File file = new File("plugins/CustomNPCs/npcs.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection section = yml.getConfigurationSection(uuid.toString());
-        if(section == null) throw new IllegalArgumentException("NPC uuid cannot be null.");
+        if (section == null) throw new IllegalArgumentException("NPC uuid cannot be null.");
         List<Action> actions = new ArrayList<>();
-        if(yml.getString("version") == null) { // Config is from before 1.3-pre4
+        if (yml.getString("version") == null) { // Config is from before 1.3-pre4
             yml.set("version", "1.5");
             // save updating the version
             try {
@@ -194,9 +198,9 @@ public class FileManager {
             List<String> legacyActions = section.getStringList("actions");
             List<String> newActions = new ArrayList<>();
             legacyActions.forEach(s -> {
-                if(s != null) {
+                if (s != null) {
                     Action a = Action.of(s); // going to be converted the old way
-                    if(a != null) {
+                    if (a != null) {
                         newActions.add(a.toJson());
                     }
                 }
@@ -207,7 +211,7 @@ public class FileManager {
             } catch (IOException e) {
                 plugin.getLogger().severe("An error occoured whilst saving the converted actions. Pleaes report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
             }
-        } else if(yml.getString("version").equalsIgnoreCase("1.4")) {
+        } else if (yml.getString("version").equalsIgnoreCase("1.4")) {
             plugin.getLogger().warning("Old NPC file version found! Bumping version! (1.4 -> 1.5)");
             yml.set("version", "1.5");
             section.set("tunnelvision", false);
@@ -217,7 +221,7 @@ public class FileManager {
                 plugin.getLogger().severe("An error occoured whilst saving the tunelvision status to the config. Pleaes report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
             }
         }
-        if(section.getConfigurationSection("actions") == null) { // meaning it does not exist
+        if (section.getConfigurationSection("actions") == null) { // meaning it does not exist
             if (section.getString("command") != null) { // if there is a legacy command
                 Bukkit.getLogger().info("Converting legacy commands to Actions.");
                 String command = section.getString("command");
@@ -233,7 +237,7 @@ public class FileManager {
                 }
             }
         }
-        if(section.getString("name").contains("§")) {
+        if (section.getString("name").contains("§")) {
             section.set("name", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(section.getString("name").replace("§", "&"))));
             try {
                 yml.save(file);
@@ -244,26 +248,37 @@ public class FileManager {
         }
 
         World world = Bukkit.getWorld(section.getString("world"));
-        if(world == null) {
+        if (world == null) {
             plugin.getLogger().severe("NPC with an invalid world detected! World: '" + section.getString("world") + "'");
             return;
         }
 
-        InternalNpc npc = plugin.createNPC(Bukkit.getWorld(section.getString("world")), section.getLocation("location"), new Equipment(section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getItemStack("handItem"), section.getItemStack("offhandItem")), new Settings( section.getBoolean("clickable"), section.getBoolean("tunnelvision"), true, section.getDouble("direction"), section.getString("value"), section.getString("signature"), section.getString("skin"), section.getString("name")), uuid, null,  section.getStringList("actions"));
+        List<String> rawActions = section.getStringList("actions");
+
+        // use the actions freshly converted
+        if (actions.isEmpty()) {
+            actions = new ArrayList<>();
+            for (String s : rawActions) {
+                actions.add(Action.of(s));
+            }
+        }
+
+        InternalNpc npc = plugin.createNPC(Bukkit.getWorld(section.getString("world")), section.getLocation("location"), new Equipment(section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getItemStack("handItem"), section.getItemStack("offhandItem")), new Settings(section.getBoolean("clickable"), section.getBoolean("tunnelvision"), true, section.getDouble("direction"), section.getString("value"), section.getString("signature"), section.getString("skin"), section.getString("name")), uuid, null, actions);
         npc.createNPC();
     }
 
     /**
      * <p> Gets the set of stored UUIDs.
      * </p>
+     *
      * @return the set of stored NPC uuids.
      */
-    public Set<UUID> getNPCIds(){
+    public Set<UUID> getNPCIds() {
         File file = new File("plugins/CustomNPCs/npcs.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         Set<UUID> uuids = new HashSet<>();
-        for (String str: yml.getKeys(false)) {
-            if(!str.equalsIgnoreCase("version"))
+        for (String str : yml.getKeys(false)) {
+            if (!str.equalsIgnoreCase("version"))
                 uuids.add(UUID.fromString(str));
         }
         return uuids;
@@ -272,9 +287,10 @@ public class FileManager {
     /**
      * <p> Removes the specified NPC from storage
      * </p>
+     *
      * @param uuid The NPC uuid to remove
      */
-    public void remove(UUID uuid){
+    public void remove(UUID uuid) {
         File file = new File("plugins/CustomNPCs/npcs.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         yml.set(uuid.toString(), null);
@@ -290,7 +306,7 @@ public class FileManager {
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         File f = new File(PARENT_DIRECTORY, new Date().toGMTString().replace(" ", "_").replace(":", "_") + "_backup_of_" + file.getName());
         try {
-            if(f.createNewFile()) {
+            if (f.createNewFile()) {
                 yml.save(f);
             } else {
                 throw new RuntimeException("A duplicate file of file '" + f.getName() + "' exists! This means the plugin attempted to back up the file '" + file.getName() + "' multiple times within this milisecond! This is a serious issue that should be reported to @foxikle on discord!");
@@ -302,5 +318,6 @@ public class FileManager {
         return new BackupResult(f.toPath(), true);
     }
 
-    private record BackupResult(Path filePath, boolean success) {}
+    private record BackupResult(Path filePath, boolean success) {
+    }
 }
