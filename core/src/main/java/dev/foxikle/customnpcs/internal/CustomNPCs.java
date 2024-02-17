@@ -120,7 +120,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * The Map of the original actions a player is editing
      */
-    public Map<Player, String> originalEditingActions = new HashMap<>();
+    public Map<Player, Action> originalEditingActions = new HashMap<>();
     /**
      * The Map of the action a player is editing
      */
@@ -395,7 +395,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @param actions   the NPC's actions
      * @return the created NPC
      */
-    public InternalNpc createNPC(World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<String> actions) {
+    public InternalNpc createNPC(World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actions) {
         try {
             Class<?> clazz = Class.forName(String.format(NPC_CLASS, translateVersion()));
             return (InternalNpc) clazz
