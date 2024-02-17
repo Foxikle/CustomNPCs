@@ -114,12 +114,7 @@ public class Listeners implements Listener {
         }
     }
 
-    private final void processPlayerMovement(final Player player,
-                                             final InternalNpc npc,
-                                             final World world,
-                                             final World npcWorld,
-                                             final Location location,
-                                             final UUID uuid) {
+    private void processPlayerMovement(final Player player, final InternalNpc npc, final World world, final World npcWorld, final Location location, final UUID uuid) {
         final Location npcLocation = npc.getCurrentLocation();
         MovementData oldMovementData; // difference in order of initialization in if/else statement
         MovementData movementData = playerMovementData.get(uuid);
@@ -148,15 +143,7 @@ public class Listeners implements Listener {
         }
     }
 
-    private final void trackFromTo(Player player,
-                                   InternalNpc npc,
-                                   World world,
-                                   World npcWorld,
-                                   Location location,
-                                   Location npcLocation,
-                                   UUID uuid,
-                                   MovementData data,
-                                   MovementData oldData) {
+    private void trackFromTo(Player player, InternalNpc npc, World world, World npcWorld, Location location, Location npcLocation, UUID uuid, MovementData data, MovementData oldData) {
         if (data.distanceSquared <= FIVE_BLOCKS) {
             npc.lookAt(LookAtAnchor.HEAD, player);
             return;
