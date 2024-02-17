@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -292,7 +293,7 @@ public class NPC {
      * @since 1.5.2-pre3
      */
     public NPC setActions(Collection<Action> actions){
-        npc.setActions(actions);
+        npc.setActions(List.copyOf(actions));
         return this;
     }
 
