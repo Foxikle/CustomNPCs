@@ -345,6 +345,16 @@ public class MenuCore {
             event.setCancelled(true);
             return ActionResponse.DONE;
         }));
+        menu.setItem(28, ItemBuilder.of(SPYGLASS)
+                .setName("§bToggle Vision Mode")
+                .setLore(npc.getSettings().isTunnelvision() ? "§a§lTUNNEL Visioned" : "§c§lNORMAL Visioned")
+                .buildItem((i, event) -> {
+                    Player player = event.getPlayer();
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    npc.getSettings().setTunnelvision(!npc.getSettings().isTunnelvision());
+                    getMainMenu().open(player);
+                    return ActionResponse.DONE;
+                }));
         menu.setItem(19, ItemBuilder.of(equipment).buildItem((i, event) -> {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
