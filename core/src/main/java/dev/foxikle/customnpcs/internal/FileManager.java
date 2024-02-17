@@ -31,7 +31,7 @@ public class FileManager {
     /**
      * The file version of the npcs.yml file
      */
-    public static final double NPCFILE_VERSION = 1.4;
+    public static final double NPCFILE_VERSION = 1.5;
 
     public static File PARENT_DIRECTORY = new File("plugins/CustomNPCs/");
 
@@ -135,6 +135,7 @@ public class FileManager {
         section.addDefault("name", npc.getSettings().getName());
         section.addDefault("world", npc.getWorld().getName());
         section.addDefault("direction", npc.getSettings().getDirection());
+        section.addDefault("tunnelvision", npc.getSettings().isTunnelvision());
         yml.options().copyDefaults(true);
         try {
             yml.save(file);
@@ -156,7 +157,7 @@ public class FileManager {
         if(section == null) throw new IllegalArgumentException("NPC uuid cannot be null.");
         List<Action> actions = new ArrayList<>();
         if(yml.getString("version") == null) { // Config is from before 1.3-pre4
-            yml.set("version", "1.4");
+            yml.set("version", "1.5");
             // save updating the version
             try {
                 yml.save(file);
@@ -206,6 +207,15 @@ public class FileManager {
             } catch (IOException e) {
                 plugin.getLogger().severe("An error occoured whilst saving the converted actions. Pleaes report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
             }
+        } else if(yml.getString("version").equalsIgnoreCase("1.4")) {
+            plugin.getLogger().warning("Old NPC file version found! Bumping version! (1.4 -> 1.5)");
+            yml.set("version", "1.5");
+            section.set("tunnelvision", false);
+            try {
+                yml.save(file);
+            } catch (IOException e) {
+                plugin.getLogger().severe("An error occoured whilst saving the tunelvision status to the config. Pleaes report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
+            }
         }
         if(section.getConfigurationSection("actions") == null) { // meaning it does not exist
             if (section.getString("command") != null) { // if there is a legacy command
@@ -239,7 +249,7 @@ public class FileManager {
             return;
         }
 
-        InternalNpc npc = plugin.createNPC(Bukkit.getWorld(section.getString("world")), section.getLocation("location"), new Equipment(section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getItemStack("handItem"), section.getItemStack("offhandItem")), new Settings( section.getBoolean("clickable"), false, true, section.getDouble("direction"), section.getString("value"), section.getString("signature"), section.getString("skin"), section.getString("name")), uuid, null,  section.getStringList("actions"));
+        InternalNpc npc = plugin.createNPC(Bukkit.getWorld(section.getString("world")), section.getLocation("location"), new Equipment(section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getItemStack("handItem"), section.getItemStack("offhandItem")), new Settings( section.getBoolean("clickable"), section.getBoolean("tunnelvision"), true, section.getDouble("direction"), section.getString("value"), section.getString("signature"), section.getString("skin"), section.getString("name")), uuid, null,  section.getStringList("actions"));
         npc.createNPC();
     }
 
