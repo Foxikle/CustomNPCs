@@ -81,8 +81,8 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
      */
     public void setPosRot(Location location) {
         this.setPos(location.getX(), location.getY(), location.getZ());
-        this.setXRot(location.getYaw());
-        this.setYRot(location.getPitch());
+        this.setXRot(location.getPitch());
+        this.setYRot(location.getYaw());
     }
 
     /**
