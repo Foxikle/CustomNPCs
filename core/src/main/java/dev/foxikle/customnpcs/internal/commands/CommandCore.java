@@ -161,7 +161,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     plugin.onEnable();
                     player.sendMessage(ChatColor.GREEN + "NPCs successfully reloaded.");
                 }
-            } else if (args.length >= 2) {
+            } else {
                 if (args[0].equalsIgnoreCase("setsound")) {
                     if (plugin.soundWaiting.contains(player)) {
                         try {
@@ -216,9 +216,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         if (plugin.npcs.containsKey(uuid)) {
                             InternalNpc npc = plugin.getNPCByID(uuid);
                             Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                                List<String> actionStrs = new ArrayList<>();
-                                npc.getActions().forEach(action -> actionStrs.add(action.toJson()));
-                                InternalNpc newNpc = plugin.createNPC(player.getWorld(), npc.getSpawnLoc(), npc.getEquipment(), npc.getSettings(), npc.getUniqueID(), null, actionStrs);
+                                InternalNpc newNpc = plugin.createNPC(player.getWorld(), npc.getSpawnLoc(), npc.getEquipment(), npc.getSettings(), npc.getUniqueID(), null, npc.getActions());
                                 MenuCore mc = new MenuCore(newNpc, plugin);
                                 plugin.menuCores.put(player, mc);
                                 plugin.pages.put(player, 0);
