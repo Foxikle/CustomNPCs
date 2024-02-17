@@ -23,6 +23,7 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -35,6 +36,8 @@ public class MenuCore {
 
     private final InternalNpc npc;
     private final CustomNPCs plugin;
+
+    private final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
 
     /**
      * <p> The constructor to make a menu factory
@@ -322,7 +325,7 @@ public class MenuCore {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
-            player.sendMessage("§bThe NPC is now " + (npc.getSettings().isInteractable() ? "§c§lNOT INTERACTABLE" : "a§lINTERACTABLE"));
+            player.sendMessage("§bThe NPC is now " + (npc.getSettings().isInteractable() ? "§c§lNOT INTERACTABLE" : "§a§lINTERACTABLE"));
             npc.getSettings().setInteractable(!npc.getSettings().isInteractable());
             getMainMenu().open(player);
             return ActionResponse.DONE;
@@ -750,8 +753,8 @@ public class MenuCore {
             if (action.getActionType() != ActionType.TOGGLE_FOLLOWING)
                 lore.add(Component.text("Delay (ticks): " + action.getDelay()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
             lore.add(Component.empty());
-            switch (action.getSubCommand()) {
-                case "DISPLAY_TITLE" -> {
+            switch (action.getActionType()) {
+                case DISPLAY_TITLE -> {
                     item.setType(Material.OAK_SIGN);
                     int fIn = Integer.parseInt(args.get(0));
                     int stay = Integer.parseInt(args.get(1));
@@ -765,33 +768,33 @@ public class MenuCore {
                     lore.add(Component.text("Stay: " + stay).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.AQUA));
                     lore.add(Component.text("Fade out: " + fOut).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.AQUA));
                 }
-                case "SEND_MESSAGE" -> {
+                case SEND_MESSAGE -> {
                     item.setType(Material.PAPER);
                     meta.displayName(Component.text("Send Message", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     lore.add(Component.text("The current message is: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(String.join(" ", args))).append(Component.text("'", NamedTextColor.YELLOW)));
                 }
-                case "PLAY_SOUND" -> {
+                case PLAY_SOUND -> {
                     item.setType(Material.BELL);
                     meta.displayName(Component.text("Play Sound", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    int pitch = Integer.parseInt(args.get(0));
+                    double pitch = Double.parseDouble(args.get(0));
                     args.remove(0);
-                    int volume = Integer.parseInt(args.get(0));
+                    double volume = Double.parseDouble(args.get(0));
                     args.remove(0);
                     lore.add(Component.text("The current sound is: '" + String.join(" ", args) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Pitch: " + pitch, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Volume: " + volume, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Pitch: " + DECIMAL_FORMAT.format(pitch), NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    lore.add(Component.text("Volume: " + DECIMAL_FORMAT.format(volume), NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
-                case "RUN_COMMAND" -> {
+                case RUN_COMMAND -> {
                     item.setType(Material.ANVIL);
                     meta.displayName(Component.text("Run Command", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     lore.add(Component.text("The command is: '" + String.join(" ", args) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
-                case "ACTION_BAR" -> {
+                case ACTION_BAR -> {
                     item.setType(Material.IRON_INGOT);
                     meta.displayName(Component.text("Send Actionbar", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     lore.add(Component.text("The current actionbar is: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(plugin.getMiniMessage().deserialize(String.join(" ", args))).append(Component.text("'", NamedTextColor.YELLOW)));
                 }
-                case "TELEPORT" -> {
+                case TELEPORT -> {
                     item.setType(Material.ENDER_PEARL);
                     int x = Integer.parseInt(args.get(0));
                     int y = Integer.parseInt(args.get(1));
@@ -806,17 +809,17 @@ public class MenuCore {
                     lore.add(Component.text("Pitch: " + pitch, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     lore.add(Component.text("Yaw: " + yaw, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
-                case "GIVE_EXP" -> {
+                case GIVE_EXP -> {
                     item.setType(Material.EXPERIENCE_BOTTLE);
                     meta.displayName(Component.text("Give Experience", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     lore.add(Component.text("The current xp to give is: " + args.get(0) + " " + (args.get(1).equalsIgnoreCase("true") ? "levels" : "points"), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
-                case "REMOVE_EXP" -> {
+                case REMOVE_EXP -> {
                     item.setType(Material.GLASS_BOTTLE);
                     meta.displayName(Component.text("Remove Experience", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     lore.add(Component.text("The current xp to remove is: " + args.get(0) + " " + (args.get(1).equalsIgnoreCase("true") ? "levels" : "points"), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
-                case "ADD_EFFECT" -> {
+                case ADD_EFFECT -> {
                     item.setType(Material.BREWING_STAND);
                     meta.displayName(Component.text("Give Effect", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     lore.add(Component.text("Effect: '" + args.get(3) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
@@ -824,17 +827,17 @@ public class MenuCore {
                     lore.add(Component.text("Amplifier: " + args.get(1), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     lore.add(Component.text("Hide particles: " + args.get(2), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
-                case "REMOVE_EFFECT" -> {
+                case REMOVE_EFFECT -> {
                     item.setType(Material.MILK_BUCKET);
                     meta.displayName(Component.text("Remove Experience", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     lore.add(Component.text("Effect: '" + args.get(0) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
-                case "SEND_TO_SERVER" -> {
+                case SEND_TO_SERVER -> {
                     item.setType(Material.GRASS_BLOCK);
                     meta.displayName(Component.text("Send To Bungeecord/Velocity Server", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     lore.add(Component.text("Server: '" + String.join(" ", args) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 }
-                case "TOGGLE_FOLLOWING" -> {
+                case TOGGLE_FOLLOWING -> {
                     item.setType(Material.LEAD);
                     meta.displayName(Component.text("[WIP]", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(" Start / Stop Following", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)));
                 }
@@ -853,8 +856,8 @@ public class MenuCore {
                     npc.removeAction(action);
                 } else if (event.isLeftClick()) {
                     if (action.getActionType().isEditable()) {
-                        plugin.editingActions.put(player, action);
-                        plugin.originalEditingActions.put(player, action.toJson());
+                        plugin.editingActions.put(player, action.clone());
+                        plugin.originalEditingActions.put(player, action);
                         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                         getActionCustomizerMenu(action).open(player);
                     } else {
@@ -996,8 +999,8 @@ public class MenuCore {
      */
     public Menu getActionCustomizerMenu(Action action) {
         Menu menu = Menu.builder().addAllModifiers().rows(5).title("       Edit NPC Action").normal();
-        List<String> incLore = List.of("§8Left CLick to add 1", "§8Right Click to add 5", "§8Shift + Right Click to add 20");
-        List<String> decLore = List.of("§8Left CLick to remove 1", "§8Right Click to remove 5", "§8Shift + Click to remove 20");
+        List<String> incLore = List.of("§8Left Click to add 1", "§8Right Click to add 5", "§8Shift + Right Click to add 20");
+        List<String> decLore = List.of("§8Left Click to remove 1", "§8Right Click to remove 5", "§8Shift + Click to remove 20");
 
         menu.setItem(3, ItemBuilder.of(RED_DYE).setName("§eDecrement Delay").setLore(decLore).buildItem((i, event) -> {
             Player player = event.getPlayer();
@@ -1050,7 +1053,7 @@ public class MenuCore {
         menu.setItem(40, ItemBuilder.of(LILY_PAD).setName("§aConfirm").buildItem((i, event) -> {
             Player player = event.getPlayer();
             if (plugin.originalEditingActions.get(player) != null)
-                npc.removeAction(Action.of(plugin.originalEditingActions.remove(player)));
+                npc.removeAction(plugin.originalEditingActions.remove(player));
             npc.addAction(action);
             getActionMenu().open(player);
             event.getPlayer().playSound(event.getPlayer(), Sound.UI_BUTTON_CLICK, 1f, 1f);
@@ -1520,20 +1523,15 @@ public class MenuCore {
                     }));
             case PLAY_SOUND -> {
 
-                String smallIncLore = "§eCLick to add .1";
+                String smallIncLore = "§eClick to add .1";
+                String smallDecLore = "§eClick to remove .1";
 
                 menu.setItem(10, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease pitch.")
                         .setLore(smallIncLore)
                         .buildItem((i, event) -> {
                             Player player = event.getPlayer();
-                            if (event.isLeftClick()) {
-                                if (Double.parseDouble(action.getArgs().get(0)) + .1 > 1) {
-                                    player.sendMessage("§cThe pitch cannot be greater than 1!");
-                                } else {
-                                    action.getArgs().set(0, String.valueOf(Double.parseDouble(action.getArgs().get(0)) + .1));
-                                }
-                            }
+                            action.getArgs().set(0, String.valueOf(DECIMAL_FORMAT.format(Double.parseDouble(action.getArgs().get(0)) + .1)));
                             getActionCustomizerMenu(action).open(player);
                             return ActionResponse.DONE;
                         }));
@@ -1543,36 +1541,29 @@ public class MenuCore {
                         .setLore(smallIncLore)
                         .buildItem((i, event) -> {
                             Player player = event.getPlayer();
-                            if (event.isLeftClick()) {
-                                if (Double.parseDouble(action.getArgs().get(1)) + .1 > 1) {
-                                    player.sendMessage("§cThe volume cannot be greater than 1!");
-                                } else {
-                                    action.getArgs().set(1, String.valueOf(Double.parseDouble(action.getArgs().get(1)) + .1));
-                                }
-                            }
+                            action.getArgs().set(1, String.valueOf(DECIMAL_FORMAT.format(Double.parseDouble(action.getArgs().get(1)) + .1)));
                             getActionCustomizerMenu(action).open(player);
                             return ActionResponse.DONE;
                         }));
 
                 //decrements
-                String smallDecLore = "Left CLick to remove .1";
                 menu.setItem(28, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease pitch")
                         .setLore(smallDecLore)
                         .buildItem((i, event) -> {
                             Player player = event.getPlayer();
                             if (event.isLeftClick()) {
-                                if (Double.parseDouble(action.getArgs().get(0)) - .1 <= .1) {
+                                if (Double.parseDouble(action.getArgs().get(0)) - .1 <= 0) {
                                     player.sendMessage("§cThe pitch cannot be less than or equal 0!");
                                 } else {
-                                    action.getArgs().set(0, String.valueOf(Double.parseDouble(action.getArgs().get(0)) - .1));
+                                    action.getArgs().set(0, String.valueOf(DECIMAL_FORMAT.format(Double.parseDouble(action.getArgs().get(0)) - .1)));
                                 }
                             }
                             getActionCustomizerMenu(action).open(player);
                             return ActionResponse.DONE;
                         }));
 
-                menu.setItem(38, ItemBuilder.of(RED_DYE)
+                menu.setItem(30, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease volume")
                         .setLore(smallDecLore)
                         .buildItem((i, event) -> {
@@ -1581,7 +1572,7 @@ public class MenuCore {
                                 if (Double.parseDouble(action.getArgs().get(1)) - .1 <= 0) {
                                     player.sendMessage("§cThe volume cannot be less than or equal 0!");
                                 } else {
-                                    action.getArgs().set(1, String.valueOf(Double.parseDouble(action.getArgs().get(1)) - .1));
+                                    action.getArgs().set(1, String.valueOf(DECIMAL_FORMAT.format(Double.parseDouble(action.getArgs().get(1)) - .1)));
                                 }
                             }
                             getActionCustomizerMenu(action).open(player);
