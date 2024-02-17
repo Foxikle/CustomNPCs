@@ -16,10 +16,7 @@ import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import me.flame.menus.menu.PaginatedMenu;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bstats.bukkit.Metrics;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.ServicePriority;
@@ -46,13 +43,12 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     private static Gson gson;
     private static boolean wasPreviouslyEnabled = false;
-    private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
-    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4"};
-
     /**
      * The client for the MineSkin API
      */
     public final MineskinClient MINESKIN_CLIENT = new MineskinClient("MineSkin-JavaClient");
+    private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
+    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4"};
     /**
      * The List of inventories that make up the skin selection menus
      */
@@ -149,6 +145,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * The plugin's MiniMessage instance
      */
     public MiniMessage miniMessage = MiniMessage.miniMessage();
+    Listeners listeners;
     /**
      * Singleton for menu utilites
      */
@@ -167,8 +164,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public static Gson getGson() {
         return gson;
     }
-
-    Listeners listeners;
 
     /**
      * <p> Logic for when the plugin is enabled
@@ -229,9 +224,36 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             this.getServer().getPluginManager().registerEvents(listeners, this);
             this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
             this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
+
+            Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+                for (InternalNpc npc : npcs.values()) {
+                    if (npc.getSettings().isTunnelvision()) {
+                        npc.lookAt(calcLocation(npc));
+                    }
+                }
+            }, 0, 20);
         }
         // detecting reloads
         wasPreviouslyEnabled = true;
+    }
+
+    private Location calcLocation(InternalNpc npc) {
+        Location loc = npc.getCurrentLocation();
+        double yaw = npc.getSettings().getDirection();
+        if (yaw < 0.0 && yaw != -180.0) {
+            yaw *= -1;
+        }
+
+        double heading = Math.toRadians(yaw);
+        // trig to calculate the position
+        loc.add(5 * Math.sin(heading),
+                2 + -5 * Math.tan(Math.toRadians(npc.getSpawnLoc().getPitch())),
+                5 * Math.cos(heading)
+        );
+
+        npc.getWorld().spawnParticle(Particle.END_ROD, loc, 5, 0, 0, 0, 0);
+
+        return loc;
     }
 
     /**
@@ -252,7 +274,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     @Override
     public void onDisable() {
-        if(listeners != null) listeners.stop();
+        if (listeners != null) listeners.stop();
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
         Bukkit.getServicesManager().unregister(this);
