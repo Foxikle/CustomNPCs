@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class Action {
 
-    private String subCommand;
+    private ActionType actionType;
     private ArrayList<String> args;
     private int delay;
 
@@ -33,7 +33,7 @@ public class Action {
      * @param conditionals The conditions to apply to this action
      */
     public Action(ActionType actionType, ArrayList<String> args, int delay, Conditional.SelectionMode matchAll, List<String> conditionals){
-        this.subCommand = actionType.name();
+        this.actionType = actionType;
         this.args = args;
         this.delay = delay;
         this.mode = matchAll;
@@ -41,7 +41,7 @@ public class Action {
     }
 
     private Action(String subCommand, ArrayList<String> args, int delay){
-        this.subCommand = subCommand;
+        this.actionType = ActionType.valueOf(subCommand);
         this.args = args;
         this.delay = delay;
         this.mode = Conditional.SelectionMode.ONE;
@@ -70,21 +70,12 @@ public class Action {
     }
 
     /**
-     * <p> Gets the strinified action type
-     * </p>
-     * @return the action type as a string
-     */
-    public String getSubCommand() {
-        return subCommand;
-    }
-
-    /**
      * <p> Gets the action type of this action
      * </p>
      * @return the action type of this action
      */
     public ActionType getActionType(){
-        return ActionType.valueOf(subCommand);
+        return actionType;
     }
 
     /**
@@ -156,7 +147,7 @@ public class Action {
      */
     public String getCommand(@NotNull Player player) {
         if(processConditions(player)) {
-            return "npcaction " + player.getUniqueId() + " " + subCommand + " " + delay + " " + String.join(" ", args);
+            return "npcaction " + player.getUniqueId() + " " + actionType.name() + " " + delay + " " + String.join(" ", args);
         } else {
             return "npcaction";
         }
@@ -202,5 +193,10 @@ public class Action {
      */
     public String toJson(){
         return CustomNPCs.getGson().toJson(this);
+    }
+
+    @Override
+    public Action clone(){
+        return new Action(actionType, args, delay, mode, conditionals);
     }
 }
