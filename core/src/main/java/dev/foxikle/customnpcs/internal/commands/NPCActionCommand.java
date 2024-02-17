@@ -140,7 +140,7 @@ public class NPCActionCommand implements CommandExecutor {
                             args.remove(0);
                             float yaw = Float.parseFloat(args.get(0));
                             args.remove(0);
-                            player.teleport(new Location(player.getWorld(), x, y, z, yaw, pitch));
+                            player.teleportAsync(new Location(player.getWorld(), x, y, z, yaw, pitch));
                         }
                     }
                     case "SEND_TO_SERVER" -> {
