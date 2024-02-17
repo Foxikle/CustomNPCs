@@ -46,7 +46,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
     private TextDisplay clickableHologram;
     private TextDisplay hologram;
     private Player target;
-    private ArrayList<String> actions;
+    private List<Action> actions;
 
     /**
      * <p> Gets a new NPC
@@ -60,7 +60,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
      * @param equipment The NPC's equipment
      * @param settings The NPC's settings
      */
-    public NPC_v1_20_R1(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<String> actions) {
+    public NPC_v1_20_R1(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actions) {
         super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uuid, uuid.toString().substring(0, 16)));
         this.spawnLoc = spawnLoc;
         this.equipment = equipment;
@@ -260,9 +260,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
      */
     @Override
     public List<Action> getActions(){
-        List<Action> actionList = new ArrayList<>();
-        actions.forEach(s -> actionList.add(Action.of(s)));
-        return actionList;
+        return actions;
     }
 
     /**
@@ -272,7 +270,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
      */
     @Override
     public void addAction(Action action){
-        actions.add(action.toJson());
+        actions.add(action);
     }
 
     /**
@@ -373,10 +371,8 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
      * @param actions The collection of actions
      */
     @Override
-    public void setActions(Collection<Action> actions) {
-        List<String> strs = new ArrayList<>();
-        actions.forEach(action -> strs.add(action.toJson()));
-        this.actions = new ArrayList<>(strs);
+    public void setActions(List<Action> actions) {
+        this.actions = actions;
     }
 
     @Override

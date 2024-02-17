@@ -185,7 +185,7 @@ public interface InternalNpc {
      *
      * @param actions The collection of actions
      */
-    void setActions(Collection<Action> actions);
+    void setActions(List<Action> actions);
 
     /**
      * Looks at the entity
