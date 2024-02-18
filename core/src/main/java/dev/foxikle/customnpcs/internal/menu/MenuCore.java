@@ -39,6 +39,7 @@ public class MenuCore {
     private final CustomNPCs plugin;
 
     private final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
+    private final List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
 
     /**
      * <p> The constructor to make a menu factory
@@ -1318,7 +1319,6 @@ public class MenuCore {
                         }));
 
 
-                List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
                 List<String> lore = new ArrayList<>();
                 fields.forEach(field -> {
                     if (!Objects.equals(action.getArgs().get(3), field.getName()))
@@ -1353,7 +1353,6 @@ public class MenuCore {
                         }));
             }
             case REMOVE_EFFECT -> {
-                List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
                 List<String> lore = new ArrayList<>();
                 fields.forEach(field -> {
                     if (!Objects.equals(action.getArgs().get(3), field.getName()))
