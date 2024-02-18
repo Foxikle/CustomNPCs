@@ -77,6 +77,8 @@ public interface Conditional {
      */
     String getTarget();
 
+    Conditional clone();
+
     /**
      * A list of comparators used to compare the values and target values of conditions
      */

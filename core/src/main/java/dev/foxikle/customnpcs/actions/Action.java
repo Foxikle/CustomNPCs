@@ -5,9 +5,7 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * The object to represent what should be done after an NPC interaction
@@ -15,12 +13,12 @@ import java.util.List;
 public class Action {
 
     private ActionType actionType;
-    private ArrayList<String> args;
+    private List<String> args;
     private int delay;
 
     private Conditional.SelectionMode mode;
 
-    private final List<String> conditionals;
+    private List<Conditional> conditionals;
 
     /**
      * <p> Creates a new Action
@@ -32,7 +30,7 @@ public class Action {
      * @param matchAll If all the conditions must be met, or one
      * @param conditionals The conditions to apply to this action
      */
-    public Action(ActionType actionType, ArrayList<String> args, int delay, Conditional.SelectionMode matchAll, List<String> conditionals){
+    public Action(ActionType actionType, List<String> args, int delay, Conditional.SelectionMode matchAll, List<Conditional> conditionals){
         this.actionType = actionType;
         this.args = args;
         this.delay = delay;
@@ -54,10 +52,7 @@ public class Action {
      * @return A copy of the list of arguments for the actions
      */
     public List<String> getArgsCopy() {
-        if(!args.isEmpty())
-            return new ArrayList<>(args);
-        else
-            return new ArrayList<>();
+        return List.copyOf(args);
     }
 
     /**
@@ -65,7 +60,7 @@ public class Action {
      * </p>
      * @return A list of arguments for the actions
      */
-    public ArrayList<String> getArgs() {
+    public List<String> getArgs() {
         return args;
     }
 
@@ -109,9 +104,7 @@ public class Action {
      * @return the list of condtitions
      */
     public List<Conditional> getConditionals() {
-        List<Conditional> tmp = new ArrayList<>();
-        conditionals.forEach(s -> tmp.add(Conditional.of(s)));
-        return tmp;
+        return conditionals;
     }
 
     /**
@@ -128,7 +121,7 @@ public class Action {
      * @return if the conditional was successfully added
      */
     public boolean addConditional(Conditional conditional) {
-        return conditionals.add(conditional.toJson());
+        return conditionals.add(conditional);
     }
 
     /**
@@ -137,7 +130,7 @@ public class Action {
      * @return if the condition was successfully removed
      */
     public boolean removeConditional(Conditional conditional) {
-        return conditionals.remove(conditional.toJson());
+        return conditionals.remove(conditional);
     }
 
     /**
@@ -154,15 +147,15 @@ public class Action {
     }
 
     private boolean processConditions(Player player) {
-        if(conditionals == null || conditionals.isEmpty())
-            return true; // no conditions
-        List<Boolean> computedActions = new ArrayList<>();
-        conditionals.forEach(conditional -> computedActions.add(Conditional.of(conditional).compute(player)));
-        if(mode == Conditional.SelectionMode.ALL) {
-            return !computedActions.contains(false); // not all true
-        } else {
-            return computedActions.contains(true); // if any are true
-        }
+        if(conditionals == null || conditionals.isEmpty()) return true; // no conditions
+
+        Set<Boolean> results = new HashSet<>(2);
+        conditionals.forEach(conditional -> results.add(conditional.compute(player)));
+        return (mode == Conditional.SelectionMode.ALL ? !results.contains(false) : results.contains(true));
+       //if(mode == Conditional.SelectionMode.ALL) {
+       //    return !results.contains(false); // not all true
+       //}
+       //return results.contains(true); // if any are true
     }
 
     /**
@@ -182,6 +175,7 @@ public class Action {
             split.remove(0);
             return new Action(sub, split, delay); // doesn't support conditionals
         } else {
+            System.out.println(string);
             return CustomNPCs.getGson().fromJson(string, Action.class);
         }
     }
