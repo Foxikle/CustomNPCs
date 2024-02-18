@@ -133,6 +133,11 @@ public class LogicalConditional implements Conditional {
         return target;
     }
 
+    @Override
+    public Conditional clone() {
+        return new LogicalConditional(comparator, value, target);
+    }
+
     /**
      * Gets the comparator the condition uses to compare the value and target value.
      * @return the comparator

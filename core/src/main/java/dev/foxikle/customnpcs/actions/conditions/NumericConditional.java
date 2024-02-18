@@ -150,4 +150,9 @@ public class NumericConditional implements Conditional {
     public Comparator getComparator() {
         return this.comparator;
     }
+
+    @Override
+    public Conditional clone() {
+        return new NumericConditional(comparator, value, target);
+    }
 }
