@@ -3,6 +3,7 @@ package dev.foxikle.customnpcs.internal;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.actions.conditions.ActionAdapter;
 import dev.foxikle.customnpcs.actions.conditions.Conditional;
 import dev.foxikle.customnpcs.actions.conditions.ConditionalTypeAdapter;
 import dev.foxikle.customnpcs.data.Equipment;
@@ -128,7 +129,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * The Map of the original actions a player is editing
      */
-    public Map<Player, String> originalEditingConditionals = new HashMap<>();
+    public Map<Player, Conditional> originalEditingConditionals = new HashMap<>();
     /**
      * If the plugin should try to format messages with PlaceholderAPI
      */
@@ -190,6 +191,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
         gson = new GsonBuilder()
                 .registerTypeAdapter(Conditional.class, new ConditionalTypeAdapter())
+                .registerTypeAdapter(Action.class, new ActionAdapter())
                 .create();
         this.fileManager = new FileManager(this);
         this.mu = new MenuUtils(this);
