@@ -39,7 +39,7 @@ public class MenuCore {
     private final CustomNPCs plugin;
 
     private final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
-    private final List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
+    private static final List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
 
     /**
      * <p> The constructor to make a menu factory
