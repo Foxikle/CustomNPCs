@@ -6,6 +6,7 @@ import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.conditions.Conditional;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
+import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import net.kyori.adventure.text.Component;
@@ -56,7 +57,7 @@ public class Listeners implements Listener {
     private static final BukkitScheduler SCHEDULER = Bukkit.getScheduler();
 
     private static final String SHOULD_UPDATE_MESSAGE =
-            ChatColor.translateAlternateColorCodes('&', "&2&m----------------&r &6[&e!&6] &b&lCustomNPCs &6[&e!&6]  &2&m----------------\n&r&eA new update is available! I'd appreciate if you updated :) \n -&e&oFoxikle");
+            Utils.style("&2&m----------------&r &6[&e!&6] &b&lCustomNPCs &6[&e!&6]  &2&m----------------\n&r&eA new update is available! I'd appreciate if you updated :) \n -&e&oFoxikle");
 
     private static final ConsoleCommandSender CONSOLE_SENDER = Bukkit.getConsoleSender();
 
@@ -203,7 +204,7 @@ public class Listeners implements Listener {
             List<String> currentArgs = action.getArgs();
             currentArgs.clear();
             currentArgs.addAll(List.of(PATTERN.split(message)));
-            player.sendMessage(ChatColor.GREEN + "Successfully set command to be '" + ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', message) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
+            player.sendMessage(ChatColor.GREEN + "Successfully set command to be '" + ChatColor.RESET + Utils.style(message) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
             SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
         } else if (plugin.nameWaiting.contains(player)) {
             plugin.nameWaiting.remove(player);
@@ -217,13 +218,13 @@ public class Listeners implements Listener {
                 try {
                     Double.parseDouble(message);
                 } catch (NumberFormatException ignored) {
-                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCannot parse the number '&f" + message + "&c'. Please try again."));
+                    player.sendMessage(Utils.style("&cCannot parse the number '&f" + message + "&c'. Please try again."));
                     return;
                 }
             }
             plugin.targetWaiting.remove(player);
             conditional.setTargetValue(message);
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aSuccessfully set target to be '&r" + message + "&a'"));
+            player.sendMessage(Utils.style("&aSuccessfully set target to be '&r" + message + "&a'"));
             SCHEDULER.runTask(plugin, () -> core.getConditionalCustomizerMenu(plugin.editingConditionals.get(player)).open(player));
         } else if (plugin.titleWaiting.contains(player)) {
             plugin.titleWaiting.remove(player);
