@@ -6,6 +6,7 @@ import dev.foxikle.customnpcs.actions.conditions.Conditional;
 import dev.foxikle.customnpcs.actions.conditions.LogicalConditional;
 import dev.foxikle.customnpcs.actions.conditions.NumericConditional;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.runnables.*;
 import me.flame.menus.builders.items.ItemBuilder;
@@ -934,8 +935,8 @@ public class MenuCore {
                         getConditionMenu(action).open(player);
                         event.setCancelled(true);
                     } else {
-                        plugin.editingConditionals.put(player, c);
-                        plugin.originalEditingConditionals.put(player, c.toJson());
+                        plugin.editingConditionals.put(player, c.clone());
+                        plugin.originalEditingConditionals.put(player, c);
                         getConditionalCustomizerMenu(c).open(player);
                         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     }
@@ -1896,7 +1897,7 @@ public class MenuCore {
             Action action = plugin.editingActions.get(player);
             event.setCancelled(true);
             if (plugin.originalEditingConditionals.get(player) != null)
-                action.removeConditional(Conditional.of(plugin.originalEditingConditionals.remove(player)));
+                action.removeConditional(plugin.originalEditingConditionals.remove(player));
             action.addConditional(conditional);
             getConditionMenu(action).open(player);
             return ActionResponse.DONE;
@@ -1929,7 +1930,7 @@ public class MenuCore {
                 meta.lore(lore);
                 selectComparator.setItemMeta(meta);
                 menu.setItem(11, ItemBuilder.of(selectComparator).buildItem((i, event) -> {
-                    List<Conditional.Comparator> comparators = new ArrayList<>(Arrays.asList(Conditional.Comparator.values()));
+                    List<Conditional.Comparator> comparators = List.of(Conditional.Comparator.values());
                     int index = comparators.indexOf(conditional.getComparator());
                     if (event.isLeftClick()) {
                         if (comparators.size() > (index + 1)) {
@@ -2136,7 +2137,7 @@ public class MenuCore {
         menu.addItem(ItemBuilder.of(OAK_SIGN).setName("§bDisplay Title").setLore("§eDisplays a title for the player.").buildItem((i, event) -> {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Action action = new Action(ActionType.DISPLAY_TITLE, new ArrayList<>(Arrays.asList("10", "20", "10", "title!")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+            Action action = new Action(ActionType.DISPLAY_TITLE, Utils.list("10", "20", "10", "title!"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
@@ -2156,7 +2157,7 @@ public class MenuCore {
         menu.addItem(ItemBuilder.of(PAPER).setName("§bSend Message").setLore("§eSends the player a message.").buildItem((i, event) -> {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Action action = new Action(ActionType.SEND_MESSAGE, new ArrayList<>(Arrays.asList("message", "to", "be", "sent")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+            Action action = new Action(ActionType.SEND_MESSAGE, Utils.list("message", "to", "be", "sent"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
@@ -2176,7 +2177,7 @@ public class MenuCore {
         menu.addItem(ItemBuilder.of(BELL).setName("§bPlay Sound").setLore("§ePlays a sound for the player.").buildItem((i, event) -> {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Action action = new Action(ActionType.PLAY_SOUND, new ArrayList<>(Arrays.asList("1", "1", Sound.UI_BUTTON_CLICK.name())), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+            Action action = new Action(ActionType.PLAY_SOUND, Utils.list("1", "1", Sound.UI_BUTTON_CLICK.name()), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
@@ -2196,7 +2197,7 @@ public class MenuCore {
         menu.addItem(ItemBuilder.of(ANVIL).setName("§bRun Command").setLore("§eRuns a command as the player.").buildItem((i, event) -> {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Action action = new Action(ActionType.RUN_COMMAND, new ArrayList<>(Arrays.asList("command", "to", "be", "run")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+            Action action = new Action(ActionType.RUN_COMMAND, Utils.list("command", "to", "be", "run"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
@@ -2216,7 +2217,7 @@ public class MenuCore {
         menu.addItem(ItemBuilder.of(IRON_INGOT).setName("§bSend Actionbar").setLore("§eSends the player an actionbar.").buildItem((i, event) -> {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Action action = new Action(ActionType.ACTION_BAR, new ArrayList<>(Arrays.asList("actionbar", "to", "be", "sent")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+            Action action = new Action(ActionType.ACTION_BAR, Utils.list("actionbar", "to", "be", "sent"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
@@ -2236,7 +2237,7 @@ public class MenuCore {
         menu.addItem(ItemBuilder.of(ENDER_PEARL).setName("§bTeleport Player").setLore("§eTeleports a player upon interacting.").buildItem((i, event) -> {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Action action = new Action(ActionType.TELEPORT, new ArrayList<>(Arrays.asList("0", "0", "0", "0", "0")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+            Action action = new Action(ActionType.TELEPORT, Utils.list("0", "0", "0", "0", "0"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
@@ -2256,7 +2257,7 @@ public class MenuCore {
         menu.addItem(ItemBuilder.of(GRASS_BLOCK).setName("§bSend To Bungeecord/Velocity Server").setLore("§eSends a player to a Bungeecord/Velocity", "§eserver upon interacting.").buildItem((i, event) -> {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Action action = new Action(ActionType.SEND_TO_SERVER, new ArrayList<>(Arrays.asList("server", "name")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+            Action action = new Action(ActionType.SEND_TO_SERVER, Utils.list("server", "name"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
@@ -2276,7 +2277,7 @@ public class MenuCore {
         menu.addItem(ItemBuilder.of(LEAD).setName("§bStart/Stop Following").setLore("§eToggles whether or not the", "§eNPC follows this player.").buildItem((i, event) -> {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Action action = new Action(ActionType.TOGGLE_FOLLOWING, new ArrayList<>(Collections.singletonList(npc.getUniqueID().toString())), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+            Action action = new Action(ActionType.TOGGLE_FOLLOWING, Collections.singletonList(npc.getUniqueID().toString()), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
@@ -2296,7 +2297,7 @@ public class MenuCore {
         menu.addItem(ItemBuilder.of(EXPERIENCE_BOTTLE).setName("§bGive Exp").setLore("§eGives the player exp.").buildItem((i, event) -> {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Action action = new Action(ActionType.GIVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+            Action action = new Action(ActionType.GIVE_EXP, Utils.list("0", "true"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
@@ -2316,7 +2317,7 @@ public class MenuCore {
         menu.addItem(ItemBuilder.of(GLASS_BOTTLE).setName("§bRemove Exp").setLore("§eRemoves exp from the player.").buildItem((i, event) -> {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Action action = new Action(ActionType.REMOVE_EXP, new ArrayList<>(Arrays.asList("0", "true")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+            Action action = new Action(ActionType.REMOVE_EXP, Utils.list("0", "true"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
@@ -2336,7 +2337,7 @@ public class MenuCore {
         menu.addItem(ItemBuilder.of(BREWING_STAND).setName("§bGive Effect").setLore("§eGives an effect to the player.").buildItem((i, event) -> {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Action action = new Action(ActionType.ADD_EFFECT, new ArrayList<>(Arrays.asList("1", "1", "true", "SPEED")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+            Action action = new Action(ActionType.ADD_EFFECT, Utils.list("1", "1", "true", "SPEED"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
@@ -2356,7 +2357,7 @@ public class MenuCore {
         menu.addItem(ItemBuilder.of(MILK_BUCKET).setName("§bRemove Effect").setLore("§eRemoves an effect from the player.").buildItem((i, event) -> {
             Player player = event.getPlayer();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            Action action = new Action(ActionType.REMOVE_EFFECT, new ArrayList<>(List.of("SPEED")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
+            Action action = new Action(ActionType.REMOVE_EFFECT, Utils.list("SPEED"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
