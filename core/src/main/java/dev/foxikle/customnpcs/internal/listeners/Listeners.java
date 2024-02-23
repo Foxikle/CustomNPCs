@@ -69,7 +69,7 @@ public class Listeners implements Listener {
     private final CustomNPCs plugin;
 
     // Executors for better handling of async scheduling than that bukkit scheduler
-    private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService service;
 
     /**
      * Constructor for generic listners class
@@ -78,8 +78,13 @@ public class Listeners implements Listener {
      */
     public Listeners(CustomNPCs plugin) {
         this.plugin = plugin;
+    }
+
+    public void start() {
+        service = Executors.newSingleThreadScheduledExecutor();
         service.scheduleAtFixedRate(() -> Bukkit.getOnlinePlayers().forEach(this::actionPlayerMovement), 1000, 220, TimeUnit.MILLISECONDS);
     }
+
 
     public void stop() {
         service.shutdown();
@@ -92,6 +97,8 @@ public class Listeners implements Listener {
                 service.shutdownNow();
                 Thread.currentThread().interrupt();
             }
+            plugin.getLogger().info("ScheduledExecutorService successfully shut down!");
+            canStart = true;
         });
     }
 

@@ -227,6 +227,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                 }
             }, 0, 20);
         }
+        listeners.start();
         // detecting reloads
         wasPreviouslyEnabled = true;
     }
