@@ -13,7 +13,7 @@
 #    will be automatically generated on the next server start.
 
 # DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.
-CONFIG_VERSION: 3
+CONFIG_VERSION: 4
 
 # DisplayClickText -> Should the plugin display a hologram above the NPC's head if it is interactable?
 DisplayClickText: true
@@ -25,6 +25,9 @@ ClickText: '<b><yellow>Click</yellow></b>'
 # AlertOnUpdate -> Should the plugin alert you when there is an update available?
 # NOTE: This only notifies players with the 'customnpcs.alert' permission
 AlertOnUpdate: true
+
+# DisableCollisions -> Should NPCs move players while their hitboxes collide?
+DisableCollisions: true
 
 # Skins -> A list of preset Skins
 Skins:

@@ -26,7 +26,7 @@ public class FileManager {
     /**
      * The config file version
      */
-    public static final int CONFIG_FILE_VERSION = 3;
+    public static final int CONFIG_FILE_VERSION = 4;
 
     /**
      * The file version of the npcs.yml file
@@ -86,7 +86,8 @@ public class FileManager {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        } else if (version < 2) { // prior to 1.4-pre2
+        }
+        if (version < 2) { // prior to 1.4-pre2
             plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
             yml.set("CONFIG_VERSION", 2);
             yml.set("AlertOnUpdate", true);
@@ -95,10 +96,21 @@ public class FileManager {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        } else if (version < 3) { // prior to 1.5.2-pre1
+        }
+        if (version < 3) { // prior to 1.5.2-pre1
             plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
             yml.set("CONFIG_VERSION", 3);
             yml.set("ClickText", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(yml.getString("ClickText"))));
+            try {
+                yml.save(file);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if(version < 4) { //prior to 1.6-pre2
+            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
+            yml.set("CONFIG_VERSION", 4);
+            yml.set("DisableCollisions", true);
             try {
                 yml.save(file);
             } catch (IOException e) {
