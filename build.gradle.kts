@@ -9,7 +9,6 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven("https://jitpack.io")
     maven("https://repo.inventivetalent.org/repository/public/")
 }
 
