@@ -98,7 +98,6 @@ public class Listeners implements Listener {
                 Thread.currentThread().interrupt();
             }
             plugin.getLogger().info("ScheduledExecutorService successfully shut down!");
-            canStart = true;
         });
     }
 
