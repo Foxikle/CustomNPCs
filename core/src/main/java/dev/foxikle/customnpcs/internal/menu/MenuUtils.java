@@ -1,16 +1,15 @@
 package dev.foxikle.customnpcs.internal.menu;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import me.flame.menus.builders.items.ItemBuilder;
 import me.flame.menus.items.MenuItem;
-import me.flame.menus.menu.ActionResponse;
 import me.flame.menus.menu.Menu;
 import me.flame.menus.menu.PaginatedMenu;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -74,19 +73,21 @@ public class MenuUtils {
      */
     public PaginatedMenu getSkinCatalogue() {
         PaginatedMenu menu = Menu.builder().title("Select A Skin").rows(6).addAllModifiers()
-                .nextPageItem(53, ItemBuilder.of(Material.ARROW).setName(ChatColor.YELLOW + "Next Page").buildItem())
-                .previousPageItem(45, ItemBuilder.of(Material.ARROW).setName(ChatColor.YELLOW + "Next Page").buildItem())
+                .nextPageItem(53, ItemBuilder.of(Material.ARROW).setName(Utils.style("&eNext Page")).buildItem())
+                .previousPageItem(45, ItemBuilder.of(Material.ARROW).setName(Utils.style("&ePrevious Page")).buildItem())
                 .pagination();
         menu.setDynamicSizing(true);
-        menu.setItem(49, ItemBuilder.of(Material.BARRIER).setName(ChatColor.RED + "Go Back").buildItem((i, event) -> {
-            Player player = event.getPlayer();
-            plugin.menuCores.get(player).getMainMenu().open(player);
-            return ActionResponse.DONE;
-        }));
+        menu.setOnPageChange(event -> {
+            if (event.getCurrentPageNumber() > event.getOldPageNumber()) {
+                event.getMenu().next();
+                return;
+            }
+            event.getMenu().previous();
+        });
+        menu.setPageItem(new int[]{0,1,2,3,4,5,6,7,8,9,17,18,26,27,35,36,44,46,47,48,50,51,52}, MenuItems.MENU_GLASS);
+        menu.setPageItem(new int[]{49}, ItemBuilder.of(Material.BARRIER).setName(Utils.style("&cGo Back")).buildItem((player, event) -> plugin.menuCores.get(player).getMainMenu().open(player)));
 
-        menu.addItem(makeIcons());
-        menu.getPageDecorator().fillBorders(MenuItems.MENU_GLASS);
-
+        menu.addItems(makeIcons().toArray(new MenuItem[0]));
         return menu;
     }
 
@@ -148,8 +149,7 @@ public class MenuUtils {
         headMeta.setLore(lore);
         head.setItemMeta(headMeta);
 
-        return ItemBuilder.of(head).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        return ItemBuilder.of(head).buildItem((player, event) -> {
             InternalNpc npc = plugin.menuCores.get(player).getNpc();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
@@ -160,7 +160,6 @@ public class MenuUtils {
             plugin.pages.put(player, 0);
             player.closeInventory();
             plugin.menuCores.get(player).getMainMenu().open(player);
-            return ActionResponse.DONE;
         });
     }
 
