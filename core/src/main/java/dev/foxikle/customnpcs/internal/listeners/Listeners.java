@@ -46,14 +46,14 @@ public class Listeners implements Listener {
     private static final ConcurrentMap<UUID, MovementData> playerMovementData = new ConcurrentHashMap<>();
 
     // Helper Constants
-    // since *Insert_Version*
+    // since 1.6.0
     private static final int FIVE_BLOCKS = 25;
     private static final int FIFTY_BLOCKS = 2500; // 50 * 50
     private static final int FOURTY_BLOCKS = 2304; // 48 * 48
     private static final double HALF_BLOCK = 0.25;
 
     // Writing Constants
-    // since *Insert_Version*
+    // since 1.6.0
     private static final BukkitScheduler SCHEDULER = Bukkit.getScheduler();
 
     private static final String SHOULD_UPDATE_MESSAGE =
@@ -84,23 +84,19 @@ public class Listeners implements Listener {
 
     public void stop() {
         service.shutdown();
-        //executorService.shutdown();
         CompletableFuture.runAsync(() -> {
             try {
-                if (/*!executorService.awaitTermination(2, TimeUnit.SECONDS) 
-						|| */!service.awaitTermination(2, TimeUnit.SECONDS)) {
-                    //executorService.shutdownNow();
+                if (!service.awaitTermination(2, TimeUnit.SECONDS)) {
                     service.shutdownNow();
                 }
             } catch (InterruptedException e) {
-                //executorService.shutdownNow();
                 service.shutdownNow();
                 Thread.currentThread().interrupt();
             }
         });
     }
 
-    private final void actionPlayerMovement(Player player) {
+    private void actionPlayerMovement(Player player) {
         final Location location = player.getLocation();
         final World world = player.getWorld();
 
@@ -132,7 +128,7 @@ public class Listeners implements Listener {
         trackFromTo(player, npc, world, npcWorld, location, npcLocation, uuid, movementData, oldMovementData);
         if (distanceSquared > FIVE_BLOCKS) {
             SCHEDULER.runTask(plugin, () -> {
-                Collection<Entity> entities = npcWorld.getNearbyEntities(location, 2.5, 2.5, 2.5);
+                Collection<Entity> entities = npcWorld.getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
                 entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
                 for (Entity en : entities) {
                     if (!(en instanceof Player p)) continue;
@@ -147,7 +143,6 @@ public class Listeners implements Listener {
     private void trackFromTo(Player player, InternalNpc npc, World world, World npcWorld, Location location, Location npcLocation, UUID uuid, MovementData data, MovementData oldData) {
         if (data.distanceSquared <= FIVE_BLOCKS) {
             npc.lookAt(LookAtAnchor.HEAD, player);
-            return;
         } else if (oldData.distanceSquared >= FOURTY_BLOCKS && data.distanceSquared <= FIFTY_BLOCKS) {
             npc.injectPlayer(player);
         }
@@ -187,9 +182,7 @@ public class Listeners implements Listener {
     }
 
     /**
-     * <p>The handler for text input
-     * </p>
-     *
+     * The handler for text input
      * @param e The event callback
      * @since 1.0
      */
