@@ -38,10 +38,10 @@ import java.util.regex.Pattern;
  * The class that deals with misc listeners
  */
 public class Listeners implements Listener {
+
     /**
      * Player Movement Data that keeps track of old movements to replace PlayerMoveEvent
-     *
-     * @since *Insert_Version*
+     * @since 1.6.0
      */
     private static final ConcurrentMap<UUID, MovementData> playerMovementData = new ConcurrentHashMap<>();
 
@@ -70,7 +70,6 @@ public class Listeners implements Listener {
 
     // Executors for better handling of async scheduling than that bukkit scheduler
     private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-    //private final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
     /**
      * Constructor for generic listners class

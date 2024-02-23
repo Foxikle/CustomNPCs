@@ -179,15 +179,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             return;
         }
 
-        try {
-            Team team = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam("npc");
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
-            team.setPrefix(ChatColor.DARK_GRAY + "[NPC] ");
-        } catch (IllegalArgumentException ignored) {
-            Team team = Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc");
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
-            team.setPrefix(ChatColor.DARK_GRAY + "[NPC] ");
-        }
+        registerNpcTeam();
 
         gson = new GsonBuilder()
                 .registerTypeAdapter(Conditional.class, new ConditionalTypeAdapter())
@@ -209,7 +201,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             // setup bstats
             Metrics metrics = new Metrics(this, 18898);
 
-            // setup service manager for the API
+            // setup service manager for the API (This isn't used lol)
             Bukkit.getServer().getServicesManager().register(CustomNPCs.class, this, this, ServicePriority.Normal);
 
             // setup papi
@@ -239,21 +231,29 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         wasPreviouslyEnabled = true;
     }
 
+    private void registerNpcTeam() {
+        Team team;
+        try {
+            team = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam("npc");
+        } catch (IllegalArgumentException ignored) {
+            team = Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc");
+        }
+        if (team == null) throw new NullPointerException("There was an error whilst creating the NPC team!");
+        team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+        if (getConfig().getBoolean("DisableCollisions"))
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+        team.setPrefix(ChatColor.DARK_GRAY + "[NPC] ");
+    }
+
     private Location calcLocation(InternalNpc npc) {
         Location loc = npc.getCurrentLocation();
         double yaw = npc.getSettings().getDirection();
-        if (yaw < 0.0 && yaw != -180.0) {
-            yaw *= -1;
-        }
-
-        double heading = Math.toRadians(yaw);
+        double heading = -Math.toRadians(yaw);
         // trig to calculate the position
         loc.add(5 * Math.sin(heading),
-                2 + -5 * Math.tan(Math.toRadians(npc.getSpawnLoc().getPitch())),
+                1.8 + -5 * Math.sin(Math.toRadians(npc.getSpawnLoc().getPitch())),
                 5 * Math.cos(heading)
         );
-
-        npc.getWorld().spawnParticle(Particle.END_ROD, loc, 5, 0, 0, 0, 0);
 
         return loc;
     }
@@ -267,7 +267,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
     public boolean setup() {
         serverVersion = Bukkit.getMinecraftVersion();
-        return Arrays.stream(COMPATIBLE_VERSIONS).toList().contains(serverVersion);
+        return List.of(COMPATIBLE_VERSIONS).contains(serverVersion);
     }
 
     /**
