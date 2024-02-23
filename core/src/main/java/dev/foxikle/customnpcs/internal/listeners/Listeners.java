@@ -125,7 +125,7 @@ public class Listeners implements Listener {
             movementData.setLastLocation(location);
             movementData.setDistanceSquared(distanceSquared);
         }
-        trackFromTo(player, npc, world, npcWorld, location, npcLocation, uuid, movementData, oldMovementData);
+        trackFromTo(player, npc, movementData, oldMovementData);
         if (distanceSquared > FIVE_BLOCKS) {
             SCHEDULER.runTask(plugin, () -> {
                 Collection<Entity> entities = npcWorld.getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
@@ -133,14 +133,14 @@ public class Listeners implements Listener {
                 for (Entity en : entities) {
                     if (!(en instanceof Player p)) continue;
                     npc.lookAt(LookAtAnchor.HEAD, p);
+                    return;
                 }
-                float direction = (float) npc.getSettings().getDirection();
-                npc.setYRotation(direction);
+                npc.setYRotation((float) npc.getSettings().getDirection());
             });
         }
     }
 
-    private void trackFromTo(Player player, InternalNpc npc, World world, World npcWorld, Location location, Location npcLocation, UUID uuid, MovementData data, MovementData oldData) {
+    private void trackFromTo(Player player, InternalNpc npc, MovementData data, MovementData oldData) {
         if (data.distanceSquared <= FIVE_BLOCKS) {
             npc.lookAt(LookAtAnchor.HEAD, player);
         } else if (oldData.distanceSquared >= FOURTY_BLOCKS && data.distanceSquared <= FIFTY_BLOCKS) {
