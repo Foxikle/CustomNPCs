@@ -10,13 +10,11 @@ import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.runnables.*;
 import me.flame.menus.builders.items.ItemBuilder;
-import me.flame.menus.menu.ActionResponse;
 import me.flame.menus.menu.Menu;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -248,12 +246,11 @@ public class MenuCore {
             actionsButtonMeta.lore(lore);
             actionsButtonMeta.lore();
             actionsButton.setItemMeta(actionsButtonMeta);
-            menu.setItem(34, ItemBuilder.of(actionsButton).buildItem((i, event) -> {
-                Player player = event.getPlayer();
+            menu.setItem(34, ItemBuilder.of(actionsButton).buildItem((player, event) -> {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 event.setCancelled(true);
                 getActionMenu().open(player);
-                return ActionResponse.DONE;
+                
             }));
         } else {
             interactableButton = new ItemStack(Material.DEAD_BUSH);
@@ -269,22 +266,22 @@ public class MenuCore {
         ItemMeta cancelMeta = cancelButton.getItemMeta();
         cancelMeta.displayName(Component.text("CANCEL", NamedTextColor.RED, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         cancelButton.setItemMeta(cancelMeta);
-        menu.setItem(13, ItemBuilder.of(plugin.getMenuUtils().getSkinIcon(new NamespacedKey(plugin, "nothing_lol_this_should_be_changed_tbh"), "", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSettings().getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9").getItemStack()).buildItem((i, event) -> {
-            getSkinMenu().open(event.getPlayer());
-            return ActionResponse.DONE;
+        menu.setItem(13, ItemBuilder.of(plugin.getMenuUtils().getSkinIcon(new NamespacedKey(plugin, "nothing_lol_this_should_be_changed_tbh"), "", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSettings().getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9").getItemStack()).buildItem((player, event) -> {
+            getSkinMenu().open(player);
+            
         }));
-        menu.setItem(16, ItemBuilder.of(nametag).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(16, ItemBuilder.of(nametag).buildItem((player, event) -> {
+            
             plugin.nameWaiting.add(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             player.sendMessage("§aType the NPC name the chat.");
             new NameRunnable(player, plugin).runTaskTimer(plugin, 1, 15);
             player.closeInventory();
             event.setCancelled(true);
-            return ActionResponse.DONE;
+            
         }));
-        menu.setItem(10, ItemBuilder.of(directionItem).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(10, ItemBuilder.of(directionItem).buildItem((player, event) -> {
+            
             if (event.isLeftClick()) {
                 switch ((int) dir) {
                     case 180 -> npc.getSettings().setDirection(-135.0);
@@ -312,60 +309,60 @@ public class MenuCore {
             }
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             getMainMenu().open(player);
-            return ActionResponse.DONE;
+            
         }));
-        menu.setItem(22, ItemBuilder.of(resilientItem).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(22, ItemBuilder.of(resilientItem).buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
             player.sendMessage("§bThe NPC is now " + (npc.getSettings().isResilient() ? "§c§lNOT RESILIENT" : "§a§lRESILIENT"));
             npc.getSettings().setResilient(!npc.getSettings().isResilient());
-            getMainMenu().open(event.getPlayer());
-            return ActionResponse.DONE;
+            getMainMenu().open(player);
+            
         }));
-        menu.setItem(25, ItemBuilder.of(interactableButton).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(25, ItemBuilder.of(interactableButton).buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
             player.sendMessage("§bThe NPC is now " + (npc.getSettings().isInteractable() ? "§c§lNOT INTERACTABLE" : "§a§lINTERACTABLE"));
             npc.getSettings().setInteractable(!npc.getSettings().isInteractable());
             getMainMenu().open(player);
-            return ActionResponse.DONE;
+            
         }));
-        menu.setItem(31, ItemBuilder.of(confirmButton).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(31, ItemBuilder.of(confirmButton).buildItem((player, event) -> {
+            
             Bukkit.getScheduler().runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1), 1);
             Bukkit.getScheduler().runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1), 3);
             Bukkit.getScheduler().runTaskLater(plugin, npc::createNPC, 1);
             player.sendMessage(npc.getSettings().isResilient() ? "§aReslilient NPC created!" : "§aTemporary NPC created!");
             player.closeInventory();
             event.setCancelled(true);
-            return ActionResponse.DONE;
+            
         }));
-        menu.setItem(36, ItemBuilder.of(cancelButton).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(36, ItemBuilder.of(cancelButton).buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
             player.sendMessage("§cNPC aborted.");
             player.closeInventory();
             event.setCancelled(true);
-            return ActionResponse.DONE;
+            
         }));
         menu.setItem(28, ItemBuilder.of(SPYGLASS)
                 .setName("§bToggle Vision Mode")
                 .setLore(npc.getSettings().isTunnelvision() ? "§a§lTUNNEL Visioned" : "§c§lNORMAL Visioned")
-                .buildItem((i, event) -> {
-                    Player player = event.getPlayer();
+                .buildItem((player, event) -> {
+                    
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     npc.getSettings().setTunnelvision(!npc.getSettings().isTunnelvision());
                     getMainMenu().open(player);
-                    return ActionResponse.DONE;
+                    
                 }));
-        menu.setItem(19, ItemBuilder.of(equipment).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(19, ItemBuilder.of(equipment).buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
             getEquipmentMenu().open(player);
-            return ActionResponse.DONE;
+            
         }));
         menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
@@ -384,7 +381,7 @@ public class MenuCore {
         ItemStack boots = npc.getEquipment().getBoots();
         ItemStack hand = npc.getEquipment().getHand();
         ItemStack offhand = npc.getEquipment().getOffhand();
-        Menu menu = Menu.builder().rows(6).addAllModifiers().title("      Edit NPC Equipment").normal();
+        Menu menu = Menu.builder().rows(6).addModifier(me.flame.menus.modifiers.Modifier.DISABLE_ITEM_REMOVAL).title("      Edit NPC Equipment").normal();
         menu.getFiller().fill(MenuItems.MENU_GLASS);
 
         if (helm.getType().isAir()) {
@@ -398,15 +395,15 @@ public class MenuCore {
             lore.add(Component.text("a helmet to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             meta.lore(lore);
             item.setItemMeta(meta);
-            menu.setItem(13, ItemBuilder.of(item).buildItem((i, event) -> {
-                if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
-                Player player = event.getPlayer();
+            menu.setItem(13, ItemBuilder.of(item).buildItem((player, event) -> {
+                if (event.getCursor().getType() == AIR) 
+                
                 npc.getEquipment().setHead(event.getCursor().clone());
                 event.getCursor().setAmount(0);
                 player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                 player.sendMessage("§aSuccessfully set helmet slot to " + npc.getEquipment().getHead().getType());
                 getEquipmentMenu().open(player);
-                return ActionResponse.DONE;
+                
             }));
         } else {
             ItemMeta meta = helm.getItemMeta();
@@ -419,22 +416,22 @@ public class MenuCore {
             lore.add(Component.text("Rick click to remove", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             meta.lore(lore);
             helm.setItemMeta(meta);
-            menu.setItem(13, ItemBuilder.of(helm).buildItem((i, event) -> {
-                Player player = event.getPlayer();
+            menu.setItem(13, ItemBuilder.of(helm).buildItem((player, event) -> {
+                
                 if (event.isRightClick()) {
                     npc.getEquipment().setHead(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     player.sendMessage("§cSuccessfully reset helmet slot ");
                     getEquipmentMenu().open(player);
                 } else {
-                    if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
+                    if (event.getCursor().getType() == AIR) 
                     npc.getEquipment().setHead(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set helmet slot to " + npc.getEquipment().getHead().getType());
                     getEquipmentMenu().open(player);
                 }
-                return ActionResponse.DONE;
+                
             }));
         }
         if (cp.getType().isAir()) {
@@ -448,20 +445,19 @@ public class MenuCore {
             lore.add(Component.text("a chestplate to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             meta.lore(lore);
             item.setItemMeta(meta);
-            menu.setItem(22, ItemBuilder.of(item).buildItem((i, event) -> {
-                Player player = event.getPlayer();
-                if (event.getCursorItem().getType().name().contains("CHESTPLATE")) {
+            menu.setItem(22, ItemBuilder.of(item).buildItem((player, event) -> {
+                if (event.getCursor().getType().name().contains("CHESTPLATE")) {
                     npc.getEquipment().setChest(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set chestplate slot to " + npc.getEquipment().getChest().getType());
                 } else {
-                    if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
+                    if (event.getCursor().getType() == AIR) 
                     event.setCancelled(true);
                     player.sendMessage("§cThat is not a chestplate!");
                 }
                 getEquipmentMenu().open(player);
-                return ActionResponse.DONE;
+                
             }));
         } else {
             ItemMeta meta = cp.getItemMeta();
@@ -474,25 +470,25 @@ public class MenuCore {
             lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             meta.lore(lore);
             cp.setItemMeta(meta);
-            menu.setItem(22, ItemBuilder.of(cp).buildItem((i, event) -> {
-                Player player = event.getPlayer();
+            menu.setItem(22, ItemBuilder.of(cp).buildItem((player, event) -> {
+                
                 if (event.isRightClick()) {
                     npc.getEquipment().setChest(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     player.sendMessage("§cSuccessfully reset chestplate slot ");
                     getEquipmentMenu().open(player);
-                } else if (event.getCursorItem().getType().name().contains("CHESTPLATE")) {
+                } else if (event.getCursor().getType().name().contains("CHESTPLATE")) {
                     npc.getEquipment().setChest(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set chestplate slot to " + npc.getEquipment().getChest().getType());
                 } else {
-                    if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
+                    if (event.getCursor().getType() == AIR) return;
                 }
                 event.setCancelled(true);
                 player.sendMessage("§cThat is not a chestplate!");
                 getEquipmentMenu().open(player);
-                return ActionResponse.DONE;
+                
             }));
         }
         if (legs.getType().isAir()) {
@@ -507,21 +503,21 @@ public class MenuCore {
             lore.add(Component.text("to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             meta.lore(lore);
             item.setItemMeta(meta);
-            menu.setItem(31, ItemBuilder.of(item).buildItem((i, event) -> {
-                Player player = event.getPlayer();
-                if (event.getCursorItem().getType().name().contains("LEGGINGS")) {
+            menu.setItem(31, ItemBuilder.of(item).buildItem((player, event) -> {
+                
+                if (event.getCursor().getType().name().contains("LEGGINGS")) {
                     npc.getEquipment().setLegs(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set leggings slot to " + npc.getEquipment().getLegs().getType());
 
                 } else {
-                    if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
+                    if (event.getCursor().getType() == AIR) 
                     event.setCancelled(true);
                     player.sendMessage("§cThat is not a pair of leggings!");
                 }
                 getEquipmentMenu().open(player);
-                return ActionResponse.DONE;
+                
             }));
         } else {
             ItemMeta meta = legs.getItemMeta();
@@ -535,25 +531,25 @@ public class MenuCore {
             lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             meta.lore(lore);
             legs.setItemMeta(meta);
-            menu.setItem(31, ItemBuilder.of(legs).buildItem((i, event) -> {
-                Player player = event.getPlayer();
+            menu.setItem(31, ItemBuilder.of(legs).buildItem((player, event) -> {
+                
                 if (event.isRightClick()) {
                     npc.getEquipment().setLegs(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     player.sendMessage("§cSuccessfully reset leggings slot ");
                     getEquipmentMenu().open(player);
-                } else if (event.getCursorItem().getType().name().contains("LEGGINGS")) {
+                } else if (event.getCursor().getType().name().contains("LEGGINGS")) {
                     npc.getEquipment().setLegs(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set leggings slot to " + npc.getEquipment().getLegs().getType());
                     getEquipmentMenu().open(player);
                 } else {
-                    if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
+                    if (event.getCursor().getType() == AIR) 
                     event.setCancelled(true);
                     player.sendMessage("§cThat is not a pair of leggings!");
                 }
-                return ActionResponse.DONE;
+                
             }));
         }
         if (boots.getType().isAir()) {
@@ -567,20 +563,20 @@ public class MenuCore {
             lore.add(Component.text("change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             meta.lore(lore);
             item.setItemMeta(meta);
-            menu.setItem(40, ItemBuilder.of(item).buildItem((i, event) -> {
-                Player player = event.getPlayer();
-                if (event.getCursorItem().getType().name().contains("BOOTS")) {
+            menu.setItem(40, ItemBuilder.of(item).buildItem((player, event) -> {
+                
+                if (event.getCursor().getType().name().contains("BOOTS")) {
                     npc.getEquipment().setBoots(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set boots slot to " + npc.getEquipment().getBoots().getType());
                 } else {
-                    if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
+                    if (event.getCursor().getType() == AIR) 
                     event.setCancelled(true);
                     player.sendMessage("§cThat is not a pair of boots!");
                 }
                 getEquipmentMenu().open(player);
-                return ActionResponse.DONE;
+                
             }));
         } else {
             ItemMeta meta = boots.getItemMeta();
@@ -594,25 +590,25 @@ public class MenuCore {
             lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             meta.lore(lore);
             boots.setItemMeta(meta);
-            menu.setItem(40, ItemBuilder.of(boots).buildItem((i, event) -> {
-                Player player = event.getPlayer();
+            menu.setItem(40, ItemBuilder.of(boots).buildItem((player, event) -> {
+                
                 if (event.isRightClick()) {
                     npc.getEquipment().setBoots(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     player.sendMessage("§cSuccessfully reset boots slot ");
-                } else if (event.getCursorItem().getType().name().contains("LEGGINGS")) {
+                } else if (event.getCursor().getType().name().contains("LEGGINGS")) {
                     npc.getEquipment().setBoots(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set boots slot to " + npc.getEquipment().getBoots().getType());
                 } else {
-                    if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
+                    if (event.getCursor().getType() == AIR) 
 
                     event.setCancelled(true);
                     player.sendMessage("§cThat is not a pair of boots!");
                 }
                 getEquipmentMenu().open(player);
-                return ActionResponse.DONE;
+                
             }));
         }
         if (hand.getType().isAir()) {
@@ -626,15 +622,15 @@ public class MenuCore {
             lore.add(Component.text("an item to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             meta.lore(lore);
             item.setItemMeta(meta);
-            menu.setItem(23, ItemBuilder.of(item).buildItem((i, event) -> {
-                Player player = event.getPlayer();
-                if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
+            menu.setItem(23, ItemBuilder.of(item).buildItem((player, event) -> {
+                
+                if (event.getCursor().getType() == AIR) 
                 npc.getEquipment().setHand(event.getCursor().clone());
                 event.getCursor().setAmount(0);
                 player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                 player.sendMessage("§aSuccessfully set hand slot to " + npc.getEquipment().getHand().getType());
                 getEquipmentMenu().open(player);
-                return ActionResponse.DONE;
+                
             }));
         } else {
             ItemMeta meta = hand.getItemMeta();
@@ -647,22 +643,22 @@ public class MenuCore {
             lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             meta.lore(lore);
             hand.setItemMeta(meta);
-            menu.setItem(23, ItemBuilder.of(hand).buildItem((i, event) -> {
-                Player player = event.getPlayer();
+            menu.setItem(23, ItemBuilder.of(hand).buildItem((player, event) -> {
+                
                 if (event.isRightClick()) {
                     npc.getEquipment().setHand(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     player.sendMessage("§cSuccessfully reset hand slot ");
                     getEquipmentMenu().open(player);
                 } else {
-                    if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
+                    if (event.getCursor().getType() == AIR) 
                     npc.getEquipment().setHand(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set offhand slot to " + npc.getEquipment().getHand().getType());
                     getEquipmentMenu().open(player);
                 }
-                return ActionResponse.DONE;
+                
             }));
         }
         if (offhand.getType().isAir()) {
@@ -676,15 +672,15 @@ public class MenuCore {
             lore.add(Component.text("an item to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             meta.lore(lore);
             item.setItemMeta(meta);
-            menu.setItem(21, ItemBuilder.of(item).buildItem((i, event) -> {
-                Player player = event.getPlayer();
-                if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
+            menu.setItem(21, ItemBuilder.of(item).buildItem((player, event) -> {
+                
+                if (event.getCursor().getType() == AIR) 
                 npc.getEquipment().setOffhand(event.getCursor().clone());
                 event.getCursor().setAmount(0);
                 player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                 player.sendMessage("§aSuccessfully set offhand slot to " + npc.getEquipment().getOffhand().getType());
                 getEquipmentMenu().open(player);
-                return ActionResponse.DONE;
+                
             }));
         } else {
             ItemMeta meta = offhand.getItemMeta();
@@ -698,40 +694,40 @@ public class MenuCore {
             meta.lore(lore);
             offhand.setItemMeta(meta);
 
-            menu.setItem(21, ItemBuilder.of(offhand).buildItem((i, event) -> {
-                Player player = event.getPlayer();
+            menu.setItem(21, ItemBuilder.of(offhand).buildItem((player, event) -> {
+                
                 if (event.isRightClick()) {
                     npc.getEquipment().setOffhand(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     player.sendMessage("§cSuccessfully reset offhand slot ");
                     getEquipmentMenu().open(player);
                 } else {
-                    if (event.getCursor().getType() == AIR) return ActionResponse.DONE;
+                    if (event.getCursor().getType() == AIR) 
                     npc.getEquipment().setOffhand(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set offhand slot to " + npc.getEquipment().getOffhand().getType());
                     getEquipmentMenu().open(player);
                 }
-                return ActionResponse.DONE;
+                
             }));
         }
 
         menu.setItem(8, ItemBuilder.of(ARMOR_STAND)
                 .setName("§bImport Player Armor")
                 .setLore("§eImports your current armor to the NPC")
-                .buildItem((i, event) -> {
-                    Player player = event.getPlayer();
+                .buildItem((player, event) -> {
+                    
                     npc.getEquipment().importFromEntityEquipment(player.getEquipment());
                     getMainMenu().open(player);
-                    return ActionResponse.DONE;
+                    
                 }));
 
-        menu.setItem(49, ItemBuilder.of(BARRIER).setName("§cClose").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(49, ItemBuilder.of(BARRIER).setName("§cClose").buildItem((player, event) -> {
+            
             getMainMenu().open(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            return ActionResponse.DONE;
+            
         }));
         return menu;
     }
@@ -850,8 +846,8 @@ public class MenuCore {
                 lore.add(Component.text("Left Click to edit.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             meta.lore(lore);
             item.setItemMeta(meta);
-            menu.addItem(ItemBuilder.of(item).buildItem((i, event) -> {
-                Player player = event.getPlayer();
+            menu.addItem(ItemBuilder.of(item).buildItem((player, event) -> {
+                
                 event.setCancelled(true);
                 if (event.isRightClick()) {
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -867,7 +863,7 @@ public class MenuCore {
                         player.sendMessage("§cThis action cannot be edited!");
                     }
                 }
-                return ActionResponse.DONE;
+                
             }));
         }
 
@@ -876,11 +872,11 @@ public class MenuCore {
         ItemMeta closeMeta = close.getItemMeta();
         closeMeta.displayName(Component.text("GO BACK", NamedTextColor.RED, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         close.setItemMeta(closeMeta);
-        menu.setItem(45, ItemBuilder.of(close).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(45, ItemBuilder.of(close).buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             getMainMenu().open(player);
-            return ActionResponse.DONE;
+            
         }));
 
         // Add New
@@ -888,11 +884,11 @@ public class MenuCore {
         ItemMeta actionMeta = newAction.getItemMeta();
         actionMeta.displayName(Component.text("New Action", NamedTextColor.GREEN, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         newAction.setItemMeta(actionMeta);
-        menu.addItem(ItemBuilder.of(newAction).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(newAction).buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             getNewActionMenu().open(player);
-            return ActionResponse.DONE;
+            
         }));
         return menu;
     }
@@ -928,8 +924,8 @@ public class MenuCore {
 
                 meta.lore(lore);
                 item.setItemMeta(meta);
-                menu.addItem(ItemBuilder.of(item).buildItem((i, event) -> {
-                    Player player = event.getPlayer();
+                menu.addItem(ItemBuilder.of(item).buildItem((player, event) -> {
+                    
                     if (event.isRightClick()) {
                         player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                         action.removeConditional(c);
@@ -941,7 +937,7 @@ public class MenuCore {
                         getConditionalCustomizerMenu(c).open(player);
                         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     }
-                    return ActionResponse.DONE;
+                    
                 }));
             }
         }
@@ -954,11 +950,11 @@ public class MenuCore {
         closeMeta.lore(lore);
         close.setItemMeta(closeMeta);
         lore.clear();
-        menu.setItem(31, ItemBuilder.of(close).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(31, ItemBuilder.of(close).buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             getActionCustomizerMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
 
         // Add New
@@ -967,11 +963,11 @@ public class MenuCore {
         conditionMeta.displayName(Component.text("New Condition", NamedTextColor.GREEN, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         newCondition.setItemMeta(conditionMeta);
         lore.clear();
-        menu.addItem(ItemBuilder.of(newCondition).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(newCondition).buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             getNewConditionMenu().open(player);
-            return ActionResponse.DONE;
+            
         }));
 
         // Change Mode
@@ -982,12 +978,12 @@ public class MenuCore {
         changeModeMeta.lore(lore);
         changeMode.setItemMeta(changeModeMeta);
         lore.clear();
-        menu.setItem(35, ItemBuilder.of(changeMode).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(35, ItemBuilder.of(changeMode).buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             action.setMode(action.getMode() == Conditional.SelectionMode.ALL ? Conditional.SelectionMode.ONE : Conditional.SelectionMode.ALL);
             getConditionMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
         return menu;
     }
@@ -1004,8 +1000,8 @@ public class MenuCore {
         List<String> incLore = List.of("§8Left Click to add 1", "§8Right Click to add 5", "§8Shift + Right Click to add 20");
         List<String> decLore = List.of("§8Left Click to remove 1", "§8Right Click to remove 5", "§8Shift + Click to remove 20");
 
-        menu.setItem(3, ItemBuilder.of(RED_DYE).setName("§eDecrement Delay").setLore(decLore).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(3, ItemBuilder.of(RED_DYE).setName("§eDecrement Delay").setLore(decLore).buildItem((player, event) -> {
+            
             if (event.isLeftClick()) {
                 if (!(action.getDelay() - 1 < 0)) {
                     action.setDelay(action.getDelay() - 1);
@@ -1025,12 +1021,12 @@ public class MenuCore {
                     player.sendMessage("§cThe delay cannot be negative!");
                 }
             }
-            event.getPlayer().playSound(event.getPlayer(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-            getActionCustomizerMenu(action).open(event.getPlayer());
-            return ActionResponse.DONE;
+            player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
+            getActionCustomizerMenu(action).open(player);
+            
         }));
         menu.setItem(4, ItemBuilder.of(CLOCK).setName("§eDelay Ticks: " + action.getDelay()).buildItem());
-        menu.setItem(5, ItemBuilder.of(LIME_DYE).setName("§eIncrement Delay").setLore(incLore).buildItem((i, event) -> {
+        menu.setItem(5, ItemBuilder.of(LIME_DYE).setName("§eIncrement Delay").setLore(incLore).buildItem((player, event) -> {
             if (event.isLeftClick()) {
                 action.setDelay(action.getDelay() + 1);
             } else if (event.isRightClick()) {
@@ -1038,28 +1034,28 @@ public class MenuCore {
             } else if (event.isShiftClick()) {
                 action.setDelay(action.getDelay() + 20);
             }
-            event.getPlayer().playSound(event.getPlayer(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-            getActionCustomizerMenu(action).open(event.getPlayer());
-            return ActionResponse.DONE;
+            player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
+            getActionCustomizerMenu(action).open(player);
+            
         }));
-        menu.setItem(36, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((i, event) -> {
-            getActionMenu().open(event.getPlayer());
-            event.getPlayer().playSound(event.getPlayer(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-            return ActionResponse.DONE;
+        menu.setItem(36, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((player, event) -> {
+            getActionMenu().open(player);
+            player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
+            
         }));
-        menu.setItem(44, ItemBuilder.of(COMPARATOR).setName("§cEdit Conditions").buildItem((i, event) -> {
-            getConditionMenu(action).open(event.getPlayer());
-            event.getPlayer().playSound(event.getPlayer(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-            return ActionResponse.DONE;
+        menu.setItem(44, ItemBuilder.of(COMPARATOR).setName("§cEdit Conditions").buildItem((player, event) -> {
+            getConditionMenu(action).open(player);
+            player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
+            
         }));
-        menu.setItem(40, ItemBuilder.of(LILY_PAD).setName("§aConfirm").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(40, ItemBuilder.of(LILY_PAD).setName("§aConfirm").buildItem((player, event) -> {
+            
             if (plugin.originalEditingActions.get(player) != null)
                 npc.removeAction(plugin.originalEditingActions.remove(player));
             npc.addAction(action);
             getActionMenu().open(player);
-            event.getPlayer().playSound(event.getPlayer(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-            return ActionResponse.DONE;
+            player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
+            
         }));
 
         List<String> args = action.getArgsCopy();
@@ -1067,20 +1063,20 @@ public class MenuCore {
             case RUN_COMMAND -> menu.setItem(22, ItemBuilder.of(ANVIL)
                     .setName("§eClick to Edit Command")
                     .setLore("§e" + String.join(" ", args), "§eClick to change!")
-                    .buildItem((i, event) -> {
-                        Player player = event.getPlayer();
+                    .buildItem((player, event) -> {
+                        
                         player.closeInventory();
                         plugin.commandWaiting.add(player);
                         new CommandRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                         event.setCancelled(true);
-                        return ActionResponse.DONE;
+                        
                     }));
             case DISPLAY_TITLE -> {
                 // Increments
                 menu.setItem(10, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease fade in duration")
                         .setLore(incLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 1));
                             } else if (event.isRightClick()) {
@@ -1088,14 +1084,14 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(12, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease display duration")
                         .setLore(incLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 1));
                             } else if (event.isRightClick()) {
@@ -1103,14 +1099,14 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(14, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease fade out duration")
                         .setLore(incLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 1));
                             } else if (event.isRightClick()) {
@@ -1118,15 +1114,15 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 //decrements
                 menu.setItem(28, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease fade in duration")
                         .setLore(decLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 1));
                             } else if (event.isRightClick()) {
@@ -1134,14 +1130,14 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(30, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease display duration")
                         .setLore(decLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 1));
                             } else if (event.isRightClick()) {
@@ -1149,14 +1145,14 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(32, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease fade out duration")
                         .setLore(decLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 1));
                             } else if (event.isRightClick()) {
@@ -1164,8 +1160,8 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 // Displays
@@ -1175,13 +1171,13 @@ public class MenuCore {
                 menu.setItem(23, ItemBuilder.of(CLOCK).setName("§eFade out: " + args.get(2)).setLore(displayLore).buildItem());
                 menu.setItem(25, ItemBuilder.of(OAK_HANGING_SIGN)
                         .setName(String.join(" ", args))
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             player.closeInventory();
                             plugin.titleWaiting.add(player);
                             new TitleRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                             event.setCancelled(true);
-                            return ActionResponse.DONE;
+                            
                         }));
             }
             case ADD_EFFECT -> {
@@ -1189,7 +1185,7 @@ public class MenuCore {
                 menu.setItem(10, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease effect duration")
                         .setLore(incLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 1));
                             } else if (event.isRightClick()) {
@@ -1197,15 +1193,15 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(12, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease effect amplifier")
                         .setLore(incLore)
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             if (event.isLeftClick()) {
                                 if (Integer.parseInt(action.getArgs().get(1)) == 255) {
                                     player.sendMessage("§cThe amplifier cannot be greater than 255!");
@@ -1231,16 +1227,16 @@ public class MenuCore {
                                     action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 20));
                                 }
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 //decrements
                 menu.setItem(28, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease effect duration")
                         .setLore(decLore)
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             if (event.isLeftClick()) {
                                 if (Integer.parseInt(action.getArgs().get(0)) == -1) {
                                     player.sendMessage("§cThe duration cannot be less than 1!");
@@ -1266,15 +1262,15 @@ public class MenuCore {
                                     action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
                                 }
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(30, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease effect amplifier")
                         .setLore(decLore)
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             if (event.isLeftClick()) {
                                 if (Integer.parseInt(action.getArgs().get(1)) == -1) {
                                     player.sendMessage("§cThe amplifier cannot be less than 1!");
@@ -1300,8 +1296,8 @@ public class MenuCore {
                                     action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 20));
                                 }
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 // Displays
@@ -1312,10 +1308,10 @@ public class MenuCore {
                 boolean particles = Boolean.parseBoolean(args.get(2));
                 menu.setItem(23, ItemBuilder.of(particles ? GREEN_CANDLE : RED_CANDLE)
                         .setName("§eHide Particles: " + particles)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             action.getArgs().set(2, String.valueOf(!particles));
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
 
@@ -1330,7 +1326,7 @@ public class MenuCore {
                         .setName("§eEffect to give")
                         .setLore(lore)
                         .addAllItemFlags()
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             List<String> effects = new ArrayList<>();
                             fields.forEach(field -> effects.add(field.getName()));
 
@@ -1348,8 +1344,8 @@ public class MenuCore {
                                     action.getArgs().set(3, effects.get(index - 1));
                                 }
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
             }
             case REMOVE_EFFECT -> {
@@ -1364,7 +1360,7 @@ public class MenuCore {
                         .setName("§eEffect to give")
                         .setLore(lore)
                         .addAllItemFlags()
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             List<String> effects = new ArrayList<>();
                             fields.forEach(field -> effects.add(field.getName()));
 
@@ -1383,15 +1379,15 @@ public class MenuCore {
                                     action.getArgs().set(0, effects.get(index - 1));
                                 }
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
             }
             case GIVE_EXP -> {
                 menu.setItem(11, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease xp")
                         .setLore(incLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 1));
                             } else if (event.isRightClick()) {
@@ -1399,16 +1395,16 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(20, ItemBuilder.of(CLOCK).setName("§eXp to give: " + args.get(0)).buildItem());
                 menu.setItem(29, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease xp")
                         .setLore(decLore)
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             if (event.isLeftClick()) {
                                 if (Integer.parseInt(action.getArgs().get(0)) == -1) {
                                     player.sendMessage("§cThe xp cannot be less than 1!");
@@ -1435,24 +1431,24 @@ public class MenuCore {
                                 }
                             }
                             getActionCustomizerMenu(action).open(player);
-                            return ActionResponse.DONE;
+                            
                         }));
 
                 boolean levels = Boolean.parseBoolean(args.get(1));
                 menu.setItem(24, ItemBuilder.of(levels ? GREEN_CANDLE : RED_CANDLE)
                         .setName("§eAwarding EXP " + (levels ? "Levels" : "Points"))
                         .setLore("§eClick to change!")
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             action.getArgs().set(1, String.valueOf(!levels));
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
             }
             case REMOVE_EXP -> {
                 menu.setItem(11, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease xp")
                         .setLore(incLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 1));
                             } else if (event.isRightClick()) {
@@ -1460,16 +1456,16 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(20, ItemBuilder.of(CLOCK).setName("§eXp to remove: " + args.get(0)).buildItem());
                 menu.setItem(29, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease xp")
                         .setLore(decLore)
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             if (event.isLeftClick()) {
                                 if (Integer.parseInt(action.getArgs().get(0)) == -1) {
                                     player.sendMessage("§cThe xp cannot be less than 1!");
@@ -1496,30 +1492,30 @@ public class MenuCore {
                                 }
                             }
                             getActionCustomizerMenu(action).open(player);
-                            return ActionResponse.DONE;
+                            
                         }));
 
                 boolean levels = Boolean.parseBoolean(args.get(1));
                 menu.setItem(24, ItemBuilder.of(levels ? GREEN_CANDLE : RED_CANDLE)
                         .setName("§eRemoving EXP " + (levels ? "Levels" : "Points"))
                         .setLore("§eClick to change!")
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             action.getArgs().set(1, String.valueOf(!levels));
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
             }
             case SEND_MESSAGE -> menu.setItem(22, ItemBuilder.of(OAK_HANGING_SIGN)
                     .setName(String.join(" ", args))
                     .setLore("§eClick to change!")
-                    .buildItem((i, event) -> {
-                        Player player = event.getPlayer();
+                    .buildItem((player, event) -> {
+                        
                         player.closeInventory();
                         plugin.messageWaiting.add(player);
                         new MessageRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                         event.setCancelled(true);
-                        return ActionResponse.DONE;
+                        
                     }));
             case PLAY_SOUND -> {
 
@@ -1529,29 +1525,29 @@ public class MenuCore {
                 menu.setItem(10, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease pitch.")
                         .setLore(smallIncLore)
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             action.getArgs().set(0, String.valueOf(DECIMAL_FORMAT.format(Double.parseDouble(action.getArgs().get(0)) + .1)));
                             getActionCustomizerMenu(action).open(player);
-                            return ActionResponse.DONE;
+                            
                         }));
 
                 menu.setItem(12, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease Volume")
                         .setLore(smallIncLore)
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             action.getArgs().set(1, String.valueOf(DECIMAL_FORMAT.format(Double.parseDouble(action.getArgs().get(1)) + .1)));
                             getActionCustomizerMenu(action).open(player);
-                            return ActionResponse.DONE;
+                            
                         }));
 
                 //decrements
                 menu.setItem(28, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease pitch")
                         .setLore(smallDecLore)
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             if (event.isLeftClick()) {
                                 if (Double.parseDouble(action.getArgs().get(0)) - .1 <= 0) {
                                     player.sendMessage("§cThe pitch cannot be less than or equal 0!");
@@ -1560,14 +1556,14 @@ public class MenuCore {
                                 }
                             }
                             getActionCustomizerMenu(action).open(player);
-                            return ActionResponse.DONE;
+                            
                         }));
 
                 menu.setItem(30, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease volume")
                         .setLore(smallDecLore)
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             if (event.isLeftClick()) {
                                 if (Double.parseDouble(action.getArgs().get(1)) - .1 <= 0) {
                                     player.sendMessage("§cThe volume cannot be less than or equal 0!");
@@ -1576,7 +1572,7 @@ public class MenuCore {
                                 }
                             }
                             getActionCustomizerMenu(action).open(player);
-                            return ActionResponse.DONE;
+                            
                         }));
 
 
@@ -1591,30 +1587,30 @@ public class MenuCore {
                 menu.setItem(24, ItemBuilder.of(OAK_HANGING_SIGN)
                         .setName("§eSound: " + args.get(2))
                         .setLore("", "§eClick to change!")
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             player.closeInventory();
                             plugin.soundWaiting.add(player);
                             new SoundRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                             event.setCancelled(true);
-                            return ActionResponse.DONE;
+                            
                         }));
             }
             case ACTION_BAR -> menu.setItem(22, ItemBuilder.of(OAK_HANGING_SIGN)
                     .setName(String.join(" ", args))
-                    .buildItem((i, event) -> {
-                        Player player = event.getPlayer();
+                    .buildItem((player, event) -> {
+                        
                         player.closeInventory();
                         plugin.actionbarWaiting.add(player);
                         new ActionbarRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                         event.setCancelled(true);
-                        return ActionResponse.DONE;
+                        
                     }));
             case TELEPORT -> {
                 menu.setItem(10, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease X Coordinate")
                         .setLore(incLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 1));
                             } else if (event.isRightClick()) {
@@ -1622,14 +1618,14 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(11, ItemBuilder.of(LIME_DYE)
                         .setName("§e Increase Y Coordinate")
                         .setLore(incLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 1));
                             } else if (event.isRightClick()) {
@@ -1637,14 +1633,14 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(12, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease Z Coordinate")
                         .setLore(incLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 1));
                             } else if (event.isRightClick()) {
@@ -1652,15 +1648,15 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(16, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease Yaw")
                         .setLore(incLore)
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             if (event.isLeftClick()) {
                                 if (Integer.parseInt(action.getArgs().get(3)) == 180) {
                                     player.sendMessage("§cThe yaw cannot be greater than 180!");
@@ -1687,14 +1683,14 @@ public class MenuCore {
                                 }
                             }
                             getActionCustomizerMenu(action).open(player);
-                            return ActionResponse.DONE;
+                            
                         }));
 
                 menu.setItem(14, ItemBuilder.of(LIME_DYE)
                         .setName("§eIncrease Pitch")
                         .setLore(incLore)
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             if (event.isLeftClick()) {
                                 if (Integer.parseInt(action.getArgs().get(4)) == 90) {
                                     player.sendMessage("§cThe pitch cannot be greater than 90!");
@@ -1721,14 +1717,14 @@ public class MenuCore {
                                 }
                             }
                             getActionCustomizerMenu(action).open(player);
-                            return ActionResponse.DONE;
+                            
                         }));
 
                 //decrements
                 menu.setItem(28, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease X Coordinate")
                         .setLore(decLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 1));
                             } else if (event.isRightClick()) {
@@ -1736,14 +1732,14 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(29, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease Y Coordinate")
                         .setLore(decLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 1));
                             } else if (event.isRightClick()) {
@@ -1751,14 +1747,14 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(20, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease Z Coordinate")
                         .setLore(decLore)
-                        .buildItem((i, event) -> {
+                        .buildItem((player, event) -> {
                             if (event.isLeftClick()) {
                                 action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 1));
                             } else if (event.isRightClick()) {
@@ -1766,15 +1762,15 @@ public class MenuCore {
                             } else if (event.isShiftClick()) {
                                 action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 20));
                             }
-                            getActionCustomizerMenu(action).open(event.getPlayer());
-                            return ActionResponse.DONE;
+                            getActionCustomizerMenu(action).open(player);
+                            
                         }));
 
                 menu.setItem(34, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease Yaw")
                         .setLore(decLore)
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             if (event.isLeftClick()) {
                                 if (Integer.parseInt(action.getArgs().get(3)) == -180) {
                                     player.sendMessage("§cThe yaw cannot be greater than 180!");
@@ -1801,14 +1797,14 @@ public class MenuCore {
                                 }
                             }
                             getActionCustomizerMenu(action).open(player);
-                            return ActionResponse.DONE;
+                            
                         }));
 
                 menu.setItem(32, ItemBuilder.of(RED_DYE)
                         .setName("§eDecrease Pitch")
                         .setLore(decLore)
-                        .buildItem((i, event) -> {
-                            Player player = event.getPlayer();
+                        .buildItem((player, event) -> {
+                            
                             if (event.isLeftClick()) {
                                 if (Integer.parseInt(action.getArgs().get(4)) == -90) {
                                     player.sendMessage("§cThe pitch cannot be less than 90!");
@@ -1835,7 +1831,7 @@ public class MenuCore {
                                 }
                             }
                             getActionCustomizerMenu(action).open(player);
-                            return ActionResponse.DONE;
+                            
                         }));
 
                 // Displays
@@ -1850,13 +1846,13 @@ public class MenuCore {
             }
             case SEND_TO_SERVER -> menu.setItem(22, ItemBuilder.of(GRASS_BLOCK)
                     .setName("§Server: " + String.join(" ", args))
-                    .buildItem((i, event) -> {
-                        Player player = event.getPlayer();
+                    .buildItem((player, event) -> {
+                        
                         player.closeInventory();
                         plugin.serverWaiting.add(player);
                         new ServerRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                         event.setCancelled(true);
-                        return ActionResponse.DONE;
+                        
                     }));
             case TOGGLE_FOLLOWING -> {
                 npc.addAction(action);
@@ -1882,24 +1878,24 @@ public class MenuCore {
         ItemMeta goBackMeta = goBack.getItemMeta();
         goBackMeta.displayName(Component.text("Go Back", NamedTextColor.GOLD));
         goBack.setItemMeta(goBackMeta);
-        menu.setItem(18, ItemBuilder.of(goBack).buildItem((i, event) -> {
-            getNewConditionMenu().open(event.getPlayer());
-            return ActionResponse.DONE;
+        menu.setItem(18, ItemBuilder.of(goBack).buildItem((player, event) -> {
+            getNewConditionMenu().open(player);
+            
         }));
 
         ItemStack confirm = new ItemStack(Material.LILY_PAD);
         ItemMeta confirmMeta = confirm.getItemMeta();
         confirmMeta.displayName(Component.text("Confirm", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         confirm.setItemMeta(confirmMeta);
-        menu.setItem(22, ItemBuilder.of(confirm).buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.setItem(22, ItemBuilder.of(confirm).buildItem((player, event) -> {
+            
             Action action = plugin.editingActions.get(player);
             event.setCancelled(true);
             if (plugin.originalEditingConditionals.get(player) != null)
                 action.removeConditional(plugin.originalEditingConditionals.remove(player));
             action.addConditional(conditional);
             getConditionMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
 
         switch (conditional.getType()) {
@@ -1928,7 +1924,7 @@ public class MenuCore {
                 lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 meta.lore(lore);
                 selectComparator.setItemMeta(meta);
-                menu.setItem(11, ItemBuilder.of(selectComparator).buildItem((i, event) -> {
+                menu.setItem(11, ItemBuilder.of(selectComparator).buildItem((player, event) -> {
                     List<Conditional.Comparator> comparators = List.of(Conditional.Comparator.values());
                     int index = comparators.indexOf(conditional.getComparator());
                     if (event.isLeftClick()) {
@@ -1944,8 +1940,8 @@ public class MenuCore {
                             conditional.setComparator(comparators.get(index - 1));
                         }
                     }
-                    getConditionalCustomizerMenu(conditional).open(event.getPlayer());
-                    return ActionResponse.DONE;
+                    getConditionalCustomizerMenu(conditional).open(player);
+                    
                 }));
                 lore.clear();
 
@@ -1956,13 +1952,13 @@ public class MenuCore {
                 lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 targetMeta.lore(lore);
                 targetValue.setItemMeta(targetMeta);
-                menu.setItem(13, ItemBuilder.of(targetValue).buildItem((i, event) -> {
-                    Player player = event.getPlayer();
+                menu.setItem(13, ItemBuilder.of(targetValue).buildItem((player, event) -> {
+                    
                     player.closeInventory();
                     plugin.targetWaiting.add(player);
                     new TargetInputRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                     event.setCancelled(true);
-                    return ActionResponse.DONE;
+                    
                 }));
                 lore.clear();
 
@@ -1980,7 +1976,7 @@ public class MenuCore {
                 lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 statisticMeta.lore(lore);
                 statistic.setItemMeta(statisticMeta);
-                menu.setItem(15, ItemBuilder.of(statistic).buildItem((i, event) -> {
+                menu.setItem(15, ItemBuilder.of(statistic).buildItem((player, event) -> {
                     List<Conditional.Value> statistics = new ArrayList<>();
                     for (Conditional.Value value : Conditional.Value.values()) {
                         if (!value.isLogical()) statistics.add(value);
@@ -2000,8 +1996,8 @@ public class MenuCore {
                             conditional.setValue(statistics.get(index - 1));
                         }
                     }
-                    getConditionalCustomizerMenu(conditional).open(event.getPlayer());
-                    return ActionResponse.DONE;
+                    getConditionalCustomizerMenu(conditional).open(player);
+                    
                 }));
             }
             case LOGICAL -> {
@@ -2031,7 +2027,7 @@ public class MenuCore {
                 lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 meta.lore(lore);
                 selectComparator.setItemMeta(meta);
-                menu.setItem(11, ItemBuilder.of(selectComparator).buildItem((i, event) -> {
+                menu.setItem(11, ItemBuilder.of(selectComparator).buildItem((player, event) -> {
                     List<Conditional.Comparator> comparators = new ArrayList<>();
                     for (Conditional.Comparator value : Conditional.Comparator.values()) {
                         if (value.isStrictlyLogical()) comparators.add(value);
@@ -2052,8 +2048,8 @@ public class MenuCore {
                             conditional.setComparator(comparators.get(index - 1));
                         }
                     }
-                    getConditionalCustomizerMenu(conditional).open(event.getPlayer());
-                    return ActionResponse.DONE;
+                    getConditionalCustomizerMenu(conditional).open(player);
+                    
                 }));
                 lore.clear();
 
@@ -2064,13 +2060,13 @@ public class MenuCore {
                 lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 targetMeta.lore(lore);
                 targetValue.setItemMeta(targetMeta);
-                menu.setItem(13, ItemBuilder.of(targetValue).buildItem((i, event) -> {
-                    Player player = event.getPlayer();
+                menu.setItem(13, ItemBuilder.of(targetValue).buildItem((player, event) -> {
+                    
                     player.closeInventory();
                     plugin.targetWaiting.add(player);
                     new TargetInputRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                     event.setCancelled(true);
-                    return ActionResponse.DONE;
+                    
                 }));
                 lore.clear();
 
@@ -2088,7 +2084,7 @@ public class MenuCore {
                 lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 statisticMeta.lore(lore);
                 statistic.setItemMeta(statisticMeta);
-                menu.setItem(15, ItemBuilder.of(statistic).buildItem((i, event) -> {
+                menu.setItem(15, ItemBuilder.of(statistic).buildItem((player, event) -> {
                     List<Conditional.Value> statistics = new ArrayList<>();
 
                     for (Conditional.Value value : Conditional.Value.values()) {
@@ -2109,8 +2105,8 @@ public class MenuCore {
                             conditional.setValue(statistics.get(index - 1));
                         }
                     }
-                    getConditionalCustomizerMenu(conditional).open(event.getPlayer());
-                    return ActionResponse.DONE;
+                    getConditionalCustomizerMenu(conditional).open(player);
+                    
                 }));
             }
         }
@@ -2128,13 +2124,13 @@ public class MenuCore {
         Menu menu = Menu.builder().rows(4).addAllModifiers().title("          New NPC Action").normal();
         menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
 
-        menu.setItem(27, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((i, event) -> {
-            getActionMenu().open(event.getPlayer());
-            return ActionResponse.DONE;
+        menu.setItem(27, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((player, event) -> {
+            getActionMenu().open(player);
+            
         }));
 
-        menu.addItem(ItemBuilder.of(OAK_SIGN).setName("§bDisplay Title").setLore("§eDisplays a title for the player.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(OAK_SIGN).setName("§bDisplay Title").setLore("§eDisplays a title for the player.").buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.DISPLAY_TITLE, Utils.list("10", "20", "10", "title!"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
@@ -2146,15 +2142,15 @@ public class MenuCore {
                         player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                     }
                 });
-                if (shouldReturn.get()) return ActionResponse.DONE;
+                if (shouldReturn.get()) return;
             }
             plugin.editingActions.put(player, action);
             getActionCustomizerMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
 
-        menu.addItem(ItemBuilder.of(PAPER).setName("§bSend Message").setLore("§eSends the player a message.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(PAPER).setName("§bSend Message").setLore("§eSends the player a message.").buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.SEND_MESSAGE, Utils.list("message", "to", "be", "sent"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
@@ -2166,15 +2162,15 @@ public class MenuCore {
                         player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                     }
                 });
-                if (shouldReturn.get()) return ActionResponse.DONE;
+                if (shouldReturn.get()) return;
             }
             plugin.editingActions.put(player, action);
             getActionCustomizerMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
 
-        menu.addItem(ItemBuilder.of(BELL).setName("§bPlay Sound").setLore("§ePlays a sound for the player.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(BELL).setName("§bPlay Sound").setLore("§ePlays a sound for the player.").buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.PLAY_SOUND, Utils.list("1", "1", Sound.UI_BUTTON_CLICK.name()), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
@@ -2186,15 +2182,15 @@ public class MenuCore {
                         player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                     }
                 });
-                if (shouldReturn.get()) return ActionResponse.DONE;
+                if (shouldReturn.get()) return;
             }
             plugin.editingActions.put(player, action);
             getActionCustomizerMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
 
-        menu.addItem(ItemBuilder.of(ANVIL).setName("§bRun Command").setLore("§eRuns a command as the player.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(ANVIL).setName("§bRun Command").setLore("§eRuns a command as the player.").buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.RUN_COMMAND, Utils.list("command", "to", "be", "run"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
@@ -2206,15 +2202,15 @@ public class MenuCore {
                         player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                     }
                 });
-                if (shouldReturn.get()) return ActionResponse.DONE;
+                if (shouldReturn.get()) return;
             }
             plugin.editingActions.put(player, action);
             getActionCustomizerMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
 
-        menu.addItem(ItemBuilder.of(IRON_INGOT).setName("§bSend Actionbar").setLore("§eSends the player an actionbar.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(IRON_INGOT).setName("§bSend Actionbar").setLore("§eSends the player an actionbar.").buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.ACTION_BAR, Utils.list("actionbar", "to", "be", "sent"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
@@ -2226,15 +2222,15 @@ public class MenuCore {
                         player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                     }
                 });
-                if (shouldReturn.get()) return ActionResponse.DONE;
+                if (shouldReturn.get()) return;
             }
             plugin.editingActions.put(player, action);
             getActionCustomizerMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
 
-        menu.addItem(ItemBuilder.of(ENDER_PEARL).setName("§bTeleport Player").setLore("§eTeleports a player upon interacting.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(ENDER_PEARL).setName("§bTeleport Player").setLore("§eTeleports a player upon interacting.").buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.TELEPORT, Utils.list("0", "0", "0", "0", "0"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
@@ -2246,15 +2242,15 @@ public class MenuCore {
                         player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                     }
                 });
-                if (shouldReturn.get()) return ActionResponse.DONE;
+                if (shouldReturn.get()) return;
             }
             plugin.editingActions.put(player, action);
             getActionCustomizerMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
 
-        menu.addItem(ItemBuilder.of(GRASS_BLOCK).setName("§bSend To Bungeecord/Velocity Server").setLore("§eSends a player to a Bungeecord/Velocity", "§eserver upon interacting.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(GRASS_BLOCK).setName("§bSend To Bungeecord/Velocity Server").setLore("§eSends a player to a Bungeecord/Velocity", "§eserver upon interacting.").buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.SEND_TO_SERVER, Utils.list("server", "name"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
@@ -2266,15 +2262,15 @@ public class MenuCore {
                         player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                     }
                 });
-                if (shouldReturn.get()) return ActionResponse.DONE;
+                if (shouldReturn.get()) return;
             }
             plugin.editingActions.put(player, action);
             getActionCustomizerMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
 
-        menu.addItem(ItemBuilder.of(LEAD).setName("§bStart/Stop Following").setLore("§eToggles whether or not the", "§eNPC follows this player.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(LEAD).setName("§bStart/Stop Following").setLore("§eToggles whether or not the", "§eNPC follows this player.").buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.TOGGLE_FOLLOWING, Collections.singletonList(npc.getUniqueID().toString()), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
@@ -2286,15 +2282,15 @@ public class MenuCore {
                         player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                     }
                 });
-                if (shouldReturn.get()) return ActionResponse.DONE;
+                if (shouldReturn.get()) return;
             }
             plugin.editingActions.put(player, action);
             getActionCustomizerMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
 
-        menu.addItem(ItemBuilder.of(EXPERIENCE_BOTTLE).setName("§bGive Exp").setLore("§eGives the player exp.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(EXPERIENCE_BOTTLE).setName("§bGive Exp").setLore("§eGives the player exp.").buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.GIVE_EXP, Utils.list("0", "true"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
@@ -2306,15 +2302,15 @@ public class MenuCore {
                         player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                     }
                 });
-                if (shouldReturn.get()) return ActionResponse.DONE;
+                if (shouldReturn.get()) return;
             }
             plugin.editingActions.put(player, action);
             getActionCustomizerMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
 
-        menu.addItem(ItemBuilder.of(GLASS_BOTTLE).setName("§bRemove Exp").setLore("§eRemoves exp from the player.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(GLASS_BOTTLE).setName("§bRemove Exp").setLore("§eRemoves exp from the player.").buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.REMOVE_EXP, Utils.list("0", "true"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
@@ -2326,15 +2322,15 @@ public class MenuCore {
                         player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                     }
                 });
-                if (shouldReturn.get()) return ActionResponse.DONE;
+                if (shouldReturn.get()) return;
             }
             plugin.editingActions.put(player, action);
             getActionCustomizerMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
 
-        menu.addItem(ItemBuilder.of(BREWING_STAND).setName("§bGive Effect").setLore("§eGives an effect to the player.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(BREWING_STAND).setName("§bGive Effect").setLore("§eGives an effect to the player.").buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.ADD_EFFECT, Utils.list("1", "1", "true", "SPEED"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
@@ -2346,15 +2342,15 @@ public class MenuCore {
                         player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                     }
                 });
-                if (shouldReturn.get()) return ActionResponse.DONE;
+                if (shouldReturn.get()) return;
             }
             plugin.editingActions.put(player, action);
             getActionCustomizerMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
 
-        menu.addItem(ItemBuilder.of(MILK_BUCKET).setName("§bRemove Effect").setLore("§eRemoves an effect from the player.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(MILK_BUCKET).setName("§bRemove Effect").setLore("§eRemoves an effect from the player.").buildItem((player, event) -> {
+            
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.REMOVE_EFFECT, Utils.list("SPEED"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().canDubplicate()) {
@@ -2366,11 +2362,11 @@ public class MenuCore {
                         player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
                     }
                 });
-                if (shouldReturn.get()) return ActionResponse.DONE;
+                if (shouldReturn.get()) return;
             }
             plugin.editingActions.put(player, action);
             getActionCustomizerMenu(action).open(player);
-            return ActionResponse.DONE;
+            
         }));
         menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
@@ -2386,31 +2382,31 @@ public class MenuCore {
         Menu menu = Menu.builder().title("       New Action Condition").rows(3).addAllModifiers().normal();
         menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
 
-        menu.setItem(18, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((i, event) -> {
-            getConditionMenu(plugin.editingActions.get(event.getPlayer()));
-            return ActionResponse.DONE;
+        menu.setItem(18, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((player, event) -> {
+            getConditionMenu(plugin.editingActions.get(player));
+            
         }));
 
-        menu.addItem(ItemBuilder.of(POPPED_CHORUS_FRUIT).setName("§3Numeric Condition").setLore("§eCompares numbers.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(POPPED_CHORUS_FRUIT).setName("§3Numeric Condition").setLore("§eCompares numbers.").buildItem((player, event) -> {
+            
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Conditional conditional = new NumericConditional(Conditional.Comparator.EQUAL_TO, Conditional.Value.EXP_LEVELS, 0.0);
             plugin.editingConditionals.put(player, conditional);
             getConditionalCustomizerMenu(conditional).open(player);
 
-            return ActionResponse.DONE;
+            
         }));
 
-        menu.addItem(ItemBuilder.of(COMPARATOR).setName("§3Logical Condition").setLore("§eCompares things with", "§enumbered options.").buildItem((i, event) -> {
-            Player player = event.getPlayer();
+        menu.addItem(ItemBuilder.of(COMPARATOR).setName("§3Logical Condition").setLore("§eCompares things with", "§enumbered options.").buildItem((player, event) -> {
+            
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Conditional conditional = new LogicalConditional(Conditional.Comparator.EQUAL_TO, Conditional.Value.GAMEMODE, "SURVIVAL");
             plugin.editingConditionals.put(player, conditional);
             getConditionalCustomizerMenu(conditional).open(player);
 
-            return ActionResponse.DONE;
+            
         }));
         menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
@@ -2422,43 +2418,43 @@ public class MenuCore {
         menu.setItem(18, ItemBuilder.of(ARROW)
                 .setName("§6Go Back")
                 .setLore("§eGo back to the main menu")
-                .buildItem((i, event) -> {
-                    Player player = event.getPlayer();
+                .buildItem((player, event) -> {
+                    
                     player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
                     getMainMenu().open(player);
-                    return ActionResponse.DONE;
+                    
                 }));
 
         menu.setItem(11, ItemBuilder.of(ANVIL)
                 .setName("§bImport from Player")
                 .setLore("§eFetches a player's skin by name")
-                .buildItem((i, event) -> {
-                    Player player = event.getPlayer();
+                .buildItem((player, event) -> {
+                    
                     player.closeInventory();
                     plugin.playernameWating.add(player);
                     new PlayerNameRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                     event.setCancelled(true);
-                    return ActionResponse.DONE;
+                    
                 }));
 
         menu.setItem(13, ItemBuilder.of(ARMOR_STAND)
                 .setName("§bBrowse Skin Catalogue")
                 .setLore("§eUse a preset skin")
-                .buildItem((i, event) -> {
-                    //todo: actually do stuff
-                    return ActionResponse.DONE;
+                .buildItem((player, event) -> {
+                    plugin.skinCatalogue.open(player);
+                    
                 }));
 
         menu.setItem(15, ItemBuilder.of(WRITABLE_BOOK)
                 .setName("§bImport from URL")
                 .setLore("§eFetches a skin from a URL")
-                .buildItem((i, event) -> {
-                    Player player = event.getPlayer();
+                .buildItem((player, event) -> {
+                    
                     player.closeInventory();
                     plugin.urlWaiting.add(player);
                     new UrlRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                     event.setCancelled(true);
-                    return ActionResponse.DONE;
+                    
                 }));
 
         menu.getFiller().fill(MenuItems.MENU_GLASS);
