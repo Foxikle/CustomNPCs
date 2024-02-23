@@ -160,6 +160,13 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     plugin.onDisable();
                     plugin.onEnable();
                     player.sendMessage(ChatColor.GREEN + "NPCs successfully reloaded.");
+                } else if (args[0].equalsIgnoreCase("wiki") || args[0].equalsIgnoreCase("docs")) {
+                    player.sendMessage(
+                            Component.text("Click ", NamedTextColor.YELLOW)
+                                    .append(Component.text("[HERE]", NamedTextColor.AQUA)
+                                            .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, "https://docs.foxikle.dev")))
+                                    .append(Component.text(" for the CustomNPCs Wiki!", NamedTextColor.YELLOW))
+                    );
                 }
             } else {
                 if (args[0].equalsIgnoreCase("setsound")) {
@@ -326,6 +333,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             list.add("edit");
             list.add("reload");
             list.add("clear_holograms");
+            list.add("wiki");
             if (plugin.soundWaiting.contains((Player) sender)) list.add("setsound");
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("setsound")) {
