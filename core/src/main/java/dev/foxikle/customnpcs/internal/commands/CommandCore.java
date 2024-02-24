@@ -4,6 +4,7 @@ import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import net.kyori.adventure.text.Component;
@@ -12,7 +13,6 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -25,8 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.bukkit.ChatColor.RED;
 
 /**
  * The class to handle the core command
@@ -58,17 +56,17 @@ public class CommandCore implements CommandExecutor, TabCompleter {
      * @since 1.3-pre5
      */
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if (sender instanceof Player player) {
             if (args.length == 0) {
                 player.performCommand("npc help");
             } else if (args.length == 1) {
                 if (args[0].equalsIgnoreCase("help")) {
                     if (!player.hasPermission("customnpcs.commands.help")) {
-                        player.sendMessage(RED + "You lack the propper permissions to execute this.");
+                        player.sendMessage(Utils.style("&cYou lack the propper permissions to execute this."));
                         return true;
                     }
-                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', """
+                    player.sendMessage(Utils.style("""
                             &2&m                      &r&3&l Custom NPCs &r&7[&8v${version}&7] &r&2&m                      \s
                             &r                                 &r&6By Foxikle \n
                                                         
@@ -78,14 +76,14 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     player.sendMessage(getHelpComponent());
                 } else if (args[0].equalsIgnoreCase("manage")) {
                     if (!player.hasPermission("customnpcs.commands.manage")) {
-                        player.sendMessage(RED + "You lack the propper permissions to manage npcs.");
+                        player.sendMessage(Utils.style("&cYou lack the propper permissions to manage npcs."));
                         return true;
                     }
                     if (plugin.getNPCs().isEmpty()) {
-                        player.sendMessage(RED + "There are no npcs to manage!");
+                        player.sendMessage(Utils.style("&cThere are no npcs to manage!"));
                         return true;
                     }
-                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', """
+                    player.sendMessage(Utils.style("""
                             &2&m                           &r&3&l Manage NPCs  &r&2&m                           \s
                             &r                                 \n
                                                         
@@ -123,14 +121,14 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                                 stands.getAndIncrement();
                             }
                         });
-                        player.sendMessage((stands.get() == 1) ? ChatColor.GREEN + "Successfully removed " + stands.get() + " npc hologram." : ChatColor.GREEN + "Successfully removed " + stands.get() + " npc holograms.");
+                        player.sendMessage((stands.get() == 1) ? Utils.style("&aSuccessfully removed 1 npc hologram.") : Utils.style("&aSuccessfully removed " + stands.get() + " npc holograms."));
                     } else {
-                        player.sendMessage(RED + "You lack the propper permissions to remove npc holograms.");
+                        player.sendMessage(Utils.style("&cYou lack the propper permissions to remove npc holograms."));
                         return true;
                     }
                 } else if (args[0].equalsIgnoreCase("create")) {
                     if (!player.hasPermission("customnpcs.create")) {
-                        player.sendMessage(RED + "You lack the propper permissions to create npcs.");
+                        player.sendMessage(Utils.style("&cYou lack the propper permissions to create npcs."));
                         return true;
                     }
                     UUID uuid = UUID.randomUUID();
@@ -141,10 +139,10 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     mc.getMainMenu().open(player);
                 } else if (args[0].equalsIgnoreCase("reload")) {
                     if (!player.hasPermission("customnpcs.commands.reload")) {
-                        player.sendMessage(RED + "You lack the propper permissions to reload npcs.");
+                        player.sendMessage(Utils.style("&cYou lack the propper permissions to reload npcs."));
                         return true;
                     }
-                    player.sendMessage(ChatColor.YELLOW + "Reloading NPCs!");
+                    player.sendMessage(Utils.style("&eReloading NPCs!"));
                     plugin.reloadConfig();
                     try {
                         Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
@@ -159,7 +157,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     plugin.holograms.clear();
                     plugin.onDisable();
                     plugin.onEnable();
-                    player.sendMessage(ChatColor.GREEN + "NPCs successfully reloaded.");
+                    player.sendMessage(Utils.style("&aNPCs successfully reloaded."));
                 } else if (args[0].equalsIgnoreCase("wiki") || args[0].equalsIgnoreCase("docs")) {
                     player.sendMessage(
                             Component.text("Click ", NamedTextColor.YELLOW)
@@ -174,35 +172,35 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         try {
                             Sound.valueOf(args[1]);
                         } catch (IllegalArgumentException ex) {
-                            player.sendMessage(RED + "Unrecognised sound, please use tab completions.");
+                            player.sendMessage(Utils.style("&cUnrecognised sound, please use tab completions."));
                             return true;
                         }
                         Bukkit.getScheduler().runTask(plugin, () -> {
                             plugin.soundWaiting.remove(player);
                             List<String> argsCopy = plugin.editingActions.get(player).getArgsCopy();
                             Action action = plugin.editingActions.get(player);
-                            List<String> currentArgs = action.getArgs();
-                            currentArgs.clear();
-                            currentArgs.add(0, argsCopy.get(0));
-                            currentArgs.add(1, argsCopy.get(1));
-                            currentArgs.add(2, args[1]);
-                            player.sendMessage(ChatColor.GREEN + "Successfully set sound to be '" + ChatColor.RESET + args[1] + ChatColor.GREEN + "'");
+                            List<String> arg = action.getArgs();
+                            arg.clear();
+                            arg.add(0, argsCopy.get(0));
+                            arg.add(1, argsCopy.get(1));
+                            arg.add(2, args[1]);
+                            player.sendMessage(Utils.style("&aSuccessfully set sound to be '&r") + args[1] + Utils.style("&a'"));
                             plugin.menuCores.get(player).getActionCustomizerMenu(action).open(player);
                         });
                     } else {
-                        player.sendMessage(ChatColor.RED + "Unccessfully set NPC sound. I wasn't waiting for a response. Please contact Foxikle if you think this is a mistake.");
+                        player.sendMessage(Utils.style("&cUnccessfully set NPC sound. I wasn't waiting for a response. Please contact Foxikle if you think this is a mistake."));
                     }
                 } else {
                     UUID uuid;
                     try {
                         uuid = UUID.fromString(args[1]);
                     } catch (IllegalArgumentException ignored) {
-                        player.sendMessage(RED + "Invalid UUID provided.");
+                        player.sendMessage(Utils.style("&cInvalid UUID provided."));
                         return false;
                     }
                     if (args[0].equalsIgnoreCase("delete")) {
                         if (!player.hasPermission("customnpcs.delete")) {
-                            player.sendMessage(RED + "You lack the propper permissions to delete npcs.");
+                            player.sendMessage(Utils.style("&cYou lack the propper permissions to delete npcs."));
                             return true;
                         }
                         if (plugin.npcs.keySet().contains(uuid)) {
@@ -210,14 +208,13 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             npc.remove();
                             npc.delete();
                             plugin.npcs.remove(npc.getUniqueID());
-                            player.sendMessage(ChatColor.GREEN + "Successfully deleted the NPC: " + npc.getSettings().getName());
-
+                            player.sendMessage(Utils.style("&aSuccessfully deleted the NPC: ") + npc.getSettings().getName());
                         } else {
-                            player.sendMessage(RED + "The UUID provided does not match any NPC.");
+                            player.sendMessage(Utils.style("&cThe UUID provided does not match any NPC."));
                         }
                     } else if (args[0].equalsIgnoreCase("edit")) {
                         if (!player.hasPermission("customnpcs.edit")) {
-                            player.sendMessage(RED + "You lack the propper permissions to edit npcs.");
+                            player.sendMessage(Utils.style("&cYou lack the propper permissions to edit npcs."));
                             return true;
                         }
                         if (plugin.npcs.containsKey(uuid)) {
@@ -229,12 +226,8 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                                 plugin.pages.put(player, 0);
                                 mc.getMainMenu().open(player);
                             }, 1);
-                        } else {
-                            player.sendMessage(RED + "The UUID provided does not match any NPC.");
-                        }
-                    } else {
-                        sender.sendMessage(RED + "Unrecognised sub-command. Use '/npc help' for a list of supported commands.");
-                    }
+                        } else player.sendMessage(Utils.style("&cThe UUID provided does not match any NPC."));
+                    } else sender.sendMessage(Utils.style("&cUnrecognised sub-command. Use '/npc help' for a list of supported commands."));
                 }
             }
         } else if (args[0].equalsIgnoreCase("reload")) {
@@ -245,7 +238,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 }
             }
 
-            if (!silent) sender.sendMessage(ChatColor.YELLOW + "Reloading NPCs!");
+            if (!silent) sender.sendMessage(Utils.style("&eReloading NPCs!"));
             try {
                 Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
             } catch (IllegalArgumentException ignored) {
@@ -259,8 +252,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             plugin.npcs.clear();
             plugin.holograms.clear();
             plugin.onEnable();
-            if (!silent) sender.sendMessage(ChatColor.GREEN + "NPCs successfully reloaded.");
-
+            if (!silent) sender.sendMessage(Utils.style("&aNPCs successfully reloaded."));
         }
         return false;
     }
