@@ -266,20 +266,16 @@ public class MenuCore {
         cancelButton.setItemMeta(cancelMeta);
         menu.setItem(13, ItemBuilder.of(plugin.getMenuUtils().getSkinIcon(new NamespacedKey(plugin, "nothing_lol_this_should_be_changed_tbh"), "", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSettings().getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9").getItemStack()).buildItem((player, event) -> {
             getSkinMenu().open(player);
-
         }));
         menu.setItem(16, ItemBuilder.of(nametag).buildItem((player, event) -> {
-
             plugin.nameWaiting.add(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             player.sendMessage("§aType the NPC name the chat.");
             new NameRunnable(player, plugin).runTaskTimer(plugin, 1, 15);
             player.closeInventory();
             event.setCancelled(true);
-
         }));
         menu.setItem(10, ItemBuilder.of(directionItem).buildItem((player, event) -> {
-
             if (event.isLeftClick()) {
                 switch ((int) dir) {
                     case 180 -> npc.getSettings().setDirection(-135.0);
@@ -307,57 +303,44 @@ public class MenuCore {
             }
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             getMainMenu().open(player);
-
         }));
         menu.setItem(22, ItemBuilder.of(resilientItem).buildItem((player, event) -> {
-
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
             player.sendMessage("§bThe NPC is now " + (npc.getSettings().isResilient() ? "§c§lNOT RESILIENT" : "§a§lRESILIENT"));
             npc.getSettings().setResilient(!npc.getSettings().isResilient());
             getMainMenu().open(player);
-
         }));
         menu.setItem(25, ItemBuilder.of(interactableButton).buildItem((player, event) -> {
-
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
             player.sendMessage("§bThe NPC is now " + (npc.getSettings().isInteractable() ? "§c§lNOT INTERACTABLE" : "§a§lINTERACTABLE"));
             npc.getSettings().setInteractable(!npc.getSettings().isInteractable());
             getMainMenu().open(player);
-
         }));
         menu.setItem(31, ItemBuilder.of(confirmButton).buildItem((player, event) -> {
-
             Bukkit.getScheduler().runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1), 1);
             Bukkit.getScheduler().runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1), 3);
             Bukkit.getScheduler().runTaskLater(plugin, npc::createNPC, 1);
             player.sendMessage(npc.getSettings().isResilient() ? "§aReslilient NPC created!" : "§aTemporary NPC created!");
             player.closeInventory();
             event.setCancelled(true);
-
         }));
         menu.setItem(36, ItemBuilder.of(cancelButton).buildItem((player, event) -> {
-
             player.playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
             player.sendMessage("§cNPC aborted.");
             player.closeInventory();
             event.setCancelled(true);
-
         }));
         menu.setItem(28, ItemBuilder.of(SPYGLASS).setName("§bToggle Vision Mode").setLore(npc.getSettings().isTunnelvision() ? "§a§lTUNNEL Visioned" : "§c§lNORMAL Visioned").buildItem((player, event) -> {
-
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             npc.getSettings().setTunnelvision(!npc.getSettings().isTunnelvision());
             getMainMenu().open(player);
-
         }));
         menu.setItem(19, ItemBuilder.of(equipment).buildItem((player, event) -> {
-
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
             getEquipmentMenu().open(player);
-
         }));
         menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
@@ -392,13 +375,11 @@ public class MenuCore {
             item.setItemMeta(meta);
             menu.setItem(13, ItemBuilder.of(item).buildItem((player, event) -> {
                 if (event.getCursor().getType() == AIR)
-
                     npc.getEquipment().setHead(event.getCursor().clone());
                 event.getCursor().setAmount(0);
                 player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                 player.sendMessage("§aSuccessfully set helmet slot to " + npc.getEquipment().getHead().getType());
                 getEquipmentMenu().open(player);
-
             }));
         } else {
             ItemMeta meta = helm.getItemMeta();
@@ -412,7 +393,6 @@ public class MenuCore {
             meta.lore(lore);
             helm.setItemMeta(meta);
             menu.setItem(13, ItemBuilder.of(helm).buildItem((player, event) -> {
-
                 if (event.isRightClick()) {
                     npc.getEquipment().setHead(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -425,7 +405,6 @@ public class MenuCore {
                     player.sendMessage("§aSuccessfully set helmet slot to " + npc.getEquipment().getHead().getType());
                     getEquipmentMenu().open(player);
                 }
-
             }));
         }
         if (cp.getType().isAir()) {
@@ -450,7 +429,6 @@ public class MenuCore {
                     player.sendMessage("§cThat is not a chestplate!");
                 }
                 getEquipmentMenu().open(player);
-
             }));
         } else {
             ItemMeta meta = cp.getItemMeta();
@@ -464,7 +442,6 @@ public class MenuCore {
             meta.lore(lore);
             cp.setItemMeta(meta);
             menu.setItem(22, ItemBuilder.of(cp).buildItem((player, event) -> {
-
                 if (event.isRightClick()) {
                     npc.getEquipment().setChest(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -481,7 +458,6 @@ public class MenuCore {
                 event.setCancelled(true);
                 player.sendMessage("§cThat is not a chestplate!");
                 getEquipmentMenu().open(player);
-
             }));
         }
         if (legs.getType().isAir()) {
@@ -497,19 +473,16 @@ public class MenuCore {
             meta.lore(lore);
             item.setItemMeta(meta);
             menu.setItem(31, ItemBuilder.of(item).buildItem((player, event) -> {
-
                 if (event.getCursor().getType().name().contains("LEGGINGS")) {
                     npc.getEquipment().setLegs(event.getCursor().clone());
                     event.getCursor().setAmount(0);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                     player.sendMessage("§aSuccessfully set leggings slot to " + npc.getEquipment().getLegs().getType());
-
                 } else {
                     if (event.getCursor().getType() == AIR) event.setCancelled(true);
                     player.sendMessage("§cThat is not a pair of leggings!");
                 }
                 getEquipmentMenu().open(player);
-
             }));
         } else {
             ItemMeta meta = legs.getItemMeta();
@@ -524,7 +497,6 @@ public class MenuCore {
             meta.lore(lore);
             legs.setItemMeta(meta);
             menu.setItem(31, ItemBuilder.of(legs).buildItem((player, event) -> {
-
                 if (event.isRightClick()) {
                     npc.getEquipment().setLegs(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -540,7 +512,6 @@ public class MenuCore {
                     if (event.getCursor().getType() == AIR) event.setCancelled(true);
                     player.sendMessage("§cThat is not a pair of leggings!");
                 }
-
             }));
         }
         if (boots.getType().isAir()) {
@@ -555,7 +526,6 @@ public class MenuCore {
             meta.lore(lore);
             item.setItemMeta(meta);
             menu.setItem(40, ItemBuilder.of(item).buildItem((player, event) -> {
-
                 if (event.getCursor().getType().name().contains("BOOTS")) {
                     npc.getEquipment().setBoots(event.getCursor().clone());
                     event.getCursor().setAmount(0);
@@ -566,7 +536,6 @@ public class MenuCore {
                     player.sendMessage("§cThat is not a pair of boots!");
                 }
                 getEquipmentMenu().open(player);
-
             }));
         } else {
             ItemMeta meta = boots.getItemMeta();
@@ -581,7 +550,6 @@ public class MenuCore {
             meta.lore(lore);
             boots.setItemMeta(meta);
             menu.setItem(40, ItemBuilder.of(boots).buildItem((player, event) -> {
-
                 if (event.isRightClick()) {
                     npc.getEquipment().setBoots(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -593,12 +561,10 @@ public class MenuCore {
                     player.sendMessage("§aSuccessfully set boots slot to " + npc.getEquipment().getBoots().getType());
                 } else {
                     if (event.getCursor().getType() == AIR)
-
                         event.setCancelled(true);
                     player.sendMessage("§cThat is not a pair of boots!");
                 }
                 getEquipmentMenu().open(player);
-
             }));
         }
         if (hand.getType().isAir()) {
@@ -613,13 +579,11 @@ public class MenuCore {
             meta.lore(lore);
             item.setItemMeta(meta);
             menu.setItem(23, ItemBuilder.of(item).buildItem((player, event) -> {
-
                 if (event.getCursor().getType() == AIR) npc.getEquipment().setHand(event.getCursor().clone());
                 event.getCursor().setAmount(0);
                 player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                 player.sendMessage("§aSuccessfully set hand slot to " + npc.getEquipment().getHand().getType());
                 getEquipmentMenu().open(player);
-
             }));
         } else {
             ItemMeta meta = hand.getItemMeta();
@@ -633,7 +597,6 @@ public class MenuCore {
             meta.lore(lore);
             hand.setItemMeta(meta);
             menu.setItem(23, ItemBuilder.of(hand).buildItem((player, event) -> {
-
                 if (event.isRightClick()) {
                     npc.getEquipment().setHand(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -646,7 +609,6 @@ public class MenuCore {
                     player.sendMessage("§aSuccessfully set offhand slot to " + npc.getEquipment().getHand().getType());
                     getEquipmentMenu().open(player);
                 }
-
             }));
         }
         if (offhand.getType().isAir()) {
@@ -661,13 +623,11 @@ public class MenuCore {
             meta.lore(lore);
             item.setItemMeta(meta);
             menu.setItem(21, ItemBuilder.of(item).buildItem((player, event) -> {
-
                 if (event.getCursor().getType() == AIR) npc.getEquipment().setOffhand(event.getCursor().clone());
                 event.getCursor().setAmount(0);
                 player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
                 player.sendMessage("§aSuccessfully set offhand slot to " + npc.getEquipment().getOffhand().getType());
                 getEquipmentMenu().open(player);
-
             }));
         } else {
             ItemMeta meta = offhand.getItemMeta();
@@ -682,7 +642,6 @@ public class MenuCore {
             offhand.setItemMeta(meta);
 
             menu.setItem(21, ItemBuilder.of(offhand).buildItem((player, event) -> {
-
                 if (event.isRightClick()) {
                     npc.getEquipment().setOffhand(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -695,7 +654,6 @@ public class MenuCore {
                     player.sendMessage("§aSuccessfully set offhand slot to " + npc.getEquipment().getOffhand().getType());
                     getEquipmentMenu().open(player);
                 }
-
             }));
         }
 
@@ -706,7 +664,6 @@ public class MenuCore {
                     npc.getEquipment().importFromEntityEquipment(player.getEquipment());
                     getEquipmentMenu().open(player);
                 }));
-
         menu.setItem(49, ItemBuilder.of(BARRIER).setName("§cClose").buildItem((player, event) -> {
             getMainMenu().open(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -1062,12 +1019,10 @@ public class MenuCore {
         switch (action.getActionType()) {
             case RUN_COMMAND ->
                     menu.setItem(22, ItemBuilder.of(ANVIL).setName("§eClick to Edit Command").setLore("§e" + String.join(" ", args), "§eClick to change!").buildItem((player, event) -> {
-
                         player.closeInventory();
                         plugin.commandWaiting.add(player);
                         new CommandRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                         event.setCancelled(true);
-
                     }));
             case DISPLAY_TITLE -> {
                 // Increments
