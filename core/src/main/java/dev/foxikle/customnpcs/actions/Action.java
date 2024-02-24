@@ -52,7 +52,7 @@ public class Action {
      * @return A copy of the list of arguments for the actions
      */
     public List<String> getArgsCopy() {
-        return List.copyOf(args);
+        return new ArrayList<>(args);
     }
 
     /**

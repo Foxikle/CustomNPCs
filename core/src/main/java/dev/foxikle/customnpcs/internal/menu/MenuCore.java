@@ -249,7 +249,6 @@ public class MenuCore {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 event.setCancelled(true);
                 getActionMenu().open(player);
-
             }));
         } else {
             interactableButton = new ItemStack(Material.DEAD_BUSH);
@@ -704,9 +703,9 @@ public class MenuCore {
                 .setName("§bImport Player Armor")
                 .setLore("§eImports your current armor to the NPC")
                 .buildItem((player, event) -> {
-            npc.getEquipment().importFromEntityEquipment(player.getEquipment());
-            getEquipmentMenu().open(player);
-        }));
+                    npc.getEquipment().importFromEntityEquipment(player.getEquipment());
+                    getEquipmentMenu().open(player);
+                }));
 
         menu.setItem(49, ItemBuilder.of(BARRIER).setName("§cClose").buildItem((player, event) -> {
             getMainMenu().open(player);
@@ -717,124 +716,155 @@ public class MenuCore {
 
     /**
      * <p>Gets the menu displaying all curent actions
-     * </p>
      *
      * @return The Inventory representing the Actions menu
      */
     public Menu getActionMenu() {
-        Menu menu = Menu.builder().rows(6).title("          Edit NPC Actions").addAllModifiers().normal();
-        menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
-        List<Action> actions = npc.getActions();
+        final String DELAY = Utils.style("&eDelay (ticks): &b%d");
+        final String REMOVE = Utils.style("&cRight click to remove");
+        final String EDIT = Utils.style("&eClick to edit!");
 
-        for (Action action : actions) {
-            ItemStack item = new ItemStack(Material.BEDROCK);
-            ItemMeta meta = item.getItemMeta();
-            List<Component> lore = new ArrayList<>();
+        Menu menu = Menu.builder().title("          Edit NPC Actions").rows(6).addAllModifiers().normal();
+        menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
+        ItemBuilder builder;
+        List<String> lore;
+        for (Action action : npc.getActions()) {
             List<String> args = action.getArgsCopy();
-            if (action.getActionType() != ActionType.TOGGLE_FOLLOWING)
-                lore.add(Component.text("Delay (ticks): " + action.getDelay()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-            lore.add(Component.empty());
             switch (action.getActionType()) {
                 case DISPLAY_TITLE -> {
-                    item.setType(Material.OAK_SIGN);
                     int fIn = Integer.parseInt(args.get(0));
                     int stay = Integer.parseInt(args.get(1));
-                    int fOut = Integer.parseInt(args.get(1));
+                    int fOut = Integer.parseInt(args.get(2));
                     args.remove(0);
                     args.remove(0);
                     args.remove(0);
-                    meta.displayName(Component.text("Display Title").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.AQUA));
-                    lore.add(Component.text("The current title is: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(String.join(" ", args))).append(Component.text("'", NamedTextColor.YELLOW)));
-                    lore.add(Component.text("Fade in: " + fIn).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.AQUA));
-                    lore.add(Component.text("Stay: " + stay).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.AQUA));
-                    lore.add(Component.text("Fade out: " + fOut).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.AQUA));
+                    builder = ItemBuilder.of(OAK_SIGN).setName(Utils.style("&bDisplay Title"));
+                    lore = Utils.list(
+                            "",
+                            Utils.style("&eThe current title is: '&r" + String.join(" ", args) + "&e'"),
+                            Utils.style("&eFade in: &b" + fIn),
+                            Utils.style("&eStay: &b" + stay),
+                            Utils.style("&eFade out: &b" + fOut),
+                            ""
+                    );
                 }
                 case SEND_MESSAGE -> {
-                    item.setType(Material.PAPER);
-                    meta.displayName(Component.text("Send Message", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("The current message is: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(String.join(" ", args))).append(Component.text("'", NamedTextColor.YELLOW)));
+                    builder = ItemBuilder.of(PAPER).setName(Utils.style("&bSend Message"));
+                    lore = Utils.list(
+                            "",
+                            Utils.style("&eThe current message is: '&r" + String.join(" ", args) + "&e'"),
+                            ""
+                    );
                 }
                 case PLAY_SOUND -> {
-                    item.setType(Material.BELL);
-                    meta.displayName(Component.text("Play Sound", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     double pitch = Double.parseDouble(args.get(0));
+                    double volume = Double.parseDouble(args.get(1));
                     args.remove(0);
-                    double volume = Double.parseDouble(args.get(0));
                     args.remove(0);
-                    lore.add(Component.text("The current sound is: '" + String.join(" ", args) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Pitch: " + DECIMAL_FORMAT.format(pitch), NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Volume: " + DECIMAL_FORMAT.format(volume), NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    builder = ItemBuilder.of(BELL).setName(Utils.style("&bPlay Sound"));
+                    lore = Utils.list(
+                            "",
+                            Utils.style("&eThe current sound is: '&b" + String.join(" ", args) + "&e'"),
+                            Utils.style("&ePitch: &b" + DECIMAL_FORMAT.format(pitch)),
+                            Utils.style("&eVolume: &b" + DECIMAL_FORMAT.format(volume)),
+                            ""
+                    );
                 }
                 case RUN_COMMAND -> {
-                    item.setType(Material.ANVIL);
-                    meta.displayName(Component.text("Run Command", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("The command is: '" + String.join(" ", args) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    builder = ItemBuilder.of(ANVIL).setName(Utils.style("&bRun Command"));
+                    lore = Utils.list(
+                            "",
+                            Utils.style("&eThe command is: '&r/" + String.join(" ", args) + "&e'"),
+                            ""
+                    );
                 }
                 case ACTION_BAR -> {
-                    item.setType(Material.IRON_INGOT);
-                    meta.displayName(Component.text("Send Actionbar", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("The current actionbar is: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(plugin.getMiniMessage().deserialize(String.join(" ", args))).append(Component.text("'", NamedTextColor.YELLOW)));
+                    builder = ItemBuilder.of(ANVIL).setName(Utils.style("&bSend Actionbar"));
+                    lore = Utils.list(
+                            "",
+                            Utils.style("&eThe current actionbar is: '&r" + String.join(" ", args) + "&e'"),
+                            ""
+                    );
                 }
                 case TELEPORT -> {
-                    item.setType(Material.ENDER_PEARL);
                     int x = Integer.parseInt(args.get(0));
                     int y = Integer.parseInt(args.get(1));
                     int z = Integer.parseInt(args.get(2));
                     int pitch = Integer.parseInt(args.get(3));
                     int yaw = Integer.parseInt(args.get(4));
-                    meta.displayName(Component.text("Teleport Player", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("The current Teleport location is:", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("X: " + x, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Y: " + z, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Z: " + y, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Pitch: " + pitch, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Yaw: " + yaw, NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    builder = ItemBuilder.of(ANVIL).setName(Utils.style("&bTeleport Player"));
+                    lore = Utils.list(
+                            "",
+                            Utils.style("&eX: &b" + x),
+                            Utils.style("&eY: &b" + y),
+                            Utils.style("&eZ: &b" + z),
+                            Utils.style("&ePitch: &b" + pitch),
+                            Utils.style("&eYaw: &b" + yaw),
+                            ""
+                    );
                 }
                 case GIVE_EXP -> {
-                    item.setType(Material.EXPERIENCE_BOTTLE);
-                    meta.displayName(Component.text("Give Experience", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("The current xp to give is: " + args.get(0) + " " + (args.get(1).equalsIgnoreCase("true") ? "levels" : "points"), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    builder = ItemBuilder.of(EXPERIENCE_BOTTLE).setName(Utils.style("&bGive Experience"));
+                    lore = Utils.list(
+                            "",
+                            Utils.style("&eThe current EXP to give is: " + args.get(0) + (args.get(1).equalsIgnoreCase("true") ? " levels" : " points")),
+                            ""
+                    );
                 }
                 case REMOVE_EXP -> {
-                    item.setType(Material.GLASS_BOTTLE);
-                    meta.displayName(Component.text("Remove Experience", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("The current xp to remove is: " + args.get(0) + " " + (args.get(1).equalsIgnoreCase("true") ? "levels" : "points"), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    builder = ItemBuilder.of(GLASS_BOTTLE).setName(Utils.style("&bRemove Experience"));
+                    lore = Utils.list(
+                            "",
+                            Utils.style("&eThe current EXP to take is: " + args.get(0) + (args.get(1).equalsIgnoreCase("true") ? " levels" : " points")),
+                            ""
+                    );
                 }
                 case ADD_EFFECT -> {
-                    item.setType(Material.BREWING_STAND);
-                    meta.displayName(Component.text("Give Effect", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Effect: '" + args.get(3) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Duration: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Amplifier: " + args.get(1), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Hide particles: " + args.get(2), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    builder = ItemBuilder.of(BREWING_STAND).setName(Utils.style("&bGive Effect"));
+                    lore = Utils.list(
+                            "",
+                            Utils.style("&eEffect: &b" + args.get(3)),
+                            Utils.style("&eDuration: &b" + args.get(0)),
+                            Utils.style("&eAmplifier: &b" + args.get(1)),
+                            Utils.style("&eHide Particles: &b" + args.get(2)),
+                            ""
+                    );
                 }
                 case REMOVE_EFFECT -> {
-                    item.setType(Material.MILK_BUCKET);
-                    meta.displayName(Component.text("Remove Experience", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Effect: '" + args.get(0) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    builder = ItemBuilder.of(MILK_BUCKET).setName(Utils.style("&bRemove Effect"));
+                    lore = Utils.list(
+                            "",
+                            Utils.style("&eEffect: &b" + args.get(0)),
+                            ""
+                    );
                 }
                 case SEND_TO_SERVER -> {
-                    item.setType(Material.GRASS_BLOCK);
-                    meta.displayName(Component.text("Send To Bungeecord/Velocity Server", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    lore.add(Component.text("Server: '" + String.join(" ", args) + "'", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    builder = ItemBuilder.of(GRASS_BLOCK).setName(Utils.style("&bSend To Bungeecord/Velocity Server"));
+                    lore = Utils.list(
+                            "",
+                            Utils.style("&bServer: '&b" + String.join(" ", args) + "&b'"),
+                            ""
+                    );
                 }
                 case TOGGLE_FOLLOWING -> {
-                    item.setType(Material.LEAD);
-                    meta.displayName(Component.text("[WIP]", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(" Start / Stop Following", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)));
+                    builder = ItemBuilder.of(LEAD).setName(Utils.style("&d&l[WIP]&r&e Toggle Following"));
+                    lore = Utils.list("");
+                }
+                default -> {
+                    builder = ItemBuilder.of(BEDROCK);
+                    lore = Utils.list("");
                 }
             }
-            lore.add(Component.empty());
-            lore.add(Component.text("Right Click to remove.", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            if (action.getActionType().isEditable())
-                lore.add(Component.text("Left Click to edit.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            meta.lore(lore);
-            item.setItemMeta(meta);
-            menu.addItem(ItemBuilder.of(item).buildItem((player, event) -> {
 
-                event.setCancelled(true);
+            lore.add(REMOVE);
+            if (action.getActionType().isEditable()) lore.add(EDIT);
+            if (action.getActionType().canDelay()) lore.set(0, String.format(DELAY, action.getDelay()));
+
+            menu.addItem(builder.setLore(lore).buildItem((player, event) -> {
                 if (event.isRightClick()) {
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     npc.removeAction(action);
+                    getActionMenu().open(player);
                 } else if (event.isLeftClick()) {
                     if (action.getActionType().isEditable()) {
                         plugin.editingActions.put(player, action.clone());
@@ -843,36 +873,26 @@ public class MenuCore {
                         getActionCustomizerMenu(action).open(player);
                     } else {
                         player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1F, 1F);
-                        player.sendMessage("§cThis action cannot be edited!");
+                        player.sendMessage(Utils.style("&cThis action cannot be edited!"));
                     }
                 }
-
             }));
         }
 
         // Close Button
-        ItemStack close = new ItemStack(Material.ARROW);
-        ItemMeta closeMeta = close.getItemMeta();
-        closeMeta.displayName(Component.text("GO BACK", NamedTextColor.RED, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        close.setItemMeta(closeMeta);
-        menu.setItem(45, ItemBuilder.of(close).buildItem((player, event) -> {
+        menu.setItem(45, ItemBuilder.of(ARROW)
+                .setName(Utils.style("&cGo Back"))
+                .buildItem((player, event) -> {
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    getMainMenu().open(player);
+                }));
 
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            getMainMenu().open(player);
-
-        }));
-
-        // Add New
-        ItemStack newAction = new ItemStack(Material.LILY_PAD);
-        ItemMeta actionMeta = newAction.getItemMeta();
-        actionMeta.displayName(Component.text("New Action", NamedTextColor.GREEN, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        newAction.setItemMeta(actionMeta);
-        menu.addItem(ItemBuilder.of(newAction).buildItem((player, event) -> {
-
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            getNewActionMenu().open(player);
-
-        }));
+        menu.addItem(ItemBuilder.of(LILY_PAD)
+                .setName(Utils.style("&aNew Action"))
+                .buildItem((player, event) -> {
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    getNewActionMenu().open(player);
+                }));
         return menu;
     }
 
@@ -1024,7 +1044,6 @@ public class MenuCore {
         menu.setItem(36, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((player, event) -> {
             getActionMenu().open(player);
             player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
-
         }));
         menu.setItem(44, ItemBuilder.of(COMPARATOR).setName("§cEdit Conditions").buildItem((player, event) -> {
             getConditionMenu(action).open(player);
@@ -1032,13 +1051,11 @@ public class MenuCore {
 
         }));
         menu.setItem(40, ItemBuilder.of(LILY_PAD).setName("§aConfirm").buildItem((player, event) -> {
-
             if (plugin.originalEditingActions.get(player) != null)
                 npc.removeAction(plugin.originalEditingActions.remove(player));
             npc.addAction(action);
             getActionMenu().open(player);
             player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
-
         }));
 
         List<String> args = action.getArgsCopy();
@@ -1063,7 +1080,6 @@ public class MenuCore {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
                 }));
 
                 menu.setItem(12, ItemBuilder.of(LIME_DYE).setName("§eIncrease display duration").setLore(incLore).buildItem((player, event) -> {
@@ -1742,20 +1758,13 @@ public class MenuCore {
         Menu menu = Menu.builder().rows(3).title("   Edit Action Conditional").addAllModifiers().normal();
 
         // Go back to actions menu
-        ItemStack goBack = new ItemStack(Material.ARROW);
-        ItemMeta goBackMeta = goBack.getItemMeta();
-        goBackMeta.displayName(Component.text("Go Back", NamedTextColor.GOLD));
-        goBack.setItemMeta(goBackMeta);
-        menu.setItem(18, ItemBuilder.of(goBack).buildItem((player, event) -> {
-            getNewConditionMenu().open(player);
+        menu.setItem(18, ItemBuilder.of(ARROW)
+                .setName(Utils.style("&6Go Back"))
+                .buildItem((player, event) -> getNewConditionMenu().open(player)));
 
-        }));
-
-        ItemStack confirm = new ItemStack(Material.LILY_PAD);
-        ItemMeta confirmMeta = confirm.getItemMeta();
-        confirmMeta.displayName(Component.text("Confirm", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        confirm.setItemMeta(confirmMeta);
-        menu.setItem(22, ItemBuilder.of(confirm).buildItem((player, event) -> {
+        menu.setItem(22, ItemBuilder.of(LILY_PAD)
+                .setName(Utils.style("&aConfirm"))
+                .buildItem((player, event) -> {
 
             Action action = plugin.editingActions.get(player);
             event.setCancelled(true);
@@ -1994,7 +2003,6 @@ public class MenuCore {
 
         menu.setItem(27, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((player, event) -> {
             getActionMenu().open(player);
-
         }));
 
         menu.addItem(ItemBuilder.of(OAK_SIGN).setName("§bDisplay Title").setLore("§eDisplays a title for the player.").buildItem((player, event) -> {
@@ -2284,33 +2292,26 @@ public class MenuCore {
         Menu menu = Menu.builder().title("     Edit NPC Skin").rows(3).addAllModifiers().normal();
 
         menu.setItem(18, ItemBuilder.of(ARROW).setName("§6Go Back").setLore("§eGo back to the main menu").buildItem((player, event) -> {
-
             player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
             getMainMenu().open(player);
-
         }));
 
         menu.setItem(11, ItemBuilder.of(ANVIL).setName("§bImport from Player").setLore("§eFetches a player's skin by name").buildItem((player, event) -> {
-
             player.closeInventory();
             plugin.playernameWating.add(player);
             new PlayerNameRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
             event.setCancelled(true);
-
         }));
 
         menu.setItem(13, ItemBuilder.of(ARMOR_STAND).setName("§bBrowse Skin Catalogue").setLore("§eUse a preset skin").buildItem((player, event) -> {
             plugin.skinCatalogue.open(player);
-
         }));
 
         menu.setItem(15, ItemBuilder.of(WRITABLE_BOOK).setName("§bImport from URL").setLore("§eFetches a skin from a URL").buildItem((player, event) -> {
-
             player.closeInventory();
             plugin.urlWaiting.add(player);
             new UrlRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
             event.setCancelled(true);
-
         }));
 
         menu.getFiller().fill(MenuItems.MENU_GLASS);
