@@ -18,7 +18,9 @@ import lombok.Getter;
 import me.flame.menus.menu.PaginatedMenu;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bstats.bukkit.Metrics;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.ServicePriority;
@@ -110,10 +112,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
     @Getter
     public FileManager fileManager;
-    /**
-     * The Map of the pages players are on. Keyed by player.
-     */
-    public Map<Player, Integer> pages = new HashMap<>();
     /**
      * The Map of NPCs keyed by their UUIDs
      */
@@ -305,28 +303,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public void addNPC(InternalNpc npc, TextDisplay hologram) {
         holograms.add(hologram);
         npcs.put(npc.getUniqueID(), npc);
-    }
-
-    /**
-     * <p> Gets the page the player is in.
-     * </p>
-     *
-     * @param p The player to get the page of
-     * @return the current page in the Skin browser the player is in
-     */
-    public int getPage(Player p) {
-        return pages.get(p);
-    }
-
-    /**
-     * <p> Sets the page the player is in. Does not actually set the player's open inventory.
-     * </p>
-     *
-     * @param p    The player to ser the page of
-     * @param page The page number to set.
-     */
-    public void setPage(Player p, int page) {
-        pages.put(p, page);
     }
 
     /**

@@ -22,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -160,7 +159,6 @@ public class MenuUtils {
             npc.getSettings().setSignature(texture[1]);
             npc.getSettings().setSkinName(name);
             player.sendMessage(Utils.style("&aSkin changed to &l" + name));
-            plugin.pages.put(player, 0);
             player.closeInventory();
             plugin.menuCores.get(player).getMainMenu().open(player);
         });

@@ -137,7 +137,6 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     InternalNpc npc = plugin.createNPC(player.getWorld(), player.getLocation(), new Equipment(), new Settings(), uuid, null, new ArrayList<>());
                     MenuCore mc = new MenuCore(npc, plugin);
                     plugin.menuCores.put(player, mc);
-                    plugin.pages.put(player, 0);
                     mc.getMainMenu().open(player);
                 } else if (args[0].equalsIgnoreCase("reload")) {
                     if (!player.hasPermission("customnpcs.commands.reload")) {
