@@ -42,6 +42,7 @@ public class Listeners implements Listener {
 
     /**
      * Player Movement Data that keeps track of old movements to replace PlayerMoveEvent
+     *
      * @since 1.6.0
      */
     private static final ConcurrentMap<UUID, MovementData> playerMovementData = new ConcurrentHashMap<>();
@@ -189,6 +190,7 @@ public class Listeners implements Listener {
 
     /**
      * The handler for text input
+     *
      * @param e The event callback
      * @since 1.0
      */
@@ -196,23 +198,41 @@ public class Listeners implements Listener {
     public void onChat(AsyncPlayerChatEvent e) {
         Player player = e.getPlayer();
         String message = e.getMessage();
+        boolean cancel = message.equalsIgnoreCase("quit") || message.equalsIgnoreCase("exit") || message.equalsIgnoreCase("stop") || message.equalsIgnoreCase("cancel");
         MenuCore core = plugin.menuCores.get(player);
         if (plugin.commandWaiting.contains(player)) {
-            plugin.commandWaiting.remove(player);
             Action action = plugin.editingActions.get(player);
+            if (cancel) {
+                plugin.commandWaiting.remove(player);
+                SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
+                e.setCancelled(true);
+                return;
+            }
+            plugin.commandWaiting.remove(player);
             List<String> currentArgs = action.getArgs();
             currentArgs.clear();
             currentArgs.addAll(Utils.list(PATTERN.split(message)));
             player.sendMessage(ChatColor.GREEN + "Successfully set command to be '" + ChatColor.RESET + Utils.style(message) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
             SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
         } else if (plugin.nameWaiting.contains(player)) {
+            if (cancel) {
+                plugin.nameWaiting.remove(player);
+                SCHEDULER.runTask(plugin, () -> core.getMainMenu().open(player));
+                e.setCancelled(true);
+                return;
+            }
             plugin.nameWaiting.remove(player);
             core.getNpc().getSettings().setName(plugin.getMiniMessage().deserialize(message));
             player.sendMessage(Component.text("Successfully set name to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(message)).append(Component.text("'", NamedTextColor.GREEN)));
             SCHEDULER.runTask(plugin, () -> core.getMainMenu().open(player));
         } else if (plugin.targetWaiting.contains(player)) {
-
             Conditional conditional = plugin.editingConditionals.get(player);
+            if (cancel) {
+                plugin.targetWaiting.remove(player);
+                SCHEDULER.runTask(plugin, () -> core.getConditionalCustomizerMenu(conditional).open(player));
+                e.setCancelled(true);
+                return;
+            }
             if (conditional.getType() == Conditional.Type.NUMERIC) {
                 try {
                     Double.parseDouble(message);
@@ -224,11 +244,17 @@ public class Listeners implements Listener {
             plugin.targetWaiting.remove(player);
             conditional.setTargetValue(message);
             player.sendMessage(Utils.style("&aSuccessfully set target to be '&r" + message + "&a'"));
-            SCHEDULER.runTask(plugin, () -> core.getConditionalCustomizerMenu(plugin.editingConditionals.get(player)).open(player));
+            SCHEDULER.runTask(plugin, () -> core.getConditionalCustomizerMenu(conditional).open(player));
         } else if (plugin.titleWaiting.contains(player)) {
+            Action action = plugin.editingActions.get(player);
+            if (cancel) {
+                plugin.titleWaiting.remove(player);
+                SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
+                e.setCancelled(true);
+                return;
+            }
             plugin.titleWaiting.remove(player);
             List<String> args = plugin.editingActions.get(player).getArgsCopy();
-            Action action = plugin.editingActions.get(player);
             List<String> currentArgs = action.getArgs();
             currentArgs.clear();
             currentArgs.add(0, args.get(0));
@@ -238,32 +264,50 @@ public class Listeners implements Listener {
             player.sendMessage(Component.text("Successfully set title to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(message)).append(Component.text("'", NamedTextColor.GREEN)));
             SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
         } else if (plugin.messageWaiting.contains(player)) {
-            plugin.messageWaiting.remove(player);
             Action action = plugin.editingActions.get(player);
+            if (cancel) {
+                plugin.messageWaiting.remove(player);
+                SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
+                e.setCancelled(true);
+                return;
+            }
+            plugin.messageWaiting.remove(player);
             List<String> currentArgs = action.getArgs();
             currentArgs.clear();
             currentArgs.addAll(List.of(PATTERN.split(message)));
             player.sendMessage(Component.text("Successfully set message to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(message)).append(Component.text("'", NamedTextColor.GREEN)));
             SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
         } else if (plugin.serverWaiting.contains(player)) {
-            plugin.serverWaiting.remove(player);
             Action action = plugin.editingActions.get(player);
+            if (cancel) {
+                plugin.serverWaiting.remove(player);
+                SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
+                e.setCancelled(true);
+                return;
+            }
+            plugin.serverWaiting.remove(player);
             List<String> currentArgs = action.getArgs();
             currentArgs.clear();
             currentArgs.addAll(List.of(PATTERN.split(message)));
             player.sendMessage(String.format(Utils.style("&aSuccessfully set server to be '&r%s&r&a'"), message));
             SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
         } else if (plugin.actionbarWaiting.contains(player)) {
-            plugin.actionbarWaiting.remove(player);
             Action action = plugin.editingActions.get(player);
+            if (cancel) {
+                plugin.actionbarWaiting.remove(player);
+                SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
+                e.setCancelled(true);
+                return;
+            }
+            plugin.actionbarWaiting.remove(player);
             List<String> currentArgs = action.getArgs();
             currentArgs.clear();
             currentArgs.addAll(List.of(PATTERN.split(message)));
             player.sendMessage(Component.text("Successfully set actionbar to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(message)).append(Component.text("'", NamedTextColor.GREEN)));
             SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
         } else if (plugin.playernameWating.contains(player)) {
-            if(message.equalsIgnoreCase("quit") || message.equalsIgnoreCase("exit")|| message.equalsIgnoreCase("stop")|| message.equalsIgnoreCase("cancel")) {
-                plugin.urlWaiting.remove(player);
+            if (cancel) {
+                plugin.playernameWating.remove(player);
                 SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
                 e.setCancelled(true);
                 return;
@@ -293,7 +337,7 @@ public class Listeners implements Listener {
             player.sendMessage(ChatColor.GREEN + "Successfully set NPC's skin to " + name + "'s skin!");
             SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
         } else if (plugin.urlWaiting.contains(player)) {
-            if(message.equalsIgnoreCase("quit") || message.equalsIgnoreCase("exit")|| message.equalsIgnoreCase("stop")|| message.equalsIgnoreCase("cancel")) {
+            if (cancel) {
                 plugin.urlWaiting.remove(player);
                 SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
                 e.setCancelled(true);
@@ -304,7 +348,7 @@ public class Listeners implements Listener {
             try {
                 URL url = new URL(message);
                 plugin.MINESKIN_CLIENT.generateUrl(url.toString()).whenComplete((skin, throwable) -> {
-                    if(throwable != null) {
+                    if (throwable != null) {
                         player.sendMessage(ChatColor.RED + "An error occured whilst parsing this skin.");
                         return;
                     }
@@ -317,6 +361,12 @@ public class Listeners implements Listener {
                 player.sendMessage(ChatColor.RED + "An error occured whilst parsing NPC skin. Is this URL valid?");
             }
         } else if (plugin.hologramWaiting.contains(player)) {
+            if (cancel) {
+                plugin.titleWaiting.remove(player);
+                SCHEDULER.runTask(plugin, () -> core.getExtraSettingsMenu().open(player));
+                e.setCancelled(true);
+                return;
+            }
             plugin.hologramWaiting.remove(player);
             e.setCancelled(true);
             player.sendMessage(
@@ -327,7 +377,6 @@ public class Listeners implements Listener {
             core.getNpc().getSettings().setCustomInteractableHologram(message);
             SCHEDULER.runTask(plugin, () -> core.getExtraSettingsMenu().open(player));
         } else return;
-
         e.setCancelled(true);
     }
 
@@ -355,18 +404,6 @@ public class Listeners implements Listener {
      * @param e The event callback
      * @since 1.3-pre4
      */
-     
-     /*
-    @EventHandler
-    public void onEntityMove(EntityMoveEvent e) {
-        final Entity et = e.getEntity();
-        List<Player> players = new ArrayList<>();
-		et.getPassengers().forEach(entity1 -> {
-			if(entity1 instanceof Player player) players.add(player);
-		});
-        executorService.submit(() -> players.forEach(this::actionPlayerMovement));
-    }
-    */
 
     /**
      * <p>The npc injection handler on velocity
