@@ -247,14 +247,15 @@ public class FileManager {
         } else if (yml.getString("version").equalsIgnoreCase("1.5")) {
             plugin.getLogger().warning("Old NPC file version found! Bumping version! (1.5 -> 1.6)");
             yml.set("version", "1.6");
-            yml.set("customHologram", false);
-            yml.set("hideInteractableHologram", "");
+            section.set("customHologram", false);
+            section.set("hideInteractableHologram", "");
             try {
                 yml.save(file);
             } catch (IOException e) {
                 plugin.getLogger().severe("An error occoured whilst saving the tunelvision status to the config. Pleaes report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
             }
         }
+
         if (section.getConfigurationSection("actions") == null) { // meaning it does not exist
             if (section.getString("command") != null) { // if there is a legacy command
                 Bukkit.getLogger().info("Converting legacy commands to Actions.");
@@ -297,7 +298,28 @@ public class FileManager {
             }
         }
 
-        InternalNpc npc = plugin.createNPC(Bukkit.getWorld(section.getString("world")), section.getLocation("location"), new Equipment(section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getItemStack("handItem"), section.getItemStack("offhandItem")), new Settings(section.getBoolean("clickable"), section.getBoolean("tunnelvision"), true, section.getDouble("direction"), section.getString("value"), section.getString("signature"), section.getString("skin"), section.getString("name")), uuid, null, actions);
+        InternalNpc npc = plugin.createNPC(
+                Bukkit.getWorld(section.getString("world")),
+                section.getLocation("location"),
+                new Equipment(
+                        section.getItemStack("headItem"),
+                        section.getItemStack("chestItem"),
+                        section.getItemStack("legsItem"),
+                        section.getItemStack("feetItem"),
+                        section.getItemStack("handItem"),
+                        section.getItemStack("offhandItem")
+                ), new Settings(
+                        section.getBoolean("clickable"),
+                        section.getBoolean("tunnelvision"),
+                        true,
+                        section.getDouble("direction"),
+                        section.getString("value"),
+                        section.getString("signature"),
+                        section.getString("skin"),
+                        section.getString("name"),
+                        section.getString("customHologram"),
+                        section.getBoolean("hideInteractableHologram")
+                ), uuid,null, actions);
         npc.createNPC();
     }
 
