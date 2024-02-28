@@ -60,6 +60,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
         if (sender instanceof Player player) {
             if (args.length == 0) {
                 player.performCommand("npc help");
+                return true;
             } else if (args.length == 1) {
                 if (args[0].equalsIgnoreCase("help")) {
                     if (!player.hasPermission("customnpcs.commands.help")) {
@@ -191,12 +192,36 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         player.sendMessage(Utils.style("&cUnccessfully set NPC sound. I wasn't waiting for a response. Please contact Foxikle if you think this is a mistake."));
                     }
                 } else {
-                    UUID uuid;
+                    UUID uuid = null;
                     try {
                         uuid = UUID.fromString(args[1]);
                     } catch (IllegalArgumentException ignored) {
-                        player.sendMessage(Utils.style("&cInvalid UUID provided."));
-                        return false;
+                        List<String> mutArgs = Utils.list(args);
+                        mutArgs.remove(0);
+                        // check for names instead
+                        List<UUID> uuids = new ArrayList<>();
+                        plugin.npcs.forEach((id, npc) -> {
+                            if (plugin.getMiniMessage().stripTags(npc.getSettings().getName()).equalsIgnoreCase(String.join(" ", mutArgs))) {
+                                uuids.add(id);
+                            }
+                        });
+                        if (uuids.isEmpty()) {
+                            player.sendMessage(Utils.style("&cInvalid UUID or Name provided."));
+                            return false;
+                        } else if (uuids.size() > 1) {
+                            double value = Double.MAX_VALUE;
+                            for (UUID id : uuids) {
+                                double ds = plugin.getNPCByID(id).getCurrentLocation().distanceSquared(player.getLocation());
+                                if (ds < value) {
+                                    uuid = id;
+                                    value = ds;
+                                }
+                            }
+                        } else {
+                            uuid = uuids.get(0);
+                        }
+
+                        if (uuid == null) return true;
                     }
                     if (args[0].equalsIgnoreCase("delete")) {
                         if (!player.hasPermission("customnpcs.delete")) {
@@ -227,7 +252,8 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                                 mc.getMainMenu().open(player);
                             }, 1);
                         } else player.sendMessage(Utils.style("&cThe UUID provided does not match any NPC."));
-                    } else sender.sendMessage(Utils.style("&cUnrecognised sub-command. Use '/npc help' for a list of supported commands."));
+                    } else
+                        sender.sendMessage(Utils.style("&cUnrecognised sub-command. Use '/npc help' for a list of supported commands."));
                 }
             }
         } else if (args[0].equalsIgnoreCase("reload")) {
@@ -334,7 +360,10 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 }
                 return list;
             }
-            plugin.npcs.keySet().forEach(uuid -> list.add(uuid.toString()));
+            plugin.npcs.forEach((uuid, npc) -> {
+                list.add(uuid.toString());
+                list.add(plugin.getMiniMessage().stripTags(npc.getSettings().getName()));
+            });
         }
         return list;
     }
