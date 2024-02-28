@@ -186,19 +186,23 @@ public class MenuUtils {
         menu.setItem(11, ItemBuilder.of(Material.RED_STAINED_GLASS_PANE)
                 .setName(Utils.style("&c&lDELETE"))
                 .setLore("", Utils.style("&4&oThis action &lCANNOT&r&4&o be undone."))
-                .buildItem((player, event) -> {
+                .buildItem((player, event) -> Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> {
+                    CustomNPCs.getInstance().getLogger().warning(Thread.currentThread().getName());
                     npc.remove();
                     npc.delete();
                     CustomNPCs.getInstance().npcs.remove(npc.getUniqueID());
                     player.sendMessage(Utils.style("&aSuccessfully deleted the NPC: ") + npc.getSettings().getName());
                     player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(npc.getSettings().getName())
                             .append(Component.text(" was permanantly deleted.", NamedTextColor.RED)));
-                }));
+                    player.closeInventory();
+                    player.playSound(player, Sound.BLOCK_GLASS_BREAK,1, 1);
+                }, 1)));
 
         menu.setItem(15, ItemBuilder.of(Material.LIME_STAINED_GLASS_PANE)
                 .setName(Utils.style("&a&lGO BACK"))
                 .setLore(Utils.style("&aBack to saftey!"))
                 .buildItem((player, event) -> {
+                    player.playSound(player, Sound.UI_BUTTON_CLICK,1, 1);
                     if(toReturnTo != null) {
                         toReturnTo.open(player);
                         return;

@@ -358,6 +358,14 @@ public class MenuCore {
                     player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                     getExtraSettingsMenu().open(player);
                 }));
+        // not a new NPC
+        if(npc != null)
+            menu.setItem(0, ItemBuilder.of(LAVA_BUCKET)
+                .setName(Utils.style("&4Delete NPC"))
+                .buildItem((player, event) -> {
+                    player.playSound(player, Sound.UI_BUTTON_CLICK,1, 1);
+                    MenuUtils.getDeletionConfirmationMenu(plugin.getNPCByID(npc.getUniqueID()), menu).open(player);
+                }));
         menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
     }
