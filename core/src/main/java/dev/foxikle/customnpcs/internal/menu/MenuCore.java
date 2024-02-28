@@ -9,6 +9,7 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.runnables.*;
+import lombok.Getter;
 import me.flame.menus.builders.items.ItemBuilder;
 import me.flame.menus.menu.Menu;
 import net.kyori.adventure.text.Component;
@@ -25,6 +26,7 @@ import java.lang.reflect.Modifier;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 import static org.bukkit.Material.*;
 
@@ -33,8 +35,9 @@ import static org.bukkit.Material.*;
  */
 public class MenuCore {
 
-    private static final List<Field> fields = Arrays.stream(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
-    private final InternalNpc npc;
+    private static final List<Field> fields = Stream.of(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
+
+    @Getter private final InternalNpc npc;
     private final CustomNPCs plugin;
     private final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
 
@@ -349,6 +352,12 @@ public class MenuCore {
             event.setCancelled(true);
             getEquipmentMenu().open(player);
         }));
+        menu.setItem(8, ItemBuilder.of(COMPARATOR)
+                .setName(Utils.style("&dEdit Additional Settings"))
+                .buildItem((player, event) -> {
+                    player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+                    getExtraSettingsMenu().open(player);
+                }));
         menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
     }
@@ -822,7 +831,7 @@ public class MenuCore {
 
             lore.add(REMOVE);
             if (action.getActionType().isEditable()) lore.add(EDIT);
-            if (action.getActionType().canDelay()) lore.set(0, String.format(DELAY, action.getDelay()));
+            if (action.getActionType().isDelayable()) lore.set(0, String.format(DELAY, action.getDelay()));
 
             menu.addItem(builder.setLore(lore).buildItem((player, event) -> {
                 if (event.isRightClick()) {
@@ -1971,7 +1980,7 @@ public class MenuCore {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.DISPLAY_TITLE, Utils.list("10", "20", "10", "title!"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-            if (!action.getActionType().canDubplicate()) {
+            if (!action.getActionType().isDuplicatable()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
                     if (a.getActionType() == action.getActionType()) {
@@ -1991,7 +2000,7 @@ public class MenuCore {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.SEND_MESSAGE, Utils.list("message", "to", "be", "sent"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-            if (!action.getActionType().canDubplicate()) {
+            if (!action.getActionType().isDuplicatable()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
                     if (a.getActionType() == action.getActionType()) {
@@ -2011,7 +2020,7 @@ public class MenuCore {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.PLAY_SOUND, Utils.list("1", "1", Sound.UI_BUTTON_CLICK.name()), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-            if (!action.getActionType().canDubplicate()) {
+            if (!action.getActionType().isDuplicatable()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
                     if (a.getActionType() == action.getActionType()) {
@@ -2031,7 +2040,7 @@ public class MenuCore {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.RUN_COMMAND, Utils.list("command", "to", "be", "run"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-            if (!action.getActionType().canDubplicate()) {
+            if (!action.getActionType().isDuplicatable()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
                     if (a.getActionType() == action.getActionType()) {
@@ -2051,7 +2060,7 @@ public class MenuCore {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.ACTION_BAR, Utils.list("actionbar", "to", "be", "sent"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-            if (!action.getActionType().canDubplicate()) {
+            if (!action.getActionType().isDuplicatable()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
                     if (a.getActionType() == action.getActionType()) {
@@ -2071,7 +2080,7 @@ public class MenuCore {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.TELEPORT, Utils.list("0", "0", "0", "0", "0"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-            if (!action.getActionType().canDubplicate()) {
+            if (!action.getActionType().isDuplicatable()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
                     if (a.getActionType() == action.getActionType()) {
@@ -2091,7 +2100,7 @@ public class MenuCore {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.SEND_TO_SERVER, Utils.list("server", "name"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-            if (!action.getActionType().canDubplicate()) {
+            if (!action.getActionType().isDuplicatable()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
                     if (a.getActionType() == action.getActionType()) {
@@ -2111,7 +2120,7 @@ public class MenuCore {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.TOGGLE_FOLLOWING, Collections.singletonList(npc.getUniqueID().toString()), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-            if (!action.getActionType().canDubplicate()) {
+            if (!action.getActionType().isDuplicatable()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
                     if (a.getActionType() == action.getActionType()) {
@@ -2131,7 +2140,7 @@ public class MenuCore {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.GIVE_EXP, Utils.list("0", "true"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-            if (!action.getActionType().canDubplicate()) {
+            if (!action.getActionType().isDuplicatable()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
                     if (a.getActionType() == action.getActionType()) {
@@ -2151,7 +2160,7 @@ public class MenuCore {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.REMOVE_EXP, Utils.list("0", "true"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-            if (!action.getActionType().canDubplicate()) {
+            if (!action.getActionType().isDuplicatable()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
                     if (a.getActionType() == action.getActionType()) {
@@ -2171,7 +2180,7 @@ public class MenuCore {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.ADD_EFFECT, Utils.list("1", "1", "true", "SPEED"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-            if (!action.getActionType().canDubplicate()) {
+            if (!action.getActionType().isDuplicatable()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
                     if (a.getActionType() == action.getActionType()) {
@@ -2191,7 +2200,7 @@ public class MenuCore {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.REMOVE_EFFECT, Utils.list("SPEED"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
-            if (!action.getActionType().canDubplicate()) {
+            if (!action.getActionType().isDuplicatable()) {
                 AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 npc.getActions().forEach(a -> {
                     if (a.getActionType() == action.getActionType()) {
@@ -2250,6 +2259,10 @@ public class MenuCore {
         return menu;
     }
 
+    /**
+     * Gets the menu to set the NPC skins
+     * @return The menu to customize the NPC Skins
+     */
     public Menu getSkinMenu() {
         Menu menu = Menu.builder().title("     Edit NPC Skin").rows(3).addAllModifiers().normal();
 
@@ -2281,13 +2294,36 @@ public class MenuCore {
         return menu;
     }
 
-    /**
-     * <p> Gets the NPC object associated with the Menus
-     * </p>
-     *
-     * @return The npc
-     */
-    public InternalNpc getNpc() {
-        return this.npc;
+    public Menu getExtraSettingsMenu() {
+        Menu menu = Menu.builder().title("Extra NPC Settings").rows(3).addAllModifiers().normal();
+        boolean hideClickableTag = npc.getSettings().isHideClickableHologram();
+        menu.setItem(12, ItemBuilder.of((hideClickableTag ? RED_CANDLE : GREEN_CANDLE))
+                .setName(Utils.style("&bToggle Hologram Visibility"))
+                .setLore("", Utils.style("&eThe Interactable Holograms is:"), Utils.style((hideClickableTag ? "&c&lHIDDEN" : "&a&lSHOWN")))
+                .buildItem((player, event) -> {
+                    player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+                    npc.getSettings().setHideClickableHologram(!hideClickableTag);
+                    getExtraSettingsMenu().open(player);
+                }));
+
+        menu.setItem(14, ItemBuilder.of(NAME_TAG)
+                .setName(Utils.style("&bChange NPC Clickable Hologram Text"))
+                .setLore("", Utils.style("&eThis changes only THIS NPC's"), Utils.style("&einteractable hologram."))
+                .buildItem((player, event) -> {
+                    plugin.hologramWaiting.add(player);
+                    player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+                    player.closeInventory();
+                    player.sendMessage(Utils.style("&aType the new hologram text in chat!"));
+                    new InteractableHologramRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
+                }));
+
+        menu.setItem(18, ItemBuilder.of(ARROW)
+                .setName(Utils.style("&6Go Back"))
+                .buildItem((player, inventoryClickEvent) -> {
+                    player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+                    getMainMenu().open(player);
+                }));
+        menu.getFiller().fill(MenuItems.MENU_GLASS);
+        return menu;
     }
 }
