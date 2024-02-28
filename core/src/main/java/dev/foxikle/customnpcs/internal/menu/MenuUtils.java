@@ -156,7 +156,7 @@ public class MenuUtils {
             npc.getSettings().setValue(texture[0]);
             npc.getSettings().setSignature(texture[1]);
             npc.getSettings().setSkinName(name);
-            player.sendMessage(ChatColor.GREEN + "Skin changed to " + ChatColor.BOLD + name);
+            player.sendMessage(Utils.style("&aSkin changed to &l" + name));
             plugin.pages.put(player, 0);
             player.closeInventory();
             plugin.menuCores.get(player).getMainMenu().open(player);
