@@ -92,8 +92,13 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
     public void createNPC() {
         Bukkit.getScheduler().runTask(plugin, () -> this.hologram = setupHologram(settings.getName()));
         Bukkit.getScheduler().runTask(plugin, () -> {
-            if(settings.isInteractable())
-                this.clickableHologram = setupClickableHologram(plugin.getConfig().getString("ClickText"));
+            if(settings.isInteractable() && !settings.isHideClickableHologram()) {
+                if(settings.getCustomInteractableHologram().isEmpty()) {
+                    this.clickableHologram = setupClickableHologram(plugin.getConfig().getString("ClickText"));
+                } else {
+                    this.clickableHologram = setupClickableHologram(settings.getCustomInteractableHologram());
+                }
+            }
         });
         if (plugin.npcs.containsKey(uuid)) {
             plugin.getNPCByID(uuid).remove();
@@ -110,7 +115,6 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.CHEST, equipment.getChest(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.LEGS, equipment.getLegs(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
-        super.getBukkitEntity().setCustomNameVisible(settings.isInteractable());
         super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(equipment.getHand());
         Bukkit.getScheduler().runTaskLater(plugin, () -> Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").addEntry(uuid.toString().substring(0, 16)), 1);
@@ -141,7 +145,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
      * @return the TextDisplay representing the NPC's nametag
      */
     public TextDisplay setupHologram(String name) {
-        TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), settings.isInteractable() && plugin.getConfig().getBoolean("DisplayClickText") ? spawnLoc.getY() + 2.33 : spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
+        TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), settings.isInteractable() && !settings.isHideClickableHologram() && plugin.getConfig().getBoolean("DisplayClickText") ? spawnLoc.getY() + 2.33 : spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
         hologram.setInvulnerable(true);
         hologram.setBillboard(Display.Billboard.CENTER);
         hologram.text(plugin.getMiniMessage().deserialize(name));
@@ -332,8 +336,8 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
      * */
     @Override
     public void moveTo(@NotNull Vec3 v){
-        Bukkit.getScheduler().runTaskLater(plugin, () -> this.hologram.teleport(new Location(getWorld(), v.x(), settings.isInteractable() ? v.y() + 2.33 :v.y() + 2.05, v.z())), 3);
-        if(settings.isInteractable())
+        Bukkit.getScheduler().runTaskLater(plugin, () -> this.hologram.teleport(new Location(getWorld(), v.x(), settings.isInteractable() && !settings.isHideClickableHologram() ? v.y() + 2.33 :v.y() + 2.05, v.z())), 3);
+        if(settings.isInteractable() && !settings.isHideClickableHologram())
             Bukkit.getScheduler().runTaskLater(plugin, () -> this.clickableHologram.teleport(new Location(getWorld(), v.x(), v.y() + 2.05, v.z())), 3);
 
         moveTo(v.x(), v.y(), v.z());
@@ -397,8 +401,13 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
 
         Bukkit.getScheduler().runTask(plugin, () -> {
             this.hologram = setupHologram(settings.getName());
-            if(settings.isInteractable())
-                this.clickableHologram = setupClickableHologram(plugin.getConfig().getString("ClickText"));
+            if(settings.isInteractable() && !settings.isHideClickableHologram()) {
+                if(settings.getCustomInteractableHologram().isEmpty()) {
+                    this.clickableHologram = setupClickableHologram(plugin.getConfig().getString("ClickText"));
+                } else {
+                    this.clickableHologram = setupClickableHologram(settings.getCustomInteractableHologram());
+                }
+            }
         });
 
         setSkin();

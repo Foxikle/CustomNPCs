@@ -9,6 +9,7 @@ import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -201,12 +202,12 @@ public class Listeners implements Listener {
             Action action = plugin.editingActions.get(player);
             List<String> currentArgs = action.getArgs();
             currentArgs.clear();
-            currentArgs.addAll(List.of(PATTERN.split(message)));
+            currentArgs.addAll(Utils.list(PATTERN.split(message)));
             player.sendMessage(ChatColor.GREEN + "Successfully set command to be '" + ChatColor.RESET + Utils.style(message) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
             SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
         } else if (plugin.nameWaiting.contains(player)) {
             plugin.nameWaiting.remove(player);
-            core.getNpc().getSettings().setName(message);
+            core.getNpc().getSettings().setName(plugin.getMiniMessage().deserialize(message));
             player.sendMessage(Component.text("Successfully set name to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(message)).append(Component.text("'", NamedTextColor.GREEN)));
             SCHEDULER.runTask(plugin, () -> core.getMainMenu().open(player));
         } else if (plugin.targetWaiting.contains(player)) {
@@ -250,7 +251,7 @@ public class Listeners implements Listener {
             List<String> currentArgs = action.getArgs();
             currentArgs.clear();
             currentArgs.addAll(List.of(PATTERN.split(message)));
-            player.sendMessage(ChatColor.GREEN + "Successfully set server to be '" + ChatColor.RESET + message + ChatColor.RESET + "" + ChatColor.GREEN + "'");
+            player.sendMessage(String.format(Utils.style("&aSuccessfully set server to be '&r%s&r&a'"), message));
             SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
         } else if (plugin.actionbarWaiting.contains(player)) {
             plugin.actionbarWaiting.remove(player);
@@ -261,10 +262,7 @@ public class Listeners implements Listener {
             player.sendMessage(Component.text("Successfully set actionbar to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(message)).append(Component.text("'", NamedTextColor.GREEN)));
             SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
         } else if (plugin.playernameWating.contains(player)) {
-            if(message.equalsIgnoreCase("quit") ||
-                    message.equalsIgnoreCase("exit")||
-                    message.equalsIgnoreCase("stop")||
-                    message.equalsIgnoreCase("cancel")) {
+            if(message.equalsIgnoreCase("quit") || message.equalsIgnoreCase("exit")|| message.equalsIgnoreCase("stop")|| message.equalsIgnoreCase("cancel")) {
                 plugin.urlWaiting.remove(player);
                 SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
                 e.setCancelled(true);
@@ -295,10 +293,7 @@ public class Listeners implements Listener {
             player.sendMessage(ChatColor.GREEN + "Successfully set NPC's skin to " + name + "'s skin!");
             SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
         } else if (plugin.urlWaiting.contains(player)) {
-            if(message.equalsIgnoreCase("quit") ||
-                    message.equalsIgnoreCase("exit")||
-                    message.equalsIgnoreCase("stop")||
-                    message.equalsIgnoreCase("cancel")) {
+            if(message.equalsIgnoreCase("quit") || message.equalsIgnoreCase("exit")|| message.equalsIgnoreCase("stop")|| message.equalsIgnoreCase("cancel")) {
                 plugin.urlWaiting.remove(player);
                 SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
                 e.setCancelled(true);
@@ -321,6 +316,14 @@ public class Listeners implements Listener {
             } catch (Exception ex) {
                 player.sendMessage(ChatColor.RED + "An error occured whilst parsing NPC skin. Is this URL valid?");
             }
+        } else if (plugin.hologramWaiting.contains(player)) {
+            player.sendMessage(
+                    Component.text("Successfully set the NPC's indevidual clickable hologram to: '", NamedTextColor.GREEN)
+                            .append(plugin.getMiniMessage().deserialize(message))
+                            .append(Component.text("'", NamedTextColor.GREEN))
+            );
+            core.getNpc().getSettings().setCustomInteractableHologram(message);
+            core.getExtraSettingsMenu().open(player);
         } else return;
 
         e.setCancelled(true);
@@ -466,6 +469,7 @@ public class Listeners implements Listener {
         plugin.actionbarWaiting.remove(player);
         plugin.urlWaiting.remove(player);
         plugin.playernameWating.remove(player);
+        plugin.hologramWaiting.remove(player);
     }
 
     /**
@@ -487,7 +491,9 @@ public class Listeners implements Listener {
 
     private static class MovementData {
         private final UUID uniqueId;
+        @Setter
         private Location lastLocation;
+        @Setter
         private double distanceSquared;
 
         MovementData(UUID uniqueId, Location lastLocation, double distanceSquared) {
@@ -504,16 +510,8 @@ public class Listeners implements Listener {
             return lastLocation;
         }
 
-        public void setLastLocation(Location location) {
-            this.lastLocation = location;
-        }
-
         public double getDistanceSquared() {
             return distanceSquared;
-        }
-
-        public void setDistanceSquared(double distanceSquared) {
-            this.distanceSquared = distanceSquared;
         }
 
         public MovementData copy() {
