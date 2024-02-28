@@ -2296,6 +2296,7 @@ public class MenuCore {
 
         menu.setItem(11, ItemBuilder.of(ANVIL).setName("§bImport from Player").setLore("§eFetches a player's skin by name").buildItem((player, event) -> {
             player.closeInventory();
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             plugin.playernameWating.add(player);
             new PlayerNameRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
             event.setCancelled(true);
@@ -2303,12 +2304,14 @@ public class MenuCore {
 
         menu.setItem(13, ItemBuilder.of(ARMOR_STAND).setName("§bBrowse Skin Catalogue").setLore("§eUse a preset skin").buildItem((player, event) -> {
             plugin.skinCatalogue.open(player);
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
         }));
 
         menu.setItem(15, ItemBuilder.of(WRITABLE_BOOK).setName("§bImport from URL").setLore("§eFetches a skin from a URL").buildItem((player, event) -> {
             player.closeInventory();
             plugin.urlWaiting.add(player);
             new UrlRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
         }));
 
