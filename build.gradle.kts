@@ -27,8 +27,6 @@ allprojects {
 
 java.sourceCompatibility = JavaVersion.VERSION_17
 
-
-
 publishing {
     repositories {
         maven {
