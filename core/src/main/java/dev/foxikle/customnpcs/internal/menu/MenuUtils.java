@@ -187,7 +187,6 @@ public class MenuUtils {
                 .setName(Utils.style("&c&lDELETE"))
                 .setLore("", Utils.style("&4&oThis action &lCANNOT&r&4&o be undone."))
                 .buildItem((player, event) -> Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> {
-                    CustomNPCs.getInstance().getLogger().warning(Thread.currentThread().getName());
                     npc.remove();
                     npc.delete();
                     CustomNPCs.getInstance().npcs.remove(npc.getUniqueID());
