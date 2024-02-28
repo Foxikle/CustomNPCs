@@ -14,6 +14,7 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import lombok.Getter;
 import me.flame.menus.menu.PaginatedMenu;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bstats.bukkit.Metrics;
@@ -38,10 +39,13 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * Singleton for the NPCBuilder
      */
+    @Getter
     private static CustomNPCs instance;
+
     /**
      * The plugin's json handler
      */
+    @Getter
     private static Gson gson;
     private static boolean wasPreviouslyEnabled = false;
     /**
@@ -94,13 +98,17 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * The List of players the plugin is waiting for player name input
      */
     public List<Player> playernameWating = new ArrayList<>();
+
+    /**
+     * The list of player the plugin is waiting for input from
+     */
+    public List<Player> hologramWaiting = new ArrayList<>();
     /**
      * The List of NPC holograms
      */
     public List<TextDisplay> holograms = new ArrayList<>();
-    /**
-     * The Singleton of the FileManager class
-     */
+
+    @Getter
     public FileManager fileManager;
     /**
      * The Map of the pages players are on. Keyed by player.
@@ -142,29 +150,16 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * keeps track of the current server version
      */
     public String serverVersion;
-    /**
-     * The plugin's MiniMessage instance
-     */
-    public MiniMessage miniMessage = MiniMessage.miniMessage();
+
+    @Getter public MiniMessage miniMessage = MiniMessage.miniMessage();
     Listeners listeners;
     /**
      * Singleton for menu utilites
      */
     private MenuUtils mu;
-    /**
-     * Singleton for automatic updates
-     */
-    private AutoUpdater updater;
 
-    /**
-     * <p> Gets the Gson object
-     * </p>
-     *
-     * @return the Gson object
-     */
-    public static Gson getGson() {
-        return gson;
-    }
+    @Getter
+    private AutoUpdater updater;
 
     /**
      * <p> Logic for when the plugin is enabled
@@ -243,7 +238,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
         if (getConfig().getBoolean("DisableCollisions"))
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
-        team.setPrefix(ChatColor.DARK_GRAY + "[NPC] ");
+        team.setPrefix(Utils.style("&8[NPC] "));
     }
 
     private Location calcLocation(InternalNpc npc) {
@@ -313,16 +308,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     }
 
     /**
-     * <p> Gets the FileManager
-     * </p>
-     *
-     * @return the file manager object
-     */
-    public FileManager getFileManager() {
-        return fileManager;
-    }
-
-    /**
      * <p> Gets the page the player is in.
      * </p>
      *
@@ -378,15 +363,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     }
 
     /**
-     * <p> Gets the plugin's minimessage parser.
-     *
-     * @return the plugin's minimessage instance
-     */
-    public MiniMessage getMiniMessage() {
-        return miniMessage;
-    }
-
-    /**
      * Creates an npc
      *
      * @param world     the world
@@ -408,15 +384,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             getLogger().severe(e.getMessage());
             return null;
         }
-    }
-
-    /**
-     * Gets the Updater object that holds data about any new updates available
-     *
-     * @return the Updater object
-     */
-    public AutoUpdater getUpdater() {
-        return updater;
     }
 
     public String translateVersion() {
