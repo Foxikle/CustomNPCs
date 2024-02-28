@@ -12,10 +12,7 @@ import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -212,7 +209,7 @@ public class Listeners implements Listener {
             List<String> currentArgs = action.getArgs();
             currentArgs.clear();
             currentArgs.addAll(Utils.list(PATTERN.split(message)));
-            player.sendMessage(ChatColor.GREEN + "Successfully set command to be '" + ChatColor.RESET + Utils.style(message) + ChatColor.RESET + "" + ChatColor.GREEN + "'");
+            player.sendMessage(ChatColor.GREEN + "Successfully set command to be '" + ChatColor.RESET + Utils.style(message) + ChatColor.RESET + ChatColor.GREEN + "'");
             SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
         } else if (plugin.nameWaiting.contains(player)) {
             if (cancel) {
@@ -376,6 +373,18 @@ public class Listeners implements Listener {
             );
             core.getNpc().getSettings().setCustomInteractableHologram(message);
             SCHEDULER.runTask(plugin, () -> core.getExtraSettingsMenu().open(player));
+        } else if (plugin.facingWaiting.contains(player)) {
+            e.setCancelled(true);
+            plugin.facingWaiting.remove(player);
+            if(cancel) return;
+            if(message.equalsIgnoreCase("confirm")) {
+                InternalNpc npc = core.getNpc();
+                npc.getSettings().setDirection(player.getLocation().getYaw());
+                npc.getSpawnLoc().setPitch(player.getPitch());
+                player.sendMessage(Utils.style("&aSuccessfully set facing direction!"));
+                player.playSound(player, Sound.BLOCK_AMETHYST_BLOCK_BREAK, 1, 1);
+                SCHEDULER.runTask(plugin, () -> core.getMainMenu().open(player));
+            }
         } else return;
         e.setCancelled(true);
     }

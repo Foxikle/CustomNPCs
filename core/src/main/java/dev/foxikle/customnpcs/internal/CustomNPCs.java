@@ -81,7 +81,11 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     public List<Player> messageWaiting = new ArrayList<>();
     /**
-     * The List of players the plugin is waiting for command command input
+     * The List of players the plugin is waiting for confirmation on.
+     */
+    public List<Player> facingWaiting = new ArrayList<>();
+    /**
+     * The List of players the plugin is waiting for command input
      */
     public List<Player> commandWaiting = new ArrayList<>();
     /**

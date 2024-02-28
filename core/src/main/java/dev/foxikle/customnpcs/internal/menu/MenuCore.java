@@ -364,12 +364,23 @@ public class MenuCore {
                 }));
         // not a new NPC
         if(plugin.getNPCByID(npc.getUniqueID()) != null)
-            menu.setItem(0, ItemBuilder.of(LAVA_BUCKET)
+            menu.setItem(44, ItemBuilder.of(LAVA_BUCKET)
                 .setName(Utils.style("&4Delete NPC"))
                 .buildItem((player, event) -> {
                     player.playSound(player, Sound.UI_BUTTON_CLICK,1, 1);
                     MenuUtils.getDeletionConfirmationMenu(plugin.getNPCByID(npc.getUniqueID()), menu).open(player);
                 }));
+
+        menu.setItem(0, ItemBuilder.of(ENDER_EYE)
+                .setName(Utils.style("&bSet Facing Direction"))
+                .setLore("", Utils.style("&eThis option configures the"), Utils.style("&eNPC's YAW and PITCH."), Utils.style("&eThis sets the NPC's direction"), Utils.style("&eto 'Player Direction'."))
+                .buildItem((player, event) -> {
+                    plugin.facingWaiting.add(player);
+                    new FacingDirectionRunnable(plugin, player).go();
+                    player.closeInventory();
+                    player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+                }));
+
         menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
     }
