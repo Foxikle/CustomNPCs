@@ -1,8 +1,11 @@
 package dev.foxikle.customnpcs.actions;
 
+import lombok.Getter;
+
 /**
  * All supported types of actions
  */
+@Getter
 public enum ActionType {
 
     /**
@@ -77,24 +80,12 @@ public enum ActionType {
     REMOVE_EXP(true, true, true);
 
     private final boolean editable;
-    private final boolean canDubplicate;
-    private final boolean canDelay;
+    private final boolean duplicatable;
+    private final boolean delayable;
 
     ActionType(boolean editable, boolean canDubplicate, boolean canDelay) {
         this.editable = editable;
-        this.canDubplicate = canDubplicate;
-        this.canDelay = canDelay;
-    }
-
-    public boolean canDubplicate() {
-        return canDubplicate;
-    }
-
-    public boolean isEditable() {
-        return editable;
-    }
-
-    public boolean canDelay() {
-        return canDelay;
+        this.duplicatable = canDubplicate;
+        this.delayable = canDelay;
     }
 }
