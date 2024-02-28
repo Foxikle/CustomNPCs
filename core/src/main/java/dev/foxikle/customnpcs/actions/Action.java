@@ -2,6 +2,8 @@ package dev.foxikle.customnpcs.actions;
 
 import dev.foxikle.customnpcs.actions.conditions.Conditional;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,14 +12,14 @@ import java.util.*;
 /**
  * The object to represent what should be done after an NPC interaction
  */
+@Getter
 public class Action {
 
-    private ActionType actionType;
+
+    private final ActionType actionType;
     private List<String> args;
-    private int delay;
-
-    private Conditional.SelectionMode mode;
-
+    @Setter private int delay;
+    @Setter private Conditional.SelectionMode mode;
     private List<Conditional> conditionals;
 
     /**
@@ -53,66 +55,6 @@ public class Action {
      */
     public List<String> getArgsCopy() {
         return new ArrayList<>(args);
-    }
-
-    /**
-     * <p> Gets the arguments of an action
-     * </p>
-     * @return A list of arguments for the actions
-     */
-    public List<String> getArgs() {
-        return args;
-    }
-
-    /**
-     * <p> Gets the action type of this action
-     * </p>
-     * @return the action type of this action
-     */
-    public ActionType getActionType(){
-        return actionType;
-    }
-
-    /**
-     * <p> Gets the delay of an action
-     * </p>
-     * @return the amount of ticks an action is delayed after interacting with an NPC
-     */
-    public int getDelay(){
-        return delay;
-    }
-
-    /**
-     * <p> sets the delay of an action (in ticks)
-     * </p>
-     * @param delay The amount of ticks to delay the action
-     */
-    public void setDelay(int delay){
-        this.delay = delay;
-    }
-
-    /**
-     * If all conditions must be met to execute the action
-     * @return if all condition must be met
-     */
-    public Conditional.SelectionMode getMode() {
-        return mode;
-    }
-
-    /**
-     * Gets the list of conditions for the actio
-     * @return the list of condtitions
-     */
-    public List<Conditional> getConditionals() {
-        return conditionals;
-    }
-
-    /**
-     * Sets if all conditions should be met
-     * @param mode if all conditions should be met
-     */
-    public void setMode(Conditional.SelectionMode mode) {
-        this.mode = mode;
     }
 
     /**
@@ -152,10 +94,6 @@ public class Action {
         Set<Boolean> results = new HashSet<>(2);
         conditionals.forEach(conditional -> results.add(conditional.compute(player)));
         return (mode == Conditional.SelectionMode.ALL ? !results.contains(false) : results.contains(true));
-       //if(mode == Conditional.SelectionMode.ALL) {
-       //    return !results.contains(false); // not all true
-       //}
-       //return results.contains(true); // if any are true
     }
 
     /**
