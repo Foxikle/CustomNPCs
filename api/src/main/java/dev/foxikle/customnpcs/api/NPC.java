@@ -72,13 +72,13 @@ public class NPC {
      * @param name the new name
      * @return the NPC with the modified name
      * @since 1.5.2-pre3
-     * @deprecated in favour of {@link Settings#setName(String)}
+     * @deprecated in favour of {@link Settings#setName(Component)}
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setName(@NotNull String name){
         Preconditions.checkArgument(name != null, "name cannot be null.");
-        npc.getSettings().setName(name);
+        npc.getSettings().setName(NPCApi.plugin.getMiniMessage().deserialize(name));
         return this;
     }
 
@@ -94,7 +94,7 @@ public class NPC {
     @ApiStatus.ScheduledForRemoval (inVersion = "1.7")
     public NPC setName(@NotNull Component name){
         Preconditions.checkArgument(name != null, "name cannot be null.");
-        npc.getSettings().setName(NPCApi.plugin.getMiniMessage().serialize(name));
+        npc.getSettings().setName(name);
         return this;
     }
 
