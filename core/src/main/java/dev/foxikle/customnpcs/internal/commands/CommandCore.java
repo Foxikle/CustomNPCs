@@ -7,6 +7,7 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
+import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -193,15 +194,21 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     }
                 } else {
                     UUID uuid = null;
+                    InternalNpc npc;
                     try {
                         uuid = UUID.fromString(args[1]);
+                        if(plugin.getNPCByID(uuid) == null) {
+                            player.sendMessage(Utils.style("&cThe UUID provided does not match any NPC."));
+                            return true;
+                        }
+                        npc = plugin.getNPCByID(uuid);
                     } catch (IllegalArgumentException ignored) {
                         List<String> mutArgs = Utils.list(args);
                         mutArgs.remove(0);
                         // check for names instead
                         List<UUID> uuids = new ArrayList<>();
-                        plugin.npcs.forEach((id, npc) -> {
-                            if (plugin.getMiniMessage().stripTags(npc.getSettings().getName()).equalsIgnoreCase(String.join(" ", mutArgs))) {
+                        plugin.npcs.forEach((id, Npc) -> {
+                            if (plugin.getMiniMessage().stripTags(Npc.getSettings().getName()).equalsIgnoreCase(String.join(" ", mutArgs))) {
                                 uuids.add(id);
                             }
                         });
@@ -222,36 +229,33 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         }
 
                         if (uuid == null) return true;
+                        if(plugin.getNPCByID(uuid) == null) {
+                            player.sendMessage(Utils.style("&cThe UUID provided does not match any NPC."));
+                            return true;
+                        }
+                        npc = plugin.getNPCByID(uuid);
                     }
                     if (args[0].equalsIgnoreCase("delete")) {
                         if (!player.hasPermission("customnpcs.delete")) {
                             player.sendMessage(Utils.style("&cYou lack the propper permissions to delete npcs."));
                             return true;
                         }
-                        if (plugin.npcs.keySet().contains(uuid)) {
-                            InternalNpc npc = plugin.getNPCByID(uuid);
-                            npc.remove();
-                            npc.delete();
-                            plugin.npcs.remove(npc.getUniqueID());
-                            player.sendMessage(Utils.style("&aSuccessfully deleted the NPC: ") + npc.getSettings().getName());
-                        } else {
-                            player.sendMessage(Utils.style("&cThe UUID provided does not match any NPC."));
-                        }
+                        MenuUtils.getDeletionConfirmationMenu(npc, null).open(player);
                     } else if (args[0].equalsIgnoreCase("edit")) {
                         if (!player.hasPermission("customnpcs.edit")) {
                             player.sendMessage(Utils.style("&cYou lack the propper permissions to edit npcs."));
                             return true;
                         }
                         if (plugin.npcs.containsKey(uuid)) {
-                            InternalNpc npc = plugin.getNPCByID(uuid);
+                            InternalNpc finalNpc = npc;
                             Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                                InternalNpc newNpc = plugin.createNPC(player.getWorld(), npc.getSpawnLoc(), npc.getEquipment(), npc.getSettings(), npc.getUniqueID(), null, npc.getActions());
+                                InternalNpc newNpc = plugin.createNPC(player.getWorld(), finalNpc.getSpawnLoc(), finalNpc.getEquipment(), finalNpc.getSettings(), finalNpc.getUniqueID(), null, finalNpc.getActions());
                                 MenuCore mc = new MenuCore(newNpc, plugin);
                                 plugin.menuCores.put(player, mc);
                                 plugin.pages.put(player, 0);
                                 mc.getMainMenu().open(player);
                             }, 1);
-                        } else player.sendMessage(Utils.style("&cThe UUID provided does not match any NPC."));
+                        }
                     } else
                         sender.sendMessage(Utils.style("&cUnrecognised sub-command. Use '/npc help' for a list of supported commands."));
                 }

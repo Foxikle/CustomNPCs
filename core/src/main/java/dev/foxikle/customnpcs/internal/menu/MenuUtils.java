@@ -7,6 +7,8 @@ import me.flame.menus.builders.items.ItemBuilder;
 import me.flame.menus.items.MenuItem;
 import me.flame.menus.menu.Menu;
 import me.flame.menus.menu.PaginatedMenu;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -15,6 +17,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -177,4 +180,34 @@ public class MenuUtils {
         throw new IllegalArgumentException("The value '" + base64 + "' is not valid!");
     }
 
+    public static Menu getDeletionConfirmationMenu(InternalNpc npc, @Nullable Menu toReturnTo) {
+        Menu menu = Menu.builder().rows(3).title(Utils.style("&c&lDelete an NPC")).addAllModifiers().normal();
+
+        menu.setItem(11, ItemBuilder.of(Material.RED_STAINED_GLASS_PANE)
+                .setName(Utils.style("&c&lDELETE"))
+                .setLore("", Utils.style("&4&oThis action &lCANNOT&r&4&o be undone."))
+                .buildItem((player, event) -> {
+                    npc.remove();
+                    npc.delete();
+                    CustomNPCs.getInstance().npcs.remove(npc.getUniqueID());
+                    player.sendMessage(Utils.style("&aSuccessfully deleted the NPC: ") + npc.getSettings().getName());
+                    player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(npc.getSettings().getName())
+                            .append(Component.text(" was permanantly deleted.", NamedTextColor.RED)));
+                }));
+
+        menu.setItem(15, ItemBuilder.of(Material.LIME_STAINED_GLASS_PANE)
+                .setName(Utils.style("&a&lGO BACK"))
+                .setLore(Utils.style("&aBack to saftey!"))
+                .buildItem((player, event) -> {
+                    if(toReturnTo != null) {
+                        toReturnTo.open(player);
+                        return;
+                    }
+                    player.closeInventory();
+                }));
+
+        menu.getFiller().fill(MenuItems.MENU_GLASS);
+
+        return menu;
+    }
 }
