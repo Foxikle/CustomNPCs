@@ -270,7 +270,14 @@ public class MenuCore {
         menu.setItem(16, ItemBuilder.of(nametag).buildItem((player, event) -> {
             plugin.nameWaiting.add(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            player.sendMessage("§aType the NPC name the chat.");
+            player.sendMessage(Utils.style("&aType the NPC name the chat."));
+
+            if(plugin.getConfig().getBoolean("NameReferenceMessages")) {
+                player.sendMessage(Utils.style("&eFor reference, the current NPC Name is: "));
+                player.sendMessage(npc.getSettings().getName());
+                player.sendMessage(Utils.style("&8&oThis message can be toggled in the config.yml!"));
+            }
+
             new NameRunnable(player, plugin).runTaskTimer(plugin, 1, 15);
             player.closeInventory();
             event.setCancelled(true);

@@ -26,12 +26,12 @@ public class FileManager {
     /**
      * The config file version
      */
-    public static final int CONFIG_FILE_VERSION = 4;
+    public static final int CONFIG_FILE_VERSION = 5;
 
     /**
      * The file version of the npcs.yml file
      */
-    public static final double NPCFILE_VERSION = 1.5;
+    public static final double NPC_FILE_VERSION = 1.5;
 
     public static File PARENT_DIRECTORY = new File("plugins/CustomNPCs/");
 
@@ -88,8 +88,9 @@ public class FileManager {
             }
         }
         if (version < 2) { // prior to 1.4-pre2
+            version = 2;
             plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
-            yml.set("CONFIG_VERSION", 2);
+            yml.set("CONFIG_VERSION", version);
             yml.set("AlertOnUpdate", true);
             try {
                 yml.save(file);
@@ -98,8 +99,9 @@ public class FileManager {
             }
         }
         if (version < 3) { // prior to 1.5.2-pre1
+            version = 3;
             plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
-            yml.set("CONFIG_VERSION", 3);
+            yml.set("CONFIG_VERSION", version);
             yml.set("ClickText", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(yml.getString("ClickText"))));
             try {
                 yml.save(file);
@@ -108,9 +110,21 @@ public class FileManager {
             }
         }
         if(version < 4) { //prior to 1.6-pre2
+            version = 4;
             plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
-            yml.set("CONFIG_VERSION", 4);
+            yml.set("CONFIG_VERSION", version);
             yml.set("DisableCollisions", true);
+            try {
+                yml.save(file);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if(version < 5) {
+            version = 5;
+            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
+            yml.set("CONFIG_VERSION", version);
+            yml.set("NameReferenceMessages", true);
             try {
                 yml.save(file);
             } catch (IOException e) {
