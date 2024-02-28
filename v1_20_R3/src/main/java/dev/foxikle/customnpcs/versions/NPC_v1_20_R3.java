@@ -32,7 +32,10 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * The object representing the NPC
@@ -440,6 +443,11 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
     @Override
     public void setEquipment(Equipment e) {
         this.equipment = e;
+    }
+
+    @Override
+    public InternalNpc clone(){
+        return new NPC_v1_20_R3(plugin, world, spawnLoc, equipment, settings, UUID.randomUUID(), target, actions);
     }
 }
 

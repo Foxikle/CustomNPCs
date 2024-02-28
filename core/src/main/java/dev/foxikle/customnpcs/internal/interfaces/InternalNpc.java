@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -246,4 +245,12 @@ public interface InternalNpc {
      * @param e the equipment
      */
     void setEquipment(Equipment e);
+
+    /**
+     * Clones the NPC object.
+     * <p>
+     * THE UUID IS **NOT** CLONED, the new npc has its own UUID.
+     * @return the cloned object, with a different memory address.
+     */
+    InternalNpc clone();
 }
