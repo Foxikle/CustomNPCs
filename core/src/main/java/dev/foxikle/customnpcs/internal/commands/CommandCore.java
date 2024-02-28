@@ -264,6 +264,30 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             }
                             player.teleportAsync(npc.getCurrentLocation());
                         }
+                        case "clone" -> {
+                            if(!player.hasPermission("customnpcs.commands.clone")) {
+                                player.sendMessage(Utils.style("&cYou lack the propper permissions to clone npcs."));
+                                return true;
+                            }
+                            InternalNpc newNpc = npc.clone();
+                            newNpc.setSpawnLoc(player.getLocation());
+                            newNpc.getSettings().setDirection(player.getLocation().getYaw());
+                            newNpc.createNPC();
+                            player.sendMessage(Utils.style("&aNPC successfully cloned!"));
+
+                            // runnable
+                        }
+                        case "movehere" -> {
+                            if(!player.hasPermission("customnpcs.commands.movehere")) {
+                                player.sendMessage(Utils.style("&cYou lack the propper permissions to clone npcs."));
+                                return true;
+                            }
+                            npc.remove();
+                            npc.setSpawnLoc(player.getLocation());
+                            npc.getSettings().setDirection(player.getLocation().getYaw());
+                            npc.createNPC();
+                            player.sendMessage(Utils.style("&e&oPsst! After moving NPCs, you should reload them!"));
+                        }
                         default -> sender.sendMessage(Utils.style("&cUnrecognised sub-command. Use '/npc help' for a list of supported commands."));
                     }
                 }
@@ -312,12 +336,12 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 )
                 .append(Component.text("Creates a new NPC", NamedTextColor.AQUA))
                 .appendNewline()
-                .append(Component.text("- /npc delete <UUID>  ", NamedTextColor.GOLD)
+                .append(Component.text("- /npc delete <NPC>  ", NamedTextColor.GOLD)
                         .hoverEvent(HoverEvent.showText(Component.text("Permanantly deletes the NPC", NamedTextColor.DARK_RED)))
                 )
                 .append(Component.text("Permanantly deletes the NPC  ", NamedTextColor.AQUA))
                 .appendNewline()
-                .append(Component.text("- /npc edit <UUID>  ", NamedTextColor.GOLD)
+                .append(Component.text("- /npc edit <NPC>  ", NamedTextColor.GOLD)
                         .hoverEvent(HoverEvent.showText(Component.text("Brings up the NPC edit dialogue", NamedTextColor.WHITE)))
                 )
                 .append(Component.text("Edits the specified NPC", NamedTextColor.AQUA))
@@ -326,6 +350,16 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         .hoverEvent(HoverEvent.showText(Component.text("Opens the NPC customizer", NamedTextColor.WHITE)))
                 )
                 .append(Component.text("Creates a new NPC  ", NamedTextColor.AQUA))
+                .appendNewline()
+                .append(Component.text("- /npc movehere <NPC> ", NamedTextColor.GOLD)
+                        .hoverEvent(HoverEvent.showText(Component.text("Moves the NPC to your current location. Its pitch is set to your current pitch. Its yaw is also set to your current yaw.", NamedTextColor.WHITE)))
+                )
+                .append(Component.text("Moves the NPC to you.  ", NamedTextColor.AQUA))
+                .appendNewline()
+                .append(Component.text("- /npc clone <NPC>  ", NamedTextColor.GOLD)
+                        .hoverEvent(HoverEvent.showText(Component.text("Clones the NPC, and moves it to your current location. Its pitch is set to your current pitch. Its yaw is also set to your current yaw.", NamedTextColor.WHITE)))
+                )
+                .append(Component.text("Clones the NPC and moves it to you.  ", NamedTextColor.AQUA))
                 .appendNewline()
                 .append(Component.text("- /npc clear_holograms  ", NamedTextColor.GOLD)
                         .hoverEvent(HoverEvent.showText(Component.text("Deletes ALL NPC holograms. (Includes holograms without NPCs correlated to them)", NamedTextColor.WHITE)))
@@ -336,6 +370,11 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         .hoverEvent(HoverEvent.showText(Component.text("Reloads the plugin and config", NamedTextColor.WHITE)))
                 )
                 .append(Component.text("Reloads CustomNPCs", NamedTextColor.AQUA))
+                .appendNewline()
+                .append(Component.text("- /npc goto <NPC>  ", NamedTextColor.GOLD)
+                        .hoverEvent(HoverEvent.showText(Component.text("Teleports you to the specified NPC.", NamedTextColor.WHITE)))
+                )
+                .append(Component.text("Teleports you to the specifiec NPC.  ", NamedTextColor.AQUA))
                 .appendNewline()
                 .append(Component.text("                                                                                 ", NamedTextColor.DARK_GREEN, TextDecoration.STRIKETHROUGH)));
         return component;
@@ -365,6 +404,8 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             list.add("goto");
             list.add("clear_holograms");
             list.add("wiki");
+            list.add("clone");
+            list.add("movehere");
             if (plugin.soundWaiting.contains((Player) sender)) list.add("setsound");
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("setsound")) {
