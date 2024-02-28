@@ -266,6 +266,7 @@ public class MenuCore {
         clickableMeta.lore(lore);
         interactableButton.setItemMeta(clickableMeta);
 
+
         ItemStack cancelButton = new ItemStack(Material.BARRIER);
         ItemMeta cancelMeta = cancelButton.getItemMeta();
         cancelMeta.displayName(Component.text("CANCEL", NamedTextColor.RED, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
