@@ -1,5 +1,7 @@
 package dev.foxikle.customnpcs.data;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
@@ -8,45 +10,39 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
  */
 public class Settings {
 
-    /**
-     *
-     */
+    @Setter @Getter
     boolean interactable = false;
 
-    /**
-     *
-     */
+    @Setter @Getter
     boolean tunnelvision = false;
 
-    /**
-     *
-     */
+
+    @Setter @Getter
     boolean resilient = false;
 
-    /**
-     *
-     */
+    @Setter @Getter
     double direction = 180;
 
-    /**
-     *
-     */
+
+    @Setter @Getter
     String value = "";
 
-    /**
-     *
-     */
+    @Setter @Getter
     String signature = "";
 
-    /**
-     *
-     */
     String name = "not set";
 
-    /**
-     *
-     */
+    @Setter @Getter
     String skinName = "not set";
+
+    /**
+     * Should this NPC not have a clickable Hologram?
+     */
+    @Setter @Getter
+    boolean hideClickableHologram = false;
+
+    @Setter @Getter
+    String customInteractableHologram = "";
 
     /**
      * Creates a settings object with the specified settings
@@ -78,38 +74,6 @@ public class Settings {
     }
 
     /**
-     * Determines if the NPC runs the actions on interaction
-     * @return if the NPC is interactable
-     */
-    public boolean isInteractable() {
-        return interactable;
-    }
-
-    /**
-     * Determines in the NPC will persist
-     * @return if the NPC will persist on server restart
-     */
-    public boolean isResilient() {
-        return resilient;
-    }
-
-    /**
-     * Determines if the NPC will look at players
-     * @return if the npc will ignore nearby players (true = no movement)
-     */
-    public boolean isTunnelvision() {
-        return tunnelvision;
-    }
-
-    /**
-     * Gets the heading the NPC faces
-     * @return gets the yaw
-     */
-    public double getDirection() {
-        return direction;
-    }
-
-    /**
      * gets the NPC's name in serialized minimessage format.
      * @return the NPC's serialized name
      */
@@ -118,99 +82,11 @@ public class Settings {
     }
 
     /**
-     * Gets the skin's signature
-     * @return the npc's skin signature
-     */
-    public String getSignature() {
-        return signature;
-    }
-
-    /**
-     * Gets the name of the skin
-     * @return the name of the skin
-     */
-    public String getSkinName() {
-        return skinName;
-    }
-
-    /**
-     * Gets the value of the NPC's skin
-     * @return the value of the skin
-     */
-    public String getValue() {
-        return value;
-    }
-
-    /**
-     * Sets the NPC's resiliency
-     * @param resilient if the npc should persist on restarts
-     */
-    public void setResilient(boolean resilient) {
-        this.resilient = resilient;
-    }
-
-    /**
-     * Sets if the npc will execute actions
-     * @param interactable if the npc should be clickable
-     */
-    public void setInteractable(boolean interactable) {
-        this.interactable = interactable;
-    }
-
-    /**
-     * Sets if the npc will ignore players around it
-     * @param tunnelvision if the npc will ignore players
-     */
-    public void setTunnelvision(boolean tunnelvision) {
-        this.tunnelvision = tunnelvision;
-    }
-
-    /**
-     * Sets the direction of the NPC to look when a player isn't nearby
-     * @param direction to face
-     */
-    public void setDirection(double direction) {
-        this.direction = direction;
-    }
-
-    /**
-     * Sets the name of the NPC in serialized MiniMessage format
-     * @param name the serialized Adventure component
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
      * Sets the name of the npc
      * @param name as a component
      */
     public void setName(Component name) {
         this.name = MiniMessage.miniMessage().serialize(name);
-    }
-
-    /**
-     * Set the signature of the skin
-     * @param signature the signature
-     */
-    public void setSignature(String signature) {
-        this.signature = signature;
-    }
-
-    /**
-     * Sets the name of the skin
-     * @param skinName The name of the skin
-     */
-    public void setSkinName(String skinName) {
-        this.skinName = skinName;
-    }
-
-    /**
-     * Sets the value of the npc skin
-     * @param value the value of the NPC's skin
-     */
-    public void setValue(String value) {
-        this.value = value;
     }
 
     /**
