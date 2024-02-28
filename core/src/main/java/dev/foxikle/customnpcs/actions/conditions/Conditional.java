@@ -1,6 +1,7 @@
 package dev.foxikle.customnpcs.actions.conditions;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import lombok.Getter;
 import org.bukkit.entity.Player;
 
 /**
@@ -82,6 +83,7 @@ public interface Conditional {
     /**
      * A list of comparators used to compare the values and target values of conditions
      */
+    @Getter
     enum Comparator {
         /**
          * Represents the value being equal to the target value
@@ -123,13 +125,6 @@ public interface Conditional {
             this.strictlyLogical = strictlyLogical;
         }
 
-        /**
-         * Determines if this comparator only compares logical parameters
-         * @return if the comparator is strictly logical
-         */
-        public boolean isStrictlyLogical() {
-            return strictlyLogical;
-        }
     }
 
     /**
