@@ -344,6 +344,5 @@ public class FileManager {
         return new BackupResult(f.toPath(), true);
     }
 
-    private record BackupResult(Path filePath, boolean success) {
-    }
+    private record BackupResult(Path filePath, boolean success) {}
 }
