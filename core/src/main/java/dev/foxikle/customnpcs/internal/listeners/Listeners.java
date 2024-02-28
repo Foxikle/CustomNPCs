@@ -317,13 +317,15 @@ public class Listeners implements Listener {
                 player.sendMessage(ChatColor.RED + "An error occured whilst parsing NPC skin. Is this URL valid?");
             }
         } else if (plugin.hologramWaiting.contains(player)) {
+            plugin.hologramWaiting.remove(player);
+            e.setCancelled(true);
             player.sendMessage(
                     Component.text("Successfully set the NPC's indevidual clickable hologram to: '", NamedTextColor.GREEN)
                             .append(plugin.getMiniMessage().deserialize(message))
                             .append(Component.text("'", NamedTextColor.GREEN))
             );
             core.getNpc().getSettings().setCustomInteractableHologram(message);
-            core.getExtraSettingsMenu().open(player);
+            SCHEDULER.runTask(plugin, () -> core.getExtraSettingsMenu().open(player));
         } else return;
 
         e.setCancelled(true);
