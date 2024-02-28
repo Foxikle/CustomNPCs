@@ -20,7 +20,7 @@ public class ActionAdapter extends TypeAdapter<Action> {
         out.beginObject();
         out.name("actionType").value(value.getActionType().toString());
 
-        out.value("args");
+        out.name("args");
         out.beginArray();
         for (String s : value.getArgs()) {
             out.value(s);
