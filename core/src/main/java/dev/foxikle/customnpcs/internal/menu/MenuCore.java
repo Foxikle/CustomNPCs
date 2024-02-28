@@ -1003,12 +1003,11 @@ public class MenuCore {
      * @return The Inventory representing the action to customize
      */
     public Menu getActionCustomizerMenu(Action action) {
-        Menu menu = Menu.builder().addAllModifiers().rows(5).title("       Edit NPC Action").normal();
+        Menu menu = Menu.builder().addAllModifiers().rows(5).title("         Edit NPC Action").normal();
         List<String> incLore = List.of("§8Left Click to add 1", "§8Right Click to add 5", "§8Shift + Right Click to add 20");
         List<String> decLore = List.of("§8Left Click to remove 1", "§8Right Click to remove 5", "§8Shift + Click to remove 20");
 
         menu.setItem(3, ItemBuilder.of(RED_DYE).setName("§eDecrement Delay").setLore(decLore).buildItem((player, event) -> {
-
             if (event.isLeftClick()) {
                 if (!(action.getDelay() - 1 < 0)) {
                     action.setDelay(action.getDelay() - 1);
@@ -1030,7 +1029,6 @@ public class MenuCore {
             }
             player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
             getActionCustomizerMenu(action).open(player);
-
         }));
         menu.setItem(4, ItemBuilder.of(CLOCK).setName("§eDelay Ticks: " + action.getDelay()).buildItem());
         menu.setItem(5, ItemBuilder.of(LIME_DYE).setName("§eIncrement Delay").setLore(incLore).buildItem((player, event) -> {
@@ -1043,7 +1041,6 @@ public class MenuCore {
             }
             player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
             getActionCustomizerMenu(action).open(player);
-
         }));
         menu.setItem(36, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((player, event) -> {
             getActionMenu().open(player);
@@ -1070,6 +1067,7 @@ public class MenuCore {
                         plugin.commandWaiting.add(player);
                         new CommandRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                         event.setCancelled(true);
+                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     }));
             case DISPLAY_TITLE -> {
                 // Increments
@@ -1082,6 +1080,7 @@ public class MenuCore {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                     }
                     getActionCustomizerMenu(action).open(player);
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(12, ItemBuilder.of(LIME_DYE).setName("§eIncrease display duration").setLore(incLore).buildItem((player, event) -> {
@@ -1093,7 +1092,7 @@ public class MenuCore {
                         action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(14, ItemBuilder.of(LIME_DYE).setName("§eIncrease fade out duration").setLore(incLore).buildItem((player, event) -> {
@@ -1105,7 +1104,7 @@ public class MenuCore {
                         action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 //decrements
@@ -1118,7 +1117,7 @@ public class MenuCore {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease display duration").setLore(decLore).buildItem((player, event) -> {
@@ -1130,7 +1129,7 @@ public class MenuCore {
                         action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(32, ItemBuilder.of(RED_DYE).setName("§eDecrease fade out duration").setLore(decLore).buildItem((player, event) -> {
@@ -1142,7 +1141,7 @@ public class MenuCore {
                         action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 // Displays
@@ -1151,12 +1150,11 @@ public class MenuCore {
                 menu.setItem(21, ItemBuilder.of(CLOCK).setName("§eDisplay time: " + args.get(1)).setLore(displayLore).buildItem());
                 menu.setItem(23, ItemBuilder.of(CLOCK).setName("§eFade out: " + args.get(2)).setLore(displayLore).buildItem());
                 menu.setItem(25, ItemBuilder.of(OAK_HANGING_SIGN).setName(String.join(" ", args)).buildItem((player, event) -> {
-
                     player.closeInventory();
                     plugin.titleWaiting.add(player);
                     new TitleRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                     event.setCancelled(true);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
             }
             case ADD_EFFECT -> {
@@ -1170,7 +1168,7 @@ public class MenuCore {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(12, ItemBuilder.of(LIME_DYE).setName("§eIncrease effect amplifier").setLore(incLore).buildItem((player, event) -> {
@@ -1201,12 +1199,11 @@ public class MenuCore {
                         }
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 //decrements
                 menu.setItem(28, ItemBuilder.of(RED_DYE).setName("§eDecrease effect duration").setLore(decLore).buildItem((player, event) -> {
-
                     if (event.isLeftClick()) {
                         if (Integer.parseInt(action.getArgs().get(0)) == -1) {
                             player.sendMessage("§cThe duration cannot be less than 1!");
@@ -1233,7 +1230,7 @@ public class MenuCore {
                         }
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease effect amplifier").setLore(decLore).buildItem((player, event) -> {
@@ -1264,19 +1261,18 @@ public class MenuCore {
                         }
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 // Displays
                 String displayLore = "§8In ticks";
                 menu.setItem(19, ItemBuilder.of(CLOCK).setName("§eDuration: " + args.get(0)).setLore(displayLore).buildItem());
-                menu.setItem(21, ItemBuilder.of(CLOCK).setName("§eAmplifier: " + args.get(1)).setName(displayLore).buildItem());
-
+                menu.setItem(21, ItemBuilder.of(CLOCK).setName("§eAmplifier: " + args.get(1)).setLore(displayLore).buildItem());
                 boolean particles = Boolean.parseBoolean(args.get(2));
                 menu.setItem(23, ItemBuilder.of(particles ? GREEN_CANDLE : RED_CANDLE).setName("§eHide Particles: " + particles).buildItem((player, event) -> {
                     action.getArgs().set(2, String.valueOf(!particles));
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
 
@@ -1304,16 +1300,16 @@ public class MenuCore {
                         }
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
             }
             case REMOVE_EFFECT -> {
                 List<String> lore = new ArrayList<>();
                 fields.forEach(field -> {
-                    if (!Objects.equals(action.getArgs().get(3), field.getName())) lore.add("§a" + field.getName());
+                    if (!Objects.equals(action.getArgs().get(0), field.getName())) lore.add("§a" + field.getName());
                     else lore.add("§3▸ " + field.getName());
                 });
-                menu.setItem(25, ItemBuilder.of(POTION).setName("§eEffect to give").setLore(lore).addAllItemFlags().buildItem((player, event) -> {
+                menu.setItem(22, ItemBuilder.of(POTION).setName("§eEffect to Remove").setLore(lore).addAllItemFlags().buildItem((player, event) -> {
                     List<String> effects = new ArrayList<>();
                     fields.forEach(field -> effects.add(field.getName()));
 
@@ -1333,8 +1329,9 @@ public class MenuCore {
                         }
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
+                Bukkit.broadcastMessage("3");
             }
             case GIVE_EXP -> {
                 menu.setItem(11, ItemBuilder.of(LIME_DYE).setName("§eIncrease xp").setLore(incLore).buildItem((player, event) -> {
@@ -1346,7 +1343,7 @@ public class MenuCore {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(20, ItemBuilder.of(CLOCK).setName("§eXp to give: " + args.get(0)).buildItem());
@@ -1378,14 +1375,14 @@ public class MenuCore {
                         }
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 boolean levels = Boolean.parseBoolean(args.get(1));
                 menu.setItem(24, ItemBuilder.of(levels ? GREEN_CANDLE : RED_CANDLE).setName("§eAwarding EXP " + (levels ? "Levels" : "Points")).setLore("§eClick to change!").buildItem((player, event) -> {
                     action.getArgs().set(1, String.valueOf(!levels));
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
             }
             case REMOVE_EXP -> {
@@ -1398,7 +1395,7 @@ public class MenuCore {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(20, ItemBuilder.of(CLOCK).setName("§eXp to remove: " + args.get(0)).buildItem());
@@ -1430,14 +1427,14 @@ public class MenuCore {
                         }
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 boolean levels = Boolean.parseBoolean(args.get(1));
                 menu.setItem(24, ItemBuilder.of(levels ? GREEN_CANDLE : RED_CANDLE).setName("§eRemoving EXP " + (levels ? "Levels" : "Points")).setLore("§eClick to change!").buildItem((player, event) -> {
                     action.getArgs().set(1, String.valueOf(!levels));
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
             }
@@ -1448,7 +1445,7 @@ public class MenuCore {
                         plugin.messageWaiting.add(player);
                         new MessageRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                         event.setCancelled(true);
-
+                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     }));
             case PLAY_SOUND -> {
 
@@ -1456,22 +1453,19 @@ public class MenuCore {
                 String smallDecLore = "§eClick to remove .1";
 
                 menu.setItem(10, ItemBuilder.of(LIME_DYE).setName("§eIncrease pitch.").setLore(smallIncLore).buildItem((player, event) -> {
-
                     action.getArgs().set(0, String.valueOf(DECIMAL_FORMAT.format(Double.parseDouble(action.getArgs().get(0)) + .1)));
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(12, ItemBuilder.of(LIME_DYE).setName("§eIncrease Volume").setLore(smallIncLore).buildItem((player, event) -> {
-
                     action.getArgs().set(1, String.valueOf(DECIMAL_FORMAT.format(Double.parseDouble(action.getArgs().get(1)) + .1)));
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 //decrements
                 menu.setItem(28, ItemBuilder.of(RED_DYE).setName("§eDecrease pitch").setLore(smallDecLore).buildItem((player, event) -> {
-
                     if (event.isLeftClick()) {
                         if (Double.parseDouble(action.getArgs().get(0)) - .1 <= 0) {
                             player.sendMessage("§cThe pitch cannot be less than or equal 0!");
@@ -1480,11 +1474,10 @@ public class MenuCore {
                         }
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease volume").setLore(smallDecLore).buildItem((player, event) -> {
-
                     if (event.isLeftClick()) {
                         if (Double.parseDouble(action.getArgs().get(1)) - .1 <= 0) {
                             player.sendMessage("§cThe volume cannot be less than or equal 0!");
@@ -1493,7 +1486,7 @@ public class MenuCore {
                         }
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
 
@@ -1506,22 +1499,20 @@ public class MenuCore {
                 metaDisplaySound.displayName(Component.text("Sound: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                 sound.setItemMeta(metaDisplaySound);
                 menu.setItem(24, ItemBuilder.of(OAK_HANGING_SIGN).setName("§eSound: " + args.get(2)).setLore("", "§eClick to change!").buildItem((player, event) -> {
-
                     player.closeInventory();
                     plugin.soundWaiting.add(player);
                     new SoundRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                     event.setCancelled(true);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
             }
             case ACTION_BAR ->
                     menu.setItem(22, ItemBuilder.of(OAK_HANGING_SIGN).setName(String.join(" ", args)).buildItem((player, event) -> {
-
                         player.closeInventory();
                         plugin.actionbarWaiting.add(player);
                         new ActionbarRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                         event.setCancelled(true);
-
+                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     }));
             case TELEPORT -> {
                 menu.setItem(10, ItemBuilder.of(LIME_DYE).setName("§eIncrease X Coordinate").setLore(incLore).buildItem((player, event) -> {
@@ -1533,7 +1524,7 @@ public class MenuCore {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(11, ItemBuilder.of(LIME_DYE).setName("§e Increase Y Coordinate").setLore(incLore).buildItem((player, event) -> {
@@ -1545,7 +1536,7 @@ public class MenuCore {
                         action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(12, ItemBuilder.of(LIME_DYE).setName("§eIncrease Z Coordinate").setLore(incLore).buildItem((player, event) -> {
@@ -1557,7 +1548,7 @@ public class MenuCore {
                         action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(16, ItemBuilder.of(LIME_DYE).setName("§eIncrease Yaw").setLore(incLore).buildItem((player, event) -> {
@@ -1588,11 +1579,10 @@ public class MenuCore {
                         }
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(14, ItemBuilder.of(LIME_DYE).setName("§eIncrease Pitch").setLore(incLore).buildItem((player, event) -> {
-
                     if (event.isLeftClick()) {
                         if (Integer.parseInt(action.getArgs().get(4)) == 90) {
                             player.sendMessage("§cThe pitch cannot be greater than 90!");
@@ -1619,7 +1609,7 @@ public class MenuCore {
                         }
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 //decrements
@@ -1632,7 +1622,7 @@ public class MenuCore {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(29, ItemBuilder.of(RED_DYE).setName("§eDecrease Y Coordinate").setLore(decLore).buildItem((player, event) -> {
@@ -1644,10 +1634,10 @@ public class MenuCore {
                         action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(20, ItemBuilder.of(RED_DYE).setName("§eDecrease Z Coordinate").setLore(decLore).buildItem((player, event) -> {
+                menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease Z Coordinate").setLore(decLore).buildItem((player, event) -> {
                     if (event.isLeftClick()) {
                         action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 1));
                     } else if (event.isRightClick()) {
@@ -1656,7 +1646,7 @@ public class MenuCore {
                         action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 20));
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(34, ItemBuilder.of(RED_DYE).setName("§eDecrease Yaw").setLore(decLore).buildItem((player, event) -> {
@@ -1687,7 +1677,7 @@ public class MenuCore {
                         }
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 menu.setItem(32, ItemBuilder.of(RED_DYE).setName("§eDecrease Pitch").setLore(decLore).buildItem((player, event) -> {
@@ -1718,27 +1708,26 @@ public class MenuCore {
                         }
                     }
                     getActionCustomizerMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 // Displays
-                String displayLore = "In blocks";
+                String displayLore = Utils.style("&8In blocks");
 
-                menu.setItem(19, ItemBuilder.of(CLOCK).setName("§eX: §b" + args.get(0)).setName(displayLore).buildItem());
-                menu.setItem(20, ItemBuilder.of(CLOCK).setName("§eY: §b" + args.get(1)).setName(displayLore).buildItem());
-                menu.setItem(21, ItemBuilder.of(CLOCK).setName("§eZ: §b" + args.get(2)).setName(displayLore).buildItem());
+                menu.setItem(19, ItemBuilder.of(CLOCK).setName("§eX: §b" + args.get(0)).setLore(displayLore).buildItem());
+                menu.setItem(20, ItemBuilder.of(CLOCK).setName("§eY: §b" + args.get(1)).setLore(displayLore).buildItem());
+                menu.setItem(21, ItemBuilder.of(CLOCK).setName("§eZ: §b" + args.get(2)).setLore(displayLore).buildItem());
 
-                menu.setItem(25, ItemBuilder.of(COMPASS).setName("§eYaw: §b" + args.get(3)).setName(displayLore).buildItem());
-                menu.setItem(23, ItemBuilder.of(COMPASS).setName("§ePitch: §b" + args.get(4)).setName(displayLore).buildItem());
+                menu.setItem(25, ItemBuilder.of(COMPASS).setName("§eYaw: §b" + args.get(3)).setLore(displayLore).buildItem());
+                menu.setItem(23, ItemBuilder.of(COMPASS).setName("§ePitch: §b" + args.get(4)).setLore(displayLore).buildItem());
             }
             case SEND_TO_SERVER ->
-                    menu.setItem(22, ItemBuilder.of(GRASS_BLOCK).setName("§Server: " + String.join(" ", args)).buildItem((player, event) -> {
-
+                    menu.setItem(22, ItemBuilder.of(GRASS_BLOCK).setName("§eServer: " + String.join(" ", args)).buildItem((player, event) -> {
                         player.closeInventory();
                         plugin.serverWaiting.add(player);
                         new ServerRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                         event.setCancelled(true);
-
+                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     }));
             case TOGGLE_FOLLOWING -> {
                 npc.addAction(action);
@@ -1762,19 +1751,21 @@ public class MenuCore {
         // Go back to actions menu
         menu.setItem(18, ItemBuilder.of(ARROW)
                 .setName(Utils.style("&6Go Back"))
-                .buildItem((player, event) -> getNewConditionMenu().open(player)));
+                .buildItem((player, event) -> {
+                    getNewConditionMenu().open(player);
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                }));
 
         menu.setItem(22, ItemBuilder.of(LILY_PAD)
                 .setName(Utils.style("&aConfirm"))
                 .buildItem((player, event) -> {
-
             Action action = plugin.editingActions.get(player);
             event.setCancelled(true);
             if (plugin.originalEditingConditionals.get(player) != null)
                 action.removeConditional(plugin.originalEditingConditionals.remove(player));
             action.addConditional(conditional);
             getConditionMenu(action).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
         }));
 
         switch (conditional.getType()) {
@@ -1820,7 +1811,7 @@ public class MenuCore {
                         }
                     }
                     getConditionalCustomizerMenu(conditional).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
                 lore.clear();
 
@@ -1832,12 +1823,11 @@ public class MenuCore {
                 targetMeta.lore(lore);
                 targetValue.setItemMeta(targetMeta);
                 menu.setItem(13, ItemBuilder.of(targetValue).buildItem((player, event) -> {
-
                     player.closeInventory();
                     plugin.targetWaiting.add(player);
                     new TargetInputRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                     event.setCancelled(true);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
                 lore.clear();
 
@@ -1876,7 +1866,7 @@ public class MenuCore {
                         }
                     }
                     getConditionalCustomizerMenu(conditional).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
             }
             case LOGICAL -> {
@@ -1928,7 +1918,7 @@ public class MenuCore {
                         }
                     }
                     getConditionalCustomizerMenu(conditional).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
                 lore.clear();
 
@@ -1945,7 +1935,7 @@ public class MenuCore {
                     plugin.targetWaiting.add(player);
                     new TargetInputRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                     event.setCancelled(true);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
                 lore.clear();
 
@@ -1985,7 +1975,7 @@ public class MenuCore {
                         }
                     }
                     getConditionalCustomizerMenu(conditional).open(player);
-
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
             }
         }
@@ -2228,7 +2218,6 @@ public class MenuCore {
         }));
 
         menu.addItem(ItemBuilder.of(MILK_BUCKET).setName("§bRemove Effect").setLore("§eRemoves an effect from the player.").buildItem((player, event) -> {
-
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.REMOVE_EFFECT, Utils.list("SPEED"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().isDuplicatable()) {
