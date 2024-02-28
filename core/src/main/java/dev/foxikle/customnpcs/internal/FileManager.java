@@ -31,7 +31,7 @@ public class FileManager {
     /**
      * The file version of the npcs.yml file
      */
-    public static final double NPC_FILE_VERSION = 1.5;
+    public static final double NPC_FILE_VERSION = 1.6;
 
     public static File PARENT_DIRECTORY = new File("plugins/CustomNPCs/");
 
@@ -149,6 +149,8 @@ public class FileManager {
         section.addDefault("signature", npc.getSettings().getSignature());
         section.addDefault("skin", npc.getSettings().getSkinName());
         section.addDefault("clickable", npc.getSettings().isInteractable());
+        section.addDefault("customHologram", npc.getSettings().getCustomInteractableHologram());
+        section.addDefault("hideInteractableHologram", npc.getSettings().isHideClickableHologram());
         section.addDefault("location", npc.getSpawnLoc());
         section.addDefault("actions", actions);
         section.addDefault("handItem", npc.getEquipment().getHand());
@@ -237,6 +239,16 @@ public class FileManager {
             plugin.getLogger().warning("Old NPC file version found! Bumping version! (1.4 -> 1.5)");
             yml.set("version", "1.5");
             section.set("tunnelvision", false);
+            try {
+                yml.save(file);
+            } catch (IOException e) {
+                plugin.getLogger().severe("An error occoured whilst saving the tunelvision status to the config. Pleaes report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
+            }
+        } else if (yml.getString("version").equalsIgnoreCase("1.5")) {
+            plugin.getLogger().warning("Old NPC file version found! Bumping version! (1.5 -> 1.6)");
+            yml.set("version", "1.6");
+            yml.set("customHologram", false);
+            yml.set("hideInteractableHologram", "");
             try {
                 yml.save(file);
             } catch (IOException e) {
