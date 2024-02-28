@@ -2,6 +2,7 @@ package dev.foxikle.customnpcs.internal;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import lombok.Getter;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,8 +16,8 @@ import java.util.Scanner;
  */
 public class AutoUpdater {
 
-    private final String API_URL = "https://api.github.com/repos/foxikle/customnpcs/releases/latest";
     private final CustomNPCs plugin;
+    @Getter
     private String newestVersion = "UNKNOWN";
 
     /**
@@ -49,6 +50,7 @@ public class AutoUpdater {
     }
 
     private String getRemoteVersion() throws IOException {
+        String API_URL = "https://api.github.com/repos/foxikle/customnpcs/releases/latest";
         URL apiUrl = new URL(API_URL);
         HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
 
@@ -97,15 +99,5 @@ public class AutoUpdater {
             // Handle non-numeric version parts, like "prex"
             return 0;
         }
-    }
-
-    /**
-     * Gets the latest version
-     * <p>
-     * ** May not be the latest version, as this value is cached on server start. **
-     * @return the latest (cached) version
-     */
-    public String getNewestVersion() {
-        return newestVersion;
     }
 }
