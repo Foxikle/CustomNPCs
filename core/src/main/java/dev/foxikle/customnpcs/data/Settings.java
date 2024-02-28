@@ -130,4 +130,8 @@ public class Settings {
         this.value = value;
         this.skinName = skinName;
     }
+
+    public Settings clone(){
+        return new Settings(interactable, tunnelvision, resilient, direction, value, signature, skinName, name, customInteractableHologram, hideClickableHologram);
+    }
 }

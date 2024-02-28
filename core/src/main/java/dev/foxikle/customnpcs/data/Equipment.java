@@ -58,4 +58,8 @@ public class Equipment {
         this.hand = e.getItemInMainHand().clone();
         this.offhand = e.getItemInOffHand().clone();
     }
+
+    public Equipment clone(){
+        return new Equipment(head.clone(), chest.clone(), legs.clone(), boots.clone(), hand.clone(), offhand.clone());
+    }
 }

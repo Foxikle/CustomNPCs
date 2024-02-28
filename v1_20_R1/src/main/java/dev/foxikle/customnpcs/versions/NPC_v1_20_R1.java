@@ -468,7 +468,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
 
     @Override
     public InternalNpc clone(){
-        return new NPC_v1_20_R1(plugin, world, spawnLoc, equipment, settings, UUID.randomUUID(), target, actions);
+        return new NPC_v1_20_R1(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(), UUID.randomUUID(), target, new ArrayList<>(actions));
     }
 }
 
