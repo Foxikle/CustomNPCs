@@ -113,7 +113,6 @@ public class Action {
             split.remove(0);
             return new Action(sub, split, delay); // doesn't support conditionals
         } else {
-            System.out.println(string);
             return CustomNPCs.getGson().fromJson(string, Action.class);
         }
     }
