@@ -2261,30 +2261,22 @@ public class MenuCore {
         menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
 
         menu.setItem(18, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((player, event) -> {
-            getConditionMenu(plugin.editingActions.get(player));
-
+            getConditionMenu(plugin.editingActions.get(player)).open(player);
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
         }));
 
         menu.addItem(ItemBuilder.of(POPPED_CHORUS_FRUIT).setName("§3Numeric Condition").setLore("§eCompares numbers.").buildItem((player, event) -> {
-
-
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Conditional conditional = new NumericConditional(Conditional.Comparator.EQUAL_TO, Conditional.Value.EXP_LEVELS, 0.0);
             plugin.editingConditionals.put(player, conditional);
             getConditionalCustomizerMenu(conditional).open(player);
-
-
         }));
 
         menu.addItem(ItemBuilder.of(COMPARATOR).setName("§3Logical Condition").setLore("§eCompares things with", "§enumbered options.").buildItem((player, event) -> {
-
-
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Conditional conditional = new LogicalConditional(Conditional.Comparator.EQUAL_TO, Conditional.Value.GAMEMODE, "SURVIVAL");
             plugin.editingConditionals.put(player, conditional);
             getConditionalCustomizerMenu(conditional).open(player);
-
-
         }));
         menu.getFiller().fill(MenuItems.MENU_GLASS);
         return menu;
