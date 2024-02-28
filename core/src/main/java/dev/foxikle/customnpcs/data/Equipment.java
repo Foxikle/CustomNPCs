@@ -51,11 +51,11 @@ public class Equipment {
      * @param e The entity equipment to pull items from.
      */
     public void importFromEntityEquipment(EntityEquipment e) {
-        this.head = e.getHelmet() != null ? e.getHelmet() : new ItemStack(Material.AIR);
-        this.chest = e.getChestplate() != null ? e.getChestplate() : new ItemStack(Material.AIR);
-        this.legs = e.getLeggings() != null ? e.getLeggings() : new ItemStack(Material.AIR);
-        this.boots = e.getBoots() != null ? e.getBoots() : new ItemStack(Material.AIR);
-        this.hand = e.getItemInMainHand();
-        this.offhand = e.getItemInOffHand();
+        this.head = e.getHelmet() != null ? e.getHelmet().clone() : new ItemStack(Material.AIR);
+        this.chest = e.getChestplate() != null ? e.getChestplate().clone() : new ItemStack(Material.AIR);
+        this.legs = e.getLeggings() != null ? e.getLeggings().clone() : new ItemStack(Material.AIR);
+        this.boots = e.getBoots() != null ? e.getBoots().clone() : new ItemStack(Material.AIR);
+        this.hand = e.getItemInMainHand().clone();
+        this.offhand = e.getItemInOffHand().clone();
     }
 }
