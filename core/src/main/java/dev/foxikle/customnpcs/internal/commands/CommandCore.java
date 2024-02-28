@@ -197,7 +197,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     InternalNpc npc;
                     try {
                         uuid = UUID.fromString(args[1]);
-                        if(plugin.getNPCByID(uuid) == null) {
+                        if (plugin.getNPCByID(uuid) == null) {
                             player.sendMessage(Utils.style("&cThe UUID provided does not match any NPC."));
                             return true;
                         }
@@ -229,35 +229,43 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         }
 
                         if (uuid == null) return true;
-                        if(plugin.getNPCByID(uuid) == null) {
+                        if (plugin.getNPCByID(uuid) == null) {
                             player.sendMessage(Utils.style("&cThe UUID provided does not match any NPC."));
                             return true;
                         }
                         npc = plugin.getNPCByID(uuid);
                     }
-                    if (args[0].equalsIgnoreCase("delete")) {
-                        if (!player.hasPermission("customnpcs.delete")) {
-                            player.sendMessage(Utils.style("&cYou lack the propper permissions to delete npcs."));
-                            return true;
+                    switch (args[0].toLowerCase()) {
+                        case "delete" -> {
+                            if (!player.hasPermission("customnpcs.delete")) {
+                                player.sendMessage(Utils.style("&cYou lack the propper permissions to delete npcs."));
+                                return true;
+                            }
+                            MenuUtils.getDeletionConfirmationMenu(npc, null).open(player);
                         }
-                        MenuUtils.getDeletionConfirmationMenu(npc, null).open(player);
-                    } else if (args[0].equalsIgnoreCase("edit")) {
-                        if (!player.hasPermission("customnpcs.edit")) {
-                            player.sendMessage(Utils.style("&cYou lack the propper permissions to edit npcs."));
-                            return true;
-                        }
-                        if (plugin.npcs.containsKey(uuid)) {
+                        case "edit" -> {
+                            if (!player.hasPermission("customnpcs.edit")) {
+                                player.sendMessage(Utils.style("&cYou lack the propper permissions to edit npcs."));
+                                return true;
+                            }
+
                             InternalNpc finalNpc = npc;
                             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                                 InternalNpc newNpc = plugin.createNPC(player.getWorld(), finalNpc.getSpawnLoc(), finalNpc.getEquipment(), finalNpc.getSettings(), finalNpc.getUniqueID(), null, finalNpc.getActions());
                                 MenuCore mc = new MenuCore(newNpc, plugin);
                                 plugin.menuCores.put(player, mc);
-                                plugin.pages.put(player, 0);
                                 mc.getMainMenu().open(player);
                             }, 1);
                         }
-                    } else
-                        sender.sendMessage(Utils.style("&cUnrecognised sub-command. Use '/npc help' for a list of supported commands."));
+                        case "goto" -> {
+                            if(!player.hasPermission("customnpcs.commands.goto")) {
+                                player.sendMessage(Utils.style("&cYou lack the propper permissions to go to npcs."));
+                                return true;
+                            }
+                            player.teleportAsync(npc.getCurrentLocation());
+                        }
+                        default -> sender.sendMessage(Utils.style("&cUnrecognised sub-command. Use '/npc help' for a list of supported commands."));
+                    }
                 }
             }
         } else if (args[0].equalsIgnoreCase("reload")) {
@@ -354,6 +362,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             list.add("delete");
             list.add("edit");
             list.add("reload");
+            list.add("goto");
             list.add("clear_holograms");
             list.add("wiki");
             if (plugin.soundWaiting.contains((Player) sender)) list.add("setsound");
@@ -365,7 +374,6 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 return list;
             }
             plugin.npcs.forEach((uuid, npc) -> {
-                list.add(uuid.toString());
                 list.add(plugin.getMiniMessage().stripTags(npc.getSettings().getName()));
             });
         }
