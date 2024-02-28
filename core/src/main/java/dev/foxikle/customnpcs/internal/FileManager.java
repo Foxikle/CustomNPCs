@@ -74,7 +74,7 @@ public class FileManager {
 
         int version = yml.getInt("CONFIG_VERSION");
         if (version == 0) { // doesn't exist?
-            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
+            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 1));
             yml.set("CONFIG_VERSION", 1);
             yml.setComments("CONFIG_VERSION", List.of(" DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.", ""));
             yml.set("ClickText", "&e&lCLICK");
@@ -88,9 +88,8 @@ public class FileManager {
             }
         }
         if (version < 2) { // prior to 1.4-pre2
-            version = 2;
-            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
-            yml.set("CONFIG_VERSION", version);
+            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 2));
+            yml.set("CONFIG_VERSION", 2);
             yml.set("AlertOnUpdate", true);
             try {
                 yml.save(file);
@@ -99,9 +98,8 @@ public class FileManager {
             }
         }
         if (version < 3) { // prior to 1.5.2-pre1
-            version = 3;
-            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
-            yml.set("CONFIG_VERSION", version);
+            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 3));
+            yml.set("CONFIG_VERSION", 3);
             yml.set("ClickText", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(yml.getString("ClickText"))));
             try {
                 yml.save(file);
@@ -110,9 +108,8 @@ public class FileManager {
             }
         }
         if(version < 4) { //prior to 1.6-pre2
-            version = 4;
-            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
-            yml.set("CONFIG_VERSION", version);
+            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 4));
+            yml.set("CONFIG_VERSION", 4);
             yml.set("DisableCollisions", true);
             try {
                 yml.save(file);
@@ -121,9 +118,8 @@ public class FileManager {
             }
         }
         if(version < 5) {
-            version = 5;
-            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, CONFIG_FILE_VERSION));
-            yml.set("CONFIG_VERSION", version);
+            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 5));
+            yml.set("CONFIG_VERSION", 5);
             yml.set("NameReferenceMessages", true);
             try {
                 yml.save(file);
