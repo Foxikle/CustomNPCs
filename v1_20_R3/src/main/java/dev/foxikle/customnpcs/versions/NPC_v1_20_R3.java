@@ -313,12 +313,11 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
      * </p>
      */
     public void remove() {
-        hologram.remove();
-        if(clickableHologram != null)
-            clickableHologram.remove();
+        if(hologram != null) hologram.remove();
+        if(clickableHologram != null) clickableHologram.remove();
         super.remove(RemovalReason.DISCARDED);
         super.setHealth(0);
-        for (Player p: Bukkit.getOnlinePlayers()) {
+        for (Player p : Bukkit.getOnlinePlayers()) {
             ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
             ClientboundRemoveEntitiesPacket playerInforemove = new ClientboundRemoveEntitiesPacket(super.getId());
             connection.send(playerInforemove);
