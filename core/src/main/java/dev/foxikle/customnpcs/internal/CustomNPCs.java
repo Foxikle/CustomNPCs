@@ -219,6 +219,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
                 for (InternalNpc npc : npcs.values()) {
                     if (npc.getSettings().isTunnelvision()) {
+                        npc.setYRotation((float) npc.getSettings().getDirection());
                         npc.lookAt(calcLocation(npc));
                     }
                 }
