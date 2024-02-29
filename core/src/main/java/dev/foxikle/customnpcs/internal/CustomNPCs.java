@@ -249,7 +249,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         double heading = -Math.toRadians(yaw);
         // trig to calculate the position
         loc.add(5 * Math.sin(heading),
-                1.8 + -5 * Math.sin(Math.toRadians(npc.getSpawnLoc().getPitch())),
+                1.6 + -5 * Math.sin(Math.toRadians(npc.getSpawnLoc().getPitch())),
                 5 * Math.cos(heading)
         );
 
