@@ -19,7 +19,7 @@ public class Settings {
 
 
     @Setter @Getter
-    boolean resilient = false;
+    boolean resilient = true;
 
     @Setter @Getter
     double direction = 180;
