@@ -201,7 +201,7 @@ public class MenuUtils {
 
         menu.setItem(15, ItemBuilder.of(Material.LIME_STAINED_GLASS_PANE)
                 .setName(Utils.style("&a&lGO BACK"))
-                .setLore(Utils.style("&aBack to saftey!"))
+                .setLore(Utils.style("&aBack to safety!"))
                 .buildItem((player, event) -> {
                     player.playSound(player, Sound.UI_BUTTON_CLICK,1, 1);
                     if(toReturnTo != null) {
