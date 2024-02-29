@@ -1,14 +1,11 @@
 package dev.foxikle.customnpcs.actions.conditions;
 
-import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.TypeAdapter;
-import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.ActionType;
-import dev.foxikle.customnpcs.internal.CustomNPCs;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,7 +50,7 @@ public class ActionAdapter extends TypeAdapter<Action> {
         while (in.hasNext()) {
             String name = in.nextName();
             switch (name) {
-                case "actionType" -> actionType = ActionType.valueOf(in.nextString());
+                case "actionType", "subCommand" -> actionType = ActionType.valueOf(in.nextString());
                 case "args" -> {
                     in.beginArray();
                     while(in.hasNext()) {
