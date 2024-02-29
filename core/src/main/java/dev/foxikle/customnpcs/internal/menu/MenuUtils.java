@@ -80,6 +80,7 @@ public class MenuUtils {
                 .pagination();
         menu.setDynamicSizing(true);
         menu.setOnPageChange(event -> {
+            event.getPlayer().playSound(event.getPlayer(), Sound.UI_BUTTON_CLICK, 1, 1);
             if (event.getCurrentPageNumber() > event.getOldPageNumber()) {
                 event.getMenu().next();
                 return;
@@ -87,7 +88,10 @@ public class MenuUtils {
             event.getMenu().previous();
         });
         menu.setPageItem(new int[]{0,1,2,3,4,5,6,7,8,9,17,18,26,27,35,36,44,46,47,48,50,51,52}, MenuItems.MENU_GLASS);
-        menu.setPageItem(new int[]{49}, ItemBuilder.of(Material.BARRIER).setName(Utils.style("&cGo Back")).buildItem((player, event) -> plugin.menuCores.get(player).getMainMenu().open(player)));
+        menu.setPageItem(new int[]{49}, ItemBuilder.of(Material.BARRIER).setName(Utils.style("&cGo Back")).buildItem((player, event) -> {
+            plugin.menuCores.get(player).getMainMenu().open(player);
+            player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+        }));
 
         menu.addItems(makeIcons().toArray(new MenuItem[0]));
         return menu;
