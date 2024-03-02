@@ -165,11 +165,11 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
      */
     public TextDisplay setupClickableHologram(String name) {
         clickableHologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
-        hologram.setInvulnerable(true);
-        hologram.setBillboard(Display.Billboard.CENTER);
-        hologram.text(plugin.getMiniMessage().deserialize(name));
-        hologram.addScoreboardTag("npcHologram");
-        return hologram;
+        clickableHologram.setInvulnerable(true);
+        clickableHologram.setBillboard(Display.Billboard.CENTER);
+        clickableHologram.text(plugin.getMiniMessage().deserialize(name));
+        clickableHologram.addScoreboardTag("npcHologram");
+        return clickableHologram;
     }
 
     /**
