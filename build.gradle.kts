@@ -62,8 +62,7 @@ tasks {
         options.release.set(17)
     }
     javadoc {
-        (options as StandardJavadocDocletOptions)
-                .tags("apiNote:a:API Note:")
+        (options as StandardJavadocDocletOptions).tags("apiNote:a:API Note:")
         options.encoding = Charsets.UTF_8.name()
         exclude("**/internal/**", "**/versions/**")
     }

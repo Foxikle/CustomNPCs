@@ -78,6 +78,10 @@ public interface Conditional {
      */
     String getTarget();
 
+    /**
+     * Clones this conditional object
+     * @return the cloned object
+     */
     Conditional clone();
 
     /**
