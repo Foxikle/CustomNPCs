@@ -11,7 +11,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A TypeAdapter for Gson
+ */
 public class ActionAdapter extends TypeAdapter<Action> {
+
+    /**
+     * Serializes the Action object to json
+     * @param out The json writer
+     * @param value the Java object to write. May be null.
+     * @throws IOException if an IOException occours
+     */
     @Override
     public void write(JsonWriter out, Action value) throws IOException {
         out.beginObject();
@@ -37,6 +47,13 @@ public class ActionAdapter extends TypeAdapter<Action> {
         out.close();
     }
 
+
+    /**
+     * deserializes an Action
+     * @param in the object, in reader form
+     * @return the deserialized action
+     * @throws IOException if an error occoured
+     */
     @Override
     public Action read(JsonReader in) throws IOException {
         in.beginObject();
