@@ -94,13 +94,13 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
      * </p>
      */
     public void createNPC() {
-        Bukkit.getScheduler().runTask(plugin, () -> this.hologram = setupHologram(settings.getName()));
+        Bukkit.getScheduler().runTask(plugin, () -> setupHologram(settings.getName()));
         Bukkit.getScheduler().runTask(plugin, () -> {
             if(settings.isInteractable() && !settings.isHideClickableHologram()) {
                 if(settings.getCustomInteractableHologram() == null || settings.getCustomInteractableHologram().isEmpty()) {
-                    this.clickableHologram = setupClickableHologram(plugin.getConfig().getString("ClickText"));
+                    setupClickableHologram(plugin.getConfig().getString("ClickText"));
                 } else {
-                    this.clickableHologram = setupClickableHologram(settings.getCustomInteractableHologram());
+                    setupClickableHologram(settings.getCustomInteractableHologram());
                 }
             }
         });
@@ -149,7 +149,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
      * @return the TextDisplay representing the NPC's nametag
      */
     public TextDisplay setupHologram(String name) {
-        TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), settings.isInteractable() && !settings.isHideClickableHologram() && plugin.getConfig().getBoolean("DisplayClickText") ? spawnLoc.getY() + 2.33 : spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
+        hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), settings.isInteractable() && !settings.isHideClickableHologram() && plugin.getConfig().getBoolean("DisplayClickText") ? spawnLoc.getY() + 2.33 : spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
         hologram.setInvulnerable(true);
         hologram.setBillboard(Display.Billboard.CENTER);
         hologram.text(plugin.getMiniMessage().deserialize(name));
@@ -164,7 +164,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
      * @return the TextDisplay representing the NPC's hologram
      */
     public TextDisplay setupClickableHologram(String name) {
-        TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
+        clickableHologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
         hologram.setInvulnerable(true);
         hologram.setBillboard(Display.Billboard.CENTER);
         hologram.text(plugin.getMiniMessage().deserialize(name));
@@ -403,12 +403,12 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
             clickableHologram.remove();
 
         Bukkit.getScheduler().runTask(plugin, () -> {
-            this.hologram = setupHologram(settings.getName());
+            setupHologram(settings.getName());
             if(settings.isInteractable() && !settings.isHideClickableHologram()) {
                 if(settings.getCustomInteractableHologram().isEmpty()) {
-                    this.clickableHologram = setupClickableHologram(plugin.getConfig().getString("ClickText"));
+                    setupClickableHologram(plugin.getConfig().getString("ClickText"));
                 } else {
-                    this.clickableHologram = setupClickableHologram(settings.getCustomInteractableHologram());
+                    setupClickableHologram(settings.getCustomInteractableHologram());
                 }
             }
         });
