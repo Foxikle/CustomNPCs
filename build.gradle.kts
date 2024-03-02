@@ -62,6 +62,7 @@ tasks {
         options.release.set(17)
     }
     javadoc {
+        dependsOn("aggregatedJavadocs")
         (options as StandardJavadocDocletOptions).tags("apiNote:a:API Note:")
         options.encoding = Charsets.UTF_8.name()
         exclude("**/internal/**", "**/versions/**")
@@ -86,3 +87,21 @@ tasks {
         destinationDirectory.set(file(providers.gradleProperty("plugin_dir").get()))
     }
 }
+
+tasks.register<Javadoc>("aggregatedJavadocs") {
+    description = "Generate javadocs from all child projects as if it was a single project"
+    group = "Documentation"
+    title = "${project.name} $version API"
+    (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
+    (options as StandardJavadocDocletOptions).addStringOption("sourcepath", "")
+
+    subprojects.forEach { proj ->
+        proj.tasks.withType<Javadoc>().forEach { javadocTask ->
+            source += javadocTask.source
+            classpath += javadocTask.classpath
+            excludes += javadocTask.excludes
+            includes += javadocTask.includes
+        }
+    }
+}
+
