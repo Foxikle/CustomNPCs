@@ -853,7 +853,7 @@ public class MenuCore {
                 }
                 case TOGGLE_FOLLOWING -> {
                     builder = ItemBuilder.of(LEAD).setName(Utils.style("&d&l[WIP]&r&e Toggle Following"));
-                    lore = Utils.list("");
+                    lore = Utils.list(Utils.style("&4&lThis Action is currently broken."));
                 }
                 default -> {
                     builder = ItemBuilder.of(BEDROCK);
@@ -2132,8 +2132,7 @@ public class MenuCore {
 
         }));
 
-        menu.addItem(ItemBuilder.of(LEAD).setName("§bStart/Stop Following").setLore("§eToggles whether or not the", "§eNPC follows this player.").buildItem((player, event) -> {
-
+        menu.addItem(ItemBuilder.of(LEAD).setName("§bStart/Stop Following").setLore("§eToggles whether or not the", "§eNPC follows this player.", Utils.style("&4&lThis Action is currently broken.")).buildItem((player, event) -> {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.TOGGLE_FOLLOWING, Collections.singletonList(npc.getUniqueID().toString()), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().isDuplicatable()) {
@@ -2149,7 +2148,6 @@ public class MenuCore {
             }
             plugin.editingActions.put(player, action);
             getActionCustomizerMenu(action).open(player);
-
         }));
 
         menu.addItem(ItemBuilder.of(EXPERIENCE_BOTTLE).setName("§bGive Exp").setLore("§eGives the player exp.").buildItem((player, event) -> {

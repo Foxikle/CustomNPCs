@@ -4,7 +4,6 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.Utils;
-import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -200,17 +199,18 @@ public class NPCActionCommand implements CommandExecutor {
                         }
                     }
                     case "TOGGLE_FOLLOWING" -> { //UUID of NPC
-                        if(!args.isEmpty()) {
-                            if (plugin.npcs.containsKey(UUID.fromString(args.get(0)))) {
-                                UUID npcId = UUID.fromString(args.get(0));
-                                InternalNpc npc = plugin.getNPCByID(npcId);
-                                if(npc.getTarget() == player){
-                                    npc.setTarget(null);
-                                } else {
-                                    npc.setTarget(player);
-                                }
-                            }
-                        }
+                        player.sendMessage(Utils.style("\n&eHey! This action is &4currently broken&e, sorry for the inconvience! Its currently being replaced with the new AI system! \n\n-Foxikle"));
+//                        if(!args.isEmpty()) {
+//                            if (plugin.npcs.containsKey(UUID.fromString(args.get(0)))) {
+//                                UUID npcId = UUID.fromString(args.get(0));
+//                                InternalNpc npc = plugin.getNPCByID(npcId);
+//                                if(npc.getTarget() == player){
+//                                    npc.setTarget(null);
+//                                } else {
+//                                    npc.setTarget(player);
+//                                }
+//                            }
+//                        }
                     }
                 }
                 }, delay);
