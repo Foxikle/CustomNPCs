@@ -1111,11 +1111,29 @@ public class MenuCore {
                 //decrements
                 menu.setItem(28, ItemBuilder.of(RED_DYE).setName("§eDecrease fade in duration").setLore(decLore).buildItem((player, event) -> {
                     if (event.isShiftClick()) {
-                        action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
+                        if (Integer.parseInt(action.getArgs().get(0)) == 1) {
+                            player.sendMessage("§cThe duration cannot be less than 1!");
+                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 20) < 1) {
+                            action.getArgs().set(0, String.valueOf(1));
+                        } else {
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
+                        }
                     } else if (event.isLeftClick()) {
-                        action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 1));
+                        if (Integer.parseInt(action.getArgs().get(0)) == 1) {
+                            player.sendMessage("§cThe duration cannot be less than 1!");
+                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 1) < 1) {
+                            action.getArgs().set(0, String.valueOf(1));
+                        } else {
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 1));
+                        }
                     } else if (event.isRightClick()) {
-                        action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 5));
+                        if (Integer.parseInt(action.getArgs().get(0)) == 1) {
+                            player.sendMessage("§cThe duration cannot be less than 1!");
+                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 5) < 1) {
+                            action.getArgs().set(0, String.valueOf(1));
+                        } else {
+                            action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 5));
+                        }
                     }
                     getActionCustomizerMenu(action).open(player);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -1123,11 +1141,29 @@ public class MenuCore {
 
                 menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease display duration").setLore(decLore).buildItem((player, event) -> {
                     if (event.isShiftClick()) {
-                        action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
+                        if (Integer.parseInt(action.getArgs().get(1)) == 1) {
+                            player.sendMessage("§cThe duration cannot be less than 1!");
+                        } else if ((Integer.parseInt(action.getArgs().get(1)) - 21) < 1) {
+                            action.getArgs().set(1, String.valueOf(1));
+                        } else {
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 20));
+                        }
                     } else if (event.isLeftClick()) {
-                        action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 1));
+                        if (Integer.parseInt(action.getArgs().get(1)) == 1) {
+                            player.sendMessage("§cThe duration cannot be less than 1!");
+                        } else if ((Integer.parseInt(action.getArgs().get(1)) - 1) < 1) {
+                            action.getArgs().set(1, String.valueOf(1));
+                        } else {
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 1));
+                        }
                     } else if (event.isRightClick()) {
-                        action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 5));
+                        if (Integer.parseInt(action.getArgs().get(1)) == 1) {
+                            player.sendMessage("§cThe duration cannot be less than 1!");
+                        } else if ((Integer.parseInt(action.getArgs().get(1)) - 5) < 1) {
+                            action.getArgs().set(1, String.valueOf(1));
+                        } else {
+                            action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 5));
+                        }
                     }
                     getActionCustomizerMenu(action).open(player);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -1135,11 +1171,29 @@ public class MenuCore {
 
                 menu.setItem(32, ItemBuilder.of(RED_DYE).setName("§eDecrease fade out duration").setLore(decLore).buildItem((player, event) -> {
                     if (event.isShiftClick()) {
-                        action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 20));
+                        if (Integer.parseInt(action.getArgs().get(2)) == 1) {
+                            player.sendMessage("§cThe duration cannot be less than 1!");
+                        } else if ((Integer.parseInt(action.getArgs().get(2)) - 20) < 1) {
+                            action.getArgs().set(2, String.valueOf(1));
+                        } else {
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 20));
+                        }
                     } else if (event.isLeftClick()) {
-                        action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 1));
+                        if (Integer.parseInt(action.getArgs().get(2)) == 1) {
+                            player.sendMessage("§cThe duration cannot be less than 1!");
+                        } else if ((Integer.parseInt(action.getArgs().get(2)) - 1) < 1) {
+                            action.getArgs().set(2, String.valueOf(1));
+                        } else {
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 1));
+                        }
                     } else if (event.isRightClick()) {
-                        action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 5));
+                        if (Integer.parseInt(action.getArgs().get(2)) == 1) {
+                            player.sendMessage("§cThe duration cannot be less than 1!");
+                        } else if ((Integer.parseInt(action.getArgs().get(2)) - 5) < 1) {
+                            action.getArgs().set(2, String.valueOf(1));
+                        } else {
+                            action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 5));
+                        }
                     }
                     getActionCustomizerMenu(action).open(player);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -1205,26 +1259,26 @@ public class MenuCore {
                 //decrements
                 menu.setItem(28, ItemBuilder.of(RED_DYE).setName("§eDecrease effect duration").setLore(decLore).buildItem((player, event) -> {
                     if (event.isShiftClick()) {
-                        if (Integer.parseInt(action.getArgs().get(0)) == -1) {
+                        if (Integer.parseInt(action.getArgs().get(0)) == 1) {
                             player.sendMessage("§cThe duration cannot be less than 1!");
-                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 20) < -1) {
-                            action.getArgs().set(0, String.valueOf(-1));
+                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 20) < 1) {
+                            action.getArgs().set(0, String.valueOf(1));
                         } else {
                             action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
                         }
                     } else if (event.isLeftClick()) {
-                        if (Integer.parseInt(action.getArgs().get(0)) == -1) {
+                        if (Integer.parseInt(action.getArgs().get(0)) == 1) {
                             player.sendMessage("§cThe duration cannot be less than 1!");
-                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 1) < -1) {
-                            action.getArgs().set(0, String.valueOf(-1));
+                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 1) < 1) {
+                            action.getArgs().set(0, String.valueOf(1));
                         } else {
                             action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 1));
                         }
                     } else if (event.isRightClick()) {
-                        if (Integer.parseInt(action.getArgs().get(0)) == -1) {
+                        if (Integer.parseInt(action.getArgs().get(0)) == 1) {
                             player.sendMessage("§cThe duration cannot be less than 1!");
-                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 5) < -1) {
-                            action.getArgs().set(0, String.valueOf(-1));
+                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 5) < 1) {
+                            action.getArgs().set(0, String.valueOf(1));
                         } else {
                             action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 5));
                         }
@@ -1235,26 +1289,26 @@ public class MenuCore {
 
                 menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease effect amplifier").setLore(decLore).buildItem((player, event) -> {
                     if (event.isShiftClick()) {
-                        if (Integer.parseInt(action.getArgs().get(1)) == -1) {
+                        if (Integer.parseInt(action.getArgs().get(1)) == 1) {
                             player.sendMessage("§cThe amplifier cannot be less than 1!");
-                        } else if ((Integer.parseInt(action.getArgs().get(1)) - 20) < -1) {
-                            action.getArgs().set(1, String.valueOf(-1));
+                        } else if ((Integer.parseInt(action.getArgs().get(1)) - 20) < 1) {
+                            action.getArgs().set(1, String.valueOf(1));
                         } else {
                             action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 20));
                         }
                     } else if (event.isLeftClick()) {
-                        if (Integer.parseInt(action.getArgs().get(1)) == -1) {
+                        if (Integer.parseInt(action.getArgs().get(1)) == 1) {
                             player.sendMessage("§cThe amplifier cannot be less than 1!");
-                        } else if ((Integer.parseInt(action.getArgs().get(1)) - 1) < -1) {
-                            action.getArgs().set(1, String.valueOf(-1));
+                        } else if ((Integer.parseInt(action.getArgs().get(1)) - 1) < 1) {
+                            action.getArgs().set(1, String.valueOf(1));
                         } else {
                             action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 1));
                         }
                     } else if (event.isRightClick()) {
-                        if (Integer.parseInt(action.getArgs().get(1)) == -1) {
+                        if (Integer.parseInt(action.getArgs().get(1)) == 1) {
                             player.sendMessage("§cThe amplifier cannot be less than 1!");
-                        } else if ((Integer.parseInt(action.getArgs().get(1)) - 5) < -1) {
-                            action.getArgs().set(1, String.valueOf(-1));
+                        } else if ((Integer.parseInt(action.getArgs().get(1)) - 5) < 1) {
+                            action.getArgs().set(1, String.valueOf(1));
                         } else {
                             action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 5));
                         }
@@ -1347,26 +1401,26 @@ public class MenuCore {
                 menu.setItem(20, ItemBuilder.of(CLOCK).setName("§eXp to give: " + args.get(0)).buildItem());
                 menu.setItem(29, ItemBuilder.of(RED_DYE).setName("§eDecrease xp").setLore(decLore).buildItem((player, event) -> {
                     if (event.isShiftClick()) {
-                        if (Integer.parseInt(action.getArgs().get(0)) == -1) {
+                        if (Integer.parseInt(action.getArgs().get(0)) == 1) {
                             player.sendMessage("§cThe xp cannot be less than 1!");
-                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 20) < -1) {
-                            action.getArgs().set(0, String.valueOf(-1));
+                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 20) < 1) {
+                            action.getArgs().set(0, String.valueOf(1));
                         } else {
                             action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
                         }
                     } else if (event.isLeftClick()) {
-                        if (Integer.parseInt(action.getArgs().get(0)) == -1) {
+                        if (Integer.parseInt(action.getArgs().get(0)) == 1) {
                             player.sendMessage("§cThe xp cannot be less than 1!");
-                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 1) < -1) {
-                            action.getArgs().set(0, String.valueOf(-1));
+                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 1) < 1) {
+                            action.getArgs().set(0, String.valueOf(1));
                         } else {
                             action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 1));
                         }
                     } else if (event.isRightClick()) {
-                        if (Integer.parseInt(action.getArgs().get(0)) == -1) {
+                        if (Integer.parseInt(action.getArgs().get(0)) == 1) {
                             player.sendMessage("§cThe xp cannot be less than 1!");
-                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 5) < -1) {
-                            action.getArgs().set(0, String.valueOf(-1));
+                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 5) < 1) {
+                            action.getArgs().set(0, String.valueOf(1));
                         } else {
                             action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 5));
                         }
@@ -1398,26 +1452,26 @@ public class MenuCore {
                 menu.setItem(20, ItemBuilder.of(CLOCK).setName("§eXp to remove: " + args.get(0)).buildItem());
                 menu.setItem(29, ItemBuilder.of(RED_DYE).setName("§eDecrease xp").setLore(decLore).buildItem((player, event) -> {
                     if (event.isShiftClick()) {
-                        if (Integer.parseInt(action.getArgs().get(0)) == -1) {
+                        if (Integer.parseInt(action.getArgs().get(0)) == 1) {
                             player.sendMessage("§cThe xp cannot be less than 1!");
-                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 20) < -1) {
-                            action.getArgs().set(0, String.valueOf(-1));
+                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 20) < 1) {
+                            action.getArgs().set(0, String.valueOf(1));
                         } else {
                             action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
                         }
                     } else if (event.isLeftClick()) {
-                        if (Integer.parseInt(action.getArgs().get(0)) == -1) {
+                        if (Integer.parseInt(action.getArgs().get(0)) == 1) {
                             player.sendMessage("§cThe xp cannot be less than 1!");
-                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 1) < -1) {
-                            action.getArgs().set(0, String.valueOf(-1));
+                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 1) < 1) {
+                            action.getArgs().set(0, String.valueOf(1));
                         } else {
                             action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 1));
                         }
                     } else if (event.isRightClick()) {
-                        if (Integer.parseInt(action.getArgs().get(0)) == -1) {
+                        if (Integer.parseInt(action.getArgs().get(0)) == 1) {
                             player.sendMessage("§cThe xp cannot be less than 1!");
-                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 5) < -1) {
-                            action.getArgs().set(0, String.valueOf(-1));
+                        } else if ((Integer.parseInt(action.getArgs().get(0)) - 5) < 1) {
+                            action.getArgs().set(0, String.valueOf(1));
                         } else {
                             action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 5));
                         }
@@ -1675,10 +1729,9 @@ public class MenuCore {
                 }));
 
                 menu.setItem(32, ItemBuilder.of(RED_DYE).setName("§eDecrease Pitch").setLore(decLore).buildItem((player, event) -> {
-
                     if (event.isLeftClick()) {
                         if (Integer.parseInt(action.getArgs().get(4)) == -90) {
-                            player.sendMessage("§cThe pitch cannot be less than 90!");
+                            player.sendMessage("§cThe pitch cannot be less than -90!");
                         } else if ((Integer.parseInt(action.getArgs().get(4)) - 1) < -90) {
                             action.getArgs().set(4, String.valueOf(-90));
                         } else {
@@ -1686,7 +1739,7 @@ public class MenuCore {
                         }
                     } else if (event.isRightClick()) {
                         if (Integer.parseInt(action.getArgs().get(4)) == -90) {
-                            player.sendMessage("§cThe pitch cannot be less than 90!");
+                            player.sendMessage("§cThe pitch cannot be less than -90!");
                         } else if ((Integer.parseInt(action.getArgs().get(4)) - 5) < -90) {
                             action.getArgs().set(4, String.valueOf(-90));
                         } else {
@@ -1694,7 +1747,7 @@ public class MenuCore {
                         }
                     } else if (event.isShiftClick()) {
                         if (Integer.parseInt(action.getArgs().get(4)) == -90) {
-                            player.sendMessage("§cThe pitch cannot be less than 90!");
+                            player.sendMessage("§cThe pitch cannot be less than -90!");
                         } else if ((Integer.parseInt(action.getArgs().get(4)) - 20) < -90) {
                             action.getArgs().set(4, String.valueOf(-90));
                         } else {
