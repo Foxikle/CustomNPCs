@@ -7,7 +7,7 @@ authors: [ Foxikle ]
 website: https://foxikle.dev/plugins
 description: A simple NPC plugin.
 libraries:
-  - com.google.code.gson:gson:2.8.8
+  - com.google.code.gson:gson:2.10.1
 commands:
   npc:
     description: The core command for CustomNPCs
