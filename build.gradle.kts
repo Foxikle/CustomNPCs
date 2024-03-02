@@ -1,7 +1,6 @@
 plugins {
     `java-library`
     `maven-publish`
-    id("io.papermc.paperweight.userdev") version "1.5.11"
     id("xyz.jpenilla.run-paper") version "2.2.3"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -9,20 +8,24 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+    maven("https://repo.inventivetalent.org/repository/public/")
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.20.2-R0.1-SNAPSHOT")
-    implementation("org.bstats:bstats-bukkit:3.0.2")
-    compileOnly("me.clip:placeholderapi:2.11.5")
+    implementation(project(":api"))
+    implementation(project(":core"))
+    implementation(project(":v1_20_R3", "reobf"))
+    implementation(project(":v1_20_R2", "reobf"))
+    implementation(project(":v1_20_R1", "reobf"))
 }
 
-group = "dev.foxikle"
-version = "1.5.2"
-description = "CustomNPCs"
-java.sourceCompatibility = JavaVersion.VERSION_16
+allprojects {
+    group = "dev.foxikle"
+    version = "1.6"
+    description = "CustomNPCs"
+}
 
+java.sourceCompatibility = JavaVersion.VERSION_17
 
 publishing {
     repositories {
@@ -40,30 +43,32 @@ publishing {
             groupId = project.group.toString()
             artifactId = project.name
             version = project.version.toString()
-            artifact(tasks.named("jar")) {
-                classifier = null
-            }
-            from(components["java"])
+            artifact(tasks["shadowJar"])
         }
     }
 }
 
 tasks {
     assemble {
-        dependsOn(reobfJar)
+        dependsOn(shadowJar)
+    }
+
+    build {
         dependsOn(shadowJar)
     }
 
     compileJava {
-        options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
+        options.encoding = Charsets.UTF_8.name()
         options.release.set(17)
     }
     javadoc {
-        options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
-        exclude("**/internal/**");
+        (options as StandardJavadocDocletOptions)
+                .tags("apiNote:a:API Note:")
+        options.encoding = Charsets.UTF_8.name()
+        exclude("**/internal/**", "**/versions/**")
     }
     processResources {
-        filteringCharset = Charsets.UTF_8.name() // We want UTF-8 for everything
+        filteringCharset = Charsets.UTF_8.name()
         val props = mapOf(
                 "name" to project.name,
                 "version" to project.version,
@@ -76,12 +81,9 @@ tasks {
         }
     }
 
-    reobfJar {
-        outputJar.set(layout.buildDirectory.file("C:/Users/tscal/Desktop/testserver/plugins/CustomNPCs-${project.version}.jar"))
-    }
-
     shadowJar {
+        archiveClassifier.set("")
         relocate("org.bstats", "dev.foxikle.dependencies.bstats")
+        destinationDirectory.set(file(providers.gradleProperty("plugin_dir").get()))
     }
 }
-
