@@ -1,6 +1,8 @@
 package dev.foxikle.customnpcs.internal;
 
+import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -58,5 +60,23 @@ public class Utils {
         player.setLevel(level);
         player.setExp(0);
         player.giveExp(xp);
+    }
+
+    /**
+     * Calculates the Location for the NPCs to look at.
+     * @param npc the NPC
+     * @return the location to look at
+     */
+    public static Location calcLocation(InternalNpc npc) {
+        Location loc = npc.getCurrentLocation();
+        double yaw = npc.getSettings().getDirection();
+        double heading = -Math.toRadians(yaw);
+        // trig to calculate the position
+        loc.add(5 * Math.sin(heading),
+                1.6 + -5 * Math.sin(Math.toRadians(npc.getSpawnLoc().getPitch())),
+                5 * Math.cos(heading)
+        );
+
+        return loc;
     }
 }

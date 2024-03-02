@@ -8,6 +8,7 @@ import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
+import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -426,6 +427,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         super.setYRot(f);
         super.setYBodyRot(f);
         super.setYHeadRot(f);
+        lookAt(Utils.calcLocation(this));
     }
 
     @Override

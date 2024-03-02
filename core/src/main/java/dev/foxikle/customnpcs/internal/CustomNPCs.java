@@ -221,7 +221,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                 for (InternalNpc npc : npcs.values()) {
                     if (npc.getSettings().isTunnelvision()) {
                         npc.setYRotation((float) npc.getSettings().getDirection());
-                        npc.lookAt(calcLocation(npc));
+                        npc.lookAt(Utils.calcLocation(npc));
                     }
                 }
             }, 0, 20);
@@ -243,19 +243,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         if (getConfig().getBoolean("DisableCollisions"))
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         team.setPrefix(Utils.style("&8[NPC] "));
-    }
-
-    private Location calcLocation(InternalNpc npc) {
-        Location loc = npc.getCurrentLocation();
-        double yaw = npc.getSettings().getDirection();
-        double heading = -Math.toRadians(yaw);
-        // trig to calculate the position
-        loc.add(5 * Math.sin(heading),
-                1.6 + -5 * Math.sin(Math.toRadians(npc.getSpawnLoc().getPitch())),
-                5 * Math.cos(heading)
-        );
-
-        return loc;
     }
 
     /**
@@ -348,7 +335,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * Creates an npc
      *
      * @param world     the world
-     * @param spawnLoc  the location to spawn it
+     * @param location  the location to spawn it
      * @param equipment the equipment object representing the NPC's items
      * @param settings  the settings object representing the NPC's settings
      * @param uuid      the NPC's UUID
@@ -356,12 +343,12 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @param actions   the NPC's actions
      * @return the created NPC
      */
-    public InternalNpc createNPC(World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actions) {
+    public InternalNpc createNPC(World world, Location location, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actions) {
         try {
             Class<?> clazz = Class.forName(String.format(NPC_CLASS, translateVersion()));
             return (InternalNpc) clazz
                     .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class, UUID.class, Player.class, List.class)
-                    .newInstance(this, world, spawnLoc, equipment, settings, uuid, target, actions);
+                    .newInstance(this, world, location, equipment, settings, uuid, target, actions);
         } catch (ReflectiveOperationException e) {
             getLogger().log(Level.SEVERE, "An error occoured whilst creating the NPC '{name}! This is most likley a configuration issue.".replace("{name}", settings.getName()), e);
             return null;
