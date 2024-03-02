@@ -84,7 +84,6 @@ public class Settings {
      * @param customInteractableHologram The custom hologram
      * @param hideClickableHologram If the NPC's Clickable hologram should be hidden
      */
-    @Deprecated
     public Settings(boolean interactable, boolean tunnelvision, boolean resilient, double direction, String value, String signature, String skinName, String name, String customInteractableHologram, boolean hideClickableHologram) {
         this.interactable = interactable;
         this.tunnelvision = tunnelvision;

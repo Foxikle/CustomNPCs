@@ -32,6 +32,7 @@ import org.mineskin.MineskinClient;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.logging.Level;
 
 /**
  * <p> The class that represents the plugin
@@ -362,7 +363,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                     .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class, UUID.class, Player.class, List.class)
                     .newInstance(this, world, spawnLoc, equipment, settings, uuid, target, actions);
         } catch (ReflectiveOperationException e) {
-            getLogger().severe(e.getMessage());
+            getLogger().log(Level.SEVERE, "An error occoured whilst creating the NPC '{name}! This is most likley a configuration issue.".replace("{name}", settings.getName()), e);
             return null;
         }
     }

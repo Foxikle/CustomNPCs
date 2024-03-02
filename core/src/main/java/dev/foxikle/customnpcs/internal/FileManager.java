@@ -8,6 +8,7 @@ import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -277,14 +278,32 @@ public class FileManager {
             try {
                 yml.save(file);
             } catch (IOException e) {
-                plugin.getLogger().severe("An error occoured saving the npcs.yml file after converting legacy names to minimessage. Please report the following stacktrace to Foxikle.");
-                e.printStackTrace();
+                plugin.getLogger().log(Level.SEVERE, "An error occoured saving the npcs.yml file after converting legacy names to minimessage. Please report the following stacktrace to Foxikle.", e);
             }
         }
 
-        World world = Bukkit.getWorld(section.getString("world"));
+        World world;
+        try {
+            world = Bukkit.getWorld(section.getString("world"));
+        } catch (IllegalArgumentException ex) {
+            printInvalidConfig();
+            return;
+        }
+        Location location;
+        try {
+            location = section.getLocation("location");
+        } catch (Exception ex) {
+            printInvalidConfig();
+            return;
+        }
+
         if (world == null) {
-            plugin.getLogger().severe("NPC with an invalid world detected! World: '" + section.getString("world") + "'");
+            printInvalidConfig();
+            return;
+        }
+
+        if(location == null) {
+            printInvalidConfig();
             return;
         }
 
@@ -299,8 +318,8 @@ public class FileManager {
         }
 
         InternalNpc npc = plugin.createNPC(
-                Bukkit.getWorld(section.getString("world")),
-                section.getLocation("location"),
+                world,
+                location,
                 new Equipment(
                         section.getItemStack("headItem"),
                         section.getItemStack("chestItem"),
@@ -319,8 +338,12 @@ public class FileManager {
                         section.getString("name"),
                         section.getString("customHologram"),
                         section.getBoolean("hideInteractableHologram")
-                ), uuid,null, actions);
-        npc.createNPC();
+                ), uuid, null, actions);
+        if(npc != null) {
+            npc.createNPC();
+        } else {
+            plugin.getLogger().severe("The NPC '{name}' could not be created!".replace("{name}", section.getString("name")));
+        }
     }
 
     /**
@@ -331,7 +354,13 @@ public class FileManager {
      */
     public Set<UUID> getNPCIds() {
         File file = new File("plugins/CustomNPCs/npcs.yml");
-        YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration yml;
+        try {
+            yml = YamlConfiguration.loadConfiguration(file);
+        } catch (Exception ex) {
+            printInvalidConfig();
+            return new HashSet<>();
+        }
         Set<UUID> uuids = new HashSet<>();
         for (String str : yml.getKeys(false)) {
             if (!str.equalsIgnoreCase("version"))
@@ -375,4 +404,15 @@ public class FileManager {
     }
 
     private record BackupResult(Path filePath, boolean success) {}
+
+    private void printInvalidConfig() {
+        plugin.getLogger().severe("");
+        plugin.getLogger().severe("+------------------------------------------------------------------------------+");
+        plugin.getLogger().severe("|                 NPC with an invalid configuration detected!                  |");
+        plugin.getLogger().severe("|                 ** THIS IS NOT AN ERROR WITH CUSTOMNPCS **                   |");
+        plugin.getLogger().severe("|         This is most likely a configuration error as a result of             |");
+        plugin.getLogger().severe("|                       modifying the `npcs.yml` file.                         |");
+        plugin.getLogger().severe("+------------------------------------------------------------------------------+");
+        plugin.getLogger().severe("");
+    }
 }
