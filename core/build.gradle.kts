@@ -29,6 +29,12 @@ tasks {
         }
     }
 
+    javadoc {
+        (options as StandardJavadocDocletOptions).tags("apiNote:a:API Note:")
+        options.encoding = Charsets.UTF_8.name()
+        exclude("**/internal/**", "**/versions/**")
+    }
+
     processResources {
         filteringCharset = Charsets.UTF_8.name()
         filesMatching("plugin.yml") {
