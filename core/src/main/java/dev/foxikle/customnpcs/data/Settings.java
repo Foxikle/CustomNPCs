@@ -67,6 +67,8 @@ public class Settings {
         this.signature = signature;
         this.skinName = skinName;
         this.name = name;
+        this.customInteractableHologram = "";
+        this.hideClickableHologram = false;
     }
 
     /**
