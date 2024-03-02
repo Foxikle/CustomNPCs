@@ -263,6 +263,9 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     @Override
     public void onDisable() {
+        for (TextDisplay t : holograms) {
+            if(t != null) t.remove();
+        }
         if (listeners != null) listeners.stop();
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
