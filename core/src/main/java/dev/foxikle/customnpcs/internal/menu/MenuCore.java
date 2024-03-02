@@ -66,12 +66,12 @@ public class MenuCore {
         List<Component> lore = new ArrayList<>();
         Menu menu = Menu.builder().title("       Create a New NPC").rows(5).addAllModifiers().normal();
 
-        ItemStack nametag = new ItemStack(Material.NAME_TAG);
-        ItemMeta nameMeta = nametag.getItemMeta();
+        ItemStack name = new ItemStack(Material.NAME_TAG);
+        ItemMeta nameMeta = name.getItemMeta();
         nameMeta.displayName(Component.text("Change Name", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         lore.add(Component.text("The current name is ", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(plugin.getMiniMessage().deserialize(npc.getSettings().getName())));
         nameMeta.lore(lore);
-        nametag.setItemMeta(nameMeta);
+        name.setItemMeta(nameMeta);
 
         ItemStack equipment = new ItemStack(Material.ARMOR_STAND);
         ItemMeta handMeta = equipment.getItemMeta();
@@ -272,9 +272,10 @@ public class MenuCore {
         cancelMeta.displayName(Component.text("CANCEL", NamedTextColor.RED, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         cancelButton.setItemMeta(cancelMeta);
         menu.setItem(13, ItemBuilder.of(plugin.getMenuUtils().getSkinIcon(new NamespacedKey(plugin, "nothing_lol_this_should_be_changed_tbh"), "", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSettings().getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9").getItemStack()).buildItem((player, event) -> {
+            player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
             getSkinMenu().open(player);
         }));
-        menu.setItem(16, ItemBuilder.of(nametag).buildItem((player, event) -> {
+        menu.setItem(16, ItemBuilder.of(name).buildItem((player, event) -> {
             plugin.nameWaiting.add(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             player.sendMessage(Utils.style("&aType the NPC name the chat."));
@@ -336,7 +337,7 @@ public class MenuCore {
             Bukkit.getScheduler().runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1), 1);
             Bukkit.getScheduler().runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1), 3);
             Bukkit.getScheduler().runTaskLater(plugin, npc::createNPC, 1);
-            player.sendMessage(npc.getSettings().isResilient() ? "§aReslilient NPC created!" : "§aTemporary NPC created!");
+            player.sendMessage(npc.getSettings().isResilient() ? "§aResilient NPC created!" : "§aTemporary NPC created!");
             player.closeInventory();
             event.setCancelled(true);
         }));
@@ -719,7 +720,7 @@ public class MenuCore {
     }
 
     /**
-     * <p>Gets the menu displaying all curent actions
+     * <p>Gets the menu displaying all current actions
      *
      * @return The Inventory representing the Actions menu
      */
@@ -1329,7 +1330,6 @@ public class MenuCore {
                     getActionCustomizerMenu(action).open(player);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
-                Bukkit.broadcastMessage("3");
             }
             case GIVE_EXP -> {
                 menu.setItem(11, ItemBuilder.of(LIME_DYE).setName("§eIncrease xp").setLore(incLore).buildItem((player, event) -> {
@@ -1988,6 +1988,7 @@ public class MenuCore {
         menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
 
         menu.setItem(27, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((player, event) -> {
+            player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
             getActionMenu().open(player);
         }));
 
