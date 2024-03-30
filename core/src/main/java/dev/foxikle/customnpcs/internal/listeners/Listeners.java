@@ -220,7 +220,7 @@ public class Listeners implements Listener {
                 return;
             }
             plugin.nameWaiting.remove(player);
-            core.getNpc().getSettings().setName(plugin.getMiniMessage().deserialize(message));
+            core.getNpc().getSettings().setName(message);
             player.sendMessage(Component.text("Successfully set name to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(message)).append(Component.text("'", NamedTextColor.GREEN)));
             SCHEDULER.runTask(plugin, () -> core.getMainMenu().open(player));
         } else if (plugin.targetWaiting.contains(player)) {
