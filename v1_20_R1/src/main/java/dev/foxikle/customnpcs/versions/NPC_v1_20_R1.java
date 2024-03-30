@@ -371,7 +371,6 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         connection.send(equipmentPacket);
         connection.send(rotation);
 
-        Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> connection.send(playerInforemove), 30);
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
 
 
