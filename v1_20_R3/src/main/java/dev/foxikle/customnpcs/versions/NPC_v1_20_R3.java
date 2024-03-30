@@ -37,14 +37,12 @@ import org.bukkit.craftbukkit.v1_20_R3.entity.CraftTextDisplay;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * The object representing the NPC
@@ -57,12 +55,12 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
     private final UUID uuid;
     private final CustomNPCs plugin;
     private final World world;
+    private final Map<UUID, Integer> loops = new HashMap<>();
     private Settings settings;
     private Equipment equipment;
     private Location spawnLoc;
     private TextDisplay clickableHologram;
     private TextDisplay hologram;
-
     private Player target;
     private List<Action> actions;
     private String holoName = "ERROR";
@@ -364,6 +362,36 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
         Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> connection.send(playerInforemove), 30);
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
 
+        Bukkit.getScheduler().runTaskTimer(plugin, () -> injectHolograms(p), 0, 20);
+
+        if (hologram != null) {
+            ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) hologram).getHandle());
+            connection.send(add);
+        }
+
+        if (clickableHologram != null && settings.isInteractable() && !settings.isHideClickableHologram()) {
+            ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) clickableHologram).getHandle());
+            connection.send(add);
+        }
+
+        if (loops.containsKey(p.getUniqueId())) {
+            Bukkit.getScheduler().cancelTask(loops.get(p.getUniqueId()));
+        }
+
+        loops.put(p.getUniqueId(),
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (!p.isOnline()) this.cancel();
+                        injectHolograms(p);
+                    }
+                }.runTaskTimerAsynchronously(plugin, 0, 20)
+                        .getTaskId());
+
+    }
+
+    private void injectHolograms(Player p) {
+        ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
         String hologramText = holoName;
         String clickableText = clickableName;
         if (plugin.papi) {
@@ -371,11 +399,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
             clickableText = PlaceholderAPI.setPlaceholders(p, clickableName);
         }
 
-        if(hologram != null) {
-
-            ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) hologram).getHandle());
-            connection.send(add);
-
+        if (hologram != null) {
             List<SynchedEntityData.DataValue<?>> meta = ((CraftTextDisplay) hologram).getHandle().getEntityData().getNonDefaultValues();
             net.minecraft.network.chat.Component hologramComponent = net.minecraft.network.chat.Component.Serializer.fromJson(JSONComponentSerializer.json().serialize(plugin.getMiniMessage().deserialize(hologramText)));
             meta.set(0, SynchedEntityData.DataValue.create(TEXT_DISPLAY_ACCESSOR, hologramComponent));
@@ -384,9 +408,6 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
         }
 
         if (clickableHologram != null && settings.isInteractable() && !settings.isHideClickableHologram()) {
-            ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) clickableHologram).getHandle());
-            connection.send(add);
-
             List<SynchedEntityData.DataValue<?>> meta = ((CraftTextDisplay) clickableHologram).getHandle().getEntityData().getNonDefaultValues();
             net.minecraft.network.chat.Component clickableComponent = net.minecraft.network.chat.Component.Serializer.fromJson(JSONComponentSerializer.json().serialize(plugin.getMiniMessage().deserialize(clickableText)));
             meta.set(0, SynchedEntityData.DataValue.create(TEXT_DISPLAY_ACCESSOR, clickableComponent));
@@ -406,7 +427,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
             packets.add(new ClientboundRemoveEntitiesPacket(hologram.getEntityId()));
             hologram.remove();
         }
-        if (clickableHologram != null){
+        if (clickableHologram != null) {
             packets.add(new ClientboundRemoveEntitiesPacket(clickableHologram.getEntityId()));
             clickableHologram.remove();
         }
