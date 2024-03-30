@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The class to handle the core command
@@ -116,16 +115,9 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     player.performCommand("npc manage");
                 } else if (args[0].equalsIgnoreCase("clear_holograms")) {
                     if (player.hasPermission("customnpcs.commands.removeHolograms")) {
-                        AtomicInteger stands = new AtomicInteger();
-                        player.getWorld().getEntities().forEach(entity -> {
-                            if (entity.getScoreboardTags().contains("npcHologram")) {
-                                entity.remove();
-                                stands.getAndIncrement();
-                            }
-                        });
-                        player.sendMessage((stands.get() == 1) ? Utils.style("&aSuccessfully removed 1 npc hologram.") : Utils.style("&aSuccessfully removed " + stands.get() + " npc holograms."));
+                        player.sendMessage(Utils.style("&cThis command was removed in 1.6.1 because of a rework in NPC hologram names. If you wish to remove any holograms that remain, please use the following command. '/kill @e[tag=npcHologram]'"));
                     } else {
-                        player.sendMessage(Utils.style("&cYou lack the propper permissions to remove npc holograms."));
+                        player.sendMessage(Utils.style("&cYou lack the propper permissions to do this."));
                         return true;
                     }
                 } else if (args[0].equalsIgnoreCase("create")) {
@@ -145,10 +137,11 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     }
                     player.sendMessage(Utils.style("&eReloading NPCs!"));
                     plugin.reloadConfig();
+
                     try {
                         Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
-                    } catch (IllegalArgumentException ignored) {
-                    }
+                    } catch (IllegalArgumentException ignored) {}
+
                     List<InternalNpc> npcs = new ArrayList<>(plugin.npcs.values());
                     for (InternalNpc npc : npcs) {
                         plugin.npcs.remove(npc.getUniqueID());
@@ -360,11 +353,6 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 )
                 .append(Component.text("Clones the NPC and moves it to you.  ", NamedTextColor.AQUA))
                 .appendNewline()
-                .append(Component.text("- /npc clear_holograms  ", NamedTextColor.GOLD)
-                        .hoverEvent(HoverEvent.showText(Component.text("Deletes ALL NPC holograms. (Includes holograms without NPCs correlated to them)", NamedTextColor.WHITE)))
-                )
-                .append(Component.text("Forcfully deletes NPC holograms", NamedTextColor.AQUA))
-                .appendNewline()
                 .append(Component.text("- /npc reload  ", NamedTextColor.GOLD)
                         .hoverEvent(HoverEvent.showText(Component.text("Reloads the plugin and config", NamedTextColor.WHITE)))
                 )
@@ -401,7 +389,6 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             list.add("edit");
             list.add("reload");
             list.add("goto");
-            list.add("clear_holograms");
             list.add("wiki");
             list.add("clone");
             list.add("movehere");

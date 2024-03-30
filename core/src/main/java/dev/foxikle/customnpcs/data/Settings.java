@@ -121,6 +121,14 @@ public class Settings {
     }
 
     /**
+     * Sets the name of the npc
+     * @param name as a component
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
      * Sets the skin data in on fell swoop
      * @param signature the skin signature
      * @param value the skin value
