@@ -9,6 +9,7 @@ import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
+import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -404,7 +405,7 @@ public class Listeners implements Listener {
         }
         List<InternalNpc> npcs = plugin.getNPCs();
         for (InternalNpc npc : npcs) npc.injectPlayer(player);
-        SCHEDULER.runTaskLater(plugin, () -> npcs.forEach(npc -> npc.injectPlayer(player)), 10);
+        //SCHEDULER.runTaskLater(plugin, () -> npcs.forEach(npc -> npc.injectPlayer(player)), 20);
     }
 
     /**
@@ -436,20 +437,20 @@ public class Listeners implements Listener {
      */
     @EventHandler
     public void followHandler(PlayerMoveEvent e) {
-        Player player = e.getPlayer();
-        World world = player.getWorld();
-        Location location = player.getLocation();
-        Location to = e.getTo();
-        for (InternalNpc npc : plugin.npcs.values()) {
-            if (world != npc.getWorld()) continue; //TODO: Make npc travel between dimensions
-            if (npc.getTarget() != player) continue;
-            npc.lookAt(LookAtAnchor.HEAD, player);
-            if (npc.getCurrentLocation().distanceSquared(to) >= HALF_BLOCK) {
-                SCHEDULER.runTaskLater(plugin, () -> {
-                    if (to.distanceSquared(location) >= 1) npc.moveTo(to);
-                }, 30);
-            }
-        }
+//        Player player = e.getPlayer();
+//        World world = player.getWorld();
+//        Location location = player.getLocation();
+//        Location to = e.getTo();
+//        for (InternalNpc npc : plugin.npcs.values()) {
+//            if (world != npc.getWorld()) continue; //TODO: Make npc travel between dimensions
+//            if (npc.getTarget() != player) continue;
+//            npc.lookAt(LookAtAnchor.HEAD, player);
+//            if (npc.getCurrentLocation().distanceSquared(to) >= HALF_BLOCK) {
+//                SCHEDULER.runTaskLater(plugin, () -> {
+//                    if (to.distanceSquared(location) >= 1) npc.moveTo(to);
+//                }, 30);
+//            }
+//        }
     }
 
     /**
@@ -504,10 +505,6 @@ public class Listeners implements Listener {
     @EventHandler
     public void onLeave(PlayerQuitEvent e) {
         Player player = e.getPlayer();
-        for (InternalNpc npc : plugin.npcs.values()) {
-            if (npc.getUniqueID() != player.getUniqueId()) continue;
-            e.quitMessage(Component.empty());
-        }
         plugin.commandWaiting.remove(player);
         plugin.nameWaiting.remove(player);
         plugin.targetWaiting.remove(player);
@@ -537,6 +534,7 @@ public class Listeners implements Listener {
         }
     }
 
+    @Getter
     private static class MovementData {
         private final UUID uniqueId;
         @Setter
@@ -548,18 +546,6 @@ public class Listeners implements Listener {
             this.uniqueId = uniqueId;
             this.lastLocation = lastLocation;
             this.distanceSquared = distanceSquared;
-        }
-
-        public UUID getUniqueId() {
-            return uniqueId;
-        }
-
-        public Location getLastLocation() {
-            return lastLocation;
-        }
-
-        public double getDistanceSquared() {
-            return distanceSquared;
         }
 
         public MovementData copy() {
