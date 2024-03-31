@@ -49,6 +49,7 @@ public class Listeners implements Listener {
     // since 1.6.0
     private static final int FIVE_BLOCKS = 25;
     private static final int FIFTY_BLOCKS = 2500; // 50 * 50
+    private static final int ONE_HUNDRED_BLOCKS = 10000; // 50 * 50
     private static final int FOURTY_BLOCKS = 2304; // 48 * 48
     private static final double HALF_BLOCK = 0.25;
 
@@ -111,7 +112,7 @@ public class Listeners implements Listener {
 
             World npcWorld = npc.getWorld();
             if (world != npcWorld) continue;
-            if (npc.getSettings().isTunnelvision()) continue;
+            //if (npc.getSettings().isTunnelvision()) continue;
             processPlayerMovement(player, npc, world, npcWorld, location, uuid);
         }
     }
@@ -131,14 +132,17 @@ public class Listeners implements Listener {
             movementData.setDistanceSquared(distanceSquared);
         }
         trackFromTo(player, npc, movementData, oldMovementData);
+        if(npc.getSettings().isTunnelvision()) return;
         if (distanceSquared > FIVE_BLOCKS) {
             SCHEDULER.runTask(plugin, () -> {
                 Collection<Entity> entities = npcWorld.getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
                 entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
                 for (Entity en : entities) {
                     if (!(en instanceof Player p)) continue;
-                    npc.lookAt(LookAtAnchor.HEAD, p);
-                    return;
+                    if(!npc.getSettings().isTunnelvision()) {
+                        npc.lookAt(LookAtAnchor.HEAD, p);
+                        return;
+                    }
                 }
                 npc.setYRotation((float) npc.getSettings().getDirection());
             });
@@ -146,9 +150,9 @@ public class Listeners implements Listener {
     }
 
     private void trackFromTo(Player player, InternalNpc npc, MovementData data, MovementData oldData) {
-        if (data.distanceSquared <= FIVE_BLOCKS) {
+        if (data.distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
             npc.lookAt(LookAtAnchor.HEAD, player);
-        } else if (oldData.distanceSquared >= FOURTY_BLOCKS && data.distanceSquared <= FIFTY_BLOCKS) {
+        } else if (oldData.distanceSquared >= FOURTY_BLOCKS && data.distanceSquared <= ONE_HUNDRED_BLOCKS) {
             npc.injectPlayer(player);
         }
     }
@@ -470,9 +474,9 @@ public class Listeners implements Listener {
             if (world != npc.getWorld()) return;
 
             double distanceSquared = location.distanceSquared(spawnLocation);
-            if (distanceSquared <= FIVE_BLOCKS) {
+            if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
                 npc.lookAt(LookAtAnchor.HEAD, player);
-            } else if (distanceSquared >= FOURTY_BLOCKS && distanceSquared <= FIFTY_BLOCKS) {
+            } else if (distanceSquared >= FOURTY_BLOCKS  && distanceSquared <= ONE_HUNDRED_BLOCKS/*&& distanceSquared <= FIFTY_BLOCKS*/) {
                 npc.injectPlayer(player);
             }
         }
