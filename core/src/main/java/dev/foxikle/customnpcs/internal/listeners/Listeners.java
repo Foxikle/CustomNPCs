@@ -49,7 +49,7 @@ public class Listeners implements Listener {
     // since 1.6.0
     private static final int FIVE_BLOCKS = 25;
     private static final int FIFTY_BLOCKS = 2500; // 50 * 50
-    private static final int ONE_HUNDRED_BLOCKS = 10000; // 50 * 50
+    private static final int SITXY_BLOCKS = 3600; // 60 * 60
     private static final int FOURTY_BLOCKS = 2304; // 48 * 48
     private static final double HALF_BLOCK = 0.25;
 
@@ -152,7 +152,7 @@ public class Listeners implements Listener {
     private void trackFromTo(Player player, InternalNpc npc, MovementData data, MovementData oldData) {
         if (data.distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
             npc.lookAt(LookAtAnchor.HEAD, player);
-        } else if (oldData.distanceSquared >= FOURTY_BLOCKS && data.distanceSquared <= ONE_HUNDRED_BLOCKS) {
+        } else if (oldData.distanceSquared >= FOURTY_BLOCKS && data.distanceSquared <= SITXY_BLOCKS) {
             npc.injectPlayer(player);
         }
     }
@@ -476,7 +476,7 @@ public class Listeners implements Listener {
             double distanceSquared = location.distanceSquared(spawnLocation);
             if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
                 npc.lookAt(LookAtAnchor.HEAD, player);
-            } else if (distanceSquared >= FOURTY_BLOCKS  && distanceSquared <= ONE_HUNDRED_BLOCKS/*&& distanceSquared <= FIFTY_BLOCKS*/) {
+            } else if (distanceSquared >= FOURTY_BLOCKS  && distanceSquared <= SITXY_BLOCKS/*&& distanceSquared <= FIFTY_BLOCKS*/) {
                 npc.injectPlayer(player);
             }
         }
