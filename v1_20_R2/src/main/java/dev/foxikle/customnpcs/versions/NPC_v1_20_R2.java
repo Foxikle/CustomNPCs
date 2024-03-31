@@ -419,6 +419,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
      * <p> Despawns the NPC
      * </p>
      */
+    @Override
     public void remove() {
         List<Packet<?>> packets = new ArrayList<>();
         if (hologram != null) {
