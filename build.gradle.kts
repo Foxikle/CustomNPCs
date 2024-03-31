@@ -21,7 +21,7 @@ dependencies {
 
 allprojects {
     group = "dev.foxikle"
-    version = "1.6.1-pre1"
+    version = "1.6.1-pre2"
     description = "CustomNPCs"
 }
 
