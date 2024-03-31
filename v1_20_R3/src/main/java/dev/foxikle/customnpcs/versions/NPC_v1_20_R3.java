@@ -338,7 +338,6 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
      * @param p The player to inject
      */
     public void injectPlayer(Player p) {
-
         List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>> stuffs = new ArrayList<>();
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.MAINHAND, CraftItemStack.asNMSCopy(equipment.getHand())));
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.OFFHAND, CraftItemStack.asNMSCopy(equipment.getOffhand())));
@@ -362,8 +361,8 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
         Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> connection.send(playerInforemove), 30);
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
 
-        Bukkit.getScheduler().runTaskTimer(plugin, () -> injectHolograms(p), 0, 20);
 
+        // create them
         if (hologram != null) {
             ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) hologram).getHandle());
             connection.send(add);
@@ -373,23 +372,30 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
             ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) clickableHologram).getHandle());
             connection.send(add);
         }
+        // we only want to update them if the server is running placeholder API
+        if (plugin.papi) {
+            if (loops.containsKey(p.getUniqueId())) {
+                Bukkit.getScheduler().cancelTask(loops.get(p.getUniqueId()));
+            }
 
-        if (loops.containsKey(p.getUniqueId())) {
-            Bukkit.getScheduler().cancelTask(loops.get(p.getUniqueId()));
+            loops.put(p.getUniqueId(), new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (!p.isOnline()) {
+                        this.cancel();
+                        loops.remove(p.getUniqueId());
+                    }
+                    injectHolograms(p);
+                }
+            }.runTaskTimerAsynchronously(plugin, 0, 200).getTaskId());
         }
 
-        loops.put(p.getUniqueId(),
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (!p.isOnline()) this.cancel();
-                        injectHolograms(p);
-                    }
-                }.runTaskTimerAsynchronously(plugin, 0, 20).getTaskId());
+        setYRotation((float) settings.getDirection());
 
     }
 
     private void injectHolograms(Player p) {
+
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
         String hologramText = holoName;
         String clickableText = clickableName;
@@ -421,6 +427,8 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
      * </p>
      */
     public void remove() {
+        loops.forEach((uuid1, integer) -> Bukkit.getScheduler().cancelTask(integer));
+        loops.clear();
         List<Packet<?>> packets = new ArrayList<>();
         if (hologram != null) {
             packets.add(new ClientboundRemoveEntitiesPacket(hologram.getEntityId()));
