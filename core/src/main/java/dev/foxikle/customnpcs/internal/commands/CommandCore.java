@@ -274,11 +274,11 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                                 player.sendMessage(Utils.style("&cYou lack the propper permissions to clone npcs."));
                                 return true;
                             }
+                            player.sendMessage(Utils.style("&e&oPsst! After moving NPCs, you should reload them!"));
                             npc.remove();
                             npc.setSpawnLoc(player.getLocation());
                             npc.getSettings().setDirection(player.getLocation().getYaw());
                             npc.createNPC();
-                            player.sendMessage(Utils.style("&e&oPsst! After moving NPCs, you should reload them!"));
                         }
                         default -> sender.sendMessage(Utils.style("&cUnrecognised sub-command. Use '/npc help' for a list of supported commands."));
                     }
