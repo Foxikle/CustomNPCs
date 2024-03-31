@@ -381,7 +381,7 @@ public class Listeners implements Listener {
             if(message.equalsIgnoreCase("confirm")) {
                 InternalNpc npc = core.getNpc();
                 npc.getSettings().setDirection(player.getLocation().getYaw());
-                npc.getSpawnLoc().setPitch(player.getPitch());
+                npc.getSpawnLoc().setPitch(player.getLocation().getPitch());
                 player.sendMessage(Utils.style("&aSuccessfully set facing direction!"));
                 player.playSound(player, Sound.BLOCK_AMETHYST_BLOCK_BREAK, 1, 1);
                 SCHEDULER.runTask(plugin, () -> core.getMainMenu().open(player));
