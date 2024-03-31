@@ -154,7 +154,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     public String serverVersion;
 
-    @Getter public MiniMessage miniMessage = MiniMessage.miniMessage();
+    @Getter
+    public MiniMessage miniMessage = MiniMessage.miniMessage();
     Listeners listeners;
     /**
      * Singleton for menu utilites
@@ -194,7 +195,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             for (UUID uuid : fileManager.getNPCIds()) {
                 fileManager.loadNPC(uuid);
             }
-            Bukkit.getScheduler().runTaskLater(this, () -> Bukkit.getOnlinePlayers().forEach(player -> npcs.values().forEach(npc -> Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> npc.injectPlayer(player), 5))), 20);
+            //Bukkit.getScheduler().runTaskLater(this, () -> Bukkit.getOnlinePlayers().forEach(player -> npcs.values().forEach(npc -> Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> npc.injectPlayer(player), 5))), 20);
             Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> skinCatalogue = this.getMenuUtils().getSkinCatalogue(), 20);
             // setup bstats
             Metrics metrics = new Metrics(this, 18898);
@@ -216,15 +217,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             this.getServer().getPluginManager().registerEvents(listeners, this);
             this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
             this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
-
-            Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
-                for (InternalNpc npc : npcs.values()) {
-                    if (npc.getSettings().isTunnelvision()) {
-                        npc.setYRotation((float) npc.getSettings().getDirection());
-                        npc.lookAt(Utils.calcLocation(npc));
-                    }
-                }
-            }, 0, 20);
         }
         listeners.start();
         // detecting reloads
@@ -264,7 +256,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     @Override
     public void onDisable() {
         for (TextDisplay t : holograms) {
-            if(t != null) t.remove();
+            if (t != null) t.remove();
         }
         if (listeners != null) listeners.stop();
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
