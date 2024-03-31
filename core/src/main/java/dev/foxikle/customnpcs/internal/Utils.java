@@ -69,13 +69,16 @@ public class Utils {
      */
     public static Location calcLocation(InternalNpc npc) {
         Location loc = npc.getCurrentLocation();
-        double yaw = npc.getSettings().getDirection();
-        double heading = -Math.toRadians(yaw);
+        double pitch = Math.toRadians(npc.getSpawnLoc().getPitch());
+        double yaw = Math.toRadians(npc.getSettings().getDirection());
         // trig to calculate the position
-        loc.add(5 * Math.sin(heading),
-                1.6 + -5 * Math.sin(Math.toRadians(npc.getSpawnLoc().getPitch())),
-                5 * Math.cos(heading)
-        );
+
+
+        double xz = Math.cos(pitch);
+        double x = -xz * Math.sin(yaw);
+        double y = -Math.sin(pitch) + 1.62;
+        double z = xz * Math.cos(yaw);
+        loc.add(x, y, z);
 
         return loc;
     }
