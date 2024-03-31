@@ -412,12 +412,13 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
             clickableText = PlaceholderAPI.setPlaceholders(p, clickableName);
         }
 
+
         if (hologram != null) {
             List<SynchedEntityData.DataValue<?>> meta = ((CraftTextDisplay) hologram).getHandle().getEntityData().getNonDefaultValues();
             net.minecraft.network.chat.Component hologramComponent = net.minecraft.network.chat.Component.Serializer.fromJson(JSONComponentSerializer.json().serialize(plugin.getMiniMessage().deserialize(hologramText)));
             meta.set(0, SynchedEntityData.DataValue.create(TEXT_DISPLAY_ACCESSOR, hologramComponent));
             ClientboundSetEntityDataPacket namePacket = new ClientboundSetEntityDataPacket(hologram.getEntityId(), meta);
-            Bukkit.getScheduler().runTaskLater(plugin, () -> connection.send(namePacket), 1);
+            connection.send(namePacket);
         }
 
         if (clickableHologram != null && settings.isInteractable() && !settings.isHideClickableHologram()) {
@@ -426,7 +427,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
             meta.set(0, SynchedEntityData.DataValue.create(TEXT_DISPLAY_ACCESSOR, clickableComponent));
 
             ClientboundSetEntityDataPacket clickablePacket = new ClientboundSetEntityDataPacket(clickableHologram.getEntityId(), meta);
-            Bukkit.getScheduler().runTaskLater(plugin, () -> connection.send(clickablePacket), 1);
+            connection.send(clickablePacket);
         }
     }
 
@@ -574,6 +575,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.LEGS, equipment.getLegs(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
         super.getBukkitEntity().setItemInHand(equipment.getHand());
+        setYRotation((float) getSettings().getDirection());
     }
 
     @Override
