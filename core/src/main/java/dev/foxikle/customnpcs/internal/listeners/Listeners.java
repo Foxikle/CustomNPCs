@@ -83,7 +83,7 @@ public class Listeners implements Listener {
 
     public void start() {
         service = Executors.newSingleThreadScheduledExecutor();
-        service.scheduleAtFixedRate(() -> Bukkit.getOnlinePlayers().forEach(this::actionPlayerMovement), 1000, 220, TimeUnit.MILLISECONDS);
+        service.scheduleAtFixedRate(() -> Bukkit.getOnlinePlayers().forEach(this::actionPlayerMovement), 1000, plugin.getConfig().getInt("LookInterval") * 50L, TimeUnit.MILLISECONDS);
     }
 
 
@@ -152,8 +152,6 @@ public class Listeners implements Listener {
     private void trackFromTo(Player player, InternalNpc npc, MovementData data, MovementData oldData) {
         if (data.distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
             npc.lookAt(LookAtAnchor.HEAD, player);
-        } else if (oldData.distanceSquared >= FOURTY_BLOCKS && data.distanceSquared <= SITXY_BLOCKS) {
-            npc.injectPlayer(player);
         }
     }
 
@@ -407,9 +405,7 @@ public class Listeners implements Listener {
         if (plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate") && player.hasPermission("customnpcs.alert")) {
             player.sendMessage(SHOULD_UPDATE_MESSAGE);
         }
-        List<InternalNpc> npcs = plugin.getNPCs();
-        for (InternalNpc npc : npcs) npc.injectPlayer(player);
-        //SCHEDULER.runTaskLater(plugin, () -> npcs.forEach(npc -> npc.injectPlayer(player)), 20);
+        for (InternalNpc npc : plugin.getNPCs()) npc.injectPlayer(player);
     }
 
     /**
@@ -476,8 +472,6 @@ public class Listeners implements Listener {
             double distanceSquared = location.distanceSquared(spawnLocation);
             if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
                 npc.lookAt(LookAtAnchor.HEAD, player);
-            } else if (distanceSquared >= FOURTY_BLOCKS  && distanceSquared <= SITXY_BLOCKS/*&& distanceSquared <= FIFTY_BLOCKS*/) {
-                npc.injectPlayer(player);
             }
         }
     }
@@ -495,7 +489,6 @@ public class Listeners implements Listener {
         World world = player.getWorld();
         for (InternalNpc npc : plugin.npcs.values()) {
             if (world != npc.getWorld()) continue;
-            if (location.distanceSquared(npc.getCurrentLocation()) <= FOURTY_BLOCKS) npc.injectPlayer(player);
         }
     }
 
@@ -519,23 +512,6 @@ public class Listeners implements Listener {
         plugin.urlWaiting.remove(player);
         plugin.playernameWating.remove(player);
         plugin.hologramWaiting.remove(player);
-    }
-
-    /**
-     * <p>The npc interaction handler
-     * </p>
-     *
-     * @param e The event callback
-     * @since 1.2
-     */
-    @EventHandler
-    public void onRespawn(PlayerRespawnEvent e) {
-        Player player = e.getPlayer();
-        Location respawnLocation = e.getRespawnLocation();
-        for (InternalNpc npc : plugin.npcs.values()) {
-            if (!(respawnLocation.distanceSquared(npc.getCurrentLocation()) <= FOURTY_BLOCKS)) continue;
-            npc.injectPlayer(player);
-        }
     }
 
     @Getter
