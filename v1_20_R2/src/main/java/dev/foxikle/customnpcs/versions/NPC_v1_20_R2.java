@@ -326,7 +326,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
      * @return if it was successfully removed
      */
     public boolean removeAction(Action action) {
-        return actions.remove(action.toJson());
+        return actions.remove(action);
     }
 
     /**
@@ -364,7 +364,6 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
         if (loops.containsKey(p.getUniqueId())) {
             Bukkit.getScheduler().cancelTask(loops.get(p.getUniqueId()));
         }
-
 
         // create them
         if (hologram != null) {
@@ -421,6 +420,9 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
      */
     @Override
     public void remove() {
+        loops.forEach((uuid1, integer) -> Bukkit.getScheduler().cancelTask(integer));
+        loops.clear();
+
         List<Packet<?>> packets = new ArrayList<>();
         if (hologram != null) {
             packets.add(new ClientboundRemoveEntitiesPacket(hologram.getEntityId()));
