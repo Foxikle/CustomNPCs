@@ -7,6 +7,7 @@ import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.InjectionManager;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
@@ -15,6 +16,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.json.JSONComponentSerializer;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -60,6 +62,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
     private List<Action> actions;
     private String holoName = "ERROR";
     private String clickableName = "ERROR";
+    private InjectionManager injectionManager;
 
     /**
      * <p> Gets a new NPC
@@ -149,10 +152,11 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
 
+        injectionManager = new InjectionManager(plugin, this);
+        injectionManager.setup();
 
         //TODO: change this maybe V
         Bukkit.getOnlinePlayers().forEach(this::injectPlayer);
-        Bukkit.getScheduler().runTaskLater(plugin, () -> Bukkit.getOnlinePlayers().forEach(this::injectPlayer), 1);
     }
 
     /**
@@ -339,8 +343,9 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
      */
     @Override
     public boolean removeAction(Action action) {
-        return actions.remove(action.toJson());
+        return actions.remove(action);
     }
+
 
     /**
      * <p> Injects packets into the specified player's connection
@@ -350,7 +355,6 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
      */
     @Override
     public void injectPlayer(Player p) {
-
         List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>> stuffs = new ArrayList<>();
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.MAINHAND, CraftItemStack.asNMSCopy(equipment.getHand())));
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.OFFHAND, CraftItemStack.asNMSCopy(equipment.getOffhand())));
@@ -360,23 +364,21 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.FEET, CraftItemStack.asNMSCopy(equipment.getBoots())));
 
         ClientboundPlayerInfoUpdatePacket playerInfoAdd = new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, this);
-        ClientboundAddEntityPacket namedEntitySpawn = new ClientboundAddEntityPacket(this);
+        ClientboundAddPlayerPacket namedEntitySpawn = new ClientboundAddPlayerPacket(this);
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
-        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (settings.getDirection() * 256 / 360), (byte) (0 / 360), true);
+        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getSettings().getDirection() * 256 / 360), (byte) (0 / 360), true);
+        super.detectEquipmentUpdates();
         setSkin();
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
-        connection.send(namedEntitySpawn);
         connection.send(playerInfoAdd);
+        connection.send(namedEntitySpawn);
         connection.send(equipmentPacket);
         connection.send(rotation);
 
+        Bukkit.getScheduler().runTaskLaterAsynchronously(CustomNPCs.getInstance(), () -> connection.send(playerInforemove), 30);
+
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
-
-
-        if (loops.containsKey(p.getUniqueId())) {
-            Bukkit.getScheduler().cancelTask(loops.get(p.getUniqueId()));
-        }
 
 
         // create them
@@ -389,16 +391,25 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
             ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) clickableHologram).getHandle());
             connection.send(add);
         }
+        // we only want to update them if the server is running placeholder API
+        if (plugin.papi) {
+            if (loops.containsKey(p.getUniqueId())) {
+                Bukkit.getScheduler().cancelTask(loops.get(p.getUniqueId()));
+            }
 
-        loops.put(p.getUniqueId(),
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (!p.isOnline()) this.cancel();
-                        updateHolograms(p);
+            loops.put(p.getUniqueId(), new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (!p.isOnline()) {
+                        this.cancel();
+                        loops.remove(p.getUniqueId());
                     }
-                }.runTaskTimerAsynchronously(plugin, 0, 20)
-                        .getTaskId());
+                    updateHolograms(p);
+                }
+            }.runTaskTimerAsynchronously(plugin, 0, plugin.getConfig().getInt("HologramUpdateInterval")).getTaskId());
+        }
+
+        setYRotation((float) settings.getDirection());
     }
 
     private void updateHolograms(Player p) {
@@ -410,12 +421,13 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
             clickableText = PlaceholderAPI.setPlaceholders(p, clickableName);
         }
 
+
         if (hologram != null) {
             List<SynchedEntityData.DataValue<?>> meta = ((CraftTextDisplay) hologram).getHandle().getEntityData().getNonDefaultValues();
             net.minecraft.network.chat.Component hologramComponent = net.minecraft.network.chat.Component.Serializer.fromJson(JSONComponentSerializer.json().serialize(plugin.getMiniMessage().deserialize(hologramText)));
             meta.set(0, SynchedEntityData.DataValue.create(TEXT_DISPLAY_ACCESSOR, hologramComponent));
             ClientboundSetEntityDataPacket namePacket = new ClientboundSetEntityDataPacket(hologram.getEntityId(), meta);
-            Bukkit.getScheduler().runTaskLater(plugin, () -> connection.send(namePacket), 1);
+            connection.send(namePacket);
         }
 
         if (clickableHologram != null && settings.isInteractable() && !settings.isHideClickableHologram()) {
@@ -424,7 +436,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
             meta.set(0, SynchedEntityData.DataValue.create(TEXT_DISPLAY_ACCESSOR, clickableComponent));
 
             ClientboundSetEntityDataPacket clickablePacket = new ClientboundSetEntityDataPacket(clickableHologram.getEntityId(), meta);
-            Bukkit.getScheduler().runTaskLater(plugin, () -> connection.send(clickablePacket), 1);
+            connection.send(clickablePacket);
         }
     }
 
@@ -434,15 +446,30 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
      */
     @Override
     public void remove() {
-        hologram.remove();
-        if (clickableHologram != null)
+        injectionManager.shutDown();
+        loops.forEach((uuid1, integer) -> Bukkit.getScheduler().cancelTask(integer));
+        loops.clear();
+        List<Packet<?>> packets = new ArrayList<>();
+
+        if (hologram != null) {
+            packets.add(new ClientboundRemoveEntitiesPacket(hologram.getEntityId()));
+            hologram.remove();
+        }
+
+        if (clickableHologram != null) {
+            packets.add(new ClientboundRemoveEntitiesPacket(clickableHologram.getEntityId()));
             clickableHologram.remove();
+        }
+        var npcpacket = new ClientboundRemoveEntitiesPacket(super.getId());
         super.remove(RemovalReason.DISCARDED);
         super.setHealth(0);
         for (Player p : Bukkit.getOnlinePlayers()) {
             ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
-            ClientboundRemoveEntitiesPacket playerInforemove = new ClientboundRemoveEntitiesPacket(super.getId());
-            connection.send(playerInforemove);
+            connection.send(npcpacket);
+            packets.forEach(connection::send);
+            if (plugin.isEnabled()) {
+                Bukkit.getScheduler().runTaskLater(plugin, () -> packets.forEach(connection::send), 1);
+            }
         }
     }
 
@@ -560,6 +587,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.LEGS, equipment.getLegs(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
         super.getBukkitEntity().setItemInHand(equipment.getHand());
+        setYRotation((float) getSettings().getDirection());
     }
 
     @Override

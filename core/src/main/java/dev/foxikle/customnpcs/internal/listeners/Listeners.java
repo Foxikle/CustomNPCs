@@ -49,6 +49,7 @@ public class Listeners implements Listener {
     // since 1.6.0
     private static final int FIVE_BLOCKS = 25;
     private static final int FIFTY_BLOCKS = 2500; // 50 * 50
+    private static final int SITXY_BLOCKS = 3600; // 60 * 60
     private static final int FOURTY_BLOCKS = 2304; // 48 * 48
     private static final double HALF_BLOCK = 0.25;
 
@@ -82,7 +83,7 @@ public class Listeners implements Listener {
 
     public void start() {
         service = Executors.newSingleThreadScheduledExecutor();
-        service.scheduleAtFixedRate(() -> Bukkit.getOnlinePlayers().forEach(this::actionPlayerMovement), 1000, 220, TimeUnit.MILLISECONDS);
+        service.scheduleAtFixedRate(() -> Bukkit.getOnlinePlayers().forEach(this::actionPlayerMovement), 1000, plugin.getConfig().getInt("LookInterval") * 50L, TimeUnit.MILLISECONDS);
     }
 
 
@@ -111,7 +112,7 @@ public class Listeners implements Listener {
 
             World npcWorld = npc.getWorld();
             if (world != npcWorld) continue;
-            if (npc.getSettings().isTunnelvision()) continue;
+            //if (npc.getSettings().isTunnelvision()) continue;
             processPlayerMovement(player, npc, world, npcWorld, location, uuid);
         }
     }
@@ -131,14 +132,17 @@ public class Listeners implements Listener {
             movementData.setDistanceSquared(distanceSquared);
         }
         trackFromTo(player, npc, movementData, oldMovementData);
+        if(npc.getSettings().isTunnelvision()) return;
         if (distanceSquared > FIVE_BLOCKS) {
             SCHEDULER.runTask(plugin, () -> {
                 Collection<Entity> entities = npcWorld.getNearbyEntities(npc.getCurrentLocation(), 2.5, 2.5, 2.5);
                 entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
                 for (Entity en : entities) {
                     if (!(en instanceof Player p)) continue;
-                    npc.lookAt(LookAtAnchor.HEAD, p);
-                    return;
+                    if(!npc.getSettings().isTunnelvision()) {
+                        npc.lookAt(LookAtAnchor.HEAD, p);
+                        return;
+                    }
                 }
                 npc.setYRotation((float) npc.getSettings().getDirection());
             });
@@ -146,10 +150,8 @@ public class Listeners implements Listener {
     }
 
     private void trackFromTo(Player player, InternalNpc npc, MovementData data, MovementData oldData) {
-        if (data.distanceSquared <= FIVE_BLOCKS) {
+        if (data.distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
             npc.lookAt(LookAtAnchor.HEAD, player);
-        } else if (oldData.distanceSquared >= FOURTY_BLOCKS && data.distanceSquared <= FIFTY_BLOCKS) {
-            npc.injectPlayer(player);
         }
     }
 
@@ -381,7 +383,7 @@ public class Listeners implements Listener {
             if(message.equalsIgnoreCase("confirm")) {
                 InternalNpc npc = core.getNpc();
                 npc.getSettings().setDirection(player.getLocation().getYaw());
-                npc.getSpawnLoc().setPitch(player.getPitch());
+                npc.getSpawnLoc().setPitch(player.getLocation().getPitch());
                 player.sendMessage(Utils.style("&aSuccessfully set facing direction!"));
                 player.playSound(player, Sound.BLOCK_AMETHYST_BLOCK_BREAK, 1, 1);
                 SCHEDULER.runTask(plugin, () -> core.getMainMenu().open(player));
@@ -403,9 +405,7 @@ public class Listeners implements Listener {
         if (plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate") && player.hasPermission("customnpcs.alert")) {
             player.sendMessage(SHOULD_UPDATE_MESSAGE);
         }
-        List<InternalNpc> npcs = plugin.getNPCs();
-        for (InternalNpc npc : npcs) npc.injectPlayer(player);
-        //SCHEDULER.runTaskLater(plugin, () -> npcs.forEach(npc -> npc.injectPlayer(player)), 20);
+        for (InternalNpc npc : plugin.getNPCs()) npc.injectPlayer(player);
     }
 
     /**
@@ -470,10 +470,8 @@ public class Listeners implements Listener {
             if (world != npc.getWorld()) return;
 
             double distanceSquared = location.distanceSquared(spawnLocation);
-            if (distanceSquared <= FIVE_BLOCKS) {
+            if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
                 npc.lookAt(LookAtAnchor.HEAD, player);
-            } else if (distanceSquared >= FOURTY_BLOCKS && distanceSquared <= FIFTY_BLOCKS) {
-                npc.injectPlayer(player);
             }
         }
     }
@@ -491,7 +489,6 @@ public class Listeners implements Listener {
         World world = player.getWorld();
         for (InternalNpc npc : plugin.npcs.values()) {
             if (world != npc.getWorld()) continue;
-            if (location.distanceSquared(npc.getCurrentLocation()) <= FOURTY_BLOCKS) npc.injectPlayer(player);
         }
     }
 
@@ -515,23 +512,6 @@ public class Listeners implements Listener {
         plugin.urlWaiting.remove(player);
         plugin.playernameWating.remove(player);
         plugin.hologramWaiting.remove(player);
-    }
-
-    /**
-     * <p>The npc interaction handler
-     * </p>
-     *
-     * @param e The event callback
-     * @since 1.2
-     */
-    @EventHandler
-    public void onRespawn(PlayerRespawnEvent e) {
-        Player player = e.getPlayer();
-        Location respawnLocation = e.getRespawnLocation();
-        for (InternalNpc npc : plugin.npcs.values()) {
-            if (!(respawnLocation.distanceSquared(npc.getCurrentLocation()) <= FOURTY_BLOCKS)) continue;
-            npc.injectPlayer(player);
-        }
     }
 
     @Getter

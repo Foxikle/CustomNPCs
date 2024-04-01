@@ -128,6 +128,19 @@ public class FileManager {
                 throw new RuntimeException(e);
             }
         }
+        if(version < 6) {
+            plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 6));
+            yml.set("CONFIG_VERSION", 6);
+            yml.set("InjectionDistance", 48);
+            yml.set("InjectionInterval", 10);
+            yml.set("HologramUpdateInterval", 200);
+            yml.set("LookInterval", 5);
+            try {
+                yml.save(file);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return true;
     }
 
