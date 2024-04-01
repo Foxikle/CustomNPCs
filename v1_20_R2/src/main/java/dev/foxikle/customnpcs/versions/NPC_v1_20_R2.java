@@ -7,6 +7,7 @@ import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.InjectionManager;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
@@ -62,6 +63,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
     private List<Action> actions;
     private String holoName = "ERROR";
     private String clickableName = "ERROR";
+    private InjectionManager injectionManager;
 
     /**
      * <p> Gets a new NPC
@@ -149,6 +151,8 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
         if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
 
+        injectionManager = new InjectionManager(plugin, this);
+        injectionManager.setup();
 
         //TODO: change this maybe V
         Bukkit.getOnlinePlayers().forEach(this::injectPlayer);
@@ -383,7 +387,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
                         if (!p.isOnline()) this.cancel();
                         updateHolograms(p);
                     }
-                }.runTaskTimerAsynchronously(plugin, 0, 20)
+                }.runTaskTimerAsynchronously(plugin, 0, plugin.getConfig().getInt("HologramUpdateInterval"))
                         .getTaskId());
     }
 
@@ -420,6 +424,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
      */
     @Override
     public void remove() {
+        injectionManager.shutDown();
         loops.forEach((uuid1, integer) -> Bukkit.getScheduler().cancelTask(integer));
         loops.clear();
 

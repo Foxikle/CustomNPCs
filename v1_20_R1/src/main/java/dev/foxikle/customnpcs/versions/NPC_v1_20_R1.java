@@ -7,6 +7,7 @@ import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.InjectionManager;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
@@ -61,6 +62,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
     private List<Action> actions;
     private String holoName = "ERROR";
     private String clickableName = "ERROR";
+    private InjectionManager injectionManager;
 
     /**
      * <p> Gets a new NPC
@@ -150,6 +152,8 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
 
+        injectionManager = new InjectionManager(plugin, this);
+        injectionManager.setup();
 
         //TODO: change this maybe V
         Bukkit.getOnlinePlayers().forEach(this::injectPlayer);
@@ -351,61 +355,61 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
      */
     @Override
     public void injectPlayer(Player p) {
-            List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>> stuffs = new ArrayList<>();
-            stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.MAINHAND, CraftItemStack.asNMSCopy(equipment.getHand())));
-            stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.OFFHAND, CraftItemStack.asNMSCopy(equipment.getOffhand())));
-            stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.HEAD, CraftItemStack.asNMSCopy(equipment.getHead())));
-            stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.CHEST, CraftItemStack.asNMSCopy(equipment.getChest())));
-            stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.LEGS, CraftItemStack.asNMSCopy(equipment.getLegs())));
-            stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.FEET, CraftItemStack.asNMSCopy(equipment.getBoots())));
+        List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>> stuffs = new ArrayList<>();
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.MAINHAND, CraftItemStack.asNMSCopy(equipment.getHand())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.OFFHAND, CraftItemStack.asNMSCopy(equipment.getOffhand())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.HEAD, CraftItemStack.asNMSCopy(equipment.getHead())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.CHEST, CraftItemStack.asNMSCopy(equipment.getChest())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.LEGS, CraftItemStack.asNMSCopy(equipment.getLegs())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.FEET, CraftItemStack.asNMSCopy(equipment.getBoots())));
 
-            ClientboundPlayerInfoUpdatePacket playerInfoAdd = new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, this);
-            ClientboundAddPlayerPacket namedEntitySpawn = new ClientboundAddPlayerPacket(this);
-            ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
-            ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
-            ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getSettings().getDirection() * 256 / 360), (byte) (0 / 360), true);
-            super.detectEquipmentUpdates();
-            setSkin();
-            ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
-            connection.send(playerInfoAdd);
-            connection.send(namedEntitySpawn);
-            connection.send(equipmentPacket);
-            connection.send(rotation);
+        ClientboundPlayerInfoUpdatePacket playerInfoAdd = new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, this);
+        ClientboundAddPlayerPacket namedEntitySpawn = new ClientboundAddPlayerPacket(this);
+        ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
+        ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
+        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getSettings().getDirection() * 256 / 360), (byte) (0 / 360), true);
+        super.detectEquipmentUpdates();
+        setSkin();
+        ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
+        connection.send(playerInfoAdd);
+        connection.send(namedEntitySpawn);
+        connection.send(equipmentPacket);
+        connection.send(rotation);
 
-            Bukkit.getScheduler().runTaskLaterAsynchronously(CustomNPCs.getInstance(), () -> connection.send(playerInforemove), 30);
+        Bukkit.getScheduler().runTaskLaterAsynchronously(CustomNPCs.getInstance(), () -> connection.send(playerInforemove), 30);
 
-            super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
+        super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
 
 
-            // create them
-            if (hologram != null) {
-                ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) hologram).getHandle());
-                connection.send(add);
+        // create them
+        if (hologram != null) {
+            ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) hologram).getHandle());
+            connection.send(add);
+        }
+
+        if (clickableHologram != null && settings.isInteractable() && !settings.isHideClickableHologram()) {
+            ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) clickableHologram).getHandle());
+            connection.send(add);
+        }
+        // we only want to update them if the server is running placeholder API
+        if (plugin.papi) {
+            if (loops.containsKey(p.getUniqueId())) {
+                Bukkit.getScheduler().cancelTask(loops.get(p.getUniqueId()));
             }
 
-            if (clickableHologram != null && settings.isInteractable() && !settings.isHideClickableHologram()) {
-                ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) clickableHologram).getHandle());
-                connection.send(add);
-            }
-            // we only want to update them if the server is running placeholder API
-            if (plugin.papi) {
-                if (loops.containsKey(p.getUniqueId())) {
-                    Bukkit.getScheduler().cancelTask(loops.get(p.getUniqueId()));
-                }
-
-                loops.put(p.getUniqueId(), new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (!p.isOnline()) {
-                            this.cancel();
-                            loops.remove(p.getUniqueId());
-                        }
-                        updateHolograms(p);
+            loops.put(p.getUniqueId(), new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (!p.isOnline()) {
+                        this.cancel();
+                        loops.remove(p.getUniqueId());
                     }
-                }.runTaskTimerAsynchronously(plugin, 0, 200).getTaskId());
-            }
+                    updateHolograms(p);
+                }
+            }.runTaskTimerAsynchronously(plugin, 0, plugin.getConfig().getInt("HologramUpdateInterval")).getTaskId());
+        }
 
-                setYRotation((float) settings.getDirection());
+        setYRotation((float) settings.getDirection());
     }
 
     private void updateHolograms(Player p) {
@@ -442,6 +446,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
      */
     @Override
     public void remove() {
+        injectionManager.shutDown();
         loops.forEach((uuid1, integer) -> Bukkit.getScheduler().cancelTask(integer));
         loops.clear();
         List<Packet<?>> packets = new ArrayList<>();
