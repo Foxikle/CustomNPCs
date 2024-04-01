@@ -13,7 +13,19 @@
 #    will be automatically generated on the next server start.
 
 # DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.
-CONFIG_VERSION: 5
+CONFIG_VERSION: 6
+
+# InjectionDistance -> How close should a player be to the NPC before the plugin attempts to inject the NPC (Due to minecraft, npcs automatically remove themselves after getting 48 blocks from the player.
+InjectionDistance: 48
+
+# InjectionInterval -> How often should the plugin attempt to inject NPCs into players? (in ticks)
+InjectionInterval: 10 # .5 seconds
+
+# HologramUpdateInterval -> How often should the plugin update NPC holograms? (in ticks)
+HologramUpdateInterval: 200 # 10 seconds
+
+# LookInterval -> How often should the plugin update where the NPCs are looking? (in ticks)
+LookInterval: 5 # .25 seconds
 
 # DisplayClickText -> Should the plugin display a hologram above the NPC's head if it is interactable?
 DisplayClickText: true
