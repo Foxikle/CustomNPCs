@@ -1,7 +1,7 @@
 plugins {
     `java-library`
     `maven-publish`
-    id("xyz.jpenilla.run-paper") version "2.2.3"
+    id("xyz.jpenilla.run-paper") version "2.2.4"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
