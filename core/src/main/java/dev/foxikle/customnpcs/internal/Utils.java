@@ -8,13 +8,13 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("deprecation")
 public class Utils {
     @SafeVarargs
     public static <E> List<E> list(E... vararg) {
         return new ArrayList<>(List.of(vararg));
     }
 
+    @SuppressWarnings("deprecation")
     public static String style(String str) {
         return ChatColor.translateAlternateColorCodes('&', str);
     }
@@ -37,8 +37,8 @@ public class Utils {
     }
 
     public static void setTotalExperience(Player player, int amount) {
-        int level = 0;
-        int xp = 0;
+        int level;
+        int xp;
         float a = 0;
         float b = 0;
         float c = -amount;
