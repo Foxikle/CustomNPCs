@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.*;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 /**
@@ -357,7 +358,12 @@ public class Listeners implements Listener {
                 URL url = new URL(message);
                 plugin.MINESKIN_CLIENT.generateUrl(url.toString()).whenComplete((skin, throwable) -> {
                     if (throwable != null) {
-                        player.sendMessage(Utils.style("&cAn error occurred whilst parsing this skin."));
+                        if(throwable.getMessage().equalsIgnoreCase("java.lang.RuntimeException: org.mineskin.data.MineskinException: Failed to find image from url")) {
+                            player.sendMessage(Utils.style("&cThe provided URL was &ovalid&r&c, but it doesn't contain any skin data. Sorry!"));
+                            return;
+                        }
+                        player.sendMessage(Utils.style("&cAn error occurred whilst parsing this skin. Check the console for details."));
+                        plugin.getLogger().log(Level.SEVERE, "An error occurred whilst parsing this skin from a url.", throwable);
                         return;
                     }
                     core.getNpc().getSettings().setSkinData(skin.data.texture.signature, skin.data.texture.value, "A skin imported via a URL");
