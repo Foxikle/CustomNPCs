@@ -8,7 +8,16 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A class holding usful methods
+ */
 public class Utils {
+
+    /**
+     * Creates a MUTABLE list
+     * @param vararg The vararg of emelments to be added to a mutable list
+     * @return The mutable list containing the passed elements.
+     */
     @SafeVarargs
     public static <E> List<E> list(E... vararg) {
         return new ArrayList<>(List.of(vararg));
@@ -19,6 +28,11 @@ public class Utils {
         return ChatColor.translateAlternateColorCodes('&', str);
     }
 
+    /**
+     * Gets the total number of xp points at a level
+     * @param level the level to get the number of points
+     * @return the number of points at a specific level
+     */
     private static int getTotalExperience(int level) {
         int xp = 0;
 
@@ -32,10 +46,20 @@ public class Utils {
         return xp;
     }
 
+    /**
+     * Gets the total experience of a player
+     * @param player the player
+     * @return the number of experience points the player has
+     */
     public static int getTotalExperience(Player player) {
         return Math.round(player.getExp() * player.getExpToLevel()) + getTotalExperience(player.getLevel());
     }
 
+    /**
+     * Sets the player's total experience, including levels
+     * @param player the player
+     * @param amount the amount of xp
+     */
     public static void setTotalExperience(Player player, int amount) {
         int level;
         int xp;
