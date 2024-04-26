@@ -26,7 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Provides menu utilites
+ * Provides menu utilities
  */
 public class MenuUtils {
 
@@ -143,7 +143,7 @@ public class MenuUtils {
         try {
             textures.setSkin(getUrlFromBase64(texture[0]));
         } catch (MalformedURLException e) {
-            plugin.getLogger().severe("An error occured whilst fetching player skin icon");
+            plugin.getLogger().severe("An error occurred whilst fetching player skin icon");
             e.printStackTrace();
         }
         profile.setTextures(textures);
@@ -194,7 +194,7 @@ public class MenuUtils {
                     CustomNPCs.getInstance().npcs.remove(npc.getUniqueID());
                     player.sendMessage(Utils.style("&aSuccessfully deleted the NPC: ") + npc.getSettings().getName());
                     player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(npc.getSettings().getName())
-                            .append(Component.text(" was permanantly deleted.", NamedTextColor.RED)));
+                            .append(Component.text(" was permanently deleted.", NamedTextColor.RED)));
                     player.closeInventory();
                     player.playSound(player, Sound.BLOCK_GLASS_BREAK,1, 1);
                 }, 1)));

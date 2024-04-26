@@ -2332,7 +2332,7 @@ public class MenuCore {
         menu.setItem(11, ItemBuilder.of(ANVIL).setName("§bImport from Player").setLore("§eFetches a player's skin by name").buildItem((player, event) -> {
             player.closeInventory();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            plugin.playernameWating.add(player);
+            plugin.playerWaiting.add(player);
             new PlayerNameRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
             event.setCancelled(true);
         }));

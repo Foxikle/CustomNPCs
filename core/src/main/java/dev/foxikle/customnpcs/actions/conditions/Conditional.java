@@ -3,6 +3,7 @@ package dev.foxikle.customnpcs.actions.conditions;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import lombok.Getter;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * The interface to represent a comparison
@@ -95,7 +96,7 @@ public interface Conditional {
         EQUAL_TO(true),
 
         /**
-         * Represents the value being inequal to the target value
+         * Represents the value being unequal to the target value
          */
         NOT_EQUAL_TO(true),
 
@@ -169,9 +170,17 @@ public interface Conditional {
         HEALTH(false),
 
         /**
-         * Represents the player's absorbtion
+         * Represents the player's absorption
+         * @deprecated - Misspelled, see {@link Conditional.Value#ABSORPTION}
          */
+        @ApiStatus.ScheduledForRemoval(inVersion = "1.7")
+        @Deprecated
         ABSORBTION(false),
+
+        /**
+         * Represents the player's absorption
+         */
+        ABSORPTION(false),
 
         /**
          * Represents the player's Y coordinate
@@ -236,14 +245,14 @@ public interface Conditional {
 
         /**
          * The constructor for the Value
-         * @param isLogical if the value is considdered 'logical'
+         * @param isLogical if the value is considered 'logical'
          */
         Value(boolean isLogical) {
             this.isLogical = isLogical;
         }
 
         /**
-         * Determines if the value is considdered 'logical'
+         * Determines if the value is considered 'logical'
          * @return if the value is logical
          */
         public boolean isLogical() {

@@ -18,7 +18,7 @@ public class ConditionalTypeAdapter extends TypeAdapter<Conditional> {
      *
      * @param out the data write out to
      * @param conditional the Java object to write. May be null.
-     * @throws IOException if an exception occours
+     * @throws IOException if an exception occurs
      */
     @Override
     public void write(JsonWriter out, Conditional conditional) throws IOException {
@@ -34,7 +34,7 @@ public class ConditionalTypeAdapter extends TypeAdapter<Conditional> {
      *
      * @param in the data to parse
      * @return the deserialized Conditional
-     * @throws IOException if an error occours reading
+     * @throws IOException if an error occurs reading
      */
     @Override
     public Conditional read(JsonReader in) throws IOException {

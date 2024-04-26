@@ -9,41 +9,19 @@ import org.jetbrains.annotations.ApiStatus;
 /**
  * A class holding the data for an NPC's settings
  */
+@Setter
 public class Settings {
 
-    @Setter @Getter
-    boolean interactable = false;
-
-    @Setter @Getter
-    boolean tunnelvision = false;
-
-
-    @Setter @Getter
-    boolean resilient = true;
-
-    @Setter @Getter
-    double direction = 180;
-
-
-    @Setter @Getter
-    String value = "";
-
-    @Setter @Getter
-    String signature = "";
-
+    @Getter boolean interactable = false;
+    @Getter boolean tunnelvision = false;
+    @Getter boolean resilient = true;
+    @Getter double direction = 180;
+    @Getter String value = "";
+    @Getter String signature = "";
     String name = "not set";
-
-    @Setter @Getter
-    String skinName = "not set";
-
-    /**
-     * Should this NPC not have a clickable Hologram?
-     */
-    @Setter @Getter
-    boolean hideClickableHologram = false;
-
-    @Setter @Getter
-    String customInteractableHologram = "";
+    @Getter String skinName = "not set";
+    @Getter boolean hideClickableHologram = false;
+    @Getter String customInteractableHologram = "";
 
     /**
      * Creates a settings object with the specified settings
@@ -101,7 +79,7 @@ public class Settings {
      * Creates a settings with defaults.
      */
     public Settings() {
-        // defualt constructor
+        // default constructor
     }
 
     /**
@@ -122,7 +100,7 @@ public class Settings {
 
     /**
      * Sets the name of the npc
-     * @param name as a component
+     * @param name as a string
      */
     public void setName(String name) {
         this.name = name;
@@ -140,6 +118,7 @@ public class Settings {
         this.skinName = skinName;
     }
 
+    @SuppressWarnings("all")
     public Settings clone(){
         return new Settings(interactable, tunnelvision, resilient, direction, value, signature, skinName, name, customInteractableHologram, hideClickableHologram);
     }

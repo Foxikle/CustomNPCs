@@ -43,7 +43,7 @@ public class Equipment {
      * A constructor to create an equipment object with air as all items
      */
     public Equipment() {
-        // defualt constructor
+        // default constructor
     }
 
     /**
@@ -59,6 +59,7 @@ public class Equipment {
         this.offhand = e.getItemInOffHand().clone();
     }
 
+    @SuppressWarnings("all")
     public Equipment clone(){
         return new Equipment(head.clone(), chest.clone(), legs.clone(), boots.clone(), hand.clone(), offhand.clone());
     }

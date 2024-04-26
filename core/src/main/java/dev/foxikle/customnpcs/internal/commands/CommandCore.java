@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -55,6 +56,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
      * @return if the command was handled
      * @since 1.3-pre5
      */
+    @SuppressWarnings("all") // yes I know `plugin.getPluginMeta().getVersion()` is uNstAblE!
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if (sender instanceof Player player) {
@@ -64,20 +66,20 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             } else if (args.length == 1) {
                 if (args[0].equalsIgnoreCase("help")) {
                     if (!player.hasPermission("customnpcs.commands.help")) {
-                        player.sendMessage(Utils.style("&cYou lack the propper permissions to execute this."));
+                        player.sendMessage(Utils.style("&cYou lack the proper permissions to execute this."));
                         return true;
                     }
                     player.sendMessage(Utils.style("""
-                            &2&m                      &r&3&l Custom NPCs &r&7[&8v${version}&7] &r&2&m                      \s
-                            &r                                 &r&6By Foxikle \n
-                                                        
-                            """).replace("${version}", plugin.getDescription().getVersion()));
+                             &2&m                      &r&3&l Custom NPCs &r&7[&8v${version}&7] &r&2&m                      \s
+                             &r                                 &r&6By Foxikle \n
+                                                        \s
+                            \s""").replace("${version}", plugin.getPluginMeta().getVersion()));
 
 
                     player.sendMessage(getHelpComponent());
                 } else if (args[0].equalsIgnoreCase("manage")) {
                     if (!player.hasPermission("customnpcs.commands.manage")) {
-                        player.sendMessage(Utils.style("&cYou lack the propper permissions to manage npcs."));
+                        player.sendMessage(Utils.style("&cYou lack the proper permissions to manage npcs."));
                         return true;
                     }
                     if (plugin.getNPCs().isEmpty()) {
@@ -85,10 +87,10 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     player.sendMessage(Utils.style("""
-                            &2&m                           &r&3&l Manage NPCs  &r&2&m                           \s
-                            &r                                 \n
-                                                        
-                            """));
+                             &2&m                           &r&3&l Manage NPCs  &r&2&m                           \s
+                             &r                                 \n
+                                                        \s
+                            \s"""));
                     Component message = Component.empty();
                     for (InternalNpc npc : plugin.getNPCs()) {
                         if (npc.getSettings().isResilient()) {
@@ -100,7 +102,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                                             .hoverEvent(HoverEvent.showText(Component.text("Click to edit NPC", NamedTextColor.DARK_AQUA)))
                                             .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc edit " + npc.getUniqueID()))
                                     ).append(Component.text(" [DELETE]", NamedTextColor.RED, TextDecoration.BOLD)
-                                            .hoverEvent(HoverEvent.showText(Component.text("Click to permanantly delete NPC", NamedTextColor.DARK_RED, TextDecoration.BOLD)))
+                                            .hoverEvent(HoverEvent.showText(Component.text("Click to permanently delete NPC", NamedTextColor.DARK_RED, TextDecoration.BOLD)))
                                             .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc delete " + npc.getUniqueID()))
                                     ).appendNewline();
                             message = message.append(name);
@@ -117,12 +119,12 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     if (player.hasPermission("customnpcs.commands.removeHolograms")) {
                         player.sendMessage(Utils.style("&cThis command was removed in 1.6.1 because of a rework in NPC hologram names. If you wish to remove any holograms that remain, please use the following command. '/kill @e[tag=npcHologram]'"));
                     } else {
-                        player.sendMessage(Utils.style("&cYou lack the propper permissions to do this."));
+                        player.sendMessage(Utils.style("&cYou lack the proper permissions to do this."));
                         return true;
                     }
                 } else if (args[0].equalsIgnoreCase("create")) {
                     if (!player.hasPermission("customnpcs.create")) {
-                        player.sendMessage(Utils.style("&cYou lack the propper permissions to create npcs."));
+                        player.sendMessage(Utils.style("&cYou lack the proper permissions to create npcs."));
                         return true;
                     }
                     UUID uuid = UUID.randomUUID();
@@ -132,15 +134,16 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     mc.getMainMenu().open(player);
                 } else if (args[0].equalsIgnoreCase("reload")) {
                     if (!player.hasPermission("customnpcs.commands.reload")) {
-                        player.sendMessage(Utils.style("&cYou lack the propper permissions to reload npcs."));
+                        player.sendMessage(Utils.style("&cYou lack the proper permissions to reload npcs."));
                         return true;
                     }
                     player.sendMessage(Utils.style("&eReloading NPCs!"));
                     plugin.reloadConfig();
 
                     try {
-                        Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
-                    } catch (IllegalArgumentException ignored) {}
+                        Objects.requireNonNull(Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc")).unregister();
+                    } catch (IllegalArgumentException ignored) {
+                    }
 
                     List<InternalNpc> npcs = new ArrayList<>(plugin.npcs.values());
                     for (InternalNpc npc : npcs) {
@@ -182,7 +185,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             plugin.menuCores.get(player).getActionCustomizerMenu(action).open(player);
                         });
                     } else {
-                        player.sendMessage(Utils.style("&cUnccessfully set NPC sound. I wasn't waiting for a response. Please contact Foxikle if you think this is a mistake."));
+                        player.sendMessage(Utils.style("&cUnsuccessfully set NPC sound. I wasn't waiting for a response. Please contact Foxikle if you think this is a mistake."));
                     }
                 } else {
                     UUID uuid = null;
@@ -210,7 +213,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         } else if (uuids.size() > 1) {
                             double value = Double.MAX_VALUE;
                             for (UUID id : uuids) {
-                                double ds = plugin.getNPCByID(id).getCurrentLocation().distanceSquared(player.getLocation());
+                                double ds = Objects.requireNonNull(plugin.getNPCByID(id)).getCurrentLocation().distanceSquared(player.getLocation());
                                 if (ds < value) {
                                     uuid = id;
                                     value = ds;
@@ -227,17 +230,18 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         }
                         npc = plugin.getNPCByID(uuid);
                     }
+                    assert npc != null;
                     switch (args[0].toLowerCase()) {
                         case "delete" -> {
                             if (!player.hasPermission("customnpcs.delete")) {
-                                player.sendMessage(Utils.style("&cYou lack the propper permissions to delete npcs."));
+                                player.sendMessage(Utils.style("&cYou lack the proper permissions to delete npcs."));
                                 return true;
                             }
                             MenuUtils.getDeletionConfirmationMenu(npc, null).open(player);
                         }
                         case "edit" -> {
                             if (!player.hasPermission("customnpcs.edit")) {
-                                player.sendMessage(Utils.style("&cYou lack the propper permissions to edit npcs."));
+                                player.sendMessage(Utils.style("&cYou lack the proper permissions to edit npcs."));
                                 return true;
                             }
 
@@ -250,17 +254,18 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             }, 1);
                         }
                         case "goto" -> {
-                            if(!player.hasPermission("customnpcs.commands.goto")) {
-                                player.sendMessage(Utils.style("&cYou lack the propper permissions to go to npcs."));
+                            if (!player.hasPermission("customnpcs.commands.goto")) {
+                                player.sendMessage(Utils.style("&cYou lack the proper permissions to go to npcs."));
                                 return true;
                             }
                             player.teleportAsync(npc.getCurrentLocation());
                         }
                         case "clone" -> {
-                            if(!player.hasPermission("customnpcs.commands.clone")) {
-                                player.sendMessage(Utils.style("&cYou lack the propper permissions to clone npcs."));
+                            if (!player.hasPermission("customnpcs.commands.clone")) {
+                                player.sendMessage(Utils.style("&cYou lack the proper permissions to clone npcs."));
                                 return true;
                             }
+                            assert npc != null;
                             InternalNpc newNpc = npc.clone();
                             newNpc.setSpawnLoc(player.getLocation());
                             newNpc.getSettings().setDirection(player.getLocation().getYaw());
@@ -270,17 +275,19 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             // runnable
                         }
                         case "movehere" -> {
-                            if(!player.hasPermission("customnpcs.commands.movehere")) {
-                                player.sendMessage(Utils.style("&cYou lack the propper permissions to clone npcs."));
+                            if (!player.hasPermission("customnpcs.commands.movehere")) {
+                                player.sendMessage(Utils.style("&cYou lack the proper permissions to clone npcs."));
                                 return true;
                             }
                             player.sendMessage(Utils.style("&e&oPsst! After moving NPCs, you should reload them!"));
+                            assert npc != null;
                             npc.remove();
                             npc.setSpawnLoc(player.getLocation());
                             npc.getSettings().setDirection(player.getLocation().getYaw());
                             npc.createNPC();
                         }
-                        default -> sender.sendMessage(Utils.style("&cUnrecognised sub-command. Use '/npc help' for a list of supported commands."));
+                        default ->
+                                sender.sendMessage(Utils.style("&cUnrecognised sub-command. Use '/npc help' for a list of supported commands."));
                     }
                 }
             }
@@ -294,8 +301,8 @@ public class CommandCore implements CommandExecutor, TabCompleter {
 
             if (!silent) sender.sendMessage(Utils.style("&eReloading NPCs!"));
             try {
-                Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
-            } catch (IllegalArgumentException ignored) {
+                Objects.requireNonNull(Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc")).unregister();
+            } catch (IllegalArgumentException | NullPointerException ignored) {
                 plugin.getLogger().info("Failed to unregister the \"npc\" team during reload, this isn't an issue, but might be helpful for debugging purposes.");
             }
             List<InternalNpc> npcs = new ArrayList<>(plugin.npcs.values());
@@ -329,9 +336,9 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 .append(Component.text("Creates a new NPC", NamedTextColor.AQUA))
                 .appendNewline()
                 .append(Component.text("- /npc delete <NPC>  ", NamedTextColor.GOLD)
-                        .hoverEvent(HoverEvent.showText(Component.text("Permanantly deletes the NPC", NamedTextColor.DARK_RED)))
+                        .hoverEvent(HoverEvent.showText(Component.text("Permanently deletes the NPC", NamedTextColor.DARK_RED)))
                 )
-                .append(Component.text("Permanantly deletes the NPC  ", NamedTextColor.AQUA))
+                .append(Component.text("Permanently deletes the NPC  ", NamedTextColor.AQUA))
                 .appendNewline()
                 .append(Component.text("- /npc edit <NPC>  ", NamedTextColor.GOLD)
                         .hoverEvent(HoverEvent.showText(Component.text("Brings up the NPC edit dialogue", NamedTextColor.WHITE)))
@@ -361,7 +368,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 .append(Component.text("- /npc goto <NPC>  ", NamedTextColor.GOLD)
                         .hoverEvent(HoverEvent.showText(Component.text("Teleports you to the specified NPC.", NamedTextColor.WHITE)))
                 )
-                .append(Component.text("Teleports you to the specifiec NPC.  ", NamedTextColor.AQUA))
+                .append(Component.text("Teleports you to the specific NPC.  ", NamedTextColor.AQUA))
                 .appendNewline()
                 .append(Component.text("                                                                                 ", NamedTextColor.DARK_GREEN, TextDecoration.STRIKETHROUGH)));
         return component;
@@ -379,7 +386,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
      * @since 1.3-pre5
      */
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         List<String> list = new ArrayList<>();
         if (args.length == 1) {
             list.add("help");
@@ -400,9 +407,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 }
                 return list;
             }
-            plugin.npcs.forEach((uuid, npc) -> {
-                list.add(plugin.getMiniMessage().stripTags(npc.getSettings().getName()));
-            });
+            plugin.npcs.forEach((uuid, npc) -> list.add(plugin.getMiniMessage().stripTags(npc.getSettings().getName())));
         }
         return list;
     }

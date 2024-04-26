@@ -5,6 +5,8 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.Objects;
+
 /**
  * The object representing two non-numeric values
  */
@@ -38,7 +40,7 @@ public class LogicalConditional implements Conditional {
         boolean value = false;
         switch (this.value) {
             case HAS_PERMISSION -> value = player.hasPermission(target);
-            case HAS_EFFECT -> value = player.hasPotionEffect(PotionEffectType.getByName(target));
+            case HAS_EFFECT -> value = player.hasPotionEffect(Objects.requireNonNull(PotionEffectType.getByName(target)));
             case GAMEMODE -> value = player.getGameMode().equals(GameMode.valueOf(target));
             case IS_FLYING -> value = player.isFlying();
             case IS_SPRINTING -> value = player.isSprinting();
@@ -135,7 +137,11 @@ public class LogicalConditional implements Conditional {
 
     @Override
     public Conditional clone() {
-        return new LogicalConditional(comparator, value, target);
+        try {
+            return (LogicalConditional) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return new LogicalConditional(comparator, value, target);
+        }
     }
 
     /**

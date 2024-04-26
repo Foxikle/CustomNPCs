@@ -13,7 +13,10 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -36,6 +39,7 @@ import java.util.regex.Pattern;
 /**
  * The class that deals with misc listeners
  */
+@SuppressWarnings("unused")
 public class Listeners implements Listener {
 
     /**
@@ -49,8 +53,8 @@ public class Listeners implements Listener {
     // since 1.6.0
     private static final int FIVE_BLOCKS = 25;
     private static final int FIFTY_BLOCKS = 2500; // 50 * 50
-    private static final int SITXY_BLOCKS = 3600; // 60 * 60
-    private static final int FOURTY_BLOCKS = 2304; // 48 * 48
+    private static final int SIXTY_BLOCKS = 3600; // 60 * 60
+    private static final int FORTY_BLOCKS = 2304; // 48 * 48
     private static final double HALF_BLOCK = 0.25;
 
     // Writing Constants
@@ -73,7 +77,7 @@ public class Listeners implements Listener {
     private ScheduledExecutorService service;
 
     /**
-     * Constructor for generic listners class
+     * Constructor for generic listeners class
      *
      * @param plugin The instance of the main class
      */
@@ -177,14 +181,17 @@ public class Listeners implements Listener {
 
         try {
             npc = plugin.getNPCByID(uuid);
+            assert npc != null;
         } catch (IllegalArgumentException ignored) {
             return;
         }
 
         if (player.hasPermission("customnpcs.edit") && player.isSneaking()) {
             player.performCommand("npc edit " + uuid);
-        } else if (npc.getSettings().isInteractable()) {
-            npc.getActions().forEach(action -> Bukkit.dispatchCommand(CONSOLE_SENDER, action.getCommand(player)));
+        } else {
+            if (npc.getSettings().isInteractable()) {
+                npc.getActions().forEach(action -> Bukkit.dispatchCommand(CONSOLE_SENDER, action.getCommand(player)));
+            }
         }
     }
 
@@ -195,6 +202,7 @@ public class Listeners implements Listener {
      * @since 1.0
      */
     @EventHandler(priority = EventPriority.HIGHEST)
+    @SuppressWarnings("deprecation")
     public void onChat(AsyncPlayerChatEvent e) {
         Player player = e.getPlayer();
         String message = e.getMessage();
@@ -212,7 +220,7 @@ public class Listeners implements Listener {
             List<String> currentArgs = action.getArgs();
             currentArgs.clear();
             currentArgs.addAll(Utils.list(PATTERN.split(message)));
-            player.sendMessage(ChatColor.GREEN + "Successfully set command to be '" + ChatColor.RESET + Utils.style(message) + ChatColor.RESET + ChatColor.GREEN + "'");
+            player.sendMessage(Utils.style("&aSuccessfully set command to be '&r" + Utils.style(message) + "&r&a'"));
             SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
         } else if (plugin.nameWaiting.contains(player)) {
             if (cancel) {
@@ -305,9 +313,9 @@ public class Listeners implements Listener {
             currentArgs.addAll(List.of(PATTERN.split(message)));
             player.sendMessage(Component.text("Successfully set actionbar to be '", NamedTextColor.GREEN).append(plugin.getMiniMessage().deserialize(message)).append(Component.text("'", NamedTextColor.GREEN)));
             SCHEDULER.runTask(plugin, () -> core.getActionCustomizerMenu(action).open(player));
-        } else if (plugin.playernameWating.contains(player)) {
+        } else if (plugin.playerWaiting.contains(player)) {
             if (cancel) {
-                plugin.playernameWating.remove(player);
+                plugin.playerWaiting.remove(player);
                 SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
                 e.setCancelled(true);
                 return;
@@ -329,12 +337,12 @@ public class Listeners implements Listener {
                 String signature = property.get("signature").getAsString();
                 core.getNpc().getSettings().setSkinData(signature, value, name + "'s skin (imported via player name)");
             } catch (Exception ignored) {
-                player.sendMessage(ChatColor.RED + "There was an error parsing " + name + "'s skin? Does this player exist?");
+                player.sendMessage(Utils.style("&cThere was an error parsing " + name + "'s skin? Does this player exist?"));
                 e.setCancelled(true);
                 return;
             }
-            plugin.playernameWating.remove(player);
-            player.sendMessage(ChatColor.GREEN + "Successfully set NPC's skin to " + name + "'s skin!");
+            plugin.playerWaiting.remove(player);
+            player.sendMessage(Utils.style("&aSuccessfully set NPC's skin to " + name + "'s skin!"));
             SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
         } else if (plugin.urlWaiting.contains(player)) {
             if (cancel) {
@@ -344,21 +352,21 @@ public class Listeners implements Listener {
                 return;
             }
             e.setCancelled(true);
-            player.sendMessage("§e§oAttempting to fetch the skin from a URL. This may take a moment!");
+            player.sendMessage(Utils.style("&e&oAttempting to fetch the skin from a URL. This may take a moment!"));
             try {
                 URL url = new URL(message);
                 plugin.MINESKIN_CLIENT.generateUrl(url.toString()).whenComplete((skin, throwable) -> {
                     if (throwable != null) {
-                        player.sendMessage(ChatColor.RED + "An error occured whilst parsing this skin.");
+                        player.sendMessage(Utils.style("&cAn error occurred whilst parsing this skin."));
                         return;
                     }
                     core.getNpc().getSettings().setSkinData(skin.data.texture.signature, skin.data.texture.value, "A skin imported via a URL");
                     plugin.urlWaiting.remove(player);
-                    player.sendMessage(ChatColor.GREEN + "Successfully set NPC's skin from " + message);
+                    player.sendMessage(Utils.style("&aSuccessfully set NPC's skin from " + message));
                     SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
                 });
             } catch (Exception ex) {
-                player.sendMessage(ChatColor.RED + "An error occured whilst parsing NPC skin. Is this URL valid?");
+                player.sendMessage(Utils.style("&cAn error occurred whilst parsing NPC skin. Is this URL valid?"));
             }
         } else if (plugin.hologramWaiting.contains(player)) {
             if (cancel) {
@@ -370,7 +378,7 @@ public class Listeners implements Listener {
             plugin.hologramWaiting.remove(player);
             e.setCancelled(true);
             player.sendMessage(
-                    Component.text("Successfully set the NPC's indevidual clickable hologram to: '", NamedTextColor.GREEN)
+                    Component.text("Successfully set the NPC's individual clickable hologram to: '", NamedTextColor.GREEN)
                             .append(plugin.getMiniMessage().deserialize(message))
                             .append(Component.text("'", NamedTextColor.GREEN))
             );
@@ -409,13 +417,6 @@ public class Listeners implements Listener {
     }
 
     /**
-     * <p>The npc interaction handler while mounted on an entity
-     * </p>
-     * @param e The event callback
-     * @since 1.3-pre4
-     */
-
-    /**
      * <p>The npc injection handler on velocity
      * </p>
      *
@@ -427,31 +428,6 @@ public class Listeners implements Listener {
         actionPlayerMovement(e.getPlayer());
     }
 
-    /**
-     * <p>The npc follow handler
-     * TODO: Replace with proper Pathfinding.
-     * </p>
-     *
-     * @param e The event callback
-     * @since 1.3-pre2
-     */
-    @EventHandler
-    public void followHandler(PlayerMoveEvent e) {
-//        Player player = e.getPlayer();
-//        World world = player.getWorld();
-//        Location location = player.getLocation();
-//        Location to = e.getTo();
-//        for (InternalNpc npc : plugin.npcs.values()) {
-//            if (world != npc.getWorld()) continue; //TODO: Make npc travel between dimensions
-//            if (npc.getTarget() != player) continue;
-//            npc.lookAt(LookAtAnchor.HEAD, player);
-//            if (npc.getCurrentLocation().distanceSquared(to) >= HALF_BLOCK) {
-//                SCHEDULER.runTaskLater(plugin, () -> {
-//                    if (to.distanceSquared(location) >= 1) npc.moveTo(to);
-//                }, 30);
-//            }
-//        }
-    }
 
     /**
      * <p>The npc injection handler
@@ -483,7 +459,7 @@ public class Listeners implements Listener {
      * @param e Event callback
      */
     @EventHandler
-    public void onDimentionChange(PlayerChangedWorldEvent e) {
+    public void onDimensionChange(PlayerChangedWorldEvent e) {
         Player player = e.getPlayer();
         Location location = player.getLocation();
         World world = player.getWorld();
@@ -510,7 +486,7 @@ public class Listeners implements Listener {
         plugin.serverWaiting.remove(player);
         plugin.actionbarWaiting.remove(player);
         plugin.urlWaiting.remove(player);
-        plugin.playernameWating.remove(player);
+        plugin.playerWaiting.remove(player);
         plugin.hologramWaiting.remove(player);
     }
 

@@ -18,6 +18,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -71,7 +72,7 @@ public class NPCActionCommand implements CommandExecutor {
      */
     @Override
     @SuppressWarnings("deprecated")
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] arguments) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] arguments) {
         if(sender instanceof ConsoleCommandSender){
             if(arguments.length > 0){
                 String subCommand = arguments[1];
@@ -95,7 +96,7 @@ public class NPCActionCommand implements CommandExecutor {
                             int out = Integer.parseInt(args.get(0));
                             args.remove(0);
                             String title = String.join(" ", args);
-                            if(plugin.papi) {
+                            if (plugin.papi) {
                                 title = PlaceholderAPI.setPlaceholders(player, title);
                             }
                             player.showTitle(Title.title(plugin.getMiniMessage().deserialize(title), Component.empty(), Title.Times.times(Duration.ofMillis(in * 50L), Duration.ofMillis(stay * 50L), Duration.ofMillis(out * 50L))));
@@ -103,7 +104,7 @@ public class NPCActionCommand implements CommandExecutor {
                     }
                     case "SEND_MESSAGE" -> {
                         if (!args.isEmpty()) {
-                            if(plugin.papi) {
+                            if (plugin.papi) {
                                 player.sendMessage(plugin.getMiniMessage().deserialize(PlaceholderAPI.setPlaceholders(player, String.join(" ", args))));
                             } else {
                                 player.sendMessage(plugin.getMiniMessage().deserialize(String.join(" ", args)));
@@ -122,14 +123,14 @@ public class NPCActionCommand implements CommandExecutor {
                     }
                     case "RUN_COMMAND" -> player.performCommand(String.join(" ", args));
                     case "ACTION_BAR" -> {
-                        if(plugin.papi) {
+                        if (plugin.papi) {
                             player.sendActionBar(plugin.getMiniMessage().deserialize(PlaceholderAPI.setPlaceholders(player, String.join(" ", args))));
                         } else {
                             player.sendActionBar(plugin.getMiniMessage().deserialize(String.join(" ", args)));
                         }
                     }
                     case "TELEPORT" -> {
-                        if(args.size() >= 5) {
+                        if (args.size() >= 5) {
                             double x = Double.parseDouble(args.get(0));
                             args.remove(0);
                             double y = Double.parseDouble(args.get(0));
@@ -151,30 +152,32 @@ public class NPCActionCommand implements CommandExecutor {
                         player.sendPluginMessage(plugin, "BungeeCord", out.toByteArray());
                     }
                     case "ADD_EFFECT" -> { // duration, strength, hide particles, effect
-                        if(args.size() >= 4) {
+                        if (args.size() >= 4) {
                             int duration = Integer.parseInt(args.get(0));
                             args.remove(0);
-                            int strenth = Integer.parseInt(args.get(0));
+                            int strength = Integer.parseInt(args.get(0));
                             args.remove(0);
                             boolean hideParticles = Boolean.parseBoolean(args.get(0));
                             args.remove(0);
                             PotionEffectType type = PotionEffectType.getByName(args.get(0));
-                            player.addPotionEffect(new PotionEffect(type, duration, strenth, true, !hideParticles));
+                            assert type != null;
+                            player.addPotionEffect(new PotionEffect(type, duration, strength, true, !hideParticles));
                         }
                     }
                     case "REMOVE_EFFECT" -> { // effect
-                        if(!args.isEmpty()) {
+                        if (!args.isEmpty()) {
                             PotionEffectType type = PotionEffectType.getByName(args.get(0));
+                            assert type != null;
                             player.removePotionEffect(type);
                         }
                     }
                     case "GIVE_EXP" -> { // amount, levels
-                        if(args.size() >= 2) {
+                        if (args.size() >= 2) {
                             int amount = Integer.parseInt(args.get(0));
                             args.remove(0);
                             boolean isLevels = Boolean.parseBoolean(args.get(0));
 
-                            if(isLevels) {
+                            if (isLevels) {
                                 player.giveExpLevels(amount);
                             } else {
                                 player.giveExp(amount, true);
@@ -182,13 +185,13 @@ public class NPCActionCommand implements CommandExecutor {
                         }
                     }
                     case "REMOVE_EXP" -> { // amount, levels
-                        if(args.size() >= 2) {
+                        if (args.size() >= 2) {
                             int amount = Integer.parseInt(args.get(0));
                             args.remove(0);
                             boolean isLevels = Boolean.parseBoolean(args.get(0));
 
-                            if(isLevels) {
-                                if(amount >= player.getLevel()) {
+                            if (isLevels) {
+                                if (amount >= player.getLevel()) {
                                     player.setLevel(0);
                                 } else {
                                     player.setLevel(player.getLevel() - amount);
@@ -198,20 +201,8 @@ public class NPCActionCommand implements CommandExecutor {
                             }
                         }
                     }
-                    case "TOGGLE_FOLLOWING" -> { //UUID of NPC
-                        player.sendMessage(Utils.style("\n&eHey! This action is &4currently broken&e, sorry for the inconvience! Its currently being replaced with the new AI system! \n\n-Foxikle"));
-//                        if(!args.isEmpty()) {
-//                            if (plugin.npcs.containsKey(UUID.fromString(args.get(0)))) {
-//                                UUID npcId = UUID.fromString(args.get(0));
-//                                InternalNpc npc = plugin.getNPCByID(npcId);
-//                                if(npc.getTarget() == player){
-//                                    npc.setTarget(null);
-//                                } else {
-//                                    npc.setTarget(player);
-//                                }
-//                            }
-//                        }
-                    }
+                    case "TOGGLE_FOLLOWING" -> //UUID of NPC
+                            player.sendMessage(Utils.style("\n&eHey! This action is &4currently broken&e, sorry for the inconvenience! Its currently being replaced with the new AI system! \n\n-Foxikle"));
                 }
                 }, delay);
             }

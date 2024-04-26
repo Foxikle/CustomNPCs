@@ -153,6 +153,10 @@ public class NumericConditional implements Conditional {
 
     @Override
     public Conditional clone() {
-        return new NumericConditional(comparator, value, target);
+        try {
+            return (NumericConditional) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return new NumericConditional(comparator, value, target);
+        }
     }
 }

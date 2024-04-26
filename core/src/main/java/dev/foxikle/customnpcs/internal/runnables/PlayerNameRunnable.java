@@ -26,7 +26,7 @@ public class PlayerNameRunnable extends BukkitRunnable {
      */
     @Override
     public void run() {
-        if(!plugin.playernameWating.contains(player))
+        if(!plugin.playerWaiting.contains(player))
             this.cancel();
         player.sendTitle(ChatColor.GOLD + "Type the Player's name in chat", ChatColor.YELLOW + "This is case INsensitive", 0, 20, 0);
     }

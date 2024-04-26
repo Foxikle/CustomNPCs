@@ -22,6 +22,7 @@ import java.util.logging.Level;
 /**
  * The class that deals with all file related things
  */
+@SuppressWarnings("unused")
 public class FileManager {
 
     /**
@@ -68,7 +69,7 @@ public class FileManager {
         if (!yml.contains("Skins")) {
             BackupResult br = createBackup(file);
             if (br.success) {
-                plugin.getLogger().warning("The config is irreperably damaged! Resetting config. Your old config was saved to the file \"" + br.filePath.toString() + "\"");
+                plugin.getLogger().warning("The config is irreparably damaged! Resetting config. Your old config was saved to the file \"" + br.filePath.toString() + "\"");
                 plugin.saveResource("config.yml", true);
             }
         }
@@ -79,7 +80,7 @@ public class FileManager {
             yml.set("CONFIG_VERSION", 1);
             yml.setComments("CONFIG_VERSION", List.of(" DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.", ""));
             yml.set("ClickText", "&e&lCLICK");
-            yml.setComments("ClickText", List.of("ClickText -> The hologram displayed above the NPC if it is interactable", " NOTE: Due to Minecraft limitatations, this cannot be more than 16 characters INCLUDING color and format codes.", " (But not the &)", ""));
+            yml.setComments("ClickText", List.of("ClickText -> The hologram displayed above the NPC if it is interactable", " NOTE: Due to Minecraft limitations, this cannot be more than 16 characters INCLUDING color and format codes.", " (But not the &)", ""));
             yml.set("DisplayClickText", true);
             yml.setComments("DisplayClickText", List.of(" DisplayClickText -> Should the plugin display a hologram above the NPC's head if it is interactable?", ""));
             try {
@@ -101,7 +102,7 @@ public class FileManager {
         if (version < 3) { // prior to 1.5.2-pre1
             plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 3));
             yml.set("CONFIG_VERSION", 3);
-            yml.set("ClickText", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(yml.getString("ClickText"))));
+            yml.set("ClickText", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(yml.getString("ClickText")))));
             try {
                 yml.save(file);
             } catch (IOException e) {
@@ -159,6 +160,7 @@ public class FileManager {
         List<String> actions = new ArrayList<>();
         npc.getActions().forEach(action -> actions.add(action.toJson()));
 
+        assert section != null;
         section.addDefault("value", npc.getSettings().getValue());
         section.addDefault("signature", npc.getSettings().getSignature());
         section.addDefault("skin", npc.getSettings().getSkinName());
@@ -181,8 +183,7 @@ public class FileManager {
         try {
             yml.save(file);
         } catch (IOException e) {
-            plugin.getLogger().severe("An error occoured saving the npcs.yml file after creating a new section. Please report the following stacktrace to Foxikle.");
-            e.printStackTrace();
+            plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after creating a new section. Please report the following stacktrace to Foxikle.", e);
         }
     }
 
@@ -204,12 +205,12 @@ public class FileManager {
             try {
                 yml.save(file);
             } catch (IOException e) {
-                plugin.getLogger().severe("An error occoured saving the npcs.yml file after updating version number. Please report the following stacktrace to Foxikle.");
-                e.printStackTrace();
+                plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after updating version number. Please report the following stacktrace to Foxikle.", e);
             }
             plugin.getLogger().info("Adding delay to old actions.");
             for (UUID u : getNPCIds()) {
                 ConfigurationSection s = yml.getConfigurationSection(u.toString());
+                assert s != null;
                 List<String> strings = s.getStringList("actions");
                 List<String> convertedActions = new ArrayList<>();
                 for (String string : strings) {
@@ -217,9 +218,9 @@ public class FileManager {
                     String sub = split.get(0);
                     split.remove(0);
                     int delay = 0;
-                    Action acttion = new Action(ActionType.valueOf(sub), split, delay, Conditional.SelectionMode.ONE, new ArrayList<>());
-                    convertedActions.add(acttion.toJson());
-                    actions.add(acttion);
+                    Action action = new Action(ActionType.valueOf(sub), split, delay, Conditional.SelectionMode.ONE, new ArrayList<>());
+                    convertedActions.add(action.toJson());
+                    actions.add(action);
                 }
                 s.set("actions", convertedActions);
             }
@@ -227,10 +228,9 @@ public class FileManager {
             try {
                 yml.save(file);
             } catch (IOException e) {
-                plugin.getLogger().severe("An error occoured saving the npcs.yml file after saving a list of converted actions. Please report the following stacktrace to Foxikle.");
-                e.printStackTrace();
+                plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after saving a list of converted actions. Please report the following stacktrace to Foxikle.", e);
             }
-        } else if (yml.getString("version").equalsIgnoreCase("1.3")) {
+        } else if (Objects.requireNonNull(yml.getString("version")).equalsIgnoreCase("1.3")) {
             yml.set("version", "1.4");
             plugin.getLogger().warning("Old Actions found. Converting to json.");
             List<String> legacyActions = section.getStringList("actions");
@@ -247,18 +247,18 @@ public class FileManager {
             try {
                 yml.save(file);
             } catch (IOException e) {
-                plugin.getLogger().severe("An error occoured whilst saving the converted actions. Pleaes report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
+                plugin.getLogger().severe("An error occurred whilst saving the converted actions. Please report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
             }
-        } else if (yml.getString("version").equalsIgnoreCase("1.4")) {
+        } else if (Objects.requireNonNull(yml.getString("version")).equalsIgnoreCase("1.4")) {
             plugin.getLogger().warning("Old NPC file version found! Bumping version! (1.4 -> 1.5)");
             yml.set("version", "1.5");
             section.set("tunnelvision", false);
             try {
                 yml.save(file);
             } catch (IOException e) {
-                plugin.getLogger().severe("An error occoured whilst saving the tunelvision status to the config. Pleaes report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
+                plugin.getLogger().severe("An error occurred whilst saving the tunelvision status to the config. Please report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
             }
-        } else if (yml.getString("version").equalsIgnoreCase("1.5")) {
+        } else if (Objects.requireNonNull(yml.getString("version")).equalsIgnoreCase("1.5")) {
             plugin.getLogger().warning("Old NPC file version found! Bumping version! (1.5 -> 1.6)");
             yml.set("version", "1.6");
             section.set("customHologram", false);
@@ -266,7 +266,7 @@ public class FileManager {
             try {
                 yml.save(file);
             } catch (IOException e) {
-                plugin.getLogger().severe("An error occoured whilst saving the tunelvision status to the config. Pleaes report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
+                plugin.getLogger().severe("An error occurred whilst saving the tunelvision status to the config. Please report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
             }
         }
 
@@ -274,6 +274,7 @@ public class FileManager {
             if (section.getString("command") != null) { // if there is a legacy command
                 Bukkit.getLogger().info("Converting legacy commands to Actions.");
                 String command = section.getString("command");
+                assert command != null;
                 Action action = new Action(ActionType.RUN_COMMAND, Utils.list(command.split(" ")), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
                 actions.add(action);
                 section.set("actions", actions);
@@ -281,23 +282,22 @@ public class FileManager {
                 try {
                     yml.save(file);
                 } catch (IOException e) {
-                    plugin.getLogger().severe("An error occoured saving the npcs.yml file after converting legacy commands to actions. Please report the following stacktrace to Foxikle.");
-                    e.printStackTrace();
+                    plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after converting legacy commands to actions. Please report the following stacktrace to Foxikle.", e);
                 }
             }
         }
-        if (section.getString("name").contains("§")) {
-            section.set("name", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(section.getString("name").replace("§", "&"))));
+        if (Objects.requireNonNull(section.getString("name")).contains("§")) {
+            section.set("name", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(section.getString("name")).replace("§", "&"))));
             try {
                 yml.save(file);
             } catch (IOException e) {
-                plugin.getLogger().log(Level.SEVERE, "An error occoured saving the npcs.yml file after converting legacy names to minimessage. Please report the following stacktrace to Foxikle.", e);
+                plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after converting legacy names to minimessage. Please report the following stacktrace to Foxikle.", e);
             }
         }
 
         World world;
         try {
-            world = Bukkit.getWorld(section.getString("world"));
+            world = Bukkit.getWorld(Objects.requireNonNull(section.getString("world")));
         } catch (IllegalArgumentException ex) {
             printInvalidConfig();
             return;
@@ -355,7 +355,7 @@ public class FileManager {
         if(npc != null) {
             npc.createNPC();
         } else {
-            plugin.getLogger().severe("The NPC '{name}' could not be created!".replace("{name}", section.getString("name")));
+            plugin.getLogger().severe("The NPC '{name}' could not be created!".replace("{name}", Objects.requireNonNull(section.getString("name"))));
         }
     }
 
@@ -395,22 +395,21 @@ public class FileManager {
         try {
             yml.save(file);
         } catch (IOException e) {
-            plugin.getLogger().severe("An error occoured saving the npcs.yml file after removing an npc. Please report the following stacktrace to Foxikle.");
-            e.printStackTrace();
+            plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after removing an npc. Please report the following stacktrace to Foxikle.", e);
         }
     }
 
     private BackupResult createBackup(File file) {
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
-        File f = new File(PARENT_DIRECTORY, new Date().toGMTString().replace(" ", "_").replace(":", "_") + "_backup_of_" + file.getName());
+        File f = new File(PARENT_DIRECTORY, new Date().toString().replace(" ", "_").replace(":", "_") + "_backup_of_" + file.getName());
         try {
             if (f.createNewFile()) {
                 yml.save(f);
             } else {
-                throw new RuntimeException("A duplicate file of file '" + f.getName() + "' exists! This means the plugin attempted to back up the file '" + file.getName() + "' multiple times within this milisecond! This is a serious issue that should be reported to @foxikle on discord!");
+                throw new RuntimeException("A duplicate file of file '" + f.getName() + "' exists! This means the plugin attempted to back up the file '" + file.getName() + "' multiple times within this millisecond! This is a serious issue that should be reported to @foxikle on discord!");
             }
         } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "An error occoured whilst creating a backup of the file '" + file.getName() + "'", e);
+            plugin.getLogger().log(Level.SEVERE, "An error occurred whilst creating a backup of the file '" + file.getName() + "'", e);
             return new BackupResult(null, false);
         }
         return new BackupResult(f.toPath(), true);

@@ -15,13 +15,13 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * An interface to provide multiversion support
+ * An interface to provide multi-version support
  */
 public interface InternalNpc {
 
 
     /**
-     * <p> Sets the NPC's loaction and rotation
+     * <p> Sets the NPC's location and rotation
      * </p>
      *
      * @param location The location to set the NPC
@@ -39,7 +39,7 @@ public interface InternalNpc {
      * </p>
      *
      * @param name The name to give the text display
-     * @return the TextDisplay representing the NPC's nametag
+     * @return the TextDisplay representing the NPC's name tag
      */
     TextDisplay setupHologram(String name);
 
@@ -68,7 +68,7 @@ public interface InternalNpc {
     Location getCurrentLocation();
 
     /**
-     * <p> Gets the NPC's spawnpoint is
+     * <p> Gets the NPC's spawn point is
      * </p>
      *
      * @return the place where the NPC spawns
@@ -100,20 +100,21 @@ public interface InternalNpc {
     void setSpawnLoc(Location spawnLoc);
 
     /**
-     * <p> Gets the text display representing the NPC nametag
+     * <p> Gets the text display representing the NPC name
      * </p>
      *
-     * @return the TextDisplay entity the NPC uses for their nametag
+     * @return the TextDisplay entity the NPC uses for their name tag
      */
     TextDisplay getHologram();
 
     /**
-     * <p> Gets the text display representing the NPC nametag
+     * <p> Gets the text display representing the NPC name
      * </p>
      *
      * @return the TextDisplay entity the NPC uses for their clickable hologram
      */
     @Nullable
+    @SuppressWarnings("unused")
     TextDisplay getClickableHologram();
 
     /**
@@ -147,6 +148,7 @@ public interface InternalNpc {
      * @param action The action to remove
      * @return if it was successfully removed
      */
+    @SuppressWarnings("UnusedReturnValue")
     boolean removeAction(Action action);
 
     /**
@@ -173,7 +175,7 @@ public interface InternalNpc {
     void moveTo(Location v);
 
     /**
-     * <p> Permantanly deletes an NPC. Does NOT despawn it.
+     * <p> Permanently deletes an NPC. Does NOT despawn it.
      * </p>
      */
     void delete();

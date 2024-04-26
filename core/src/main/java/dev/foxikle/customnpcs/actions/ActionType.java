@@ -33,7 +33,7 @@ public enum ActionType {
     ACTION_BAR(true, true, true),
 
     /**
-     * Represents starting/stopping following the player. There are no arugments.
+     * Represents starting/stopping following the player. There are no arguments.
      */
     TOGGLE_FOLLOWING(false, false, false),
 
@@ -83,9 +83,9 @@ public enum ActionType {
     private final boolean duplicatable;
     private final boolean delayable;
 
-    ActionType(boolean editable, boolean canDubplicate, boolean canDelay) {
+    ActionType(boolean editable, boolean canDuplicate, boolean canDelay) {
         this.editable = editable;
-        this.duplicatable = canDubplicate;
+        this.duplicatable = canDuplicate;
         this.delayable = canDelay;
     }
 }

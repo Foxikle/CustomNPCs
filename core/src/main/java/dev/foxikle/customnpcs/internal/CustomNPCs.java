@@ -55,7 +55,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * The client for the MineSkin API
      */
     public final MineskinClient MINESKIN_CLIENT = new MineskinClient("MineSkin-JavaClient");
-    private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
     private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4"};
     /**
      * The List of inventories that make up the skin selection menus
@@ -104,7 +103,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * The List of players the plugin is waiting for player name input
      */
-    public List<Player> playernameWating = new ArrayList<>();
+    public List<Player> playerWaiting = new ArrayList<>();
 
     /**
      * The list of player the plugin is waiting for input from
@@ -158,7 +157,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public MiniMessage miniMessage = MiniMessage.miniMessage();
     Listeners listeners;
     /**
-     * Singleton for menu utilites
+     * Singleton for menu utilities
      */
     private MenuUtils mu;
 
@@ -189,8 +188,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         this.updater = new AutoUpdater(this);
         update = updater.checkForUpdates();
         if (fileManager.createFiles()) {
-            getCommand("npc").setExecutor(new CommandCore(this));
-            getCommand("npcaction").setExecutor(new NPCActionCommand(this));
+            Objects.requireNonNull(getCommand("npc")).setExecutor(new CommandCore(this));
+            Objects.requireNonNull(getCommand("npcaction")).setExecutor(new NPCActionCommand(this));
             this.getLogger().info("Loading NPCs!");
             for (UUID uuid : fileManager.getNPCIds()) {
                 fileManager.loadNPC(uuid);
@@ -238,10 +237,10 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     }
 
     /**
-     * <p> Checks if the plugin is compatable with the server version
+     * <p> Checks if the plugin is compatible with the server version
      * </p>
      *
-     * @return If the plugin is compatable with the server
+     * @return If the plugin is compatible with the server
      */
 
     public boolean setup() {
@@ -263,7 +262,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
         Bukkit.getServicesManager().unregister(this);
         try {
-            Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").unregister();
+            Objects.requireNonNull(Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc")).unregister();
         } catch (IllegalArgumentException | NullPointerException ignored) {
         }
         for (InternalNpc npc : npcs.values()) {
@@ -319,7 +318,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     }
 
     /**
-     * <p> Doesn't do anything since this plugin is not expecting to receive any plugin messages. It exists soley to be able to send a player to a bungeecord server.
+     * <p> Doesn't do anything since this plugin is not expecting to receive any plugin messages. It exists sole to be able to send a player to a bungeecord server.
      * </p>
      */
     @Override
@@ -340,12 +339,13 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     public InternalNpc createNPC(World world, Location location, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actions) {
         try {
+            String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
             Class<?> clazz = Class.forName(String.format(NPC_CLASS, translateVersion()));
             return (InternalNpc) clazz
                     .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class, UUID.class, Player.class, List.class)
                     .newInstance(this, world, location, equipment, settings, uuid, target, actions);
         } catch (ReflectiveOperationException e) {
-            getLogger().log(Level.SEVERE, "An error occoured whilst creating the NPC '{name}! This is most likley a configuration issue.".replace("{name}", settings.getName()), e);
+            getLogger().log(Level.SEVERE, "An error occurred whilst creating the NPC '{name}! This is most likely a configuration issue.".replace("{name}", settings.getName()), e);
             return null;
         }
     }
