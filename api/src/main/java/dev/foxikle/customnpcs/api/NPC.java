@@ -21,8 +21,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * A class providing a 'Paper API friendly' NPC object requring no NMS to use within a project.
+ * A class providing a 'Paper API friendly' NPC object requiring no NMS to use within a project.
  */
+@SuppressWarnings("unused")
 public class NPC {
 
     private final InternalNpc npc;
@@ -48,7 +49,7 @@ public class NPC {
      * @author Foxikle
      * @since 1.5-pre5
      * @throws NullPointerException if the world is null
-     * @throws IllegalStateException if the API is not initilized
+     * @throws IllegalStateException if the API is not initialized
      */
     public NPC(@NotNull World world){
         if(NPCApi.plugin == null) throw new IllegalStateException("You must initialize the api before using it!");
@@ -104,8 +105,24 @@ public class NPC {
      * @param loc the new location for the NPC
      * @return the NPC with the modified location
      * @since 1.5.2-pre3
+     * @deprecated - See {@link NPC#setPosition(Location)}, this method header has a typo ;)
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.7")
     public NPC setPostion(@NotNull Location loc){
+        Preconditions.checkArgument(loc != null, "loc cannot be null.");
+        npc.setSpawnLoc(loc);
+        return this;
+    }
+
+    /**
+     * <p>Sets the location of the NPC
+     * </p>
+     * @param loc the new location for the NPC
+     * @return the NPC with the modified location
+     * @since 1.5.2-pre3
+     */
+    public NPC setPosition(@NotNull Location loc){
         Preconditions.checkArgument(loc != null, "loc cannot be null.");
         npc.setSpawnLoc(loc);
         return this;
@@ -138,7 +155,7 @@ public class NPC {
     public NPC setSkin(@NotNull String skinName, @NotNull String signature, @NotNull String value){
         Preconditions.checkArgument(signature != null, "signature cannot be null.");
         Preconditions.checkArgument(value != null, "value cannot be null.");
-        Preconditions.checkArgument(skinName != null && skinName.length() != 0, "skinName cannot be null or empty");
+        Preconditions.checkArgument(skinName != null && !skinName.isEmpty(), "skinName cannot be null or empty");
         npc.updateSkin();
         return this;
     }
@@ -287,7 +304,7 @@ public class NPC {
     /**
      * <p>Sets the NPC's actions to the specified Collection
      * </p>
-     * @param actions the colection of actions
+     * @param actions the collection of actions
      * @return the NPC with the modified set of actions
      * @see Action
      * @since 1.5.2-pre3
@@ -352,7 +369,7 @@ public class NPC {
     }
 
     /**
-     * <p>Permanantly deletes an NPC. They will NOT reappear on the next reload or server restart.
+     * <p>Permanently deletes an NPC. They will NOT reappear on the next reload or server restart.
      * The NPC will NOT be despawned. Only applicable if the NPC is resilient.
      * </p>
      * @since 1.5.2-pre3
