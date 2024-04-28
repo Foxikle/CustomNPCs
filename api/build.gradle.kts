@@ -19,7 +19,7 @@ dependencies {
 tasks {
     java {
         toolchain {
-            languageVersion.set(JavaLanguageVersion.of(17))
+            languageVersion.set(JavaLanguageVersion.of(21))
         }
     }
 
@@ -28,6 +28,10 @@ tasks {
         filesMatching("plugin.yml") {
             expand("version" to version)
         }
+    }
+
+    compileJava {
+        options.release = 17
     }
 
     jar {
