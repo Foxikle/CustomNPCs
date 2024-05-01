@@ -55,7 +55,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * The client for the MineSkin API
      */
     public final MineskinClient MINESKIN_CLIENT = new MineskinClient("MineSkin-JavaClient");
-    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4"};
+    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6"};
     /**
      * The List of inventories that make up the skin selection menus
      */
@@ -360,6 +360,9 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             }
             case "1.20.3", "1.20.4" -> {
                 return "v1_20_R3";
+            }
+            case "1.20.5", "1.20.6" -> {
+                return "v1_20_R4";
             }
         }
         return "";
