@@ -12,23 +12,21 @@ repositories {
 
 dependencies {
     compileOnly("me.clip:placeholderapi:2.11.5")
-    implementation(project(":api"))
+    implementation(project(mapOf("path" to ":api")))
     compileOnly(project(":core"))
-    paperweight.paperDevBundle("1.20.2-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.20.5-R0.1-SNAPSHOT")
 }
 
 tasks {
     java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
-        }
+        toolchain.languageVersion = JavaLanguageVersion.of(21)
     }
 
     compileJava {
-        options.release = 17
+        options.release = 21
     }
 
     jar {
-        archiveClassifier = "v1_20_R2"
+        archiveClassifier = "v1_20_R4"
     }
 }

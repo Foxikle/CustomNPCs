@@ -138,7 +138,7 @@ public class MenuUtils {
         SkullMeta headMeta = (SkullMeta) head.getItemMeta();
         headMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, keyValue);
         headMeta.setDisplayName(nameColor + name);
-        PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString("92864445-51c5-4c3b-9039-517c9927d1b4"), name);
+        PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString("92864445-51c5-4c3b-9039-517c9927d1b4"), "not_important");
         PlayerTextures textures = profile.getTextures();
         try {
             textures.setSkin(getUrlFromBase64(texture[0]));

@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "1.5.15"
+    id("io.papermc.paperweight.userdev") version "1.6.0"
 }
 
 repositories {
@@ -19,9 +19,11 @@ dependencies {
 
 tasks {
     java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(17))
-        }
+        toolchain.languageVersion = JavaLanguageVersion.of(21)
+    }
+
+    compileJava {
+        options.release = 17
     }
 
     jar {
