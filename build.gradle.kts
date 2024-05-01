@@ -2,7 +2,8 @@ plugins {
     `java-library`
     `maven-publish`
     id("xyz.jpenilla.run-paper") version "2.2.4"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("io.github.goooler.shadow") version "8.1.7"
+    id("io.papermc.paperweight.userdev") version "1.6.0" apply false
 }
 
 repositories {
@@ -14,6 +15,7 @@ repositories {
 dependencies {
     implementation(project(":api"))
     implementation(project(":core"))
+    implementation(project(":v1_20_R4", "reobf"))
     implementation(project(":v1_20_R3", "reobf"))
     implementation(project(":v1_20_R2", "reobf"))
     implementation(project(":v1_20_R1", "reobf"))
@@ -21,11 +23,11 @@ dependencies {
 
 allprojects {
     group = "dev.foxikle"
-    version = "1.6.1"
+    version = "1.6.2-pre1"
     description = "CustomNPCs"
 }
 
-java.sourceCompatibility = JavaVersion.VERSION_17
+java.sourceCompatibility = JavaVersion.VERSION_21
 
 publishing {
     repositories {
@@ -59,7 +61,7 @@ tasks {
 
     compileJava {
         options.encoding = Charsets.UTF_8.name()
-        options.release.set(17)
+        options.release = 21
     }
     javadoc {
         dependsOn("aggregatedJavadocs")
