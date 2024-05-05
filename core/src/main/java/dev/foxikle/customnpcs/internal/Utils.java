@@ -23,7 +23,7 @@ public class Utils {
         return new ArrayList<>(List.of(vararg));
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings("deprecation") // stop complaining about ChatColor
     public static String style(String str) {
         return ChatColor.translateAlternateColorCodes('&', str);
     }
