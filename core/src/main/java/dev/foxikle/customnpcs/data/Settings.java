@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.jetbrains.annotations.ApiStatus;
 
 /**
  * A class holding the data for an NPC's settings
@@ -23,31 +22,6 @@ public class Settings {
     @Getter boolean hideClickableHologram = false;
     @Getter String customInteractableHologram = "";
 
-    /**
-     * Creates a settings object with the specified settings
-     * @param interactable If the npc has actions to execute
-     * @param tunnelvision If the npc will look at players
-     * @param resilient If the npc will persist on restarts
-     * @param direction The direction to look
-     * @param value The value of the npc's skin
-     * @param signature The signature of the npc's skin
-     * @param skinName The name of the skin as it is referenced in the Menu
-     * @param name The name of NPC formatted in SERIALIZED minimessage format
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.7")
-    public Settings(boolean interactable, boolean tunnelvision, boolean resilient, double direction, String value, String signature, String skinName, String name) {
-        this.interactable = interactable;
-        this.tunnelvision = tunnelvision;
-        this.resilient = resilient;
-        this.direction = direction;
-        this.value = value;
-        this.signature = signature;
-        this.skinName = skinName;
-        this.name = name;
-        this.customInteractableHologram = "";
-        this.hideClickableHologram = false;
-    }
 
     /**
      * Creates a settings object with the specified settings
