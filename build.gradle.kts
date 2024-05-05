@@ -10,6 +10,7 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven("https://repo.inventivetalent.org/repository/public/")
+    maven("https://repo.foxikle.dev/flameyos")
 }
 
 dependencies {
@@ -23,11 +24,21 @@ dependencies {
 
 allprojects {
     group = "dev.foxikle"
-    version = "1.7-pre1"
+    version = "1.7-pre2"
     description = "CustomNPCs"
 }
 
 java.sourceCompatibility = JavaVersion.VERSION_21
+
+val javadocJar = tasks.register<Jar>("javadocJar") {
+    archiveClassifier.set("javadoc")
+    from(tasks.javadoc)
+}
+
+val sourcesJar = tasks.register<Jar>("sourcesJar") {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allJava)
+}
 
 publishing {
     repositories {
@@ -46,6 +57,8 @@ publishing {
             artifactId = project.name
             version = project.version.toString()
             artifact(tasks["shadowJar"])
+            artifact(javadocJar)
+            artifact(sourcesJar)
         }
     }
 }
@@ -64,9 +77,11 @@ tasks {
         options.release = 21
     }
     javadoc {
+        source = sourceSets["main"].allSource
         dependsOn("aggregatedJavadocs")
         (options as StandardJavadocDocletOptions).tags("apiNote:a:API Note:")
         options.encoding = Charsets.UTF_8.name()
+        options.memberLevel = JavadocMemberLevel.PUBLIC
         exclude("**/internal/**", "**/versions/**")
     }
     processResources {
