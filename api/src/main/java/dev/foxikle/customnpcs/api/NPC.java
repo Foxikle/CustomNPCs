@@ -248,6 +248,22 @@ public class NPC {
     }
 
     /**
+     * Gets the spawning location of the NPC. This may be different from {@link NPC#getLocation()} if the NPC has pathfinding (Coming soon).
+     * @return The spawn location of the NPC
+     */
+    public Location getSpawnLocation() {
+        return npc.getSpawnLoc();
+    }
+
+    /**
+     * Gets te CURRENT location of the NPC. This may differ from {@link NPC#getSpawnLocation()} if the NPC has pathfinding
+     * @return the current location of the NPC
+     */
+    public Location getLocation() {
+        return npc.getCurrentLocation();
+    }
+
+    /**
      * Reloads the NPC's settings within the Settings and Equipment objects
      *
      * @see Equipment
