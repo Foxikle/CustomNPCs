@@ -13,10 +13,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -372,7 +369,7 @@ public class Listeners implements Listener {
                     SCHEDULER.runTask(plugin, () -> core.getSkinMenu().open(player));
                 });
             } catch (Exception ex) {
-                player.sendMessage(Utils.style("&cAn error occurred whilst parsing NPC skin. Is this URL valid?"));
+                player.sendMessage(Utils.style("&cAn error occurred whilst parsing NPC skin. Is this URL valid? ERR: " + ex.getMessage()));
             }
         } else if (plugin.hologramWaiting.contains(player)) {
             if (cancel) {
@@ -419,7 +416,10 @@ public class Listeners implements Listener {
         if (plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate") && player.hasPermission("customnpcs.alert")) {
             player.sendMessage(SHOULD_UPDATE_MESSAGE);
         }
-        for (InternalNpc npc : plugin.getNPCs()) npc.injectPlayer(player);
+        for (InternalNpc npc : plugin.getNPCs()) {
+            npc.injectPlayer(player);
+        }
+        recalcSleepingPercentages();
     }
 
     /**
@@ -449,12 +449,13 @@ public class Listeners implements Listener {
         World world = player.getWorld();
         for (InternalNpc npc : plugin.npcs.values()) {
             Location spawnLocation = npc.getSpawnLoc();
-            if (world != npc.getWorld()) return;
+            if (world != npc.getWorld()) continue;
 
             double distanceSquared = location.distanceSquared(spawnLocation);
             if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
                 npc.lookAt(LookAtAnchor.HEAD, player);
             }
+            recalcSleepingPercentages();
         }
     }
 
@@ -471,6 +472,8 @@ public class Listeners implements Listener {
         World world = player.getWorld();
         for (InternalNpc npc : plugin.npcs.values()) {
             if (world != npc.getWorld()) continue;
+            npc.injectPlayer(player);
+            recalcSleepingPercentages();
         }
     }
 
@@ -494,6 +497,7 @@ public class Listeners implements Listener {
         plugin.urlWaiting.remove(player);
         plugin.playerWaiting.remove(player);
         plugin.hologramWaiting.remove(player);
+        recalcSleepingPercentages();
     }
 
     @Getter
@@ -513,5 +517,12 @@ public class Listeners implements Listener {
         public MovementData copy() {
             return new MovementData(uniqueId, lastLocation, distanceSquared);
         }
+    }
+
+    private void recalcSleepingPercentages() {
+        Bukkit.getWorlds().forEach(world -> {
+            world.getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE);
+            world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, (int) (world.getPlayers().size() / (double) plugin.getNPCs().stream().filter(npc -> npc.getWorld() == world).toList().size()));
+        });
     }
 }
