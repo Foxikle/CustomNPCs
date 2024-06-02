@@ -380,22 +380,7 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
 
         // create them
-        if (hologram != null) {
-            ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) hologram).getHandle());
-            // CENTER
-            List<SynchedEntityData.DataValue<?>> hologramData = List.of(SynchedEntityData.DataValue.create(BILLBOARD_ACCESSOR, (byte) 3));
-            ClientboundSetEntityDataPacket billboard = new ClientboundSetEntityDataPacket(hologram.getEntityId(), hologramData);
-            connection.send(add);
-            connection.send(billboard);
-        }
-
-        if (clickableHologram != null && settings.isInteractable() && !settings.isHideClickableHologram()) {
-            ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) clickableHologram).getHandle());
-            List<SynchedEntityData.DataValue<?>> hologramData = List.of(SynchedEntityData.DataValue.create(BILLBOARD_ACCESSOR, (byte) 3));
-            ClientboundSetEntityDataPacket billboard = new ClientboundSetEntityDataPacket(clickableHologram.getEntityId(), hologramData);
-            connection.send(add);
-            connection.send(billboard);
-        }
+        injectHolograms(p);
 
         // we only want to update them if the server is running placeholder API
         if (plugin.papi) {
@@ -420,7 +405,6 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
     }
 
     private void injectHolograms(Player p) {
-
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
         String hologramText = holoName;
         String clickableText = clickableName;
@@ -430,22 +414,23 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
         }
 
         if (hologram != null) {
-            createMojComponent(connection, hologramText, hologram);
+            final String finalHologramText = hologramText;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> connection.send(createMojComponent(finalHologramText, hologram)), 5);
         }
 
         if (clickableHologram != null && settings.isInteractable() && !settings.isHideClickableHologram()) {
-            createMojComponent(connection, clickableText, clickableHologram);
+            final String finalClickableText = clickableText;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> connection.send(createMojComponent(finalClickableText, clickableHologram)), 5);
         }
     }
 
-    private void createMojComponent(ServerGamePacketListenerImpl connection, String clickableText, TextDisplay clickableHologram) {
+    private Packet<?> createMojComponent(String clickableText, TextDisplay clickableHologram) {
         List<SynchedEntityData.DataValue<?>> meta = ((CraftTextDisplay) clickableHologram).getHandle().getEntityData().getNonDefaultValues();
         String serialized_component = JSONComponentSerializer.json().serialize(plugin.getMiniMessage().deserialize(clickableText));
         net.minecraft.network.chat.Component clickableComponent = net.minecraft.network.chat.Component.Serializer.fromJson(serialized_component, HolderLookup.Provider.create(Stream.of()));
         meta.set(0, SynchedEntityData.DataValue.create(TEXT_DISPLAY_ACCESSOR, clickableComponent));
 
-        ClientboundSetEntityDataPacket clickablePacket = new ClientboundSetEntityDataPacket(clickableHologram.getEntityId(), meta);
-        connection.send(clickablePacket);
+        return new ClientboundSetEntityDataPacket(clickableHologram.getEntityId(), meta);
     }
 
     /**

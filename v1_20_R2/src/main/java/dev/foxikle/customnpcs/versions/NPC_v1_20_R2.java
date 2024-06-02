@@ -370,15 +370,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
         }
 
         // create them
-        if (hologram != null) {
-            ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) hologram).getHandle());
-            connection.send(add);
-        }
-
-        if (clickableHologram != null && settings.isInteractable() && !settings.isHideClickableHologram()) {
-            ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) clickableHologram).getHandle());
-            connection.send(add);
-        }
+        updateHolograms(p);
 
             loops.put(p.getUniqueId(),
                 new BukkitRunnable() {
@@ -405,7 +397,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
             net.minecraft.network.chat.Component hologramComponent = net.minecraft.network.chat.Component.Serializer.fromJson(JSONComponentSerializer.json().serialize(plugin.getMiniMessage().deserialize(hologramText)));
             meta.set(0, SynchedEntityData.DataValue.create(TEXT_DISPLAY_ACCESSOR, hologramComponent));
             ClientboundSetEntityDataPacket namePacket = new ClientboundSetEntityDataPacket(hologram.getEntityId(), meta);
-            connection.send(namePacket);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> connection.send(namePacket), 5);
         }
 
         if (clickableHologram != null && settings.isInteractable() && !settings.isHideClickableHologram()) {
@@ -414,7 +406,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
             meta.set(0, SynchedEntityData.DataValue.create(TEXT_DISPLAY_ACCESSOR, clickableComponent));
 
             ClientboundSetEntityDataPacket clickablePacket = new ClientboundSetEntityDataPacket(clickableHologram.getEntityId(), meta);
-            connection.send(clickablePacket);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> connection.send(clickablePacket), 5);
         }
     }
 
