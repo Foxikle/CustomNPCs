@@ -1,10 +1,12 @@
 name: CustomNPCs
-version: '1.7-pre1'
+version: ${version}
 main: dev.foxikle.customnpcs.internal.CustomNPCs
 api-version: '1.20'
 prefix: CustomNPCs
 authors: [ Foxikle ]
 website: https://foxikle.dev/plugins
+softdepend:
+  - PlaceholderAPI
 description: A simple NPC plugin.
 libraries:
   - com.google.code.gson:gson:2.10.1
