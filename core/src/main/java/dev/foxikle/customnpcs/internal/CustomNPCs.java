@@ -15,7 +15,8 @@ import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.menu.MenuCore;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import lombok.Getter;
-import me.flame.menus.menu.PaginatedMenu;
+import me.flame.menus.menu.Menus;
+import me.flame.menus.menu.pagination.IndexedPagination;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -39,12 +40,12 @@ import java.util.logging.Level;
  * </p>
  */
 public final class CustomNPCs extends JavaPlugin implements PluginMessageListener {
+    public static Menus MENUS;
     /**
      * Singleton for the NPCBuilder
      */
     @Getter
     private static CustomNPCs instance;
-
     /**
      * The plugin's json handler
      */
@@ -55,11 +56,11 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * The client for the MineSkin API
      */
     public final MineskinClient MINESKIN_CLIENT = new MineskinClient("MineSkin-JavaClient");
-    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6"};
+    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6", "1.21"};
     /**
      * The List of inventories that make up the skin selection menus
      */
-    public PaginatedMenu skinCatalogue;
+    public IndexedPagination skinCatalogue;
     /**
      * The List of players the plugin is waiting for title text input
      */
@@ -104,7 +105,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * The List of players the plugin is waiting for player name input
      */
     public List<Player> playerWaiting = new ArrayList<>();
-
     /**
      * The list of player the plugin is waiting for input from
      */
@@ -113,7 +113,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * The List of NPC holograms
      */
     public List<TextDisplay> holograms = new ArrayList<>();
-
     @Getter
     public FileManager fileManager;
     /**
@@ -152,7 +151,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * keeps track of the current server version
      */
     public String serverVersion;
-
     @Getter
     public MiniMessage miniMessage = MiniMessage.miniMessage();
     Listeners listeners;
@@ -164,6 +162,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     @Getter
     private AutoUpdater updater;
 
+    private static final Map<String, Class<? extends Action>> ACTION_REGISTRY = new HashMap<>();
+
     /**
      * <p> Logic for when the plugin is enabled
      * </p>
@@ -171,6 +171,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     @Override
     public void onEnable() {
         instance = this;
+        MENUS = new Menus(this);
         if (!setup()) {
             Bukkit.getLogger().severe("Incompatible server version! Please use " + Arrays.toString(COMPATIBLE_VERSIONS));
             Bukkit.getPluginManager().disablePlugin(this);
@@ -363,6 +364,9 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             }
             case "1.20.5", "1.20.6" -> {
                 return "v1_20_R4";
+            }
+            case "1.21" -> {
+                return "v1_21_R0";
             }
         }
         return "";
