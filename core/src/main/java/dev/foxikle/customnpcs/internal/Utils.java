@@ -1,6 +1,9 @@
 package dev.foxikle.customnpcs.internal;
 
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -105,5 +108,9 @@ public class Utils {
         loc.add(x, y, z);
 
         return loc;
+    }
+
+    public static Component mm(String str) {
+        return MiniMessage.miniMessage().deserialize(str).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
     }
 }
