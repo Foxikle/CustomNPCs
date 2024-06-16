@@ -5,7 +5,6 @@ plugins {
 repositories {
     mavenCentral()
     mavenLocal()
-    //maven("https://jitpack.io")
     maven("https://repo.foxikle.dev/flameyos")
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
@@ -16,8 +15,7 @@ dependencies {
     implementation("org.bstats:bstats-bukkit:3.0.2")
     compileOnly("me.clip:placeholderapi:2.11.5")
     compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
-    //implementation("com.github.coderFlameyosFlow.WoodyMenus:core:2.0.6")
-    implementation("me.flame.menus:core:3.0.0")
+    implementation("me.flame.menus:core:3.0.0-beta9")
     implementation("org.mineskin:java-client:1.2.4-SNAPSHOT")
     compileOnly("org.projectlombok:lombok:1.18.32")
     annotationProcessor("org.projectlombok:lombok:1.18.32")

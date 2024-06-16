@@ -12,9 +12,9 @@ repositories {
 
 dependencies {
     compileOnly("me.clip:placeholderapi:2.11.5")
-    implementation(project(":api"))
+    implementation(project(mapOf("path" to ":api")))
     compileOnly(project(":core"))
-    paperweight.paperDevBundle("1.20.1-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21-R0.1-SNAPSHOT")
 }
 
 tasks {
@@ -23,10 +23,10 @@ tasks {
     }
 
     compileJava {
-        options.release = 17
+        options.release = 21
     }
 
     jar {
-        archiveClassifier = "v1_20_R1"
+        archiveClassifier = "v1_21_R0"
     }
 }
