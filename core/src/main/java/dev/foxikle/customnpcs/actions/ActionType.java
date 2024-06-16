@@ -6,6 +6,7 @@ import lombok.Getter;
  * All supported types of actions
  */
 @Getter
+@Deprecated
 public enum ActionType {
 
     /**

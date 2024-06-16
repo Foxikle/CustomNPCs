@@ -4,6 +4,8 @@ import dev.foxikle.customnpcs.actions.conditions.Conditional;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import lombok.Getter;
 import lombok.Setter;
+import me.flame.menus.items.MenuItem;
+import me.flame.menus.menu.Menu;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,6 +25,12 @@ public class Action {
     private int delay;
     @Setter
     private Conditional.SelectionMode mode;
+    @Setter
+    @Getter
+    private Menu customizerMenu;
+    @Getter
+    @Setter
+    private MenuItem favicon;
 
     /**
      * <p> Creates a new Action
