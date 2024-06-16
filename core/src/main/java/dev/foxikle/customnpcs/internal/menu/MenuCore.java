@@ -5,6 +5,7 @@ import dev.foxikle.customnpcs.actions.ActionType;
 import dev.foxikle.customnpcs.actions.conditions.Conditional;
 import dev.foxikle.customnpcs.actions.conditions.LogicalConditional;
 import dev.foxikle.customnpcs.actions.conditions.NumericConditional;
+import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
@@ -14,7 +15,6 @@ import me.flame.menus.builders.items.ItemBuilder;
 import me.flame.menus.menu.Menu;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -24,10 +24,7 @@ import org.bukkit.potion.PotionEffectType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
@@ -40,7 +37,8 @@ public class MenuCore {
 
     private static final List<Field> fields = Stream.of(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
 
-    @Getter private final InternalNpc npc;
+    @Getter
+    private final InternalNpc npc;
     private final CustomNPCs plugin;
     private final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
 
@@ -64,163 +62,77 @@ public class MenuCore {
      */
     public Menu getMainMenu() {
         List<Component> lore = new ArrayList<>();
-        Menu menu = Menu.builder().title("       Create a New NPC").rows(5).addAllModifiers().normal();
+        Menu menu = Menu.builder(CustomNPCs.MENUS).title("       Create a New NPC").rows(5).addAllModifiers().normal();
 
         ItemStack name = new ItemStack(Material.NAME_TAG);
         ItemMeta nameMeta = name.getItemMeta();
-        nameMeta.displayName(Component.text("Change Name", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        lore.add(Component.text("The current name is ", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(plugin.getMiniMessage().deserialize(npc.getSettings().getName())));
+        nameMeta.displayName(Utils.mm("<aqua>Change Name"));
+        lore.add(Utils.mm("<yellow>The current name is ").append(plugin.getMiniMessage().deserialize(npc.getSettings().getName())));
         nameMeta.lore(lore);
         name.setItemMeta(nameMeta);
 
         ItemStack equipment = new ItemStack(Material.ARMOR_STAND);
         ItemMeta handMeta = equipment.getItemMeta();
-        handMeta.displayName(Component.text("Change Item", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        handMeta.displayName(Utils.mm("<dark_green>Change Item"));
         lore.clear();
-        lore.add(Component.text("The current equipment is ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
-        lore.add(Component.text("Main Hand: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getEquipment().getHand().getType().toString()))));
-        lore.add(Component.text("Offhand: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text(npc.getEquipment().getOffhand().getType().toString())));
-        lore.add(Component.text("Helmet: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getEquipment().getHead().getType().toString()))));
-        lore.add(Component.text("Chestplate: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getEquipment().getChest().getType().toString()))));
-        lore.add(Component.text("Leggings: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getEquipment().getLegs().getType().toString()))));
-        lore.add(Component.text("Boots: ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW).append(Component.text((npc.getEquipment().getBoots().getType().toString()))));
+        Equipment equip = npc.getEquipment();
+        lore.add(Utils.mm("<yellow>The current equipment is "));
+        lore.add(Utils.mm("<yellow>Main Hand: " + equip.getHand().getType()));
+        lore.add(Utils.mm("<yellow>Offhand: " + equip.getOffhand().getType()));
+        lore.add(Utils.mm("<yellow>Helmet: " + equip.getHead().getType()));
+        lore.add(Utils.mm("<yellow>Chestplate: " + equip.getChest().getType()));
+        lore.add(Utils.mm("<yellow>Leggings: " + equip.getLegs().getType()));
+        lore.add(Utils.mm("<yellow>Boots: " + equip.getBoots().getType()));
 
         handMeta.lore(lore);
         equipment.setItemMeta(handMeta);
 
         ItemStack directionItem = new ItemStack(Material.COMPASS);
         ItemMeta positionMeta = directionItem.getItemMeta();
-        positionMeta.displayName(Component.text("Facing Direction", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        positionMeta.displayName(Utils.mm("<dark_green>Facing Direction"));
         double dir = npc.getSettings().getDirection();
         lore.clear();
-        switch ((int) dir) {
-            case 180 -> {
-                lore.add(Component.empty());
-                lore.add(Component.text("▸ North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
-                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.empty());
-                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
+
+        Map<Integer, Integer> highlightIndexMap = Map.of(
+                180, 0,
+                -135, 1,
+                -90, 2,
+                -45, 3,
+                0, 4,
+                45, 5,
+                90, 6,
+                135, 7
+        );
+
+        Component playerDirection = Utils.mm("<green>Player Direction");
+        Component clickToChange = Utils.mm("<yellow>Click to change!");
+
+        List<Component> directions = List.of(
+                Utils.mm("<green>North"),
+                Utils.mm("<green>North East"),
+                Utils.mm("<green>East"),
+                Utils.mm("<green>South East"),
+                Utils.mm("<green>South"),
+                Utils.mm("<green>South West"),
+                Utils.mm("<green>West"),
+                Utils.mm("<green>North West")
+        );
+
+        int highlightIndex = highlightIndexMap.getOrDefault((int) dir, -1);
+        lore.add(Component.empty());
+
+        for (int i = 0; i < directions.size(); i++) {
+            Component direction = directions.get(i);
+            if (i == highlightIndex) {
+                direction = direction.color(NamedTextColor.DARK_AQUA);
+                direction = Utils.mm("<dark_aqua>▸ ").append(direction);
             }
-            case -135 -> {
-                lore.add(Component.empty());
-                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("▸ North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
-                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.empty());
-                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
-            }
-            case -90 -> {
-                lore.add(Component.empty());
-                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("▸ East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
-                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.empty());
-                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
-            }
-            case -45 -> {
-                lore.add(Component.empty());
-                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("▸ South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
-                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.empty());
-                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
-            }
-            case 0 -> {
-                lore.add(Component.empty());
-                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("▸ South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
-                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.empty());
-                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
-            }
-            case 45 -> {
-                lore.add(Component.empty());
-                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("▸ South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
-                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.empty());
-                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
-            }
-            case 90 -> {
-                lore.add(Component.empty());
-                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("▸ West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
-                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.empty());
-                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
-            }
-            case 135 -> {
-                lore.add(Component.empty());
-                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("▸ North west").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
-                lore.add(Component.text("Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.empty());
-                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
-            }
-            default -> {
-                lore.add(Component.empty());
-                lore.add(Component.text("North").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South East").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("South West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("North West").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN));
-                lore.add(Component.text("▸ Player Direction").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.DARK_AQUA));
-                lore.add(Component.empty());
-                lore.add(Component.text("Click to change!").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
-            }
+            lore.add(direction);
         }
+
+        lore.add(playerDirection);
+        lore.add(Component.empty());
+        lore.add(clickToChange);
 
         positionMeta.lore(lore);
         directionItem.setItemMeta(positionMeta);
@@ -228,14 +140,14 @@ public class MenuCore {
         ItemStack resilientItem = new ItemStack(Material.BELL);
         ItemMeta resilientMeta = resilientItem.getItemMeta();
         lore.clear();
-        lore.add(npc.getSettings().isResilient() ? Component.text("RESILIENT").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN).decorate(TextDecoration.BOLD) : Component.text("NOT RESILIENT").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.RED).decorate(TextDecoration.BOLD));
+        lore.add(npc.getSettings().isResilient() ? Utils.mm("<bold><green>RESILIENT") : Utils.mm("<bold><red>NOT RESILIENT"));
         resilientMeta.lore(lore);
-        resilientMeta.displayName(Component.text("Change resilience", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        resilientMeta.displayName(Utils.mm("<dark_green>Change resilience"));
         resilientItem.setItemMeta(resilientMeta);
 
         ItemStack confirmButton = new ItemStack(Material.LIME_DYE);
         ItemMeta confirmMeta = confirmButton.getItemMeta();
-        confirmMeta.displayName(Component.text("CONFIRM", NamedTextColor.GREEN, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        confirmMeta.displayName(Utils.mm("<green><bold>CONFIRM"));
         confirmButton.setItemMeta(confirmMeta);
 
         ItemStack interactableButton;
@@ -244,14 +156,14 @@ public class MenuCore {
 
             ItemStack actionsButton = new ItemStack(Material.RECOVERY_COMPASS);
             ItemMeta actionsButtonMeta = actionsButton.getItemMeta();
-            actionsButtonMeta.displayName(Component.text("Change actions", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            actionsButtonMeta.displayName(Utils.mm("<dark_green>Change actions"));
             lore.clear();
-            lore.add(Component.text("The actions performed when ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
-            lore.add(Component.text("interacting with the npc. ").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.YELLOW));
+            lore.add(Utils.mm("<yellow>The actions performed when "));
+            lore.add(Utils.mm("<yellow>interacting with the npc. "));
             actionsButtonMeta.lore(lore);
             actionsButtonMeta.lore();
             actionsButton.setItemMeta(actionsButtonMeta);
-            menu.setItem(34, ItemBuilder.of(actionsButton).buildItem((player, event) -> {
+            menu.setItem(34, ItemBuilder.of(actionsButton).clickable((player, event) -> {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 event.setCancelled(true);
                 getActionMenu().open(player);
@@ -260,27 +172,27 @@ public class MenuCore {
             interactableButton = new ItemStack(Material.DEAD_BUSH);
         }
         ItemMeta clickableMeta = interactableButton.getItemMeta();
-        clickableMeta.displayName(Component.text("Change interactability", NamedTextColor.DARK_GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        clickableMeta.displayName(Utils.mm("<dark_green>Change interactability"));
         lore.clear();
-        lore.add(npc.getSettings().isInteractable() ? Component.text("INTERACTABLE").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.GREEN).decorate(TextDecoration.BOLD) : Component.text("NOT INTERACTABLE").decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.RED).decorate(TextDecoration.BOLD));
+        lore.add(npc.getSettings().isInteractable() ? Utils.mm("<bold><green>INTERACTABLE") : Utils.mm("<bold><red>NOT INTERACTABLE"));
         clickableMeta.lore(lore);
         interactableButton.setItemMeta(clickableMeta);
 
 
         ItemStack cancelButton = new ItemStack(Material.BARRIER);
         ItemMeta cancelMeta = cancelButton.getItemMeta();
-        cancelMeta.displayName(Component.text("CANCEL", NamedTextColor.RED, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        cancelMeta.displayName(Utils.mm("<red><bold>CANCEL"));
         cancelButton.setItemMeta(cancelMeta);
-        menu.setItem(13, ItemBuilder.of(plugin.getMenuUtils().getSkinIcon(new NamespacedKey(plugin, "nothing_lol_this_should_be_changed_tbh"), "", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSettings().getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9").getItemStack()).buildItem((player, event) -> {
+        menu.setItem(13, ItemBuilder.of(plugin.getMenuUtils().getSkinIcon(new NamespacedKey(plugin, "nothing_lol_this_should_be_changed_tbh"), "", "Change Skin", ChatColor.LIGHT_PURPLE, ChatColor.YELLOW, "Changes the NPC's skin", "The current skin is " + npc.getSettings().getSkinName(), "Click to change!", "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9").getItemStack()).clickable((player, event) -> {
             player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
             getSkinMenu().open(player);
         }));
-        menu.setItem(16, ItemBuilder.of(name).buildItem((player, event) -> {
+        menu.setItem(16, ItemBuilder.of(name).clickable((player, event) -> {
             plugin.nameWaiting.add(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             player.sendMessage(Utils.style("&aType the NPC name the chat."));
 
-            if(plugin.getConfig().getBoolean("NameReferenceMessages")) {
+            if (plugin.getConfig().getBoolean("NameReferenceMessages")) {
                 player.sendMessage(Utils.style("&eFor reference, the current NPC Name is: "));
                 player.sendMessage(npc.getSettings().getName());
                 player.sendMessage(Utils.style("&8&oThis message can be toggled in the config.yml!"));
@@ -290,50 +202,38 @@ public class MenuCore {
             player.closeInventory();
             event.setCancelled(true);
         }));
-        menu.setItem(10, ItemBuilder.of(directionItem).buildItem((player, event) -> {
+        menu.setItem(10, ItemBuilder.of(directionItem).clickable((player, event) -> {
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+            double newDir = 0.0;
             if (event.isLeftClick()) {
-                switch ((int) dir) {
-                    case 180 -> npc.getSettings().setDirection(-135.0);
-                    case -135 -> npc.getSettings().setDirection(-90.0);
-                    case -90 -> npc.getSettings().setDirection(-45.0);
-                    case -45 -> npc.getSettings().setDirection(0.0);
-                    case 0 -> npc.getSettings().setDirection(45.0);
-                    case 45 -> npc.getSettings().setDirection(90.0);
-                    case 90 -> npc.getSettings().setDirection(135.0);
-                    case 135 -> npc.getSettings().setDirection(player.getLocation().getYaw());
-                    default -> npc.getSettings().setDirection(180);
+                newDir = (dir + 225) % 360 - 180;
+                if (dir == 135) {
+                    newDir = player.getLocation().getYaw();
                 }
             } else if (event.isRightClick()) {
-                switch ((int) dir) {
-                    case 180 -> npc.getSettings().setDirection(player.getLocation().getYaw());
-                    case -135 -> npc.getSettings().setDirection(180);
-                    case -90 -> npc.getSettings().setDirection(-135);
-                    case -45 -> npc.getSettings().setDirection(-90);
-                    case 0 -> npc.getSettings().setDirection(-45.0);
-                    case 45 -> npc.getSettings().setDirection(0.0);
-                    case 90 -> npc.getSettings().setDirection(45);
-                    case 135 -> npc.getSettings().setDirection(90);
-                    default -> npc.getSettings().setDirection(135);
+                newDir = ((dir + 45) % 360) - 135;
+                if (dir == 180) {
+                    newDir = player.getLocation().getYaw();
                 }
             }
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+            npc.getSettings().setDirection(newDir);
             getMainMenu().open(player);
         }));
-        menu.setItem(22, ItemBuilder.of(resilientItem).buildItem((player, event) -> {
+        menu.setItem(22, ItemBuilder.of(resilientItem).clickable((player, event) -> {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
             player.sendMessage("§bThe NPC is now " + (npc.getSettings().isResilient() ? "§c§lNOT RESILIENT" : "§a§lRESILIENT"));
             npc.getSettings().setResilient(!npc.getSettings().isResilient());
             getMainMenu().open(player);
         }));
-        menu.setItem(25, ItemBuilder.of(interactableButton).buildItem((player, event) -> {
+        menu.setItem(25, ItemBuilder.of(interactableButton).clickable((player, event) -> {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
             player.sendMessage("§bThe NPC is now " + (npc.getSettings().isInteractable() ? "§c§lNOT INTERACTABLE" : "§a§lINTERACTABLE"));
             npc.getSettings().setInteractable(!npc.getSettings().isInteractable());
             getMainMenu().open(player);
         }));
-        menu.setItem(31, ItemBuilder.of(confirmButton).buildItem((player, event) -> {
+        menu.setItem(31, ItemBuilder.of(confirmButton).clickable((player, event) -> {
             Bukkit.getScheduler().runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1), 1);
             Bukkit.getScheduler().runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1), 3);
             Bukkit.getScheduler().runTaskLater(plugin, npc::createNPC, 1);
@@ -341,41 +241,41 @@ public class MenuCore {
             player.closeInventory();
             event.setCancelled(true);
         }));
-        menu.setItem(36, ItemBuilder.of(cancelButton).buildItem((player, event) -> {
+        menu.setItem(36, ItemBuilder.of(cancelButton).clickable((player, event) -> {
             player.playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
             player.sendMessage("§cNPC aborted.");
             player.closeInventory();
             event.setCancelled(true);
         }));
-        menu.setItem(28, ItemBuilder.of(SPYGLASS).setName("§bToggle Vision Mode").setLore(npc.getSettings().isTunnelvision() ? "§a§lTUNNEL Visioned" : "§c§lNORMAL Visioned").buildItem((player, event) -> {
+        menu.setItem(28, ItemBuilder.of(SPYGLASS).setName("§bToggle Vision Mode").setLore(npc.getSettings().isTunnelvision() ? "§a§lTUNNEL Visioned" : "§c§lNORMAL Visioned").clickable((player, event) -> {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             npc.getSettings().setTunnelvision(!npc.getSettings().isTunnelvision());
             getMainMenu().open(player);
         }));
-        menu.setItem(19, ItemBuilder.of(equipment).buildItem((player, event) -> {
+        menu.setItem(19, ItemBuilder.of(equipment).clickable((player, event) -> {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
             getEquipmentMenu().open(player);
         }));
         menu.setItem(8, ItemBuilder.of(COMPARATOR)
                 .setName(Utils.style("&dEdit Additional Settings"))
-                .buildItem((player, event) -> {
+                .clickable((player, event) -> {
                     player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                     getExtraSettingsMenu().open(player);
                 }));
         // not a new NPC
-        if(plugin.getNPCByID(npc.getUniqueID()) != null)
+        if (plugin.getNPCByID(npc.getUniqueID()) != null)
             menu.setItem(44, ItemBuilder.of(LAVA_BUCKET)
-                .setName(Utils.style("&4Delete NPC"))
-                .buildItem((player, event) -> {
-                    player.playSound(player, Sound.UI_BUTTON_CLICK,1, 1);
-                    MenuUtils.getDeletionConfirmationMenu(plugin.getNPCByID(npc.getUniqueID()), menu).open(player);
-                }));
+                    .setName(Utils.style("&4Delete NPC"))
+                    .clickable((player, event) -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+                        MenuUtils.getDeletionConfirmationMenu(plugin.getNPCByID(npc.getUniqueID()), menu).open(player);
+                    }));
 
         menu.setItem(0, ItemBuilder.of(ENDER_EYE)
                 .setName(Utils.style("&bSet Facing Direction"))
                 .setLore("", Utils.style("&eThis option configures the"), Utils.style("&eNPC's YAW and PITCH."), Utils.style("&eThis sets the NPC's direction"), Utils.style("&eto 'Player Direction'."))
-                .buildItem((player, event) -> {
+                .clickable((player, event) -> {
                     plugin.facingWaiting.add(player);
                     new FacingDirectionRunnable(plugin, player).go();
                     player.closeInventory();
@@ -399,7 +299,7 @@ public class MenuCore {
         ItemStack boots = npc.getEquipment().getBoots();
         ItemStack hand = npc.getEquipment().getHand();
         ItemStack offhand = npc.getEquipment().getOffhand();
-        Menu menu = Menu.builder().rows(6).addModifier(me.flame.menus.modifiers.Modifier.DISABLE_ITEM_REMOVAL).title("      Edit NPC Equipment").normal();
+        Menu menu = Menu.builder(CustomNPCs.MENUS).rows(6).addModifier(me.flame.menus.modifiers.Modifier.DISABLE_ITEM_REMOVAL).title("      Edit NPC Equipment").normal();
         menu.getFiller().fill(MenuItems.MENU_GLASS);
 
         if (helm.getType().isAir()) {
@@ -408,12 +308,12 @@ public class MenuCore {
             List<Component> lore = new ArrayList<>();
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.displayName(Component.text("Empty Helmet Slot", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("a helmet to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.displayName(Utils.mm("<green>Empty Helmet Slot"));
+            lore.add(Utils.mm("<yellow>Click this slot with"));
+            lore.add(Utils.mm("<yellow>a helmet to change."));
             meta.lore(lore);
             item.setItemMeta(meta);
-            menu.setItem(13, ItemBuilder.of(item).buildItem((player, event) -> {
+            menu.setItem(13, ItemBuilder.of(item).clickable((player, event) -> {
                 if (event.getCursor().getType() == AIR) return;
                 npc.getEquipment().setHead(event.getCursor().clone());
                 event.getCursor().setAmount(0);
@@ -426,13 +326,13 @@ public class MenuCore {
             List<Component> lore = new ArrayList<>();
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.displayName(Component.text(helm.getType().toString(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("a helmet to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.displayName(Component.text(helm.getType().toString(), NamedTextColor.GREEN));
+            lore.add(Utils.mm("<yellow>Click this slot with"));
+            lore.add(Utils.mm("<yellow>a helmet to change."));
+            lore.add(Utils.mm("<red>Rick click to remove"));
             meta.lore(lore);
             helm.setItemMeta(meta);
-            menu.setItem(13, ItemBuilder.of(helm).buildItem((player, event) -> {
+            menu.setItem(13, ItemBuilder.of(helm).clickable((player, event) -> {
                 if (event.isRightClick()) {
                     npc.getEquipment().setHead(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -454,12 +354,12 @@ public class MenuCore {
             List<Component> lore = new ArrayList<>();
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.displayName(Component.text("Empty Chestplate Slot", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("a chestplate to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.displayName(Utils.mm("<green>Empty Chestplate Slot"));
+            lore.add(Utils.mm("<yellow>Click this slot with"));
+            lore.add(Utils.mm("<yellow>a chestplate to change."));
             meta.lore(lore);
             item.setItemMeta(meta);
-            menu.setItem(22, ItemBuilder.of(item).buildItem((player, event) -> {
+            menu.setItem(22, ItemBuilder.of(item).clickable((player, event) -> {
                 if (event.getCursor().getType().name().contains("CHESTPLATE")) {
                     npc.getEquipment().setChest(event.getCursor().clone());
                     event.getCursor().setAmount(0);
@@ -477,13 +377,13 @@ public class MenuCore {
             List<Component> lore = new ArrayList<>();
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.displayName(Component.text(cp.getType().toString(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("a chestplate to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.displayName(Component.text(cp.getType().toString(), NamedTextColor.GREEN));
+            lore.add(Utils.mm("<yellow>Click this slot with"));
+            lore.add(Utils.mm("<yellow>a chestplate to change."));
+            lore.add(Utils.mm("<red>Rick click to remove"));
             meta.lore(lore);
             cp.setItemMeta(meta);
-            menu.setItem(22, ItemBuilder.of(cp).buildItem((player, event) -> {
+            menu.setItem(22, ItemBuilder.of(cp).clickable((player, event) -> {
                 if (event.isRightClick()) {
                     npc.getEquipment().setChest(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -510,13 +410,13 @@ public class MenuCore {
             List<Component> lore = new ArrayList<>();
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.displayName(Component.text("Empty Leggings Slot", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("a pair of leggings", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.displayName(Utils.mm("<green>Empty Leggings Slot"));
+            lore.add(Utils.mm("<yellow>Click this slot with"));
+            lore.add(Utils.mm("<yellow>a pair of leggings"));
+            lore.add(Utils.mm("<yellow>to change."));
             meta.lore(lore);
             item.setItemMeta(meta);
-            menu.setItem(31, ItemBuilder.of(item).buildItem((player, event) -> {
+            menu.setItem(31, ItemBuilder.of(item).clickable((player, event) -> {
                 if (event.getCursor().getType().name().contains("LEGGINGS")) {
                     npc.getEquipment().setLegs(event.getCursor().clone());
                     event.getCursor().setAmount(0);
@@ -533,14 +433,14 @@ public class MenuCore {
             List<Component> lore = new ArrayList<>();
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.displayName(Component.text(legs.getType().toString(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("a pair of leggings", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.displayName(Component.text(legs.getType().toString(), NamedTextColor.GREEN));
+            lore.add(Utils.mm("<yellow>Click this slot with"));
+            lore.add(Utils.mm("<yellow>a pair of leggings"));
+            lore.add(Utils.mm("<yellow>to change."));
+            lore.add(Utils.mm("<red>Rick click to remove"));
             meta.lore(lore);
             legs.setItemMeta(meta);
-            menu.setItem(31, ItemBuilder.of(legs).buildItem((player, event) -> {
+            menu.setItem(31, ItemBuilder.of(legs).clickable((player, event) -> {
                 if (event.isRightClick()) {
                     npc.getEquipment().setLegs(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -563,13 +463,13 @@ public class MenuCore {
             ItemMeta meta = item.getItemMeta();
             List<Component> lore = new ArrayList<>();
             meta.addItemFlags(ItemFlag.values());
-            meta.displayName(Component.text("Empty Boots Slot", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("a pair of boots to ", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.displayName(Utils.mm("<green>Empty Boots Slot"));
+            lore.add(Utils.mm("<yellow>Click this slot with"));
+            lore.add(Utils.mm("<yellow>a pair of boots to "));
+            lore.add(Utils.mm("<yellow>change."));
             meta.lore(lore);
             item.setItemMeta(meta);
-            menu.setItem(40, ItemBuilder.of(item).buildItem((player, event) -> {
+            menu.setItem(40, ItemBuilder.of(item).clickable((player, event) -> {
                 if (event.getCursor().getType().name().contains("BOOTS")) {
                     npc.getEquipment().setBoots(event.getCursor().clone());
                     event.getCursor().setAmount(0);
@@ -586,14 +486,14 @@ public class MenuCore {
             List<Component> lore = new ArrayList<>();
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.displayName(Component.text(boots.getType().toString(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("a pair of boots to ", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.displayName(Component.text(boots.getType().toString(), NamedTextColor.GREEN));
+            lore.add(Utils.mm("<yellow>Click this slot with"));
+            lore.add(Utils.mm("<yellow>a pair of boots to "));
+            lore.add(Utils.mm("<yellow>change."));
+            lore.add(Utils.mm("<red>Rick click to remove"));
             meta.lore(lore);
             boots.setItemMeta(meta);
-            menu.setItem(40, ItemBuilder.of(boots).buildItem((player, event) -> {
+            menu.setItem(40, ItemBuilder.of(boots).clickable((player, event) -> {
                 if (event.isRightClick()) {
                     npc.getEquipment().setBoots(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -617,12 +517,12 @@ public class MenuCore {
             List<Component> lore = new ArrayList<>();
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.displayName(Component.text("Empty Hand Slot", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("an item to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.displayName(Utils.mm("<green>Empty Hand Slot"));
+            lore.add(Utils.mm("<yellow>Click this slot with"));
+            lore.add(Utils.mm("<yellow>an item to change."));
             meta.lore(lore);
             item.setItemMeta(meta);
-            menu.setItem(23, ItemBuilder.of(item).buildItem((player, event) -> {
+            menu.setItem(23, ItemBuilder.of(item).clickable((player, event) -> {
                 if (event.getCursor().getType() == AIR) return;
                 npc.getEquipment().setHand(event.getCursor().clone());
                 event.getCursor().setAmount(0);
@@ -635,13 +535,13 @@ public class MenuCore {
             List<Component> lore = new ArrayList<>();
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.displayName(Component.text(hand.getType().toString(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("an item to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.displayName(Component.text(hand.getType().toString(), NamedTextColor.GREEN));
+            lore.add(Utils.mm("<yellow>Click this slot with"));
+            lore.add(Utils.mm("<yellow>an item to change."));
+            lore.add(Utils.mm("<red>Rick click to remove"));
             meta.lore(lore);
             hand.setItemMeta(meta);
-            menu.setItem(23, ItemBuilder.of(hand).buildItem((player, event) -> {
+            menu.setItem(23, ItemBuilder.of(hand).clickable((player, event) -> {
                 if (event.isRightClick()) {
                     npc.getEquipment().setHand(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -663,12 +563,12 @@ public class MenuCore {
             List<Component> lore = new ArrayList<>();
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.displayName(Component.text("Empty Offhand Slot", NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("an item to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.displayName(Utils.mm("<green>Empty Offhand Slot"));
+            lore.add(Utils.mm("<yellow>Click this slot with"));
+            lore.add(Utils.mm("<yellow>an item to change."));
             meta.lore(lore);
             item.setItemMeta(meta);
-            menu.setItem(21, ItemBuilder.of(item).buildItem((player, event) -> {
+            menu.setItem(21, ItemBuilder.of(item).clickable((player, event) -> {
                 if (event.getCursor().getType() == AIR) return;
                 npc.getEquipment().setOffhand(event.getCursor().clone());
                 event.getCursor().setAmount(0);
@@ -681,14 +581,14 @@ public class MenuCore {
             List<Component> lore = new ArrayList<>();
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_DYE);
-            meta.displayName(Component.text(offhand.getType().toString(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Click this slot with", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("an item to change.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-            lore.add(Component.text("Rick click to remove", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            meta.displayName(Component.text(offhand.getType().toString(), NamedTextColor.GREEN));
+            lore.add(Utils.mm("<yellow>Click this slot with"));
+            lore.add(Utils.mm("<yellow>an item to change."));
+            lore.add(Utils.mm("<red>Rick click to remove"));
             meta.lore(lore);
             offhand.setItemMeta(meta);
 
-            menu.setItem(21, ItemBuilder.of(offhand).buildItem((player, event) -> {
+            menu.setItem(21, ItemBuilder.of(offhand).clickable((player, event) -> {
                 if (event.isRightClick()) {
                     npc.getEquipment().setOffhand(new ItemStack(AIR));
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -708,11 +608,11 @@ public class MenuCore {
         menu.setItem(8, ItemBuilder.of(ARMOR_STAND)
                 .setName("§bImport Player Armor")
                 .setLore("§eImports your current armor to the NPC")
-                .buildItem((player, event) -> {
+                .clickable((player, event) -> {
                     npc.getEquipment().importFromEntityEquipment(player.getEquipment());
                     getEquipmentMenu().open(player);
                 }));
-        menu.setItem(49, ItemBuilder.of(BARRIER).setName("§cClose").buildItem((player, event) -> {
+        menu.setItem(49, ItemBuilder.of(BARRIER).setName("§cClose").clickable((player, event) -> {
             getMainMenu().open(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
         }));
@@ -729,7 +629,7 @@ public class MenuCore {
         final String REMOVE = Utils.style("&cRight click to remove");
         final String EDIT = Utils.style("&eClick to edit!");
 
-        Menu menu = Menu.builder().title("          Edit NPC Actions").rows(6).addAllModifiers().normal();
+        Menu menu = Menu.builder(CustomNPCs.MENUS).title("          Edit NPC Actions").rows(6).addAllModifiers().normal();
         menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
         ItemBuilder builder;
         List<String> lore;
@@ -865,7 +765,7 @@ public class MenuCore {
             if (action.getActionType().isEditable()) lore.add(EDIT);
             if (action.getActionType().isDelayable()) lore.set(0, String.format(DELAY, action.getDelay()));
 
-            menu.addItem(builder.setLore(lore).buildItem((player, event) -> {
+            menu.addItem(builder.setLore(lore).clickable((player, event) -> {
                 if (event.isRightClick()) {
                     player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     npc.removeAction(action);
@@ -887,14 +787,14 @@ public class MenuCore {
         // Close Button
         menu.setItem(45, ItemBuilder.of(ARROW)
                 .setName(Utils.style("&cGo Back"))
-                .buildItem((player, event) -> {
+                .clickable((player, event) -> {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     getMainMenu().open(player);
                 }));
 
         menu.addItem(ItemBuilder.of(LILY_PAD)
                 .setName(Utils.style("&aNew Action"))
-                .buildItem((player, event) -> {
+                .clickable((player, event) -> {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     getNewActionMenu().open(player);
                 }));
@@ -908,7 +808,7 @@ public class MenuCore {
      * @return the inventory to be displayed
      */
     public Menu getConditionMenu(Action action) {
-        Menu menu = Menu.builder().title("   Edit Action Conditionals").rows(4).addAllModifiers().normal();
+        Menu menu = Menu.builder(CustomNPCs.MENUS).title("   Edit Action Conditionals").rows(4).addAllModifiers().normal();
         menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
         if (action.getConditionals() != null) {
             for (Conditional c : action.getConditionals()) {
@@ -917,22 +817,22 @@ public class MenuCore {
                 List<Component> lore = new ArrayList<>();
                 if (c.getType() == Conditional.Type.NUMERIC) {
                     item.setType(Material.POPPED_CHORUS_FRUIT);
-                    meta.displayName(Component.text("Numeric Condition", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    meta.displayName(Utils.mm("<aqua>Numeric Condition"));
                 } else if (c.getType() == Conditional.Type.LOGICAL) {
                     item.setType(Material.COMPARATOR);
-                    meta.displayName(Component.text("Logical Condition", NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    meta.displayName(Utils.mm("<aqua>Logical Condition"));
                 }
                 lore.add(Component.empty());
-                lore.add(Component.text("Comparator: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(c.getComparator().name(), NamedTextColor.LIGHT_PURPLE)).append(Component.text("'", NamedTextColor.YELLOW)));
-                lore.add(Component.text("Value: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(c.getValue().name(), NamedTextColor.LIGHT_PURPLE)).append(Component.text("'", NamedTextColor.YELLOW)));
-                lore.add(Component.text("Target Value: '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(c.getTarget(), NamedTextColor.LIGHT_PURPLE)).append(Component.text("'", NamedTextColor.YELLOW)));
+                lore.add(Utils.mm("<yellow>Comparator: '<light_purple>" + c.getComparator().name() + "<yellow>'"));
+                lore.add(Utils.mm("<yellow>Value: '<light_purple>" + c.getValue().name() + "<yellow>'"));
+                lore.add(Utils.mm("<yellow>Target Value: '<light_purple>" + c.getTarget() + "<yellow>'"));
                 lore.add(Component.empty());
-                lore.add(Component.text("Right Click to remove.", NamedTextColor.RED).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                lore.add(Component.text("Left Click to edit.", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                lore.add(Utils.mm("<red>Right Click to remove."));
+                lore.add(Utils.mm("<yellow>Left Click to edit."));
 
                 meta.lore(lore);
                 item.setItemMeta(meta);
-                menu.addItem(ItemBuilder.of(item).buildItem((player, event) -> {
+                menu.addItem(ItemBuilder.of(item).clickable((player, event) -> {
 
                     if (event.isRightClick()) {
                         player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
@@ -954,11 +854,11 @@ public class MenuCore {
         // Close Button
         ItemStack close = new ItemStack(Material.BARRIER);
         ItemMeta closeMeta = close.getItemMeta();
-        closeMeta.displayName(Component.text("GO BACK", NamedTextColor.RED, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        closeMeta.displayName(Utils.mm("<red><bold>GO BACK"));
         closeMeta.lore(lore);
         close.setItemMeta(closeMeta);
         lore.clear();
-        menu.setItem(31, ItemBuilder.of(close).buildItem((player, event) -> {
+        menu.setItem(31, ItemBuilder.of(close).clickable((player, event) -> {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             getActionCustomizerMenu(action).open(player);
@@ -968,10 +868,10 @@ public class MenuCore {
         // Add New
         ItemStack newCondition = new ItemStack(Material.LILY_PAD);
         ItemMeta conditionMeta = newCondition.getItemMeta();
-        conditionMeta.displayName(Component.text("New Condition", NamedTextColor.GREEN, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        conditionMeta.displayName(Utils.mm("<green><bold>New Condition"));
         newCondition.setItemMeta(conditionMeta);
         lore.clear();
-        menu.addItem(ItemBuilder.of(newCondition).buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(newCondition).clickable((player, event) -> {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             getNewConditionMenu().open(player);
@@ -981,12 +881,12 @@ public class MenuCore {
         // Change Mode
         ItemStack changeMode = new ItemStack(action.getMode() == Conditional.SelectionMode.ALL ? Material.GREEN_CANDLE : Material.RED_CANDLE);
         ItemMeta changeModeMeta = changeMode.getItemMeta();
-        changeModeMeta.displayName(Component.text("Change Mode", NamedTextColor.GREEN, TextDecoration.BOLD).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-        lore.add(action.getMode() == Conditional.SelectionMode.ALL ? Component.text("Match ALL Conditions", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE) : Component.text("Match ONE Condition", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        changeModeMeta.displayName(Utils.mm("<green><bold>Change Mode"));
+        lore.add(action.getMode() == Conditional.SelectionMode.ALL ? Utils.mm("<yellow>Match ALL Conditions") : Utils.mm("<yellow>Match ONE Condition"));
         changeModeMeta.lore(lore);
         changeMode.setItemMeta(changeModeMeta);
         lore.clear();
-        menu.setItem(35, ItemBuilder.of(changeMode).buildItem((player, event) -> {
+        menu.setItem(35, ItemBuilder.of(changeMode).clickable((player, event) -> {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             action.setMode(action.getMode() == Conditional.SelectionMode.ALL ? Conditional.SelectionMode.ONE : Conditional.SelectionMode.ALL);
@@ -1004,12 +904,12 @@ public class MenuCore {
      * @return The Inventory representing the action to customize
      */
     public Menu getActionCustomizerMenu(Action action) {
-        Menu menu = Menu.builder().addAllModifiers().rows(5).title("         Edit NPC Action").normal();
+        Menu menu = Menu.builder(CustomNPCs.MENUS).addAllModifiers().rows(5).title("         Edit NPC Action").normal();
         List<String> incLore = List.of("§8Left Click to add 1", "§8Right Click to add 5", "§8Shift + Click to add 20");
         List<String> decLore = List.of("§8Left Click to remove 1", "§8Right Click to remove 5", "§8Shift + Click to remove 20");
 
-        menu.setItem(3, ItemBuilder.of(RED_DYE).setName("§eDecrement Delay").setLore(decLore).buildItem((player, event) -> {
-             if (event.isShiftClick()) {
+        menu.setItem(3, ItemBuilder.of(RED_DYE).setName("§eDecrement Delay").setLore(decLore).clickable((player, event) -> {
+            if (event.isShiftClick()) {
                 if (!(action.getDelay() - 20 < 0)) {
                     action.setDelay(action.getDelay() - 20);
                 } else {
@@ -1032,7 +932,7 @@ public class MenuCore {
             getActionCustomizerMenu(action).open(player);
         }));
         menu.setItem(4, ItemBuilder.of(CLOCK).setName("§eDelay Ticks: " + action.getDelay()).buildItem());
-        menu.setItem(5, ItemBuilder.of(LIME_DYE).setName("§eIncrement Delay").setLore(incLore).buildItem((player, event) -> {
+        menu.setItem(5, ItemBuilder.of(LIME_DYE).setName("§eIncrement Delay").setLore(incLore).clickable((player, event) -> {
             if (event.isShiftClick()) {
                 action.setDelay(action.getDelay() + 20);
             } else if (event.isLeftClick()) {
@@ -1043,16 +943,16 @@ public class MenuCore {
             player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
             getActionCustomizerMenu(action).open(player);
         }));
-        menu.setItem(36, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((player, event) -> {
+        menu.setItem(36, ItemBuilder.of(ARROW).setName("§6Go Back").clickable((player, event) -> {
             getActionMenu().open(player);
             player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
         }));
-        menu.setItem(44, ItemBuilder.of(COMPARATOR).setName("§cEdit Conditions").buildItem((player, event) -> {
+        menu.setItem(44, ItemBuilder.of(COMPARATOR).setName("§cEdit Conditions").clickable((player, event) -> {
             getConditionMenu(action).open(player);
             player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
 
         }));
-        menu.setItem(40, ItemBuilder.of(LILY_PAD).setName("§aConfirm").buildItem((player, event) -> {
+        menu.setItem(40, ItemBuilder.of(LILY_PAD).setName("§aConfirm").clickable((player, event) -> {
             if (plugin.originalEditingActions.get(player) != null)
                 npc.removeAction(plugin.originalEditingActions.remove(player));
             npc.addAction(action);
@@ -1063,7 +963,7 @@ public class MenuCore {
         List<String> args = action.getArgsCopy();
         switch (action.getActionType()) {
             case RUN_COMMAND ->
-                    menu.setItem(22, ItemBuilder.of(ANVIL).setName("§eClick to Edit Command").setLore("§e" + String.join(" ", args), "§eClick to change!").buildItem((player, event) -> {
+                    menu.setItem(22, ItemBuilder.of(ANVIL).setName("§eClick to Edit Command").setLore("§e" + String.join(" ", args), "§eClick to change!").clickable((player, event) -> {
                         player.closeInventory();
                         plugin.commandWaiting.add(player);
                         new CommandRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
@@ -1072,7 +972,7 @@ public class MenuCore {
                     }));
             case DISPLAY_TITLE -> {
                 // Increments
-                menu.setItem(10, ItemBuilder.of(LIME_DYE).setName("§eIncrease fade in duration").setLore(incLore).buildItem((player, event) -> {
+                menu.setItem(10, ItemBuilder.of(LIME_DYE).setName("§eIncrease fade in duration").setLore(incLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                     } else if (event.isLeftClick()) {
@@ -1084,7 +984,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(12, ItemBuilder.of(LIME_DYE).setName("§eIncrease display duration").setLore(incLore).buildItem((player, event) -> {
+                menu.setItem(12, ItemBuilder.of(LIME_DYE).setName("§eIncrease display duration").setLore(incLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 20));
                     } else if (event.isLeftClick()) {
@@ -1096,7 +996,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(14, ItemBuilder.of(LIME_DYE).setName("§eIncrease fade out duration").setLore(incLore).buildItem((player, event) -> {
+                menu.setItem(14, ItemBuilder.of(LIME_DYE).setName("§eIncrease fade out duration").setLore(incLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
                     } else if (event.isLeftClick()) {
@@ -1109,7 +1009,7 @@ public class MenuCore {
                 }));
 
                 //decrements
-                menu.setItem(28, ItemBuilder.of(RED_DYE).setName("§eDecrease fade in duration").setLore(decLore).buildItem((player, event) -> {
+                menu.setItem(28, ItemBuilder.of(RED_DYE).setName("§eDecrease fade in duration").setLore(decLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         if (Integer.parseInt(action.getArgs().get(0)) == 1) {
                             player.sendMessage("§cThe duration cannot be less than 1!");
@@ -1139,7 +1039,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease display duration").setLore(decLore).buildItem((player, event) -> {
+                menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease display duration").setLore(decLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         if (Integer.parseInt(action.getArgs().get(1)) == 1) {
                             player.sendMessage("§cThe duration cannot be less than 1!");
@@ -1169,7 +1069,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(32, ItemBuilder.of(RED_DYE).setName("§eDecrease fade out duration").setLore(decLore).buildItem((player, event) -> {
+                menu.setItem(32, ItemBuilder.of(RED_DYE).setName("§eDecrease fade out duration").setLore(decLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         if (Integer.parseInt(action.getArgs().get(2)) == 1) {
                             player.sendMessage("§cThe duration cannot be less than 1!");
@@ -1204,7 +1104,7 @@ public class MenuCore {
                 menu.setItem(19, ItemBuilder.of(CLOCK).setName("§eFade in: " + args.get(0)).setLore(displayLore).buildItem());
                 menu.setItem(21, ItemBuilder.of(CLOCK).setName("§eDisplay time: " + args.get(1)).setLore(displayLore).buildItem());
                 menu.setItem(23, ItemBuilder.of(CLOCK).setName("§eFade out: " + args.get(2)).setLore(displayLore).buildItem());
-                menu.setItem(25, ItemBuilder.of(OAK_HANGING_SIGN).setName(String.join(" ", args)).buildItem((player, event) -> {
+                menu.setItem(25, ItemBuilder.of(OAK_HANGING_SIGN).setName(String.join(" ", args)).clickable((player, event) -> {
                     player.closeInventory();
                     plugin.titleWaiting.add(player);
                     new TitleRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
@@ -1214,7 +1114,7 @@ public class MenuCore {
             }
             case ADD_EFFECT -> {
                 // Increments
-                menu.setItem(10, ItemBuilder.of(LIME_DYE).setName("§eIncrease effect duration").setLore(incLore).buildItem((player, event) -> {
+                menu.setItem(10, ItemBuilder.of(LIME_DYE).setName("§eIncrease effect duration").setLore(incLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                     } else if (event.isLeftClick()) {
@@ -1226,7 +1126,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(12, ItemBuilder.of(LIME_DYE).setName("§eIncrease effect amplifier").setLore(incLore).buildItem((player, event) -> {
+                menu.setItem(12, ItemBuilder.of(LIME_DYE).setName("§eIncrease effect amplifier").setLore(incLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         if (Integer.parseInt(action.getArgs().get(1)) == 255) {
                             player.sendMessage("§cThe amplifier cannot be greater than 255!");
@@ -1257,7 +1157,7 @@ public class MenuCore {
                 }));
 
                 //decrements
-                menu.setItem(28, ItemBuilder.of(RED_DYE).setName("§eDecrease effect duration").setLore(decLore).buildItem((player, event) -> {
+                menu.setItem(28, ItemBuilder.of(RED_DYE).setName("§eDecrease effect duration").setLore(decLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         if (Integer.parseInt(action.getArgs().get(0)) == 1) {
                             player.sendMessage("§cThe duration cannot be less than 1!");
@@ -1287,7 +1187,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease effect amplifier").setLore(decLore).buildItem((player, event) -> {
+                menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease effect amplifier").setLore(decLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         if (Integer.parseInt(action.getArgs().get(1)) == 1) {
                             player.sendMessage("§cThe amplifier cannot be less than 1!");
@@ -1322,7 +1222,7 @@ public class MenuCore {
                 menu.setItem(19, ItemBuilder.of(CLOCK).setName("§eDuration: " + args.get(0)).setLore(displayLore).buildItem());
                 menu.setItem(21, ItemBuilder.of(CLOCK).setName("§eAmplifier: " + args.get(1)).setLore(displayLore).buildItem());
                 boolean particles = Boolean.parseBoolean(args.get(2));
-                menu.setItem(23, ItemBuilder.of(particles ? GREEN_CANDLE : RED_CANDLE).setName("§eHide Particles: " + particles).buildItem((player, event) -> {
+                menu.setItem(23, ItemBuilder.of(particles ? GREEN_CANDLE : RED_CANDLE).setName("§eHide Particles: " + particles).clickable((player, event) -> {
                     action.getArgs().set(2, String.valueOf(!particles));
                     getActionCustomizerMenu(action).open(player);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -1334,7 +1234,7 @@ public class MenuCore {
                     if (!Objects.equals(action.getArgs().get(3), field.getName())) lore.add("§a" + field.getName());
                     else lore.add("§3▸ " + field.getName());
                 });
-                menu.setItem(25, ItemBuilder.of(POTION).setName("§eEffect to give").setLore(lore).addAllItemFlags().buildItem((player, event) -> {
+                menu.setItem(25, ItemBuilder.of(POTION).setName("§eEffect to give").setLore(lore).addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS).clickable((player, event) -> {
                     List<String> effects = new ArrayList<>();
                     fields.forEach(field -> effects.add(field.getName()));
 
@@ -1362,7 +1262,7 @@ public class MenuCore {
                     if (!Objects.equals(action.getArgs().get(0), field.getName())) lore.add("§a" + field.getName());
                     else lore.add("§3▸ " + field.getName());
                 });
-                menu.setItem(22, ItemBuilder.of(POTION).setName("§eEffect to Remove").setLore(lore).addAllItemFlags().buildItem((player, event) -> {
+                menu.setItem(22, ItemBuilder.of(POTION).setName("§eEffect to Remove").setLore(lore).addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS).clickable((player, event) -> {
                     List<String> effects = new ArrayList<>();
                     fields.forEach(field -> effects.add(field.getName()));
 
@@ -1386,7 +1286,7 @@ public class MenuCore {
                 }));
             }
             case GIVE_EXP -> {
-                menu.setItem(11, ItemBuilder.of(LIME_DYE).setName("§eIncrease xp").setLore(incLore).buildItem((player, event) -> {
+                menu.setItem(11, ItemBuilder.of(LIME_DYE).setName("§eIncrease xp").setLore(incLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                     } else if (event.isLeftClick()) {
@@ -1399,7 +1299,7 @@ public class MenuCore {
                 }));
 
                 menu.setItem(20, ItemBuilder.of(CLOCK).setName("§eXp to give: " + args.get(0)).buildItem());
-                menu.setItem(29, ItemBuilder.of(RED_DYE).setName("§eDecrease xp").setLore(decLore).buildItem((player, event) -> {
+                menu.setItem(29, ItemBuilder.of(RED_DYE).setName("§eDecrease xp").setLore(decLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         if (Integer.parseInt(action.getArgs().get(0)) == 1) {
                             player.sendMessage("§cThe xp cannot be less than 1!");
@@ -1430,14 +1330,14 @@ public class MenuCore {
                 }));
 
                 boolean levels = Boolean.parseBoolean(args.get(1));
-                menu.setItem(24, ItemBuilder.of(levels ? GREEN_CANDLE : RED_CANDLE).setName("§eAwarding EXP " + (levels ? "Levels" : "Points")).setLore("§eClick to change!").buildItem((player, event) -> {
+                menu.setItem(24, ItemBuilder.of(levels ? GREEN_CANDLE : RED_CANDLE).setName("§eAwarding EXP " + (levels ? "Levels" : "Points")).setLore("§eClick to change!").clickable((player, event) -> {
                     action.getArgs().set(1, String.valueOf(!levels));
                     getActionCustomizerMenu(action).open(player);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
             }
             case REMOVE_EXP -> {
-                menu.setItem(11, ItemBuilder.of(LIME_DYE).setName("§eIncrease xp").setLore(incLore).buildItem((player, event) -> {
+                menu.setItem(11, ItemBuilder.of(LIME_DYE).setName("§eIncrease xp").setLore(incLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                     } else if (event.isLeftClick()) {
@@ -1450,7 +1350,7 @@ public class MenuCore {
                 }));
 
                 menu.setItem(20, ItemBuilder.of(CLOCK).setName("§eXp to remove: " + args.get(0)).buildItem());
-                menu.setItem(29, ItemBuilder.of(RED_DYE).setName("§eDecrease xp").setLore(decLore).buildItem((player, event) -> {
+                menu.setItem(29, ItemBuilder.of(RED_DYE).setName("§eDecrease xp").setLore(decLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         if (Integer.parseInt(action.getArgs().get(0)) == 1) {
                             player.sendMessage("§cThe xp cannot be less than 1!");
@@ -1481,7 +1381,7 @@ public class MenuCore {
                 }));
 
                 boolean levels = Boolean.parseBoolean(args.get(1));
-                menu.setItem(24, ItemBuilder.of(levels ? GREEN_CANDLE : RED_CANDLE).setName("§eRemoving EXP " + (levels ? "Levels" : "Points")).setLore("§eClick to change!").buildItem((player, event) -> {
+                menu.setItem(24, ItemBuilder.of(levels ? GREEN_CANDLE : RED_CANDLE).setName("§eRemoving EXP " + (levels ? "Levels" : "Points")).setLore("§eClick to change!").clickable((player, event) -> {
                     action.getArgs().set(1, String.valueOf(!levels));
                     getActionCustomizerMenu(action).open(player);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -1489,7 +1389,7 @@ public class MenuCore {
 
             }
             case SEND_MESSAGE ->
-                    menu.setItem(22, ItemBuilder.of(OAK_HANGING_SIGN).setName(String.join(" ", args)).setLore("§eClick to change!").buildItem((player, event) -> {
+                    menu.setItem(22, ItemBuilder.of(OAK_HANGING_SIGN).setName(String.join(" ", args)).setLore("§eClick to change!").clickable((player, event) -> {
 
                         player.closeInventory();
                         plugin.messageWaiting.add(player);
@@ -1502,20 +1402,20 @@ public class MenuCore {
                 String smallIncLore = "§eClick to add .1";
                 String smallDecLore = "§eClick to remove .1";
 
-                menu.setItem(10, ItemBuilder.of(LIME_DYE).setName("§eIncrease pitch.").setLore(smallIncLore).buildItem((player, event) -> {
+                menu.setItem(10, ItemBuilder.of(LIME_DYE).setName("§eIncrease pitch.").setLore(smallIncLore).clickable((player, event) -> {
                     action.getArgs().set(0, String.valueOf(DECIMAL_FORMAT.format(Double.parseDouble(action.getArgs().get(0)) + .1)));
                     getActionCustomizerMenu(action).open(player);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(12, ItemBuilder.of(LIME_DYE).setName("§eIncrease Volume").setLore(smallIncLore).buildItem((player, event) -> {
+                menu.setItem(12, ItemBuilder.of(LIME_DYE).setName("§eIncrease Volume").setLore(smallIncLore).clickable((player, event) -> {
                     action.getArgs().set(1, String.valueOf(DECIMAL_FORMAT.format(Double.parseDouble(action.getArgs().get(1)) + .1)));
                     getActionCustomizerMenu(action).open(player);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
                 //decrements
-                menu.setItem(28, ItemBuilder.of(RED_DYE).setName("§eDecrease pitch").setLore(smallDecLore).buildItem((player, event) -> {
+                menu.setItem(28, ItemBuilder.of(RED_DYE).setName("§eDecrease pitch").setLore(smallDecLore).clickable((player, event) -> {
                     if (event.isLeftClick()) {
                         if (Double.parseDouble(action.getArgs().get(0)) - .1 <= 0) {
                             player.sendMessage("§cThe pitch cannot be less than or equal 0!");
@@ -1527,7 +1427,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease volume").setLore(smallDecLore).buildItem((player, event) -> {
+                menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease volume").setLore(smallDecLore).clickable((player, event) -> {
                     if (event.isLeftClick()) {
                         if (Double.parseDouble(action.getArgs().get(1)) - .1 <= 0) {
                             player.sendMessage("§cThe volume cannot be less than or equal 0!");
@@ -1546,9 +1446,9 @@ public class MenuCore {
 
                 ItemStack sound = new ItemStack(Material.BELL);
                 ItemMeta metaDisplaySound = sound.getItemMeta();
-                metaDisplaySound.displayName(Component.text("Sound: " + args.get(0), NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                metaDisplaySound.displayName(Utils.mm("<yellow>Sound: " + args.get(0)));
                 sound.setItemMeta(metaDisplaySound);
-                menu.setItem(24, ItemBuilder.of(OAK_HANGING_SIGN).setName("§eSound: " + args.get(2)).setLore("", "§eClick to change!").buildItem((player, event) -> {
+                menu.setItem(24, ItemBuilder.of(OAK_HANGING_SIGN).setName("§eSound: " + args.get(2)).setLore("", "§eClick to change!").clickable((player, event) -> {
                     player.closeInventory();
                     plugin.soundWaiting.add(player);
                     new SoundRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
@@ -1557,7 +1457,7 @@ public class MenuCore {
                 }));
             }
             case ACTION_BAR ->
-                    menu.setItem(22, ItemBuilder.of(OAK_HANGING_SIGN).setName(String.join(" ", args)).buildItem((player, event) -> {
+                    menu.setItem(22, ItemBuilder.of(OAK_HANGING_SIGN).setName(String.join(" ", args)).clickable((player, event) -> {
                         player.closeInventory();
                         plugin.actionbarWaiting.add(player);
                         new ActionbarRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
@@ -1565,7 +1465,7 @@ public class MenuCore {
                         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     }));
             case TELEPORT -> {
-                menu.setItem(10, ItemBuilder.of(LIME_DYE).setName("§eIncrease X Coordinate").setLore(incLore).buildItem((player, event) -> {
+                menu.setItem(10, ItemBuilder.of(LIME_DYE).setName("§eIncrease X Coordinate").setLore(incLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) + 20));
                     } else if (event.isLeftClick()) {
@@ -1577,7 +1477,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(11, ItemBuilder.of(LIME_DYE).setName("§e Increase Y Coordinate").setLore(incLore).buildItem((player, event) -> {
+                menu.setItem(11, ItemBuilder.of(LIME_DYE).setName("§e Increase Y Coordinate").setLore(incLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) + 20));
                     } else if (event.isLeftClick()) {
@@ -1589,7 +1489,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(12, ItemBuilder.of(LIME_DYE).setName("§eIncrease Z Coordinate").setLore(incLore).buildItem((player, event) -> {
+                menu.setItem(12, ItemBuilder.of(LIME_DYE).setName("§eIncrease Z Coordinate").setLore(incLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) + 20));
                     } else if (event.isLeftClick()) {
@@ -1601,7 +1501,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(16, ItemBuilder.of(LIME_DYE).setName("§eIncrease Yaw").setLore(incLore).buildItem((player, event) -> {
+                menu.setItem(16, ItemBuilder.of(LIME_DYE).setName("§eIncrease Yaw").setLore(incLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         if (Integer.parseInt(action.getArgs().get(3)) == 180) {
                             player.sendMessage("§cThe yaw cannot be greater than 180!");
@@ -1631,7 +1531,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(14, ItemBuilder.of(LIME_DYE).setName("§eIncrease Pitch").setLore(incLore).buildItem((player, event) -> {
+                menu.setItem(14, ItemBuilder.of(LIME_DYE).setName("§eIncrease Pitch").setLore(incLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         if (Integer.parseInt(action.getArgs().get(4)) == 90) {
                             player.sendMessage("§cThe pitch cannot be greater than 90!");
@@ -1662,7 +1562,7 @@ public class MenuCore {
                 }));
 
                 //decrements
-                menu.setItem(28, ItemBuilder.of(RED_DYE).setName("§eDecrease X Coordinate").setLore(decLore).buildItem((player, event) -> {
+                menu.setItem(28, ItemBuilder.of(RED_DYE).setName("§eDecrease X Coordinate").setLore(decLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         action.getArgs().set(0, String.valueOf(Integer.parseInt(action.getArgs().get(0)) - 20));
                     } else if (event.isLeftClick()) {
@@ -1674,7 +1574,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(29, ItemBuilder.of(RED_DYE).setName("§eDecrease Y Coordinate").setLore(decLore).buildItem((player, event) -> {
+                menu.setItem(29, ItemBuilder.of(RED_DYE).setName("§eDecrease Y Coordinate").setLore(decLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         action.getArgs().set(1, String.valueOf(Integer.parseInt(action.getArgs().get(1)) - 20));
                     } else if (event.isLeftClick()) {
@@ -1686,7 +1586,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease Z Coordinate").setLore(decLore).buildItem((player, event) -> {
+                menu.setItem(30, ItemBuilder.of(RED_DYE).setName("§eDecrease Z Coordinate").setLore(decLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         action.getArgs().set(2, String.valueOf(Integer.parseInt(action.getArgs().get(2)) - 20));
                     } else if (event.isLeftClick()) {
@@ -1698,7 +1598,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(34, ItemBuilder.of(RED_DYE).setName("§eDecrease Yaw").setLore(decLore).buildItem((player, event) -> {
+                menu.setItem(34, ItemBuilder.of(RED_DYE).setName("§eDecrease Yaw").setLore(decLore).clickable((player, event) -> {
                     if (event.isShiftClick()) {
                         if (Integer.parseInt(action.getArgs().get(3)) == 180) {
                             player.sendMessage("§cThe yaw cannot be greater than 180!");
@@ -1728,7 +1628,7 @@ public class MenuCore {
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
-                menu.setItem(32, ItemBuilder.of(RED_DYE).setName("§eDecrease Pitch").setLore(decLore).buildItem((player, event) -> {
+                menu.setItem(32, ItemBuilder.of(RED_DYE).setName("§eDecrease Pitch").setLore(decLore).clickable((player, event) -> {
                     if (event.isLeftClick()) {
                         if (Integer.parseInt(action.getArgs().get(4)) == -90) {
                             player.sendMessage("§cThe pitch cannot be less than -90!");
@@ -1769,7 +1669,7 @@ public class MenuCore {
                 menu.setItem(23, ItemBuilder.of(COMPASS).setName("§ePitch: §b" + args.get(4)).setLore(displayLore).buildItem());
             }
             case SEND_TO_SERVER ->
-                    menu.setItem(22, ItemBuilder.of(GRASS_BLOCK).setName("§eServer: " + String.join(" ", args)).buildItem((player, event) -> {
+                    menu.setItem(22, ItemBuilder.of(GRASS_BLOCK).setName("§eServer: " + String.join(" ", args)).clickable((player, event) -> {
                         player.closeInventory();
                         plugin.serverWaiting.add(player);
                         new ServerRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
@@ -1793,27 +1693,27 @@ public class MenuCore {
      * @return The Inventory representing the conditional to customize
      */
     public Menu getConditionalCustomizerMenu(Conditional conditional) {
-        Menu menu = Menu.builder().rows(3).title("   Edit Action Conditional").addAllModifiers().normal();
+        Menu menu = Menu.builder(CustomNPCs.MENUS).rows(3).title("   Edit Action Conditional").addAllModifiers().normal();
 
         // Go back to actions menu
         menu.setItem(18, ItemBuilder.of(ARROW)
                 .setName(Utils.style("&6Go Back"))
-                .buildItem((player, event) -> {
+                .clickable((player, event) -> {
                     getNewConditionMenu().open(player);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 }));
 
         menu.setItem(22, ItemBuilder.of(LILY_PAD)
                 .setName(Utils.style("&aConfirm"))
-                .buildItem((player, event) -> {
-            Action action = plugin.editingActions.get(player);
-            event.setCancelled(true);
-            if (plugin.originalEditingConditionals.get(player) != null)
-                action.removeConditional(plugin.originalEditingConditionals.remove(player));
-            action.addConditional(conditional);
-            getConditionMenu(action).open(player);
+                .clickable((player, event) -> {
+                    Action action = plugin.editingActions.get(player);
+                    event.setCancelled(true);
+                    if (plugin.originalEditingConditionals.get(player) != null)
+                        action.removeConditional(plugin.originalEditingConditionals.remove(player));
+                    action.addConditional(conditional);
+                    getConditionMenu(action).open(player);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-        }));
+                }));
 
         switch (conditional.getType()) {
             case NUMERIC -> {
@@ -1833,15 +1733,15 @@ public class MenuCore {
                 List<Component> lore = new ArrayList<>();
                 for (Conditional.Comparator c : Conditional.Comparator.values()) {
                     if (conditional.getComparator() != c)
-                        lore.add(Component.text(c.name(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                        lore.add(Component.text(c.name(), NamedTextColor.GREEN));
                     else
-                        lore.add(Component.text("▸ " + c.name(), NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                        lore.add(Utils.mm("<dark_aqua>▸ " + c.name()));
                 }
-                meta.displayName(Component.text("Comparator", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                meta.displayName(Utils.mm("<yellow>Comparator"));
+                lore.add(Utils.mm("<yellow>Click to change!"));
                 meta.lore(lore);
                 selectComparator.setItemMeta(meta);
-                menu.setItem(11, ItemBuilder.of(selectComparator).buildItem((player, event) -> {
+                menu.setItem(11, ItemBuilder.of(selectComparator).clickable((player, event) -> {
                     List<Conditional.Comparator> comparators = List.of(Conditional.Comparator.values());
                     int index = comparators.indexOf(conditional.getComparator());
                     if (event.isLeftClick()) {
@@ -1864,12 +1764,12 @@ public class MenuCore {
 
                 ItemStack targetValue = new ItemStack(Material.OAK_HANGING_SIGN);
                 ItemMeta targetMeta = targetValue.getItemMeta();
-                targetMeta.displayName(Component.text("Select Target Value", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                lore.add(Component.text("The target value is '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(conditional.getTarget(), NamedTextColor.AQUA).append(Component.text("'", NamedTextColor.YELLOW))));
-                lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                targetMeta.displayName(Utils.mm("<yellow>Select Target Value"));
+                lore.add(Utils.mm("<yellow>The target value is '<aqua>" + conditional.getTarget() + "<yellow>'"));
+                lore.add(Utils.mm("<yellow>Click to change!"));
                 targetMeta.lore(lore);
                 targetValue.setItemMeta(targetMeta);
-                menu.setItem(13, ItemBuilder.of(targetValue).buildItem((player, event) -> {
+                menu.setItem(13, ItemBuilder.of(targetValue).clickable((player, event) -> {
                     player.closeInventory();
                     plugin.targetWaiting.add(player);
                     new TargetInputRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
@@ -1883,16 +1783,16 @@ public class MenuCore {
                 for (Conditional.Value v : Conditional.Value.values()) {
                     if (!v.isLogical()) {
                         if (conditional.getValue() != v)
-                            lore.add(Component.text(v.name(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                            lore.add(Component.text(v.name(), NamedTextColor.GREEN));
                         else
-                            lore.add(Component.text("▸ " + v.name(), NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                            lore.add(Utils.mm("<dark_aqua>▸ " + v.name()));
                     }
                 }
-                statisticMeta.displayName(Component.text("Statistic", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                statisticMeta.displayName(Utils.mm("<yellow>Statistic"));
+                lore.add(Utils.mm("<yellow>Click to change!"));
                 statisticMeta.lore(lore);
                 statistic.setItemMeta(statisticMeta);
-                menu.setItem(15, ItemBuilder.of(statistic).buildItem((player, event) -> {
+                menu.setItem(15, ItemBuilder.of(statistic).clickable((player, event) -> {
                     List<Conditional.Value> statistics = new ArrayList<>();
                     for (Conditional.Value value : Conditional.Value.values()) {
                         if (!value.isLogical()) statistics.add(value);
@@ -1934,16 +1834,16 @@ public class MenuCore {
                 for (Conditional.Comparator c : Conditional.Comparator.values()) {
                     if (c.isStrictlyLogical()) {
                         if (conditional.getComparator() != c)
-                            lore.add(Component.text(c.name(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                            lore.add(Component.text(c.name(), NamedTextColor.GREEN));
                         else
-                            lore.add(Component.text("▸ " + c.name(), NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                            lore.add(Utils.mm("<dark_aqua>▸ " + c.name()));
                     }
                 }
-                meta.displayName(Component.text("Comparator", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                meta.displayName(Utils.mm("<yellow>Comparator"));
+                lore.add(Utils.mm("<yellow>Click to change!"));
                 meta.lore(lore);
                 selectComparator.setItemMeta(meta);
-                menu.setItem(11, ItemBuilder.of(selectComparator).buildItem((player, event) -> {
+                menu.setItem(11, ItemBuilder.of(selectComparator).clickable((player, event) -> {
                     List<Conditional.Comparator> comparators = new ArrayList<>();
                     for (Conditional.Comparator value : Conditional.Comparator.values()) {
                         if (value.isStrictlyLogical()) comparators.add(value);
@@ -1971,12 +1871,12 @@ public class MenuCore {
 
                 ItemStack targetValue = new ItemStack(Material.OAK_HANGING_SIGN);
                 ItemMeta targetMeta = targetValue.getItemMeta();
-                targetMeta.displayName(Component.text("Select Target Value", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                lore.add(Component.text("The target value is '", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).append(Component.text(conditional.getTarget(), NamedTextColor.AQUA).append(Component.text("'", NamedTextColor.YELLOW))));
-                lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                targetMeta.displayName(Utils.mm("<yellow>Select Target Value"));
+                lore.add(Utils.mm("<yellow>The target value is '<aqua>" + conditional.getTarget() + "<yellow>'"));
+                lore.add(Utils.mm("<yellow>Click to change!"));
                 targetMeta.lore(lore);
                 targetValue.setItemMeta(targetMeta);
-                menu.setItem(13, ItemBuilder.of(targetValue).buildItem((player, event) -> {
+                menu.setItem(13, ItemBuilder.of(targetValue).clickable((player, event) -> {
 
                     player.closeInventory();
                     plugin.targetWaiting.add(player);
@@ -1991,16 +1891,16 @@ public class MenuCore {
                 for (Conditional.Value v : Conditional.Value.values()) {
                     if (v.isLogical()) {
                         if (conditional.getValue() != v)
-                            lore.add(Component.text(v.name(), NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                            lore.add(Component.text(v.name(), NamedTextColor.GREEN));
                         else
-                            lore.add(Component.text("▸ " + v.name(), NamedTextColor.DARK_AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                            lore.add(Utils.mm("<dark_aqua>▸ " + v.name()));
                     }
                 }
-                statisticMeta.displayName(Component.text("Statistic", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                lore.add(Component.text("Click to change!", NamedTextColor.YELLOW).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                statisticMeta.displayName(Utils.mm("<yellow>Statistic"));
+                lore.add(Utils.mm("<yellow>Click to change!"));
                 statisticMeta.lore(lore);
                 statistic.setItemMeta(statisticMeta);
-                menu.setItem(15, ItemBuilder.of(statistic).buildItem((player, event) -> {
+                menu.setItem(15, ItemBuilder.of(statistic).clickable((player, event) -> {
                     List<Conditional.Value> statistics = new ArrayList<>();
 
                     for (Conditional.Value value : Conditional.Value.values()) {
@@ -2037,15 +1937,15 @@ public class MenuCore {
      * @return The Inventory representing the new Action menu
      */
     public Menu getNewActionMenu() {
-        Menu menu = Menu.builder().rows(4).addAllModifiers().title("          New NPC Action").normal();
+        Menu menu = Menu.builder(CustomNPCs.MENUS).rows(4).addAllModifiers().title("          New NPC Action").normal();
         menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
 
-        menu.setItem(27, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((player, event) -> {
+        menu.setItem(27, ItemBuilder.of(ARROW).setName("§6Go Back").clickable((player, event) -> {
             player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
             getActionMenu().open(player);
         }));
 
-        menu.addItem(ItemBuilder.of(OAK_SIGN).setName("§bDisplay Title").setLore("§eDisplays a title for the player.").buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(OAK_SIGN).setName("§bDisplay Title").setLore("§eDisplays a title for the player.").clickable((player, event) -> {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.DISPLAY_TITLE, Utils.list("10", "20", "10", "title!"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
@@ -2055,7 +1955,7 @@ public class MenuCore {
                     if (a.getActionType() == action.getActionType()) {
                         event.setCancelled(true);
                         shouldReturn.set(true);
-                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                        player.sendMessage(Utils.mm("<red>This NPC already has this action!"));
                     }
                 });
                 if (shouldReturn.get()) return;
@@ -2065,7 +1965,7 @@ public class MenuCore {
 
         }));
 
-        menu.addItem(ItemBuilder.of(PAPER).setName("§bSend Message").setLore("§eSends the player a message.").buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(PAPER).setName("§bSend Message").setLore("§eSends the player a message.").clickable((player, event) -> {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.SEND_MESSAGE, Utils.list("message", "to", "be", "sent"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
@@ -2075,7 +1975,7 @@ public class MenuCore {
                     if (a.getActionType() == action.getActionType()) {
                         event.setCancelled(true);
                         shouldReturn.set(true);
-                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                        player.sendMessage(Utils.mm("<red>This NPC already has this action!"));
                     }
                 });
                 if (shouldReturn.get()) return;
@@ -2085,7 +1985,7 @@ public class MenuCore {
 
         }));
 
-        menu.addItem(ItemBuilder.of(BELL).setName("§bPlay Sound").setLore("§ePlays a sound for the player.").buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(BELL).setName("§bPlay Sound").setLore("§ePlays a sound for the player.").clickable((player, event) -> {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.PLAY_SOUND, Utils.list("1", "1", Sound.UI_BUTTON_CLICK.name()), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
@@ -2095,7 +1995,7 @@ public class MenuCore {
                     if (a.getActionType() == action.getActionType()) {
                         event.setCancelled(true);
                         shouldReturn.set(true);
-                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                        player.sendMessage(Utils.mm("<red>This NPC already has this action!"));
                     }
                 });
                 if (shouldReturn.get()) return;
@@ -2105,7 +2005,7 @@ public class MenuCore {
 
         }));
 
-        menu.addItem(ItemBuilder.of(ANVIL).setName("§bRun Command").setLore("§eRuns a command as the player.").buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(ANVIL).setName("§bRun Command").setLore("§eRuns a command as the player.").clickable((player, event) -> {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.RUN_COMMAND, Utils.list("command", "to", "be", "run"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
@@ -2115,7 +2015,7 @@ public class MenuCore {
                     if (a.getActionType() == action.getActionType()) {
                         event.setCancelled(true);
                         shouldReturn.set(true);
-                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                        player.sendMessage(Utils.mm("<red>This NPC already has this action!"));
                     }
                 });
                 if (shouldReturn.get()) return;
@@ -2125,7 +2025,7 @@ public class MenuCore {
 
         }));
 
-        menu.addItem(ItemBuilder.of(IRON_INGOT).setName("§bSend Actionbar").setLore("§eSends the player an actionbar.").buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(IRON_INGOT).setName("§bSend Actionbar").setLore("§eSends the player an actionbar.").clickable((player, event) -> {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.ACTION_BAR, Utils.list("actionbar", "to", "be", "sent"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
@@ -2135,7 +2035,7 @@ public class MenuCore {
                     if (a.getActionType() == action.getActionType()) {
                         event.setCancelled(true);
                         shouldReturn.set(true);
-                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                        player.sendMessage(Utils.mm("<red>This NPC already has this action!"));
                     }
                 });
                 if (shouldReturn.get()) return;
@@ -2145,7 +2045,7 @@ public class MenuCore {
 
         }));
 
-        menu.addItem(ItemBuilder.of(ENDER_PEARL).setName("§bTeleport Player").setLore("§eTeleports a player upon interacting.").buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(ENDER_PEARL).setName("§bTeleport Player").setLore("§eTeleports a player upon interacting.").clickable((player, event) -> {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.TELEPORT, Utils.list("0", "0", "0", "0", "0"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
@@ -2155,7 +2055,7 @@ public class MenuCore {
                     if (a.getActionType() == action.getActionType()) {
                         event.setCancelled(true);
                         shouldReturn.set(true);
-                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                        player.sendMessage(Utils.mm("<red>This NPC already has this action!"));
                     }
                 });
                 if (shouldReturn.get()) return;
@@ -2165,7 +2065,7 @@ public class MenuCore {
 
         }));
 
-        menu.addItem(ItemBuilder.of(GRASS_BLOCK).setName("§bSend To Bungeecord/Velocity Server").setLore("§eSends a player to a Bungeecord/Velocity", "§eserver upon interacting.").buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(GRASS_BLOCK).setName("§bSend To Bungeecord/Velocity Server").setLore("§eSends a player to a Bungeecord/Velocity", "§eserver upon interacting.").clickable((player, event) -> {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.SEND_TO_SERVER, Utils.list("server", "name"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
@@ -2175,7 +2075,7 @@ public class MenuCore {
                     if (a.getActionType() == action.getActionType()) {
                         event.setCancelled(true);
                         shouldReturn.set(true);
-                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                        player.sendMessage(Utils.mm("<red>This NPC already has this action!"));
                     }
                 });
                 if (shouldReturn.get()) return;
@@ -2185,7 +2085,7 @@ public class MenuCore {
 
         }));
 
-        menu.addItem(ItemBuilder.of(LEAD).setName("§bStart/Stop Following").setLore("§eToggles whether or not the", "§eNPC follows this player.", Utils.style("&4&lThis Action is currently broken.")).buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(LEAD).setName("§bStart/Stop Following").setLore("§eToggles whether or not the", "§eNPC follows this player.", Utils.style("&4&lThis Action is currently broken.")).clickable((player, event) -> {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.TOGGLE_FOLLOWING, Collections.singletonList(npc.getUniqueID().toString()), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().isDuplicatable()) {
@@ -2194,7 +2094,7 @@ public class MenuCore {
                     if (a.getActionType() == action.getActionType()) {
                         event.setCancelled(true);
                         shouldReturn.set(true);
-                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                        player.sendMessage(Utils.mm("<red>This NPC already has this action!"));
                     }
                 });
                 if (shouldReturn.get()) return;
@@ -2203,7 +2103,7 @@ public class MenuCore {
             getActionCustomizerMenu(action).open(player);
         }));
 
-        menu.addItem(ItemBuilder.of(EXPERIENCE_BOTTLE).setName("§bGive Exp").setLore("§eGives the player exp.").buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(EXPERIENCE_BOTTLE).setName("§bGive Exp").setLore("§eGives the player exp.").clickable((player, event) -> {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.GIVE_EXP, Utils.list("0", "true"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
@@ -2213,7 +2113,7 @@ public class MenuCore {
                     if (a.getActionType() == action.getActionType()) {
                         event.setCancelled(true);
                         shouldReturn.set(true);
-                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                        player.sendMessage(Utils.mm("<red>This NPC already has this action!"));
                     }
                 });
                 if (shouldReturn.get()) return;
@@ -2223,7 +2123,7 @@ public class MenuCore {
 
         }));
 
-        menu.addItem(ItemBuilder.of(GLASS_BOTTLE).setName("§bRemove Exp").setLore("§eRemoves exp from the player.").buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(GLASS_BOTTLE).setName("§bRemove Exp").setLore("§eRemoves exp from the player.").clickable((player, event) -> {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.REMOVE_EXP, Utils.list("0", "true"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
@@ -2233,7 +2133,7 @@ public class MenuCore {
                     if (a.getActionType() == action.getActionType()) {
                         event.setCancelled(true);
                         shouldReturn.set(true);
-                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                        player.sendMessage(Utils.mm("<red>This NPC already has this action!"));
                     }
                 });
                 if (shouldReturn.get()) return;
@@ -2243,7 +2143,7 @@ public class MenuCore {
 
         }));
 
-        menu.addItem(ItemBuilder.of(BREWING_STAND).setName("§bGive Effect").setLore("§eGives an effect to the player.").buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(BREWING_STAND).setName("§bGive Effect").setLore("§eGives an effect to the player.").clickable((player, event) -> {
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.ADD_EFFECT, Utils.list("1", "1", "true", "SPEED"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
@@ -2253,7 +2153,7 @@ public class MenuCore {
                     if (a.getActionType() == action.getActionType()) {
                         event.setCancelled(true);
                         shouldReturn.set(true);
-                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                        player.sendMessage(Utils.mm("<red>This NPC already has this action!"));
                     }
                 });
                 if (shouldReturn.get()) return;
@@ -2263,7 +2163,7 @@ public class MenuCore {
 
         }));
 
-        menu.addItem(ItemBuilder.of(MILK_BUCKET).setName("§bRemove Effect").setLore("§eRemoves an effect from the player.").buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(MILK_BUCKET).setName("§bRemove Effect").setLore("§eRemoves an effect from the player.").clickable((player, event) -> {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Action action = new Action(ActionType.REMOVE_EFFECT, Utils.list("SPEED"), 0, Conditional.SelectionMode.ONE, new ArrayList<>());
             if (!action.getActionType().isDuplicatable()) {
@@ -2272,7 +2172,7 @@ public class MenuCore {
                     if (a.getActionType() == action.getActionType()) {
                         event.setCancelled(true);
                         shouldReturn.set(true);
-                        player.sendMessage(Component.text("This NPC already has this action!", NamedTextColor.RED));
+                        player.sendMessage(Utils.mm("<red>This NPC already has this action!"));
                     }
                 });
                 if (shouldReturn.get()) return;
@@ -2292,22 +2192,22 @@ public class MenuCore {
      * @return The Inventory representing the new Action menu
      */
     public Menu getNewConditionMenu() {
-        Menu menu = Menu.builder().title("       New Action Condition").rows(3).addAllModifiers().normal();
+        Menu menu = Menu.builder(CustomNPCs.MENUS).title("       New Action Condition").rows(3).addAllModifiers().normal();
         menu.getFiller().fillBorders(MenuItems.MENU_GLASS);
 
-        menu.setItem(18, ItemBuilder.of(ARROW).setName("§6Go Back").buildItem((player, event) -> {
+        menu.setItem(18, ItemBuilder.of(ARROW).setName("§6Go Back").clickable((player, event) -> {
             getConditionMenu(plugin.editingActions.get(player)).open(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
         }));
 
-        menu.addItem(ItemBuilder.of(POPPED_CHORUS_FRUIT).setName("§3Numeric Condition").setLore("§eCompares numbers.").buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(POPPED_CHORUS_FRUIT).setName("§3Numeric Condition").setLore("§eCompares numbers.").clickable((player, event) -> {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Conditional conditional = new NumericConditional(Conditional.Comparator.EQUAL_TO, Conditional.Value.EXP_LEVELS, 0.0);
             plugin.editingConditionals.put(player, conditional);
             getConditionalCustomizerMenu(conditional).open(player);
         }));
 
-        menu.addItem(ItemBuilder.of(COMPARATOR).setName("§3Logical Condition").setLore("§eCompares things with", "§enumbered options.").buildItem((player, event) -> {
+        menu.addItem(ItemBuilder.of(COMPARATOR).setName("§3Logical Condition").setLore("§eCompares things with", "§enumbered options.").clickable((player, event) -> {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             Conditional conditional = new LogicalConditional(Conditional.Comparator.EQUAL_TO, Conditional.Value.GAMEMODE, "SURVIVAL");
             plugin.editingConditionals.put(player, conditional);
@@ -2319,17 +2219,18 @@ public class MenuCore {
 
     /**
      * Gets the menu to set the NPC skins
+     *
      * @return The menu to customize the NPC Skins
      */
     public Menu getSkinMenu() {
-        Menu menu = Menu.builder().title("     Edit NPC Skin").rows(3).addAllModifiers().normal();
+        Menu menu = Menu.builder(CustomNPCs.MENUS).title("     Edit NPC Skin").rows(3).addAllModifiers().normal();
 
-        menu.setItem(18, ItemBuilder.of(ARROW).setName("§6Go Back").setLore("§eGo back to the main menu").buildItem((player, event) -> {
+        menu.setItem(18, ItemBuilder.of(ARROW).setName("§6Go Back").setLore("§eGo back to the main menu").clickable((player, event) -> {
             player.playSound(player, Sound.UI_BUTTON_CLICK, 1f, 1f);
             getMainMenu().open(player);
         }));
 
-        menu.setItem(11, ItemBuilder.of(ANVIL).setName("§bImport from Player").setLore("§eFetches a player's skin by name").buildItem((player, event) -> {
+        menu.setItem(11, ItemBuilder.of(ANVIL).setName("§bImport from Player").setLore("§eFetches a player's skin by name").clickable((player, event) -> {
             player.closeInventory();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             plugin.playerWaiting.add(player);
@@ -2337,12 +2238,12 @@ public class MenuCore {
             event.setCancelled(true);
         }));
 
-        menu.setItem(13, ItemBuilder.of(ARMOR_STAND).setName("§bBrowse Skin Catalogue").setLore("§eUse a preset skin").buildItem((player, event) -> {
+        menu.setItem(13, ItemBuilder.of(ARMOR_STAND).setName("§bBrowse Skin Catalogue").setLore("§eUse a preset skin").clickable((player, event) -> {
             plugin.skinCatalogue.open(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
         }));
 
-        menu.setItem(15, ItemBuilder.of(WRITABLE_BOOK).setName("§bImport from URL").setLore("§eFetches a skin from a URL").buildItem((player, event) -> {
+        menu.setItem(15, ItemBuilder.of(WRITABLE_BOOK).setName("§bImport from URL").setLore("§eFetches a skin from a URL").clickable((player, event) -> {
             player.closeInventory();
             plugin.urlWaiting.add(player);
             new UrlRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
@@ -2356,12 +2257,12 @@ public class MenuCore {
     }
 
     public Menu getExtraSettingsMenu() {
-        Menu menu = Menu.builder().title("Extra NPC Settings").rows(3).addAllModifiers().normal();
+        Menu menu = Menu.builder(CustomNPCs.MENUS).title("Extra NPC Settings").rows(3).addAllModifiers().normal();
         boolean hideClickableTag = npc.getSettings().isHideClickableHologram();
         menu.setItem(12, ItemBuilder.of((hideClickableTag ? RED_CANDLE : GREEN_CANDLE))
                 .setName(Utils.style("&bToggle Hologram Visibility"))
                 .setLore("", Utils.style("&eThe Interactable Holograms is:"), Utils.style((hideClickableTag ? "&c&lHIDDEN" : "&a&lSHOWN")))
-                .buildItem((player, event) -> {
+                .clickable((player, event) -> {
                     player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                     npc.getSettings().setHideClickableHologram(!hideClickableTag);
                     getExtraSettingsMenu().open(player);
@@ -2370,7 +2271,7 @@ public class MenuCore {
         menu.setItem(14, ItemBuilder.of(NAME_TAG)
                 .setName(Utils.style("&bChange NPC Clickable Hologram Text"))
                 .setLore("", Utils.style("&eThis changes only THIS NPC's"), Utils.style("&einteractable hologram."))
-                .buildItem((player, event) -> {
+                .clickable((player, event) -> {
                     plugin.hologramWaiting.add(player);
                     player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                     player.closeInventory();
@@ -2380,7 +2281,7 @@ public class MenuCore {
 
         menu.setItem(18, ItemBuilder.of(ARROW)
                 .setName(Utils.style("&6Go Back"))
-                .buildItem((player, inventoryClickEvent) -> {
+                .clickable((player, inventoryClickEvent) -> {
                     player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                     getMainMenu().open(player);
                 }));

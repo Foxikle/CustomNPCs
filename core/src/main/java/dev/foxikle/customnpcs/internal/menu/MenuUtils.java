@@ -6,7 +6,7 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import me.flame.menus.builders.items.ItemBuilder;
 import me.flame.menus.items.MenuItem;
 import me.flame.menus.menu.Menu;
-import me.flame.menus.menu.PaginatedMenu;
+import me.flame.menus.menu.pagination.IndexedPagination;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
@@ -73,27 +73,28 @@ public class MenuUtils {
      *
      * @return The list of inventories displaying the skin options
      */
-    public PaginatedMenu getSkinCatalogue() {
-        PaginatedMenu menu = Menu.builder().title("Select A Skin").rows(6).addAllModifiers()
+    public IndexedPagination getSkinCatalogue() {
+        IndexedPagination menu = Menu.paginated(CustomNPCs.MENUS, 6).title("Select A Skin").addAllModifiers()
                 .nextPageItem(53, ItemBuilder.of(Material.ARROW).setName(Utils.style("&eNext Page")).buildItem())
                 .previousPageItem(45, ItemBuilder.of(Material.ARROW).setName(Utils.style("&ePrevious Page")).buildItem())
-                .pagination();
+                .build();
         menu.setDynamicSizing(true);
-        menu.setOnPageChange(event -> {
+        menu.actions().addOnPageAction(event -> {
             event.getPlayer().playSound(event.getPlayer(), Sound.UI_BUTTON_CLICK, 1, 1);
-            if (event.getCurrentPageNumber() > event.getOldPageNumber()) {
-                event.getMenu().next();
+            if (event.getNewIndex() > event.getOldIndex()) {
+                menu.next();
                 return;
             }
-            event.getMenu().previous();
+            menu.previous();
         });
+
         menu.setPageItem(new int[]{0,1,2,3,4,5,6,7,8,9,17,18,26,27,35,36,44,46,47,48,50,51,52}, MenuItems.MENU_GLASS);
-        menu.setPageItem(new int[]{49}, ItemBuilder.of(Material.BARRIER).setName(Utils.style("&cGo Back")).buildItem((player, event) -> {
+        menu.setPageItem(new int[]{49}, ItemBuilder.of(Material.BARRIER).setName(Utils.style("&cGo Back")).clickable((player, event) -> {
             plugin.menuCores.get(player).getMainMenu().open(player);
             player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
         }));
 
-        menu.addItems(makeIcons().toArray(new MenuItem[0]));
+        menu.addItem(makeIcons().toArray(new MenuItem[0]));
         return menu;
     }
 
@@ -155,7 +156,7 @@ public class MenuUtils {
         headMeta.setLore(lore);
         head.setItemMeta(headMeta);
 
-        return ItemBuilder.of(head).buildItem((player, event) -> {
+        return ItemBuilder.of(head).clickable((player, event) -> {
             InternalNpc npc = plugin.menuCores.get(player).getNpc();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             event.setCancelled(true);
@@ -183,12 +184,12 @@ public class MenuUtils {
     }
 
     public static Menu getDeletionConfirmationMenu(InternalNpc npc, @Nullable Menu toReturnTo) {
-        Menu menu = Menu.builder().rows(3).title(Utils.style("&c&lDelete an NPC")).addAllModifiers().normal();
+        Menu menu = Menu.builder(CustomNPCs.MENUS).rows(3).title(Utils.style("&c&lDelete an NPC")).addAllModifiers().normal();
 
         menu.setItem(11, ItemBuilder.of(Material.RED_STAINED_GLASS_PANE)
                 .setName(Utils.style("&c&lDELETE"))
                 .setLore("", Utils.style("&4&oThis action &lCANNOT&r&4&o be undone."))
-                .buildItem((player, event) -> Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> {
+                .clickable((player, event) -> Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> {
                     npc.remove();
                     npc.delete();
                     CustomNPCs.getInstance().npcs.remove(npc.getUniqueID());
@@ -202,7 +203,7 @@ public class MenuUtils {
         menu.setItem(15, ItemBuilder.of(Material.LIME_STAINED_GLASS_PANE)
                 .setName(Utils.style("&a&lGO BACK"))
                 .setLore(Utils.style("&aBack to safety!"))
-                .buildItem((player, event) -> {
+                .clickable((player, event) -> {
                     player.playSound(player, Sound.UI_BUTTON_CLICK,1, 1);
                     if(toReturnTo != null) {
                         toReturnTo.open(player);
