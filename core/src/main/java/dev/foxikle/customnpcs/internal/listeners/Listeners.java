@@ -458,6 +458,33 @@ public class Listeners implements Listener {
         }
     }
 
+    /**
+     * <p>The npc injection handler
+     * </p>
+     *
+     * @param e The event callback
+     * @since 1.0
+     */
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent e) {
+        Player player = e.getPlayer();
+        Location location = player.getLocation();
+        World world = player.getWorld();
+        for (InternalNpc npc : plugin.npcs.values()) {
+            Location spawnLocation = npc.getSpawnLoc();
+            if (world != npc.getWorld()) return;
+
+            double distanceSquared = location.distanceSquared(spawnLocation);
+            if(distanceSquared <= FIFTY_BLOCKS) {
+                SCHEDULER.runTaskLater(plugin, () -> npc.injectPlayer(player), 5);
+            }
+
+            if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
+                npc.lookAt(LookAtAnchor.HEAD, player);
+            }
+        }
+    }
+
 
     /**
      * Logic for injecting NPCs on world changes
