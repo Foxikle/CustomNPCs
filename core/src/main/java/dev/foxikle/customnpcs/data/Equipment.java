@@ -1,5 +1,6 @@
 package dev.foxikle.customnpcs.data;
 
+import dev.foxikle.customnpcs.internal.menu.MenuItems;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Material;
@@ -31,12 +32,12 @@ public class Equipment {
      * @param offhand The item in the NPC's offhand
      */
     public Equipment(ItemStack head, ItemStack chest, ItemStack legs, ItemStack boots, ItemStack hand, ItemStack offhand) {
-        this.head = head;
-        this.chest = chest;
-        this.legs = legs;
-        this.boots = boots;
-        this.hand = hand;
-        this.offhand = offhand;
+        this.head = head == null ? MenuItems.ERROR_EQUIPMENT : head;
+        this.chest = chest == null ? MenuItems.ERROR_EQUIPMENT : chest;
+        this.legs = legs == null ? MenuItems.ERROR_EQUIPMENT : legs;
+        this.boots = boots == null ? MenuItems.ERROR_EQUIPMENT : boots;
+        this.hand = hand == null ? MenuItems.ERROR_EQUIPMENT : hand;
+        this.offhand = offhand == null ? MenuItems.ERROR_EQUIPMENT : offhand;
     }
 
     /**
