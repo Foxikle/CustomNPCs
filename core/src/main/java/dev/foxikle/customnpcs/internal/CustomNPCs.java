@@ -173,7 +173,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         instance = this;
         MENUS = new Menus(this);
         if (!setup()) {
-            Bukkit.getLogger().severe("Incompatible server version! Please use " + Arrays.toString(COMPATIBLE_VERSIONS));
+            printInvalidVersion();
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
@@ -370,5 +370,18 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             }
         }
         return "";
+    }
+
+    private void printInvalidVersion() {
+        getLogger().severe("");
+        getLogger().severe("");
+        getLogger().severe("+------------------------------------------------------------------------------+");
+        getLogger().severe("|                      Invalid Server version detected.                        |");
+        getLogger().severe("|             ** PLEASE USE ONE OF THE FOLLOWING SERVER VERSIONS **            |");
+        getLogger().severe("|         [1.20, 1.20.1, 1.20.2, 1.20.3, 1.20.4, 1.20.5, 1.20.6, 1.21]         |");
+        getLogger().severe("|           Please contact @foxikle on Discord for more information.            |");
+        getLogger().severe("+------------------------------------------------------------------------------+");
+        getLogger().severe("");
+        getLogger().severe("");
     }
 }
