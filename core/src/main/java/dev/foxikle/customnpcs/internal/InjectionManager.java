@@ -28,7 +28,7 @@ public class InjectionManager {
 
     private void checkForInjections() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if(player.getWorld() != npc.getWorld()) continue;
+            if(player.getWorld() != npc.getCurrentLocation().getWorld()) continue;
             double distance = player.getLocation().distanceSquared(npc.getCurrentLocation());
             if (distance > INJECTION_DISTANCE) {
                 isVisible.put(player.getUniqueId(), false);
