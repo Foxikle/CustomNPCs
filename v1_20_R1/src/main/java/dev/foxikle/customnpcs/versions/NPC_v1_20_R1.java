@@ -58,6 +58,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
     private Location spawnLoc;
     private TextDisplay clickableHologram;
     private TextDisplay hologram;
+    private TextDisplay hideName;
     private Player target;
     private List<Action> actions;
     private String holoName = "ERROR";
@@ -154,6 +155,9 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
 
         injectionManager = new InjectionManager(plugin, this);
         injectionManager.setup();
+
+        hideName = world.spawn(spawnLoc, TextDisplay.class);
+        ((CraftTextDisplay) hideName).getHandle().startRiding(this);
 
         //TODO: change this maybe V
         Bukkit.getOnlinePlayers().forEach(this::injectPlayer);
@@ -442,6 +446,11 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         loops.forEach((uuid1, integer) -> Bukkit.getScheduler().cancelTask(integer));
         loops.clear();
         List<Packet<?>> packets = new ArrayList<>();
+
+        if(hideName != null) {
+            packets.add(new ClientboundRemoveEntitiesPacket(hideName.getEntityId()));
+            hideName.remove();
+        }
 
         if (hologram != null) {
             packets.add(new ClientboundRemoveEntitiesPacket(hologram.getEntityId()));
