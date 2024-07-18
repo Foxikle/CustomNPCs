@@ -31,6 +31,7 @@ permissions:
     - customnpcs.commands.removeHolograms
     - customnpcs.commands.goto
     - customnpcs.alert
+    - customnpcs.run_command.enable_console
   customnpcs.commands.*:
     description: A wildcard permission for all command permissions
     default: op
@@ -80,4 +81,10 @@ permissions:
     default: op
   customnpcs.alert:
     description: A permission to alert if there is a new update available.
+    default: op
+
+  # This permission is only a child of the customnpcs.* permission.
+  # It is incredibly important that this permission is tightly regulated
+  customnpcs.run_command.enable_console:
+    description: A permission required to switch the npc run command action to run the command as the console. !!!! PLEASE BE CAREFUL WITH THIS PERMISSION !!!!!
     default: op
