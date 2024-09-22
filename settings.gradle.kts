@@ -26,7 +26,6 @@ plugins {
 rootProject.name = "customnpcs"
 
 include("core")
-include("api")
 include("v1_20_R3")
 include("v1_20_R2")
 include("v1_20_R1")
