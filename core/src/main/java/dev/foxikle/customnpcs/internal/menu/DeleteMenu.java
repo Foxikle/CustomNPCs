@@ -22,6 +22,7 @@
 
 package dev.foxikle.customnpcs.internal.menu;
 
+import dev.foxikle.customnpcs.api.events.NpcDeleteEvent;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
@@ -35,6 +36,7 @@ import io.github.mqzen.menus.misc.button.actions.ButtonClickAction;
 import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -89,6 +91,21 @@ public class DeleteMenu implements Menu {
                                 player1.closeInventory();
                                 player1.playSound(player1, Sound.ENTITY_VILLAGER_NO, 1, 1);
                                 player1.sendMessage(Msg.translated("customnpcs.error.npc-menu-expired"));
+                                return;
+                            }
+
+                            Boolean openMenu = plugin.getDeltionReason().getIfPresent(player1.getUniqueId());
+                            NpcDeleteEvent.DeletionSource source;
+                            if (openMenu == null) {
+                                source = NpcDeleteEvent.DeletionSource.UNKNOWN;
+                            } else if (openMenu) {
+                                source = NpcDeleteEvent.DeletionSource.MENU;
+                            } else source = NpcDeleteEvent.DeletionSource.COMMAND;
+
+                            NpcDeleteEvent event = new NpcDeleteEvent(player1, npc, source);
+                            Bukkit.getPluginManager().callEvent(event);
+                            if (event.isCancelled()) {
+                                player1.sendMessage(Msg.translate("customnpcs.delete.failed_api"));
                                 return;
                             }
 

@@ -27,6 +27,7 @@ import com.google.gson.JsonParser;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.conditions.Condition;
 import dev.foxikle.customnpcs.actions.defaultImpl.*;
+import dev.foxikle.customnpcs.api.events.NpcInteractEvent;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
@@ -36,11 +37,6 @@ import io.github.mqzen.menus.base.MenuView;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Sound;
-import org.bukkit.World;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Entity;
@@ -216,8 +212,10 @@ public class Listeners implements Listener {
             player.performCommand("npc edit " + uuid);
         } else {
             if (npc.getSettings().isInteractable()) {
-                npc.getActions().forEach(action ->
-                        SCHEDULER.runTaskLater(plugin, () ->
+                NpcInteractEvent event = new NpcInteractEvent(player, npc);
+                Bukkit.getServer().getPluginManager().callEvent(event);
+                if (event.isCancelled()) return;
+                npc.getActions().forEach(action -> SCHEDULER.runTaskLater(plugin, () ->
                                 action.perform(npc, null, player), action.getDelay()));
             }
         }
