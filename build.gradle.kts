@@ -38,7 +38,6 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":api"))
     implementation(project(":core"))
     implementation(project(":v1_21_R0", "reobf"))
     implementation(project(":v1_20_R4", "reobf"))
@@ -49,7 +48,7 @@ dependencies {
 
 allprojects {
     group = "dev.foxikle"
-    version = "1.7-pre3"
+    version = "1.7-pre4"
     description = "CustomNPCs"
 }
 
