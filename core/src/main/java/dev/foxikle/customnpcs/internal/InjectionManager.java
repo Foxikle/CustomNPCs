@@ -22,6 +22,7 @@
 
 package dev.foxikle.customnpcs.internal;
 
+import dev.foxikle.customnpcs.api.events.NpcInjectEvent;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -57,6 +58,9 @@ public class InjectionManager {
                 continue;
             }
             if(distance <= INJECTION_DISTANCE && !isVisible.getOrDefault(player.getUniqueId(), false)){
+                NpcInjectEvent injectEvent = new NpcInjectEvent(player, npc, distance);
+                Bukkit.getServer().getPluginManager().callEvent(injectEvent);
+                if (injectEvent.isCancelled()) continue;
                 npc.injectPlayer(player);
                 isVisible.put(player.getUniqueId(), true);
             }
