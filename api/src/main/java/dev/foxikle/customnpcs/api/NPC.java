@@ -1,7 +1,30 @@
+/*
+ * Copyright (c) 2024. Foxikle
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package dev.foxikle.customnpcs.api;
 
 import com.google.common.base.Preconditions;
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.actions.LegacyAction;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
@@ -83,6 +106,14 @@ public class NPC {
         return this;
     }
 
+    /**
+     * <p>Sets the location of the NPC
+     * </p>
+     *
+     * @param loc the new location for the NPC
+     * @return the NPC with the modified location
+     * @since 1.5.2-pre3
+     */
     public NPC setPosition(@NotNull Location loc) {
         Preconditions.checkArgument(loc != null, "loc cannot be null.");
         npc.setSpawnLoc(loc);
@@ -115,13 +146,34 @@ public class NPC {
      * <p>Sets the NPC's actions to the specified Collection
      * </p>
      *
-     * @param actions the collection of actions
+     * @param actionImpls the collection of actions
      * @return the NPC with the modified set of actions
+     * @see Action
+     * @since 1.7-pre2
+     */
+    public NPC setActions(Collection<Action> actionImpls) {
+        npc.setActions(List.copyOf(actionImpls));
+        return this;
+    }
+
+    /**
+     * <p>Sets the NPC's actions to the specified Collection
+     * </p>
+     *
+     * @param actionImpls the collection of actions
+     * @return the NPC with the modified set of actions
+     * @deprecated Use  {@link #setActions(Collection)}
      * @see Action
      * @since 1.5.2-pre3
      */
-    public NPC setActions(Collection<Action> actions) {
-        npc.setActions(List.copyOf(actions));
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
+    public NPC setLegacyActions(Collection<LegacyAction> actionImpls) {
+        List<Action> actionList = new ArrayList<>();
+        for (LegacyAction legacyAction : actionImpls) {
+            actionList.add(legacyAction.toAction());
+        }
+        npc.setActions(actionList);
         return this;
     }
 
