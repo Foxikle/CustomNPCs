@@ -13,8 +13,6 @@ libraries:
 commands:
   npc:
     description: The core command for CustomNPCs
-  npcaction:
-    description: no.
 permissions:
   customnpcs.*:
     description: A wildcard permission for CustomNPCs
