@@ -1,3 +1,25 @@
+/*
+ * Copyright (c) 2024. Foxikle
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package dev.foxikle.customnpcs.versions;
 
 import com.mojang.authlib.GameProfile;
@@ -9,8 +31,8 @@ import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.InjectionManager;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
-import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -38,6 +60,7 @@ import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -48,6 +71,9 @@ import java.util.*;
  * The object representing the NPC
  */
 public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
+
+    private static final Team NPC_TEAM = Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc");
+
     private final UUID uuid;
     private final CustomNPCs plugin;
     private final World world;
@@ -58,27 +84,27 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
     private Location spawnLoc;
     private TextDisplay clickableHologram;
     private TextDisplay hologram;
-    private TextDisplay hideName;
     private Player target;
-    private List<Action> actions;
+    private List<Action> actionImpls;
     private String holoName = "ERROR";
     private String clickableName = "ERROR";
     private InjectionManager injectionManager;
+    private int teamLoop;
 
     /**
      * <p> Gets a new NPC
      * </p>
      *
-     * @param actions   The actions for the NPC to execute on interaction
-     * @param plugin    The instance of the Main class
-     * @param uuid      The UUID of the NPC (Should be the same as the gameprofile's uuid)
-     * @param spawnLoc  The location to spawn the NPC
-     * @param target    The Entity the NPC should follow
-     * @param world     The world the NPC resides in
-     * @param equipment The NPC's equipment
-     * @param settings  The NPC's settings
+     * @param actionImpls The actions for the NPC to execute on interaction
+     * @param plugin      The instance of the Main class
+     * @param uuid        The UUID of the NPC (Should be the same as the gameprofile's uuid)
+     * @param spawnLoc    The location to spawn the NPC
+     * @param target      The Entity the NPC should follow
+     * @param world       The world the NPC resides in
+     * @param equipment   The NPC's equipment
+     * @param settings    The NPC's settings
      */
-    public NPC_v1_20_R1(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actions) {
+    public NPC_v1_20_R1(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actionImpls) {
         super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uuid, uuid.toString().substring(0, 16)));
         this.spawnLoc = spawnLoc;
         this.equipment = equipment;
@@ -86,7 +112,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         this.uuid = uuid;
         this.settings = settings;
         this.target = target;
-        this.actions = new ArrayList<>(actions);
+        this.actionImpls = new ArrayList<>(actionImpls);
         super.connection = new FakeListener_v1_20_R1(((CraftServer) Bukkit.getServer()).getServer(), new FakeConnection_v1_20_R1(PacketFlow.CLIENTBOUND), this);
         this.plugin = plugin;
 
@@ -148,16 +174,21 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
         super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(equipment.getHand());
-        Bukkit.getScheduler().runTaskLater(plugin, () -> Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").addEntry(uuid.toString().substring(0, 16)), 1);
+
+        teamLoop = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            if (getTeam() == null) {
+                NPC_TEAM.addEntry(uuid.toString().substring(0, 16));
+            } else {
+                if (!getTeam().getName().equals("npc"))
+                    NPC_TEAM.addEntry(uuid.toString().substring(0, 16));
+            }
+        }, 1, 5).getTaskId();
 
         if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
 
         injectionManager = new InjectionManager(plugin, this);
         injectionManager.setup();
-
-        hideName = world.spawn(spawnLoc, TextDisplay.class);
-        ((CraftTextDisplay) hideName).getHandle().startRiding(this);
 
         //TODO: change this maybe V
         Bukkit.getOnlinePlayers().forEach(this::injectPlayer);
@@ -313,41 +344,41 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
      */
     @Override
     public List<Action> getActions() {
-        return actions;
+        return actionImpls;
     }
 
     /**
      * <p> Sets the actions executed when the NPC is interacted with.
      * </p>
      *
-     * @param actions The collection of actions
+     * @param actionImpls The collection of actions
      */
     @Override
-    public void setActions(List<Action> actions) {
-        this.actions = actions;
+    public void setActions(List<Action> actionImpls) {
+        this.actionImpls = actionImpls;
     }
 
     /**
      * <p> Adds an action to the NPC's actions
      * </p>
      *
-     * @param action The action to add
+     * @param actionImpl The action to add
      */
     @Override
-    public void addAction(Action action) {
-        actions.add(action);
+    public void addAction(Action actionImpl) {
+        actionImpls.add(actionImpl);
     }
 
     /**
      * <p> Removes an action from the NPC's actions
      * </p>
      *
-     * @param action The action to remove
+     * @param actionImpl The action to remove
      * @return if it was successfully removed
      */
     @Override
-    public boolean removeAction(Action action) {
-        return actions.remove(action);
+    public boolean removeAction(Action actionImpl) {
+        return actionImpls.remove(actionImpl);
     }
 
 
@@ -443,14 +474,10 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
     @Override
     public void remove() {
         injectionManager.shutDown();
+        Bukkit.getScheduler().cancelTask(teamLoop);
         loops.forEach((uuid1, integer) -> Bukkit.getScheduler().cancelTask(integer));
         loops.clear();
         List<Packet<?>> packets = new ArrayList<>();
-
-        if(hideName != null) {
-            packets.add(new ClientboundRemoveEntitiesPacket(hideName.getEntityId()));
-            hideName.remove();
-        }
 
         if (hologram != null) {
             packets.add(new ClientboundRemoveEntitiesPacket(hologram.getEntityId()));
@@ -593,7 +620,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
 
     @Override
     public InternalNpc clone() {
-        return new NPC_v1_20_R1(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(), UUID.randomUUID(), target, new ArrayList<>(actions));
+        return new NPC_v1_20_R1(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(), UUID.randomUUID(), target, new ArrayList<>(actionImpls));
     }
 }
 
