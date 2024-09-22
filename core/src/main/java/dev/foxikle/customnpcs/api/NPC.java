@@ -25,10 +25,12 @@ package dev.foxikle.customnpcs.api;
 import com.google.common.base.Preconditions;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.LegacyAction;
+import dev.foxikle.customnpcs.api.events.NpcDeleteEvent;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -162,9 +164,9 @@ public class NPC {
      *
      * @param actionImpls the collection of actions
      * @return the NPC with the modified set of actions
-     * @deprecated Use  {@link #setActions(Collection)}
      * @see Action
      * @since 1.5.2-pre3
+     * @deprecated Use  {@link #setActions(Collection)}
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
@@ -242,13 +244,22 @@ public class NPC {
      * The NPC will NOT be despawned. Only applicable if the NPC is resilient.
      * </p>
      *
+     * @apiNote If the NpcDeleteEvent gets canceled, this npc will not be deleted.
+     *
      * @throws IllegalStateException if the NPC is not resilient
      * @since 1.5.2-pre3
      */
-    public void delete() {
+    public boolean delete() {
         if (!npc.getSettings().isResilient())
             throw new IllegalStateException("The NPC must be resilient to be deleted!");
+
+        NpcDeleteEvent event = new NpcDeleteEvent(null, npc, NpcDeleteEvent.DeletionSource.API);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) return false;
+
         npc.delete();
+        return true;
     }
 
     /**
@@ -301,6 +312,7 @@ public class NPC {
 
     /**
      * Gets the spawning location of the NPC. This may be different from {@link NPC#getLocation()} if the NPC has pathfinding (Coming soon).
+     *
      * @return The spawn location of the NPC
      */
     public Location getSpawnLocation() {
@@ -309,6 +321,7 @@ public class NPC {
 
     /**
      * Gets te CURRENT location of the NPC. This may differ from {@link NPC#getSpawnLocation()} if the NPC has pathfinding
+     *
      * @return the current location of the NPC
      */
     public Location getLocation() {

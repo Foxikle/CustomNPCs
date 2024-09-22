@@ -20,43 +20,43 @@
  * SOFTWARE.
  */
 
-plugins {
-    id("java")
-}
+package dev.foxikle.customnpcs.api.events;
 
-repositories {
-    mavenCentral()
-    maven("https://jitpack.io")
-    maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
-}
+import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import lombok.Getter;
+import lombok.Setter;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
+import org.jetbrains.annotations.NotNull;
 
-dependencies {
-    implementation("org.bstats:bstats-bukkit:3.1.0")
-    compileOnly("me.clip:placeholderapi:2.11.6")
-    compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
-    compileOnly(project(":core"))
-}
+@Getter
+public abstract class NpcEvent extends PlayerEvent implements Cancellable {
 
-tasks {
-    java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
-        }
+    private static final HandlerList HANDLERS = new HandlerList();
+
+    protected final InternalNpc npc;
+    @Setter
+    private boolean cancelled;
+
+    /**
+     * The constructor for the event
+     *
+     * @param player the player associated with the action
+     * @param npc    the npc involved in the event
+     */
+    public NpcEvent(Player player, InternalNpc npc) {
+        super(player, Bukkit.isPrimaryThread());
+        this.npc = npc;
     }
 
-    processResources {
-        filteringCharset = Charsets.UTF_8.name()
-        filesMatching("plugin.yml") {
-            expand("version" to version)
-        }
-    }
-
-    compileJava {
-        options.release = 17
-    }
-
-    jar {
-        archiveClassifier = "api"
+    /**
+     * @return the handler list of this event
+     */
+    @Override
+    public @NotNull HandlerList getHandlers() {
+        return HANDLERS;
     }
 }
