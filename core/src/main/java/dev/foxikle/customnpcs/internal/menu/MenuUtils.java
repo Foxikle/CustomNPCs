@@ -1,39 +1,79 @@
+/*
+ * Copyright (c) 2024. Foxikle
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package dev.foxikle.customnpcs.internal.menu;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
+import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
-import me.flame.menus.builders.items.ItemBuilder;
-import me.flame.menus.items.MenuItem;
-import me.flame.menus.menu.Menu;
-import me.flame.menus.menu.PaginatedMenu;
+import dev.foxikle.customnpcs.internal.utils.Msg;
+import io.github.mqzen.menus.base.Content;
+import io.github.mqzen.menus.base.pagination.PageComponent;
+import io.github.mqzen.menus.base.pagination.PageView;
+import io.github.mqzen.menus.base.pagination.Pagination;
+import io.github.mqzen.menus.misc.Capacity;
+import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.profile.PlayerProfile;
-import org.bukkit.profile.PlayerTextures;
-import org.jetbrains.annotations.Nullable;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.bukkit.Material.PLAYER_HEAD;
 
 /**
  * Provides menu utilities
  */
 public class MenuUtils {
 
+    public static final String NPC_DELETE = "npc_delete";
+    public static final String NPC_MAIN = "npc_main";
+    public static final String NPC_EXTRA_SETTINGS = "npc_extra_settings";
+    public static final String NPC_ACTIONS = "npc_actions";
+    public static final String NPC_NEW_ACTION = "npc_new_action";
+    public static final String NPC_EQUIPMENT = "npc_equipment";
+    public static final String NPC_ACTION_CUSTOMIZER = "npc_action_customizer";
+    public static final String NPC_CONDITION_CUSTOMIZER = "npc_condition_customizer";
+    public static final String NPC_SKIN_CATALOG = "npc_skin_catalog";
+    public static final String NPC_NEW_CONDITION = "npc_new_condition";
+    public static final String NPC_CONDITIONS = "npc_conditions";
+    public static final String NPC_SKIN = "npc_skin";
     /**
      * The instance of the main class
      */
     private final CustomNPCs plugin;
+    private Pagination catalog;
 
     /**
      * <p> The constructor for the MenuUtils class
@@ -43,6 +83,17 @@ public class MenuUtils {
      */
     public MenuUtils(CustomNPCs plugin) {
         this.plugin = plugin;
+    }
+
+    public static Content.Builder actionBase(Action action) {
+        return Content.builder(Capacity.ofRows(5))
+                .apply(content -> content.fill(MenuItems.MENU_GLASS))
+                .setButton(3, MenuItems.decrementDelay(action))
+                .setButton(4, MenuItems.delayDisplay(action))
+                .setButton(5, MenuItems.incrementDelay(action))
+                .setButton(36, MenuItems.toAction())
+                .setButton(40, MenuItems.saveAction(action))
+                .setButton(44, MenuItems.editConditions());
     }
 
     /**
@@ -57,44 +108,28 @@ public class MenuUtils {
     }
 
     /**
-     * <p> Gets the Signature of a stored Skin
-     * </p>
-     *
-     * @param name The name of the skin to get the value from.
-     * @return The encoded signature of a skin
-     */
-    public String getSignature(String name) {
-        return plugin.getConfig().getConfigurationSection("Skins").getString(name + ".signature");
-    }
-
-    /**
      * <p> Gets the list of inventories that display all of the available skins in the config.
      * </p>
      *
      * @return The list of inventories displaying the skin options
      */
-    public PaginatedMenu getSkinCatalogue() {
-        PaginatedMenu menu = Menu.builder().title("Select A Skin").rows(6).addAllModifiers()
-                .nextPageItem(53, ItemBuilder.of(Material.ARROW).setName(Utils.style("&eNext Page")).buildItem())
-                .previousPageItem(45, ItemBuilder.of(Material.ARROW).setName(Utils.style("&ePrevious Page")).buildItem())
-                .pagination();
-        menu.setDynamicSizing(true);
-        menu.setOnPageChange(event -> {
-            event.getPlayer().playSound(event.getPlayer(), Sound.UI_BUTTON_CLICK, 1, 1);
-            if (event.getCurrentPageNumber() > event.getOldPageNumber()) {
-                event.getMenu().next();
-                return;
-            }
-            event.getMenu().previous();
-        });
-        menu.setPageItem(new int[]{0,1,2,3,4,5,6,7,8,9,17,18,26,27,35,36,44,46,47,48,50,51,52}, MenuItems.MENU_GLASS);
-        menu.setPageItem(new int[]{49}, ItemBuilder.of(Material.BARRIER).setName(Utils.style("&cGo Back")).buildItem((player, event) -> {
-            plugin.menuCores.get(player).getMainMenu().open(player);
-            player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
-        }));
+    public Pagination getSkinCatalogue() {
+        if (catalog != null) return catalog;
+        catalog = Pagination.auto(plugin.getLotus())
+                .creator(new SkinCatalog())
+                .componentProvider(this::makeIcons)
+                .build();
+        return catalog;
+    }
 
-        menu.addItems(makeIcons().toArray(new MenuItem[0]));
-        return menu;
+    /**
+     * Refreshes the skin catalog
+     *
+     * @return {@summary A refreshed skin catalog}
+     */
+    public Pagination refreshCatalog() {
+        catalog = null;
+        return getSkinCatalogue();
     }
 
     /**
@@ -103,116 +138,61 @@ public class MenuUtils {
      *
      * @return The list of skins to put into an inventory
      */
-    private List<MenuItem> makeIcons() {
+    private List<PageComponent> makeIcons() {
         final FileConfiguration config = plugin.getConfig();
         ConfigurationSection section = config.getConfigurationSection("Skins");
         Set<String> names = section.getKeys(false);
-        List<MenuItem> returnme = new ArrayList<>();
-        NamespacedKey key = new NamespacedKey(plugin, "SkinButton");
+        List<PageComponent> buttons = new ArrayList<>();
         for (String str : names) {
             String value = section.getString(str + ".value");
-            returnme.add(getSkinIcon(key, str, str.replace("_", " "), ChatColor.AQUA, ChatColor.YELLOW, "The " + str.replace("_", " ") + " Skin", "", "Click to select!", value, section.getString(str + ".signature")));
+            buttons.add(new SkinIcon(value, section.getString(str + ".signature"), str.replace("_", " "), plugin));
         }
-        return returnme;
+        return buttons;
     }
 
-    /**
-     * <p> Gets the icon for a skin
-     * </p>
-     *
-     * @param key       the namespaced key to add data to the item
-     * @param keyValue  The data to associate with the key
-     * @param name      The name of the item
-     * @param texture   The texture of the skull
-     * @param loreColor The color to make the lore
-     * @param nameColor The color to make the name
-     * @param Ll1       The lore line 1
-     * @param Ll2       The lore line 2
-     * @param Ll3       The lore line 3
-     * @return The encoded value of a skin
-     */
 
-    public MenuItem getSkinIcon(NamespacedKey key, String keyValue, String name, ChatColor nameColor, ChatColor loreColor, String Ll1, String Ll2, String Ll3, String... texture) {
-        ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+    public static class SkinIcon implements PageComponent {
+        private final String value;
+        private final String signature;
+        private final String name;
+        private final CustomNPCs plugin;
 
-        SkullMeta headMeta = (SkullMeta) head.getItemMeta();
-        headMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, keyValue);
-        headMeta.setDisplayName(nameColor + name);
-        PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString("92864445-51c5-4c3b-9039-517c9927d1b4"), "not_important");
-        PlayerTextures textures = profile.getTextures();
-        try {
-            textures.setSkin(getUrlFromBase64(texture[0]));
-        } catch (MalformedURLException e) {
-            plugin.getLogger().severe("An error occurred whilst fetching player skin icon");
-            e.printStackTrace();
+        public SkinIcon(String value, String signature, String name, CustomNPCs plugin) {
+            this.value = value;
+            this.signature = signature;
+            this.name = name;
+            this.plugin = plugin;
         }
-        profile.setTextures(textures);
-        headMeta.setOwnerProfile(profile);
-        ArrayList<String> lore = new ArrayList<>();
-        lore.add(loreColor + Ll1);
-        lore.add(loreColor + Ll2);
-        lore.add(loreColor + Ll3);
-        headMeta.setLore(lore);
-        head.setItemMeta(headMeta);
 
-        return ItemBuilder.of(head).buildItem((player, event) -> {
-            InternalNpc npc = plugin.menuCores.get(player).getNpc();
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+        @Override
+        public ItemStack toItem() {
+            return ItemBuilder.modern(PLAYER_HEAD).setDisplay(Component.text(name))
+                    .setLore(
+                            Msg.translate("customnpcs.menus.skin_catalog.items.icon.lore", name),
+                            Component.empty(),
+                            Msg.translated("customnpcs.items.click_to_select")
+                    ).modifyMeta(SkullMeta.class, skullMeta -> {
+                        PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
+                        profile.setProperty(new ProfileProperty("textures", value));
+                        skullMeta.setPlayerProfile(profile);
+                    }).build();
+        }
+
+        @Override
+        public void onClick(PageView pageView, InventoryClickEvent event) {
+            Player player = (Player) event.getWhoClicked();
+            player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+            InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+            if (npc == null) {
+                player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
+                player.sendMessage(Msg.translated("customnpcs.error.npc-menu-expired"));
+                return;
+            }
+
             event.setCancelled(true);
-            npc.getSettings().setValue(texture[0]);
-            npc.getSettings().setSignature(texture[1]);
-            npc.getSettings().setSkinName(name);
-            player.sendMessage(Utils.style("&aSkin changed to &l" + name));
-            player.closeInventory();
-            plugin.menuCores.get(player).getMainMenu().open(player);
-        });
-    }
-
-    /**
-     * @param base64 the string encoded with base64 holding the skin data
-     * @return the URL of the skin to mojang's servers
-     * @throws MalformedURLException if the base64 does not contain a valid url
-     */
-    public static URL getUrlFromBase64(String base64) throws MalformedURLException {
-        String decoded = new String(Base64.getDecoder().decode(base64));
-        Matcher m = Pattern.compile("\"url\"\\s*:\\s*\"([^\"]+)\"").matcher(decoded);
-        if (m.find()) {
-            return new URL(m.group().replace("\"url\" : \"", "").replace("\"", ""));
+            npc.getSettings().setSkinData(signature, value, name);
+            player.sendMessage(Msg.translate("customnpcs.skins.changed_with_catalog", name));
+            plugin.getLotus().openMenu(player, NPC_MAIN);
         }
-        throw new IllegalArgumentException("The value '" + base64 + "' is not valid!");
-    }
-
-    public static Menu getDeletionConfirmationMenu(InternalNpc npc, @Nullable Menu toReturnTo) {
-        Menu menu = Menu.builder().rows(3).title(Utils.style("&c&lDelete an NPC")).addAllModifiers().normal();
-
-        menu.setItem(11, ItemBuilder.of(Material.RED_STAINED_GLASS_PANE)
-                .setName(Utils.style("&c&lDELETE"))
-                .setLore("", Utils.style("&4&oThis action &lCANNOT&r&4&o be undone."))
-                .buildItem((player, event) -> Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> {
-                    npc.remove();
-                    npc.delete();
-                    CustomNPCs.getInstance().npcs.remove(npc.getUniqueID());
-                    player.sendMessage(Utils.style("&aSuccessfully deleted the NPC: ") + npc.getSettings().getName());
-                    player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(npc.getSettings().getName())
-                            .append(Component.text(" was permanently deleted.", NamedTextColor.RED)));
-                    player.closeInventory();
-                    player.playSound(player, Sound.BLOCK_GLASS_BREAK,1, 1);
-                }, 1)));
-
-        menu.setItem(15, ItemBuilder.of(Material.LIME_STAINED_GLASS_PANE)
-                .setName(Utils.style("&a&lGO BACK"))
-                .setLore(Utils.style("&aBack to safety!"))
-                .buildItem((player, event) -> {
-                    player.playSound(player, Sound.UI_BUTTON_CLICK,1, 1);
-                    if(toReturnTo != null) {
-                        toReturnTo.open(player);
-                        return;
-                    }
-                    player.closeInventory();
-                }));
-
-        menu.getFiller().fill(MenuItems.MENU_GLASS);
-
-        return menu;
     }
 }

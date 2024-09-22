@@ -1,12 +1,38 @@
+/*
+ * Copyright (c) 2024. Foxikle
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package dev.foxikle.customnpcs.actions.conditions;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * The object representing a comparison of two numeric values
+ * @deprecated See {@link NumericCondition}
  */
-public class NumericConditional implements Conditional {
+@Deprecated
+@ApiStatus.ScheduledForRemoval(inVersion = "1.8.0")
+public class NumericConditional implements Condition {
 
     private final Type type = Type.NUMERIC;
     private Comparator comparator;
@@ -18,8 +44,8 @@ public class NumericConditional implements Conditional {
      * @param comparator the comparator to use
      * @param value the value to compare
      * @param target the target to compare to
-     * @see Conditional.Value
-     * @see Conditional.Comparator
+     * @see Value
+     * @see Comparator
      */
     public NumericConditional(Comparator comparator, Value value, double target) {
         this.comparator = comparator;
@@ -86,7 +112,7 @@ public class NumericConditional implements Conditional {
     /**
      * Gets the type of condition
      * @return the condition type
-     * @see Conditional.Type
+     * @see Type
      */
     @Override
     public Type getType() {
@@ -96,7 +122,7 @@ public class NumericConditional implements Conditional {
     /**
      * Sets the comparator of this condition
      * @param comparator the comparator to compare the value and target value
-     * @see Conditional.Comparator
+     * @see Comparator
      */
     @Override
     public void setComparator(Comparator comparator) {
@@ -106,7 +132,7 @@ public class NumericConditional implements Conditional {
     /**
      * Sets the value of this condition
      * @param value the value to compare
-     * @see Conditional.Value
+     * @see Value
      */
     @Override
     public void setValue(Value value) {
@@ -124,7 +150,7 @@ public class NumericConditional implements Conditional {
 
     /**
      * Gets the value the condition is comparing
-     * @see Conditional.Value
+     * @see Value
      * @return the value the condition is comparing
      */
     @Override
@@ -152,7 +178,7 @@ public class NumericConditional implements Conditional {
     }
 
     @Override
-    public Conditional clone() {
+    public Condition clone() {
         try {
             return (NumericConditional) super.clone();
         } catch (CloneNotSupportedException e) {

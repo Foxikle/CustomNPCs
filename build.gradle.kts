@@ -1,20 +1,45 @@
+/*
+ * Copyright (c) 2024. Foxikle
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 plugins {
     `java-library`
     `maven-publish`
     id("xyz.jpenilla.run-paper") version "2.2.4"
     id("io.github.goooler.shadow") version "8.1.7"
-    id("io.papermc.paperweight.userdev") version "1.6.0" apply false
+    id("io.papermc.paperweight.userdev") version "1.7.1" apply false
 }
 
 repositories {
     mavenLocal()
     mavenCentral()
     maven("https://repo.inventivetalent.org/repository/public/")
+    maven("https://repo.foxikle.dev/flameyos")
+    maven("https://jitpack.io")
 }
 
 dependencies {
     implementation(project(":api"))
     implementation(project(":core"))
+    implementation(project(":v1_21_R0", "reobf"))
     implementation(project(":v1_20_R4", "reobf"))
     implementation(project(":v1_20_R3", "reobf"))
     implementation(project(":v1_20_R2", "reobf"))
@@ -23,11 +48,21 @@ dependencies {
 
 allprojects {
     group = "dev.foxikle"
-    version = "1.7-pre1"
+    version = "1.7-pre3"
     description = "CustomNPCs"
 }
 
 java.sourceCompatibility = JavaVersion.VERSION_21
+
+val javadocJar = tasks.register<Jar>("javadocJar") {
+    archiveClassifier.set("javadoc")
+    from(tasks.javadoc)
+}
+
+val sourcesJar = tasks.register<Jar>("sourcesJar") {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allJava)
+}
 
 publishing {
     repositories {
@@ -46,6 +81,8 @@ publishing {
             artifactId = project.name
             version = project.version.toString()
             artifact(tasks["shadowJar"])
+            artifact(javadocJar)
+            artifact(sourcesJar)
         }
     }
 }
@@ -64,9 +101,11 @@ tasks {
         options.release = 21
     }
     javadoc {
+        source = sourceSets["main"].allSource
         dependsOn("aggregatedJavadocs")
         (options as StandardJavadocDocletOptions).tags("apiNote:a:API Note:")
         options.encoding = Charsets.UTF_8.name()
+        options.memberLevel = JavadocMemberLevel.PUBLIC
         exclude("**/internal/**", "**/versions/**")
     }
     processResources {
