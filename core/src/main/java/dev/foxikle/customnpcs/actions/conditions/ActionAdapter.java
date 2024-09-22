@@ -1,11 +1,33 @@
+/*
+ * Copyright (c) 2024. Foxikle
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package dev.foxikle.customnpcs.actions.conditions;
 
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.ActionType;
+import dev.foxikle.customnpcs.actions.LegacyAction;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,7 +36,7 @@ import java.util.List;
 /**
  * A TypeAdapter for Gson
  */
-public class ActionAdapter extends TypeAdapter<Action> {
+public class ActionAdapter extends TypeAdapter<LegacyAction> {
 
     /**
      * Serializes the Action object to json
@@ -23,7 +45,7 @@ public class ActionAdapter extends TypeAdapter<Action> {
      * @throws IOException if an IOException occurs
      */
     @Override
-    public void write(JsonWriter out, Action value) throws IOException {
+    public void write(JsonWriter out, LegacyAction value) throws IOException {
         out.beginObject();
         out.name("actionType").value(value.getActionType().toString());
 
@@ -39,7 +61,7 @@ public class ActionAdapter extends TypeAdapter<Action> {
 
         out.name("conditionals");
         out.beginArray();
-        for (Conditional c : value.getConditionals()) {
+        for (Condition c : value.getConditionals()) {
             out.value(c.toJson());
         }
         out.endArray();
@@ -55,13 +77,13 @@ public class ActionAdapter extends TypeAdapter<Action> {
      * @throws IOException if an error occurred
      */
     @Override
-    public Action read(JsonReader in) throws IOException {
+    public LegacyAction read(JsonReader in) throws IOException {
         in.beginObject();
         ActionType actionType = null;
         List<String> args = new ArrayList<>();
         int delay = 0;
-        List<Conditional> conditions = new ArrayList<>();
-        Conditional.SelectionMode selectionMode = null;
+        List<Condition> conditions = new ArrayList<>();
+        Condition.SelectionMode selectionMode = null;
 
 
         while (in.hasNext()) {
@@ -76,13 +98,13 @@ public class ActionAdapter extends TypeAdapter<Action> {
                     in.endArray();
                 }
                 case "delay" -> delay = in.nextInt();
-                case "mode" -> selectionMode = Conditional.SelectionMode.valueOf(in.nextString());
+                case "mode" -> selectionMode = Condition.SelectionMode.valueOf(in.nextString());
                 case "conditionals" -> {
                     in.beginArray();
                     while(in.hasNext()) {
                         try {
                             // if its stored as a string
-                            conditions.add(Conditional.of(in.nextString()));
+                            conditions.add(Condition.of(in.nextString()));
                         } catch (JsonSyntaxException | IllegalStateException ignored) {
                             // or as an object
                             ConditionalTypeAdapter conditionalTypeAdapter = new ConditionalTypeAdapter();
@@ -97,6 +119,6 @@ public class ActionAdapter extends TypeAdapter<Action> {
 
         in.endObject();
 
-        return new Action(actionType, args, delay, selectionMode, conditions);
+        return new LegacyAction(actionType, args, delay, selectionMode, conditions);
     }
 }
