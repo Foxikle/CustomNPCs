@@ -38,9 +38,9 @@ import dev.foxikle.customnpcs.internal.commands.CommandCore;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.menu.*;
+import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
 import dev.foxikle.customnpcs.internal.utils.AutoUpdater;
-import dev.foxikle.customnpcs.internal.utils.Translations;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import io.github.mqzen.menus.Lotus;
 import io.github.mqzen.menus.base.pagination.Pagination;
@@ -76,6 +76,8 @@ import java.util.logging.Logger;
 @Slf4j
 public final class CustomNPCs extends JavaPlugin implements PluginMessageListener {
     public static final ActionRegistry ACTION_REGISTRY = new ActionRegistry();
+    public final static String[] COMPATIBLE_LOCALES = {"en", "zh", "ru", "de"};
+    public static Locale LOCALE = Locale.ENGLISH;
     /**
      * Singleton for the NPCBuilder
      */
@@ -86,7 +88,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     @Getter
     private static Gson gson;
-    private static boolean wasPreviouslyEnabled = false;
+
     /**
      * The client for the MineSkin API
      */
@@ -101,7 +103,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     @Getter
     private final Cache<UUID, Boolean> deltionReason = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).expireAfterAccess(1, TimeUnit.MINUTES).build();
-    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6", "1.21", "1.21.1"};
+    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3"};
     /**
      * The List of inventories that make up the skin selection menus
      */
@@ -217,13 +219,17 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public void onEnable() {
         instance = this;
 
+
         if (!checkForValidVersion()) {
             printInvalidVersion();
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
+
+        LOCALE = setupLocale(getConfig().getString("PreferredLanguage"));
+
         Translations translations = new Translations();
-        translations.setup();
+        translations.setup(LOCALE);
 
         registerNpcTeam();
 
@@ -313,18 +319,17 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                 this.getLogger().warning("Could not find PlaceholderAPI! PlaceholderAPI isn't required, but CustomNPCs does support it.");
             }
         }
-        if (!wasPreviouslyEnabled) {
+        if (!System.getProperties().containsKey("customnpcs-reload-check")) {
             getLogger().info("Loading listeners...");
             listeners = new Listeners(this);
             this.getServer().getPluginManager().registerEvents(listeners, this);
             this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
             this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
-        } else {
-            getLogger().warning("Hey! You probably shouldn't use the /reload command. You should just restart the server instead.");
         }
+
         listeners.start();
         // detecting reloads
-        wasPreviouslyEnabled = true;
+        System.setProperty("customnpcs-reload-check", "true");
 
         getLogger().info("Loading action registry...");
         ACTION_REGISTRY.register("ACTIONBAR", ActionBar.class, ActionBar.CREATION_BUTTON);
@@ -485,24 +490,24 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     }
 
     public String translateVersion() {
-        switch (serverVersion) {
-            case "1.20", "1.20.1" -> {
-                return "v1_20_R1";
-            }
-            case "1.20.2" -> {
-                return "v1_20_R2";
-            }
-            case "1.20.3", "1.20.4" -> {
-                return "v1_20_R3";
-            }
-            case "1.20.5", "1.20.6" -> {
-                return "v1_20_R4";
-            }
-            case "1.21", "1.21.1" -> {
-                return "v1_21_R0";
-            }
-        }
-        return "";
+        return switch (serverVersion) {
+            case "1.20", "1.20.1" -> "v1_20_R1";
+            case "1.20.2" -> "v1_20_R2";
+            case "1.20.3", "1.20.4" -> "v1_20_R3";
+            case "1.20.5", "1.20.6" -> "v1_20_R4";
+            case "1.21", "1.21.1" -> "v1_21_R0";
+            case "1.21.2", "1.21.3" -> "v1_21_R1";
+            default -> "";
+        };
+    }
+
+    private Locale setupLocale(String lang) {
+        return switch (lang.toUpperCase()) {
+            case "GERMAN", "DE" -> Locale.GERMAN;
+            case "CHINESE", "ZH" -> Locale.CHINESE;
+            case "RUSSIAN", "RU" -> new Locale("ru");
+            default -> Locale.ENGLISH;
+        };
     }
 
 
@@ -513,7 +518,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         logger.severe("+------------------------------------------------------------------------------+");
         logger.severe("|                      INVALID SERVER VERSION DETECTED                         |");
         logger.severe("|             ** PLEASE USE ONE OF THE FOLLOWING SERVER VERSIONS **            |");
-        logger.severe("|         [1.20, 1.20.1, 1.20.2, 1.20.3, 1.20.4, 1.20.5, 1.20.6, 1.21]         |");
+        logger.severe("|                                [1.20.x, 1.21.x]                              |");
+        logger.severe("|                               DETECTED: '" + serverVersion + "'                             |");
         logger.severe("|           Please contact @foxikle on Discord for more information.           |");
         logger.severe("+------------------------------------------------------------------------------+");
         logger.severe("");
