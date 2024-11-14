@@ -25,6 +25,7 @@ package dev.foxikle.customnpcs.internal.utils;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -34,7 +35,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
  */
 public class Msg {
     public static Component translated(String key, ComponentLike... args) {
-        return translate(key, (Object[]) args);
+        return translate(key, (ComponentLike[]) args);
     }
 
     public static Component translate(String key, Object... args) {
@@ -46,7 +47,9 @@ public class Msg {
             }
             components[i] = Component.text(args[i].toString()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
         }
-        return format(plainText(Component.translatable(key, components)));
+        TranslatableComponent c = Component.translatable(key, components);
+        String t = plainText(c);
+        return format(t);
     }
 
     public static String translatedString(String key, ComponentLike... args) {
@@ -54,7 +57,7 @@ public class Msg {
     }
 
     public static Component[] lore(String key, ComponentLike... args) {
-        return ComponentWrapper.wrap(translate(key, (Object[]) args), 37)
+        return ComponentWrapper.wrap(translate(key, (ComponentLike[]) args), 37)
                 .toArray(Component[]::new);
     }
 
