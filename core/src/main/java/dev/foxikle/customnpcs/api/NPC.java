@@ -87,6 +87,7 @@ public class NPC {
      * @param npc the internal npc to wrap for the api
      */
     public NPC(InternalNpc npc) {
+        if (npc == null) throw new IllegalArgumentException("npc cannot be null.");
         this.npc = npc;
     }
 
