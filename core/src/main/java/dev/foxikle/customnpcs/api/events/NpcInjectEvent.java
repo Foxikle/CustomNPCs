@@ -39,7 +39,7 @@ public class NpcInjectEvent extends NpcEvent {
      * @param npc    the npc involved in the event
      */
     public NpcInjectEvent(Player player, InternalNpc npc, double distanceSquared) {
-        super(player, npc);
+        super(player, npc, true);
         this.distanceSquared = distanceSquared;
     }
 

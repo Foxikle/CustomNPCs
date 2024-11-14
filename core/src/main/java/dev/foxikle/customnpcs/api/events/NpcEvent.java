@@ -25,7 +25,6 @@ package dev.foxikle.customnpcs.api.events;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
@@ -48,7 +47,12 @@ public abstract class NpcEvent extends PlayerEvent implements Cancellable {
      * @param npc    the npc involved in the event
      */
     public NpcEvent(Player player, InternalNpc npc) {
-        super(player, Bukkit.isPrimaryThread());
+        super(player, false);
+        this.npc = npc;
+    }
+
+    public NpcEvent(Player player, InternalNpc npc, boolean async) {
+        super(player, async);
         this.npc = npc;
     }
 
