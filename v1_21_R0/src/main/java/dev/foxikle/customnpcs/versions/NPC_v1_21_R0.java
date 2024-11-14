@@ -334,7 +334,7 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
      *
      * @return Gets the World the NPC is in
      */
-    public World getWorld() {
+    public @NotNull World getWorld() {
         return world;
     }
 
