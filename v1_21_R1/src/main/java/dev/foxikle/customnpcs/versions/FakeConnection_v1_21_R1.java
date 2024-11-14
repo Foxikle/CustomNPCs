@@ -20,23 +20,22 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.internal.utils;
+package dev.foxikle.customnpcs.versions;
 
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.translation.GlobalTranslator;
-import net.kyori.adventure.translation.TranslationRegistry;
-import net.kyori.adventure.util.UTF8ResourceBundleControl;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.PacketFlow;
 
-import java.util.Locale;
-import java.util.ResourceBundle;
-
-public class Translations {
-    TranslationRegistry registry = TranslationRegistry.create(Key.key("customnpcs:translations"));
-
-    public void setup() {
-        ResourceBundle englishBundle = ResourceBundle.getBundle("localization.Bundle", Locale.ENGLISH, UTF8ResourceBundleControl.get());
-        registry.registerAll(Locale.ENGLISH, englishBundle, true);
-
-        GlobalTranslator.translator().addSource(registry);
+/**
+ * A fake connection for the NPCs
+ */
+public class FakeConnection_v1_21_R1 extends Connection {
+    /**
+     * <p> Creates a fake Connection for NPC
+     * </p>
+     *
+     * @param enumprotocoldirection The protocol direction
+     */
+    public FakeConnection_v1_21_R1(PacketFlow enumprotocoldirection) {
+        super(enumprotocoldirection);
     }
 }
