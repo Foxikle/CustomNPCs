@@ -34,7 +34,6 @@ repositories {
 
 dependencies {
     compileOnly("me.clip:placeholderapi:2.11.6")
-    implementation(project(mapOf("path" to ":api")))
     compileOnly(project(":core"))
     paperweight.paperDevBundle("1.20.3-R0.1-SNAPSHOT")
 }

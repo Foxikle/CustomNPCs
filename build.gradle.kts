@@ -25,8 +25,7 @@ plugins {
     `maven-publish`
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("io.github.goooler.shadow") version "8.1.7"
-    id("io.papermc.paperweight.userdev") version "1.7.1" apply false
-
+    id("io.papermc.paperweight.userdev") version "1.7.4" apply false
 }
 
 repositories {
@@ -39,6 +38,7 @@ repositories {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":v1_21_R1", "reobf"))
     implementation(project(":v1_21_R0", "reobf"))
     implementation(project(":v1_20_R4", "reobf"))
     implementation(project(":v1_20_R3", "reobf"))
@@ -48,7 +48,7 @@ dependencies {
 
 allprojects {
     group = "dev.foxikle"
-    version = "1.7-pre4"
+    version = "1.7-pre5"
     description = "CustomNPCs"
 }
 
