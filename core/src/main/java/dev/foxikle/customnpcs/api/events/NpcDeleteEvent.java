@@ -25,7 +25,6 @@ package dev.foxikle.customnpcs.api.events;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -51,7 +50,7 @@ public class NpcDeleteEvent extends Event implements Cancellable {
      * @param deletionSource What the source of this deletion event is
      */
     public NpcDeleteEvent(@Nullable Player player, InternalNpc npc, DeletionSource deletionSource) {
-        super(Bukkit.isPrimaryThread());
+        super(false);
         this.deletionSource = deletionSource;
         this.npc = npc;
         this.player = player;
