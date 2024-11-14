@@ -54,6 +54,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -216,7 +217,7 @@ public class Listeners implements Listener {
                 Bukkit.getServer().getPluginManager().callEvent(event);
                 if (event.isCancelled()) return;
                 npc.getActions().forEach(action -> SCHEDULER.runTaskLater(plugin, () ->
-                                action.perform(npc, null, player), action.getDelay()));
+                        action.perform(npc, null, player), action.getDelay()));
             }
         }
     }
@@ -491,6 +492,21 @@ public class Listeners implements Listener {
     @EventHandler
     public void onPlayerLogin(PlayerJoinEvent e) {
         Player player = e.getPlayer();
+
+        if (plugin.getConfig().getBoolean("PesterAboutLanguageSettings") && player.hasPermission("customnpcs.*")
+                && List.of(CustomNPCs.COMPATIBLE_LOCALES).contains(player.locale().getLanguage()) && CustomNPCs.LOCALE != player.locale()) {
+            switch (player.locale().getLanguage().toUpperCase()) {
+                case "EN" ->
+                        player.sendMessage(Msg.format("<gold>[</gold><dark_aqua>CustomNPCS</dark_aqua><gold>]</gold> <dark_green>Hey! Your client language is set to English. Would you like to change the plugin's preferred language to English?</dark_green> <b><green><click:run_command:/npc switchlang EN>[Yes]</click></green></b> <gray><click:run_command:/npc disablelangpester>[Disable Message]</click></gray>"));
+                case "ZH" ->
+                        player.sendMessage(Msg.format("<gold>[</gold><dark_aqua>CustomNPCS</dark_aqua><gold>]</gold> <dark_green>嘿！您的客户端语言环境设置为中文。您想将插件的首选语言更改为中文吗</dark_green> <b><green><click:run_command:/npc switchlang ZH>[是]</click></green></b> <gray><click:run_command:/npc disablelangpester>[禁用消息]</click></gray>"));
+                case "DE" ->
+                        player.sendMessage(Msg.format("<gold>[</gold><dark_aqua>CustomNPCS</dark_aqua><gold>]</gold> <dark_green>Hey! Ihre Client-Sprache ist auf Deutsch eingestellt. Möchten Sie die bevorzugte Sprache des Plugins auf Deutsch ändern?</dark_green> <b><green><click:run_command:/npc switchlang DE>[Ja]</click></green></b> <gray><click:run_command:/npc disablelangpester>[Nachricht deaktivieren]</click></gray>"));
+                case "RU" ->
+                        player.sendMessage(Msg.format("<gold>[</gold><dark_aqua>CustomNPCS</dark_aqua><gold>]</gold> <dark_green>Здравствуйте! Ваш клиентский язык установлен на русский. Хотите изменить предпочтительный язык плагина на русский?</dark_green> <b><green><click:run_command:/npc switchlang EU>[Да]</click></green></b> <gray><click:run_command:/npc disablelangpester>[Отключить сообщение]</click></gray>"));
+            }
+        }
+
         if (plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate") && player.hasPermission("customnpcs.alert")) {
             player.sendMessage(SHOULD_UPDATE_MESSAGE);
         }
@@ -626,6 +642,13 @@ public class Listeners implements Listener {
         }
     }
 
+    private void recalcSleepingPercentages() {
+        Bukkit.getWorlds().forEach(world -> {
+            world.getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE);
+            world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, (int) (world.getPlayers().size() / (double) plugin.getNPCs().stream().filter(npc -> npc.getWorld() == world).toList().size()));
+        });
+    }
+
     @Getter
     private static class MovementData {
         private final UUID uniqueId;
@@ -643,12 +666,5 @@ public class Listeners implements Listener {
         public MovementData copy() {
             return new MovementData(uniqueId, lastLocation, distanceSquared);
         }
-    }
-
-    private void recalcSleepingPercentages() {
-        Bukkit.getWorlds().forEach(world -> {
-            world.getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE);
-            world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, (int) (world.getPlayers().size() / (double) plugin.getNPCs().stream().filter(npc -> npc.getWorld() == world).toList().size()));
-        });
     }
 }
