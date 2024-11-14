@@ -56,7 +56,7 @@ public class NPCApi {
      * @throws NullPointerException     if the specified UUID is null
      * @throws IllegalArgumentException if an NPC doesn't exist by that UUID
      */
-    public static NPC getNPC(UUID uuid) throws NullPointerException, IllegalArgumentException {
+    public static NPC getNPC(UUID uuid) {
         return new NPC(plugin.getNPCByID(uuid));
     }
 }
