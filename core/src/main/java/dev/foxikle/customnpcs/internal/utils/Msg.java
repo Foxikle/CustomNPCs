@@ -34,7 +34,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
  */
 public class Msg {
     public static Component translated(String key, ComponentLike... args) {
-        return format(plainText(Component.translatable(key, args)));
+        return translate(key, (Object[]) args);
     }
 
     public static Component translate(String key, Object... args) {
@@ -54,7 +54,7 @@ public class Msg {
     }
 
     public static Component[] lore(String key, ComponentLike... args) {
-        return ComponentWrapper.wrap(format(plainText(Component.translatable(key, args))), 37)
+        return ComponentWrapper.wrap(translate(key, (Object[]) args), 37)
                 .toArray(Component[]::new);
     }
 
