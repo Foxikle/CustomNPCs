@@ -27,6 +27,7 @@ import dev.foxikle.customnpcs.actions.defaultImpl.PlaySound;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.FileManager;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.utils.Msg;
@@ -45,6 +46,8 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -167,6 +170,16 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     p.sendMessage(Msg.translated("customnpcs.commands.wiki")
                             .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, "https://docs.foxikle.dev"))
                             .appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.wiki.hover"))));
+                } else if (args[0].equalsIgnoreCase("disablelangpester")) {
+                    if (sender.hasPermission("customnpcs.*")) {
+                        plugin.getConfig().set("PesterAboutLanguageSettings", false);
+                        try {
+                            plugin.getConfig().save(new File(FileManager.PARENT_DIRECTORY, "config.yml"));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        sender.sendMessage(Msg.format("<gold>[</gold><dark_aqua>CustomNPCS</dark_aqua><gold>]</gold> <green>✔"));
+                    }
                 }
             } else {
                 if (args[0].equalsIgnoreCase("setsound")) {
@@ -190,6 +203,35 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     } else {
                         p.sendMessage(Msg.translated("customnpcs.commands.setsound.was_not_waiting"));
                     }
+                } else if (args[0].equalsIgnoreCase("switchlang")) {
+                    if (!sender.hasPermission("customnpcs.*")) {
+                        return true;
+                    }
+
+                    String lang = args[1];
+                    String valToSet = "ENGLISH";
+                    switch (lang.toUpperCase()) {
+                        case "ZH" -> {
+                            valToSet = "CHINESE";
+                        }
+                        case "RU" -> {
+                            valToSet = "RUSSIAN";
+                        }
+                        case "DE" -> {
+                            valToSet = "GERMAN";
+                        }
+                    }
+
+                    plugin.getConfig().set("PreferredLanguage", valToSet);
+                    try {
+                        plugin.getConfig().save(new File(FileManager.PARENT_DIRECTORY, "config.yml"));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    sender.sendMessage(Msg.format("<gold>[</gold><dark_aqua>CustomNPCS</dark_aqua><gold>]</gold> <green>✔"));
+
+
                 } else {
                     UUID uuid = null;
                     InternalNpc npc;
