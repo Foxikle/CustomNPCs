@@ -18,8 +18,8 @@ dependencies {
     //implementation("com.github.coderFlameyosFlow.WoodyMenus:core:2.0.6")
     implementation("me.flame.menus:core:2.0.0")
     implementation("org.mineskin:java-client:1.2.4-SNAPSHOT")
-    compileOnly("org.projectlombok:lombok:1.18.34")
-    annotationProcessor("org.projectlombok:lombok:1.18.34")
+    compileOnly("org.projectlombok:lombok:1.18.36")
+    annotationProcessor("org.projectlombok:lombok:1.18.36")
 }
 
 tasks {
