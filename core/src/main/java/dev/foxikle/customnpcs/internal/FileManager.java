@@ -383,6 +383,40 @@ public class FileManager {
                     throw new RuntimeException(e);
                 }
             }
+
+            // After 1.7-pre6
+            if (version.equals("1.7")) {
+                plugin.getLogger().warning("Old NPC file version found! Bumping version! (1.7 -> 1.8)");
+                BackupResult br = createBackup(file);
+                if (!br.success) {
+                    plugin.getLogger().warning("Could not create backup before updating npcs.yml!");
+                    return false;
+                }
+                yml.set("version", "1.8");
+
+                Set<String> npcs = yml.getKeys(false);
+                for (String npc : npcs) {
+                    if (npc.equals("version")) continue; // its a key
+                    ConfigurationSection section = yml.getConfigurationSection(npc);
+
+                    assert section != null : "Section is null -- Upgrading NPC file from 1.7 to 1.8";
+
+                    double dir = section.getDouble("direction");
+                    Location loc = section.getLocation("location");
+                    assert loc != null : "Location is null -- Upgrading NPC file from 1.7 to 1.8";
+                    loc.setYaw((float) dir);
+
+                    section.set("location", loc); // update the location
+                    section.set("direction", null); // remove the direction field
+                }
+            }
+
+
+            try {
+                yml.save(file);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         return true;
@@ -403,6 +437,8 @@ public class FileManager {
         List<String> actions = new ArrayList<>();
         npc.getActions().forEach(action -> actions.add(action.serialize()));
 
+        npc.getSpawnLoc().setYaw((float) npc.getSettings().getDirection());
+
         assert section != null;
         section.addDefault("value", npc.getSettings().getValue());
         section.addDefault("signature", npc.getSettings().getSignature());
@@ -420,7 +456,6 @@ public class FileManager {
         section.addDefault("feetItem", npc.getEquipment().getBoots());
         section.addDefault("name", npc.getSettings().getName());
         section.addDefault("world", npc.getWorld().getName());
-        section.addDefault("direction", npc.getSettings().getDirection());
         section.addDefault("tunnelvision", npc.getSettings().isTunnelvision());
         yml.options().copyDefaults(true);
         try {
@@ -442,7 +477,7 @@ public class FileManager {
         ConfigurationSection section = yml.getConfigurationSection(uuid.toString());
         if (section == null) throw new IllegalArgumentException("NPC uuid cannot be null.");
         List<LegacyAction> actionImpls = new ArrayList<>();
-        List<Action> actions = new ArrayList<>();
+        List<Action> actions;
 
         if (section.getConfigurationSection("actions") == null) { // meaning it does not exist
             if (section.getString("command") != null) { // if there is a legacy command
