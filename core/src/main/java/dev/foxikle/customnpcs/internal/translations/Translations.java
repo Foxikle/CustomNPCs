@@ -27,7 +27,6 @@ import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
 import net.kyori.adventure.util.UTF8ResourceBundleControl;
 
-import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -41,9 +40,7 @@ public class Translations {
         switch (locale.getLanguage()) {
             case "zh" -> {
                 ResourceBundle bundle = ResourceBundle.getBundle("localization.Chinese", Locale.SIMPLIFIED_CHINESE, UTF8ResourceBundleControl.get());
-                ResourceBundle bundle1 = ResourceBundle.getBundle("localization.English", Locale.ENGLISH, UTF8ResourceBundleControl.get());
                 registry.registerAll(Locale.SIMPLIFIED_CHINESE, bundle, true);
-                registry.register("customnpcs.commands.no_permission", Locale.ENGLISH, new MessageFormat("NO PERM"));
             }
             case "ru" -> {
                 ResourceBundle bundle = ResourceBundle.getBundle("localization.Russian", new Locale("ru"), UTF8ResourceBundleControl.get());
