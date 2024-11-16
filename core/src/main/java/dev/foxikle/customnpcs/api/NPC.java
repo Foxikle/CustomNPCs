@@ -104,9 +104,7 @@ public class NPC {
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
     public NPC setPostion(@NotNull Location loc) {
-        Preconditions.checkArgument(loc != null, "loc cannot be null.");
-        npc.setSpawnLoc(loc);
-        return this;
+        return setPosition(loc);
     }
 
     /**
@@ -120,6 +118,7 @@ public class NPC {
     public NPC setPosition(@NotNull Location loc) {
         Preconditions.checkArgument(loc != null, "loc cannot be null.");
         npc.setSpawnLoc(loc);
+        npc.getSettings().setDirection(loc.getYaw());
         return this;
     }
 
