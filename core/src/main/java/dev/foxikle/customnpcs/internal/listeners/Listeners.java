@@ -55,6 +55,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -494,7 +495,7 @@ public class Listeners implements Listener {
         Player player = e.getPlayer();
 
         if (plugin.getConfig().getBoolean("PesterAboutLanguageSettings") && player.hasPermission("customnpcs.*")
-                && List.of(CustomNPCs.COMPATIBLE_LOCALES).contains(player.locale().getLanguage()) && CustomNPCs.LOCALE != player.locale()) {
+                && List.of(CustomNPCs.COMPATIBLE_LOCALES).contains(player.locale().getLanguage()) && !Objects.equals(CustomNPCs.LOCALE.getLanguage(), player.locale().getLanguage())) {
             switch (player.locale().getLanguage().toUpperCase()) {
                 case "EN" ->
                         player.sendMessage(Msg.format("<gold>[</gold><dark_aqua>CustomNPCS</dark_aqua><gold>]</gold> <dark_green>Hey! Your client language is set to English. Would you like to change the plugin's preferred language to English?</dark_green> <b><green><click:run_command:/npc switchlang EN>[Yes]</click></green></b> <gray><click:run_command:/npc disablelangpester>[Disable Message]</click></gray>"));
