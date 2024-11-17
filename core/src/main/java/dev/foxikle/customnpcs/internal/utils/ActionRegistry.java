@@ -24,6 +24,7 @@ package dev.foxikle.customnpcs.internal.utils;
 
 import dev.foxikle.customnpcs.actions.Action;
 import io.github.mqzen.menus.misc.button.Button;
+import org.bukkit.entity.Player;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,7 +36,7 @@ public class ActionRegistry {
     private static final boolean[] DEFAULT_SETTINGS = new boolean[]{true, true, true};
 
     private final Map<String, Class<? extends Action>> idToClass = new HashMap<>();
-    private final Map<Class<? extends Action>, Button> classToButton = new HashMap<>();
+    private final Map<Class<? extends Action>, ParameterizedSupplier<Button, Player>> classToButton = new HashMap<>();
     private final Map<Class<? extends Action>, boolean[]> classToSettings = new HashMap<>();
 
     /**
@@ -46,15 +47,15 @@ public class ActionRegistry {
     }
 
 
-    public void register(String id, Class<? extends Action> clazz, Button button, boolean canEdit, boolean canDuplicate, boolean canDelay) {
+    public void register(String id, Class<? extends Action> clazz, ParameterizedSupplier<Button, Player> button, boolean canEdit, boolean canDuplicate, boolean canDelay) {
         register(id, clazz, button, new boolean[]{canEdit, canDuplicate, canDelay});
     }
 
-    public void register(String id, Class<? extends Action> clazz, Button button) {
+    public void register(String id, Class<? extends Action> clazz, ParameterizedSupplier<Button, Player> button) {
         register(id, clazz, button, DEFAULT_SETTINGS);
     }
 
-    private void register(String id, Class<? extends Action> clazz, Button button, boolean[] settings) {
+    private void register(String id, Class<? extends Action> clazz, ParameterizedSupplier<Button, Player> button, boolean[] settings) {
         idToClass.put(id, clazz);
         classToButton.put(clazz, button);
         classToSettings.put(clazz, settings);
@@ -90,17 +91,22 @@ public class ActionRegistry {
         throw new IllegalStateException("The action " + id + " has not been registered.");
     }
 
-    public Button getButton(Class<? extends Action> clazz) {
-        if (classToButton.containsKey(clazz)) return classToButton.get(clazz);
+    public Button getButton(Class<? extends Action> clazz, Player player) {
+        if (classToButton.containsKey(clazz)) return classToButton.get(clazz).get(player);
         throw new IllegalStateException("The class " + clazz.getSimpleName() + " has not been registered.");
     }
 
-    public Button getButton(String id) {
-        if (idToClass.containsKey(id)) return getButton(idToClass.get(id));
+    public Button getButton(String id, Player player) {
+        if (idToClass.containsKey(id)) return getButton(idToClass.get(id), player);
         throw new IllegalStateException("The action " + id + " has not been registered.");
     }
 
-    public Collection<Button> getButtons() {
+    public Collection<ParameterizedSupplier<Button, Player>> getButtons() {
         return classToButton.values();
     }
+
+    public Collection<Button> getButtons(Player locale) {
+        return classToButton.values().stream().map(button -> button.get(locale)).toList();
+    }
+
 }

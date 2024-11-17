@@ -66,8 +66,8 @@ public class SubtitleRunnable extends BukkitRunnable {
         if (!plugin.subtitleWaiting.contains(player.getUniqueId()))
             this.cancel();
         player.showTitle(Title.title(
-                Msg.translated("customnpcs.data.subtitle.title"),
-                Msg.translated("customnpcs.data.subtitle.subtitle"),
+                Msg.translate(player.locale(), "customnpcs.data.subtitle.title"),
+                Msg.translate(player.locale(), "customnpcs.data.subtitle.subtitle"),
                 Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
         ));
     }

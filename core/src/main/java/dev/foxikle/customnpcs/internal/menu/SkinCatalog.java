@@ -48,14 +48,14 @@ public class SkinCatalog extends Page {
     @Override
     public ItemStack nextPageItem(Player player) {
         return ItemBuilder.modern(Material.ARROW)
-                .setDisplay(Msg.translated("customnpcs.items.next_page"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.items.next_page"))
                 .build();
     }
 
     @Override
     public ItemStack previousPageItem(Player player) {
         return ItemBuilder.modern(Material.ARROW)
-                .setDisplay(Msg.translated("customnpcs.items.prev_page"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.items.prev_page"))
                 .build();
     }
 
@@ -66,7 +66,7 @@ public class SkinCatalog extends Page {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translated("customnpcs.menus.skin_catalog.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.skin_catalog.title"));
     }
 
     @Override
@@ -79,7 +79,7 @@ public class SkinCatalog extends Page {
         Content.Builder builder = Content.builder(capacity);
         TextLayoutPane pane = new TextLayoutPane(
                 capacity, TextLayout.builder().set('X', MenuItems.MENU_GLASS)
-                .set('O', MenuItems.toMain()).build(),
+                .set('O', MenuItems.toMain(player)).build(),
                 "XXXXXXXXX",
                 "X       X",
                 "X       X",

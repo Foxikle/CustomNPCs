@@ -45,10 +45,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.bukkit.Material.PLAYER_HEAD;
 
@@ -73,7 +70,7 @@ public class MenuUtils {
      * The instance of the main class
      */
     private final CustomNPCs plugin;
-    private Pagination catalog;
+    private final Map<String, Pagination> catalog = new HashMap<>();
 
     /**
      * <p> The constructor for the MenuUtils class
@@ -85,15 +82,15 @@ public class MenuUtils {
         this.plugin = plugin;
     }
 
-    public static Content.Builder actionBase(Action action) {
+    public static Content.Builder actionBase(Action action, Player player) {
         return Content.builder(Capacity.ofRows(5))
                 .apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(3, MenuItems.decrementDelay(action))
-                .setButton(4, MenuItems.delayDisplay(action))
-                .setButton(5, MenuItems.incrementDelay(action))
-                .setButton(36, MenuItems.toAction())
-                .setButton(40, MenuItems.saveAction(action))
-                .setButton(44, MenuItems.editConditions());
+                .setButton(3, MenuItems.decrementDelay(action, player))
+                .setButton(4, MenuItems.delayDisplay(action, player))
+                .setButton(5, MenuItems.incrementDelay(action, player))
+                .setButton(36, MenuItems.toAction(player))
+                .setButton(40, MenuItems.saveAction(action, player))
+                .setButton(44, MenuItems.editConditions(player));
     }
 
     /**
@@ -113,13 +110,17 @@ public class MenuUtils {
      *
      * @return The list of inventories displaying the skin options
      */
-    public Pagination getSkinCatalogue() {
-        if (catalog != null) return catalog;
-        catalog = Pagination.auto(plugin.getLotus())
+    public Pagination getSkinCatalogue(Locale locale) {
+        String lang = locale.getLanguage();
+        if (catalog.containsKey(lang)) {
+            return catalog.get(lang);
+        }
+
+        catalog.put(lang, Pagination.auto(plugin.getLotus())
                 .creator(new SkinCatalog())
-                .componentProvider(this::makeIcons)
-                .build();
-        return catalog;
+                .componentProvider(() -> makeIcons(locale))
+                .build());
+        return catalog.get(lang);
     }
 
     /**
@@ -127,9 +128,9 @@ public class MenuUtils {
      *
      * @return {@summary A refreshed skin catalog}
      */
-    public Pagination refreshCatalog() {
-        catalog = null;
-        return getSkinCatalogue();
+    public Pagination refreshCatalog(Locale locale) {
+        catalog.remove(locale.getLanguage());
+        return getSkinCatalogue(locale);
     }
 
     /**
@@ -138,14 +139,14 @@ public class MenuUtils {
      *
      * @return The list of skins to put into an inventory
      */
-    private List<PageComponent> makeIcons() {
+    private List<PageComponent> makeIcons(Locale locale) {
         final FileConfiguration config = plugin.getConfig();
         ConfigurationSection section = config.getConfigurationSection("Skins");
         Set<String> names = section.getKeys(false);
         List<PageComponent> buttons = new ArrayList<>();
         for (String str : names) {
             String value = section.getString(str + ".value");
-            buttons.add(new SkinIcon(value, section.getString(str + ".signature"), str.replace("_", " "), plugin));
+            buttons.add(new SkinIcon(value, section.getString(str + ".signature"), str.replace("_", " "), plugin, locale));
         }
         return buttons;
     }
@@ -156,21 +157,23 @@ public class MenuUtils {
         private final String signature;
         private final String name;
         private final CustomNPCs plugin;
+        private final Locale locale;
 
-        public SkinIcon(String value, String signature, String name, CustomNPCs plugin) {
+        public SkinIcon(String value, String signature, String name, CustomNPCs plugin, Locale player) {
             this.value = value;
             this.signature = signature;
             this.name = name;
             this.plugin = plugin;
+            this.locale = player;
         }
 
         @Override
         public ItemStack toItem() {
             return ItemBuilder.modern(PLAYER_HEAD).setDisplay(Component.text(name))
                     .setLore(
-                            Msg.translate("customnpcs.menus.skin_catalog.items.icon.lore", name),
+                            Msg.translate(locale, "customnpcs.menus.skin_catalog.items.icon.lore", name),
                             Component.empty(),
-                            Msg.translated("customnpcs.items.click_to_select")
+                            Msg.translate(locale, "customnpcs.items.click_to_select")
                     ).modifyMeta(SkullMeta.class, skullMeta -> {
                         PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
                         profile.setProperty(new ProfileProperty("textures", value));
@@ -185,13 +188,13 @@ public class MenuUtils {
             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
             if (npc == null) {
                 player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
-                player.sendMessage(Msg.translated("customnpcs.error.npc-menu-expired"));
+                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
                 return;
             }
 
             event.setCancelled(true);
             npc.getSettings().setSkinData(signature, value, name);
-            player.sendMessage(Msg.translate("customnpcs.skins.changed_with_catalog", name));
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.changed_with_catalog", name));
             plugin.getLotus().openMenu(player, NPC_MAIN);
         }
     }

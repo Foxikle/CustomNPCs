@@ -48,8 +48,8 @@ public class FacingDirectionRunnable extends BukkitRunnable {
     public void run() {
         if (!plugin.facingWaiting.contains(player.getUniqueId())) cancel();
         player.showTitle(Title.title(
-                Msg.translated("customnpcs.data.facing_direction.title"),
-                Msg.translated("customnpcs.data.facing_direction.subtitle"),
+                Msg.translate(player.locale(), "customnpcs.data.facing_direction.title"),
+                Msg.translate(player.locale(), "customnpcs.data.facing_direction.subtitle"),
                 Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
         ));
     }

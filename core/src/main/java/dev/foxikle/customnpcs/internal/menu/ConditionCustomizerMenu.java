@@ -42,7 +42,7 @@ public class ConditionCustomizerMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translated("customnpcs.menus.condition_customizer.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.condition_customizer.title"));
     }
 
     @Override
@@ -55,11 +55,11 @@ public class ConditionCustomizerMenu implements Menu {
         Condition condition = CustomNPCs.getInstance().editingConditionals.get(player.getUniqueId());
         return Content.builder(capacity)
                 .apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(18, MenuItems.toNewCondition())
-                .setButton(22, MenuItems.saveCondition())
-                .setButton(11, MenuItems.comparatorSwitcher(condition))
-                .setButton(13, MenuItems.targetValueSelector(condition))
-                .setButton(15, MenuItems.valueSwitcher(condition))
+                .setButton(18, MenuItems.toNewCondition(player))
+                .setButton(22, MenuItems.saveCondition(player))
+                .setButton(11, MenuItems.comparatorSwitcher(condition, player))
+                .setButton(13, MenuItems.targetValueSelector(condition, player))
+                .setButton(15, MenuItems.valueSwitcher(condition, player))
                 .build();
     }
 }

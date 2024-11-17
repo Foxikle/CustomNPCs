@@ -63,23 +63,20 @@ import static org.bukkit.Material.*;
 
 public class MenuItems {
     public static final Button MENU_GLASS;
-    public static final Button ERROR_EQUIPMENT;
     private static final CustomNPCs plugin = CustomNPCs.getInstance();
 
     static {
         MENU_GLASS = Button.clickable(ItemBuilder.modern(Material.BLACK_STAINED_GLASS_PANE).setDisplay(Component.text(" ")).build(),
                 ButtonClickAction.plain((menuView, event) -> event.setCancelled(true)));
-        ERROR_EQUIPMENT = Button.clickable(ItemBuilder.modern(Material.BEDROCK).setDisplay(Msg.translated("customnpcs.items.error")).setLore(Msg.translated("customnpcs.items.error.lore")).build(),
-                ButtonClickAction.plain((menuView, event) -> event.setCancelled(true)));
     }
 
-    public static Button rotation(InternalNpc npc) {
+    public static Button rotation(InternalNpc npc, Player player) {
         double dir = npc.getSettings().getDirection();
 
         List<Component> lore = new ArrayList<>();
         Map<Integer, Integer> highlightIndexMap = Map.of(180, 0, -135, 1, -90, 2, -45, 3, 0, 4, 45, 5, 90, 6, 135, 7);
-        Component clickToChange = Msg.translated("customnpcs.items.click_to_change");
-        List<Component> directions = List.of(Msg.translated("customnpcs.directions.north"), Msg.translated("customnpcs.directions.north_east"), Msg.translated("customnpcs.directions.east"), Msg.translated("customnpcs.directions.south_east"), Msg.translated("customnpcs.directions.south"), Msg.translated("customnpcs.directions.south_west"), Msg.translated("customnpcs.directions.west"), Msg.translated("customnpcs.directions.north_west"), Msg.translated("customnpcs.directions.player"));
+        Component clickToChange = Msg.translate(player.locale(), "customnpcs.items.click_to_change");
+        List<Component> directions = List.of(Msg.translate(player.locale(), "customnpcs.directions.north"), Msg.translate(player.locale(), "customnpcs.directions.north_east"), Msg.translate(player.locale(), "customnpcs.directions.east"), Msg.translate(player.locale(), "customnpcs.directions.south_east"), Msg.translate(player.locale(), "customnpcs.directions.south"), Msg.translate(player.locale(), "customnpcs.directions.south_west"), Msg.translate(player.locale(), "customnpcs.directions.west"), Msg.translate(player.locale(), "customnpcs.directions.north_west"), Msg.translate(player.locale(), "customnpcs.directions.player"));
         int highlightIndex = highlightIndexMap.getOrDefault((int) dir, 8);
         lore.add(Component.empty());
 
@@ -98,13 +95,13 @@ public class MenuItems {
 
         ItemStack item = ItemBuilder.modern(COMPASS)
                 .setLore(lore)
-                .setDisplay(Msg.translated("customnpcs.menus.main.facing_direction.name"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.facing_direction.name"))
                 .build();
 
         return Button.clickable(item, ButtonClickAction.plain((menuView, event) -> {
             event.setCancelled(true);
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
 
             double newDir = 0.0D;
             if (event.isLeftClick()) {
@@ -113,7 +110,7 @@ public class MenuItems {
                 } else {
                     newDir = (dir + 225.0D) % 360.0D - 180.0D;
                     if (dir == 135.0D) {
-                        newDir = player.getLocation().getYaw();
+                        newDir = p.getLocation().getYaw();
                     }
                 }
             } else if (event.isRightClick()) {
@@ -122,167 +119,167 @@ public class MenuItems {
                 } else {
                     newDir = (dir - 225.0D) % 360.0D + 180.0D;
                     if (dir == 180.0D) {
-                        newDir = player.getLocation().getYaw();
+                        newDir = p.getLocation().getYaw();
                     }
                 }
             }
 
             npc.getSettings().setDirection(newDir);
-            menuView.replaceButton(10, rotation(npc));
+            menuView.replaceButton(10, rotation(npc, p));
         }));
     }
 
-    public static ItemStack changeName(InternalNpc npc) {
+    public static ItemStack changeName(InternalNpc npc, Player player) {
         return ItemBuilder.modern(Material.NAME_TAG)
-                .setDisplay(Msg.translated("customnpcs.menus.main.items.name.name"))
-                .setLore(Msg.translated("customnpcs.menus.main.items.name.current_name", plugin.getMiniMessage().deserialize(npc.getSettings().getName())))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.items.name.name"))
+                .setLore(Msg.translate(player.locale(), "customnpcs.menus.main.items.name.current_name", plugin.getMiniMessage().deserialize(npc.getSettings().getName())))
                 .build();
     }
 
-    public static Button resilient(InternalNpc npc) {
+    public static Button resilient(InternalNpc npc, Player player) {
         ItemStack i = ItemBuilder.modern(Material.BELL)
-                .setLore(npc.getSettings().isResilient() ? Msg.translated("customnpcs.menus.main.items.resilient.true") : Msg.translated("customnpcs.menus.main.items.resilient.false"))
-                .setDisplay(Msg.translated("customnpcs.menus.main.items.resilient.change"))
+                .setLore(npc.getSettings().isResilient() ? Msg.translate(player.locale(), "customnpcs.menus.main.items.resilient.true") : Msg.translate(player.locale(), "customnpcs.menus.main.items.resilient.false"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.items.resilient.change"))
                 .build();
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             event.setCancelled(true);
             if (npc.getSettings().isResilient())
-                player.sendMessage(Msg.translated("customnpcs.menus.main.resilient.message.now_false"));
-            else player.sendMessage(Msg.translated("customnpcs.menus.main.resilient.message.now_true"));
+                p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.main.resilient.message.now_false"));
+            else p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.main.resilient.message.now_true"));
 
             npc.getSettings().setResilient(!npc.getSettings().isResilient());
-            menuView.replaceButton(22, MenuItems.resilient(npc));
+            menuView.replaceButton(22, MenuItems.resilient(npc, p));
         }));
     }
 
-    public static ItemStack skinSelection(InternalNpc npc) {
+    public static ItemStack skinSelection(InternalNpc npc, Player player) {
         return ItemBuilder.modern(Material.PLAYER_HEAD).modifyMeta(SkullMeta.class, skullMeta -> {
                     PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
                     String texture = "ewogICJ0aW1lc3RhbXAiIDogMTY2OTY0NjQwMTY2MywKICAicHJvZmlsZUlkIiA6ICJmZTE0M2FhZTVmNGE0YTdiYjM4MzcxM2U1Mjg0YmIxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKZWZveHk0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RhZTI5MDRhMjg2Yjk1M2ZhYjhlY2U1MWQ2MmJmY2NiMzJjYjAyNzQ4ZjQ2N2MwMGJjMzE4ODU1OTgwNTA1OGIiCiAgICB9CiAgfQp9";
                     profile.setProperty(new ProfileProperty("textures", texture));
                     skullMeta.setPlayerProfile(profile);
                 })
-                .setLore(Msg.lore("customnpcs.menus.main.items.skin.lore", Component.text(npc.getSettings().getSkinName())))
-                .setDisplay(Msg.translated("customnpcs.menus.main.items.skin.name"))
+                .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.items.skin.lore", Component.text(npc.getSettings().getSkinName())))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.items.skin.name"))
                 .build();
     }
 
-    public static ItemStack extraSettings() {
+    public static ItemStack extraSettings(Player player) {
         return ItemBuilder.modern(Material.COMPARATOR)
-                .setDisplay(Msg.translated("customnpcs.menus.main.settings.name"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.settings.name"))
                 .build();
     }
 
-    public static ItemStack deleteNpc() {
+    public static ItemStack deleteNpc(Player player) {
         return ItemBuilder.modern(Material.LAVA_BUCKET)
-                .setDisplay(Msg.translated("customnpcs.menus.main.delete.name"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.delete.name"))
                 .build();
     }
 
-    public static ItemStack looking() {
+    public static ItemStack looking(Player player) {
         return ItemBuilder.modern(Material.ENDER_EYE)
-                .setDisplay(Msg.translated("customnpcs.menus.main.facing.name"))
-                .setLore(Msg.lore("customnpcs.menus.main.facing.description"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.facing.name"))
+                .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.facing.description"))
                 .build();
     }
 
-    public static Button interactable(InternalNpc npc) {
+    public static Button interactable(InternalNpc npc, Player player) {
         boolean interactable = npc.getSettings().isInteractable();
 
         return Button.clickable(ItemBuilder.modern(interactable ? Material.OAK_SAPLING : Material.DEAD_BUSH)
-                .setLore(interactable ? Msg.translated("customnpcs.menus.main.interactable.true") : Msg.translated("customnpcs.menus.main.interactable.false"))
-                .setDisplay(Msg.translated("customnpcs.menus.main.interactable.name.toggle"))
+                .setLore(interactable ? Msg.translate(player.locale(), "customnpcs.menus.main.interactable.true") : Msg.translate(player.locale(), "customnpcs.menus.main.interactable.false"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.interactable.name.toggle"))
                 .build(), ButtonClickAction.plain((menuView, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
             p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             if (npc.getSettings().isInteractable())
-                p.sendMessage(Msg.translated("customnpcs.menus.main.interactable.message.now_false"));
-            else p.sendMessage(Msg.translated("customnpcs.menus.main.interactable.message.now_true"));
+                p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.main.interactable.message.now_false"));
+            else p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.main.interactable.message.now_true"));
 
             npc.getSettings().setInteractable(!npc.getSettings().isInteractable());
-            menuView.replaceButton(25, MenuItems.interactable(npc));
-            menuView.replaceButton(34, MenuItems.showActions(npc));
+            menuView.replaceButton(25, MenuItems.interactable(npc, p));
+            menuView.replaceButton(34, MenuItems.showActions(npc, p));
         }));
     }
 
-    public static Button showActions(InternalNpc npc) {
+    public static Button showActions(InternalNpc npc, Player player) {
         if (!npc.getSettings().isInteractable()) return MENU_GLASS;
         return Button.clickable(ItemBuilder.modern(Material.RECOVERY_COMPASS)
-                .setDisplay(Msg.translated("customnpcs.menus.main.interactable.name"))
-                .setLore(Msg.lore("customnpcs.menus.main.interactable.description"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.interactable.name"))
+                .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.interactable.description"))
                 .build(), new OpenButtonAction(MenuUtils.NPC_ACTIONS));
     }
 
-    public static ItemStack editEquipment(InternalNpc npc) {
+    public static ItemStack editEquipment(InternalNpc npc, Player player) {
         Equipment equip = npc.getEquipment();
         return ItemBuilder.modern(Material.ARMOR_STAND)
-                .setDisplay(Msg.translated("customnpcs.menus.main.items.equipment.name"))
-                .setLore(Msg.translate("customnpcs.menus.main.items.equipment.main_hand", equip.getHand().getType().name().toLowerCase()),
-                        Msg.translate("customnpcs.menus.main.items.equipment.off_hand", equip.getOffhand().getType().name().toLowerCase()),
-                        Msg.translate("customnpcs.menus.main.items.equipment.helmet", equip.getHead().getType().name().toLowerCase()),
-                        Msg.translate("customnpcs.menus.main.items.equipment.chestplate", equip.getChest().getType().name().toLowerCase()),
-                        Msg.translate("customnpcs.menus.main.items.equipment.leggings", equip.getLegs().getType().name().toLowerCase()),
-                        Msg.translate("customnpcs.menus.main.items.equipment.boots", equip.getBoots().getType().name().toLowerCase())
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.name"))
+                .setLore(Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.main_hand", equip.getHand().getType().name().toLowerCase()),
+                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.off_hand", equip.getOffhand().getType().name().toLowerCase()),
+                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.helmet", equip.getHead().getType().name().toLowerCase()),
+                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.chestplate", equip.getChest().getType().name().toLowerCase()),
+                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.leggings", equip.getLegs().getType().name().toLowerCase()),
+                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.boots", equip.getBoots().getType().name().toLowerCase())
                 ).build();
     }
 
-    public static Button tunnelVision(InternalNpc npc) {
+    public static Button tunnelVision(InternalNpc npc, Player player) {
         return Button.clickable(ItemBuilder.modern(Material.SPYGLASS)
-                .setDisplay(Msg.translated("customnpcs.menus.main.vision.name"))
-                .setLore(npc.getSettings().isTunnelvision() ? Msg.translated("customnpcs.menus.main.vision.tunnel") : Msg.translated("customnpcs.menus.main.vision.normal"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.vision.name"))
+                .setLore(npc.getSettings().isTunnelvision() ? Msg.translate(player.locale(), "customnpcs.menus.main.vision.tunnel") : Msg.translate(player.locale(), "customnpcs.menus.main.vision.normal"))
                 .build(), ButtonClickAction.plain((menuView, event) -> {
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             event.setCancelled(true);
             npc.getSettings().setTunnelvision(!npc.getSettings().isTunnelvision());
-            menuView.replaceButton(28, MenuItems.tunnelVision(npc));
+            menuView.replaceButton(28, MenuItems.tunnelVision(npc, p));
         }));
     }
 
-    public static ItemStack confirmCreation() {
+    public static ItemStack confirmCreation(Player player) {
         return ItemBuilder.modern(Material.LIME_DYE)
-                .setDisplay(Msg.translated("customnpcs.menus.main.create.name"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.create.name"))
                 .build();
     }
 
-    public static ItemStack cancelCreation() {
+    public static ItemStack cancelCreation(Player player) {
         return ItemBuilder.modern(BARRIER)
-                .setDisplay(Msg.translated("customnpcs.menus.main.cancel.name"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.cancel.name"))
                 .build();
     }
 
-    public static ItemStack importArmor() {
+    public static ItemStack importArmor(Player player) {
         return ItemBuilder.modern(Material.ARMOR_STAND)
-                .setDisplay(Msg.translated("customnpcs.menus.equipment.import"))
-                .setLore(Msg.translated("customnpcs.menus.equipment.import.description"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.equipment.import"))
+                .setLore(Msg.translate(player.locale(), "customnpcs.menus.equipment.import.description"))
                 .build();
     }
 
-    public static Button helmetSlot(InternalNpc npc) {
+    public static Button helmetSlot(InternalNpc npc, Player player) {
         ItemStack helm = npc.getEquipment().getHead();
         if (helm == null || helm.getType().isAir()) {
             return Button.clickable(ItemBuilder.modern(Material.LIME_STAINED_GLASS_PANE)
                             .addFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DYE)
-                            .setDisplay(Msg.translated("customnpcs.menus.equipment.helmet.empty"))
-                            .setLore(Msg.lore("customnpcs.menus.equipment.helmet.change"))
+                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.equipment.helmet.empty"))
+                            .setLore(Msg.lore(player.locale(), "customnpcs.menus.equipment.helmet.change"))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
-                        Player player = (Player) event.getWhoClicked();
+                        Player p = (Player) event.getWhoClicked();
                         if (event.getCursor().getType() == Material.AIR || event.isRightClick()) return;
-                        player.playSound(player, Sound.ITEM_ARMOR_EQUIP_LEATHER, 1.0F, 1.0F);
+                        p.playSound(p, Sound.ITEM_ARMOR_EQUIP_LEATHER, 1.0F, 1.0F);
                         npc.getEquipment().setHead(event.getCursor().clone());
                         event.getCursor().setAmount(0);
-                        player.sendMessage(Msg.translated("customnpcs.menus.equipment.helmet.message.success", Component.text(npc.getEquipment().getHead().getType().name().toLowerCase())));
-                        menuView.replaceButton(13, helmetSlot(npc));
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.helmet.message.success", Component.text(npc.getEquipment().getHead().getType().name().toLowerCase())));
+                        menuView.replaceButton(13, helmetSlot(npc, p));
                     }));
         } else {
-            List<Component> lore = Utils.list(Msg.lore("customnpcs.menus.equipment.helmet.change"));
-            lore.add(Msg.translated("customnpcs.remove.description"));
+            List<Component> lore = Utils.list(Msg.lore(player.locale(), "customnpcs.menus.equipment.helmet.change"));
+            lore.add(Msg.translate(player.locale(), "customnpcs.remove.description"));
             return Button.clickable(ItemBuilder.modern(helm)
                             .setDisplay(Component.text(helm.getType().name().toLowerCase(), NamedTextColor.GREEN))
                             .addFlags(ItemFlag.values())
@@ -290,53 +287,53 @@ public class MenuItems {
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
-                        Player player = (Player) event.getWhoClicked();
+                        Player p = (Player) event.getWhoClicked();
 
                         if (event.isRightClick()) {
                             npc.getEquipment().setHead(new ItemStack(Material.AIR));
-                            player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
-                            player.sendMessage(Msg.translated("customnpcs.menus.equipment.helmet.reset"));
-                            menuView.replaceButton(13, helmetSlot(npc));
+                            p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.helmet.reset"));
+                            menuView.replaceButton(13, helmetSlot(npc, p));
                         } else {
                             if (event.getCursor().getType() == Material.AIR) return;
                             npc.getEquipment().setHead(event.getCursor().clone());
                             event.getCursor().setAmount(0);
-                            player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                            player.sendMessage(Msg.translated("customnpcs.menus.equipment.helmet.message.success", Component.text(npc.getEquipment().getHead().getType().name().toLowerCase())));
-                            menuView.replaceButton(13, helmetSlot(npc));
+                            p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.helmet.message.success", Component.text(npc.getEquipment().getHead().getType().name().toLowerCase())));
+                            menuView.replaceButton(13, helmetSlot(npc, p));
                         }
                     }));
 
         }
     }
 
-    public static Button chestplateSlot(InternalNpc npc) {
+    public static Button chestplateSlot(InternalNpc npc, Player player) {
         ItemStack cp = npc.getEquipment().getChest();
         if (cp.getType().isAir()) {
 
             return Button.clickable(ItemBuilder.modern(Material.LIME_STAINED_GLASS_PANE)
                             .addFlags(ItemFlag.values())
-                            .setLore(Msg.lore("customnpcs.menus.equipment.chestplate.change"))
-                            .setDisplay(Msg.translated("customnpcs.menus.equipment.chestplate.empty"))
+                            .setLore(Msg.lore(player.locale(), "customnpcs.menus.equipment.chestplate.change"))
+                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.equipment.chestplate.empty"))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
-                        Player player = (Player) event.getWhoClicked();
+                        Player p = (Player) event.getWhoClicked();
                         event.setCancelled(true);
                         if (event.getCursor().getType().name().contains("CHESTPLATE")) {
                             npc.getEquipment().setChest(event.getCursor().clone());
                             event.getCursor().setAmount(0);
-                            player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                            player.sendMessage(Msg.translate("customnpcs.menus.equipment.chestplate.message.success", npc.getEquipment().getChest().getType().name().toLowerCase()));
+                            p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.chestplate.message.success", npc.getEquipment().getChest().getType().name().toLowerCase()));
                         } else {
                             if (event.getCursor().getType() == AIR) return;
-                            player.sendMessage(Msg.translated("customnpcs.menus.equipment.chestplate.message.error"));
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.chestplate.message.error"));
                         }
 
-                        menuView.replaceButton(22, chestplateSlot(npc));
+                        menuView.replaceButton(22, chestplateSlot(npc, p));
                     }));
         } else {
-            List<Component> lore = Utils.list(Msg.lore("customnpcs.menus.equipment.chestplate.change"));
-            lore.add(Msg.translated("customnpcs.remove.description"));
+            List<Component> lore = Utils.list(Msg.lore(player.locale(), "customnpcs.menus.equipment.chestplate.change"));
+            lore.add(Msg.translate(player.locale(), "customnpcs.remove.description"));
             return Button.clickable(ItemBuilder.modern(cp)
                             .addFlags(ItemFlag.values())
                             .setLore(lore.toArray(new Component[]{}))
@@ -344,54 +341,54 @@ public class MenuItems {
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
-                        Player player = (Player) event.getWhoClicked();
+                        Player p = (Player) event.getWhoClicked();
                         if (event.isRightClick()) {
                             npc.getEquipment().setChest(new ItemStack(AIR));
-                            player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
-                            player.sendMessage(Msg.translated("customnpcs.menus.equipment.chestplate.reset"));
-                            menuView.replaceButton(22, chestplateSlot(npc));
+                            p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.chestplate.reset"));
+                            menuView.replaceButton(22, chestplateSlot(npc, p));
                             return;
                         } else if (event.getCursor().getType().name().contains("CHESTPLATE")) {
                             npc.getEquipment().setChest(event.getCursor().clone());
                             event.getCursor().setAmount(0);
-                            player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                            player.sendMessage(Msg.translate("customnpcs.menus.equipment.chestplate.message.success", npc.getEquipment().getChest().getType().name().toLowerCase()));
+                            p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.chestplate.message.success", npc.getEquipment().getChest().getType().name().toLowerCase()));
                             return;
                         } else {
                             if (event.getCursor().getType() == AIR) return;
                         }
                         event.setCancelled(true);
-                        player.sendMessage(Msg.translated("customnpcs.menus.equipment.chestplate.message.error"));
-                        menuView.replaceButton(22, chestplateSlot(npc));
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.chestplate.message.error"));
+                        menuView.replaceButton(22, chestplateSlot(npc, p));
                     }));
         }
     }
 
-    public static Button leggingsSlot(InternalNpc npc) {
+    public static Button leggingsSlot(InternalNpc npc, Player player) {
         ItemStack legs = npc.getEquipment().getLegs();
         if (legs.getType().isAir()) {
             return Button.clickable(ItemBuilder.modern(Material.LIME_STAINED_GLASS_PANE)
                             .addFlags(ItemFlag.values())
-                            .setLore(Msg.lore("customnpcs.menus.equipment.legs.change"))
-                            .setDisplay(Msg.translated("customnpcs.menus.equipment.legs.empty"))
+                            .setLore(Msg.lore(player.locale(), "customnpcs.menus.equipment.legs.change"))
+                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.equipment.legs.empty"))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
-                        Player player = (Player) event.getWhoClicked();
+                        Player p = (Player) event.getWhoClicked();
                         if (event.getCursor().getType().name().contains("LEGGINGS")) {
                             npc.getEquipment().setLegs(event.getCursor().clone());
                             event.getCursor().setAmount(0);
-                            player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                            player.sendMessage(Msg.translate("customnpcs.menus.equipment.legs.message.success", npc.getEquipment().getLegs().getType().name().toLowerCase()));
+                            p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.legs.message.success", npc.getEquipment().getLegs().getType().name().toLowerCase()));
                         } else {
                             if (event.getCursor().getType() == AIR) return;
-                            player.sendMessage(Msg.translated("customnpcs.menus.equipment.legs.message.error"));
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.legs.message.error"));
                         }
-                        menuView.replaceButton(31, leggingsSlot(npc));
+                        menuView.replaceButton(31, leggingsSlot(npc, p));
                     }));
         } else {
-            List<Component> lore = Utils.list(Msg.lore("customnpcs.menus.equipment.legs.change"));
-            lore.add(Msg.translated("customnpcs.remove.description"));
+            List<Component> lore = Utils.list(Msg.lore(player.locale(), "customnpcs.menus.equipment.legs.change"));
+            lore.add(Msg.translate(player.locale(), "customnpcs.remove.description"));
             return Button.clickable(ItemBuilder.modern(legs)
                             .addFlags(ItemFlag.values())
                             .setDisplay(Component.text(legs.getType().toString(), NamedTextColor.GREEN))
@@ -399,53 +396,53 @@ public class MenuItems {
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
-                        Player player = (Player) event.getWhoClicked();
+                        Player p = (Player) event.getWhoClicked();
 
                         if (event.isRightClick()) {
                             npc.getEquipment().setLegs(new ItemStack(AIR));
-                            player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
-                            player.sendMessage(Msg.translated("customnpcs.menus.equipment.legs.reset"));
-                            menuView.replaceButton(31, leggingsSlot(npc));
+                            p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.legs.reset"));
+                            menuView.replaceButton(31, leggingsSlot(npc, player));
                         } else if (event.getCursor().getType().name().contains("LEGGINGS")) {
                             npc.getEquipment().setLegs(event.getCursor().clone());
                             event.getCursor().setAmount(0);
-                            player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                            player.sendMessage(Msg.translate("customnpcs.menus.equipment.legs.message.success", npc.getEquipment().getLegs().getType().name().toLowerCase()));
-                            menuView.replaceButton(31, leggingsSlot(npc));
+                            p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.legs.message.success", npc.getEquipment().getLegs().getType().name().toLowerCase()));
+                            menuView.replaceButton(31, leggingsSlot(npc, p));
                         } else {
                             if (event.getCursor().getType() == AIR) return;
-                            player.sendMessage(Msg.translated("customnpcs.menus.equipment.legs.message.error"));
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.legs.message.error"));
                         }
                     }));
         }
     }
 
-    public static Button bootsSlot(InternalNpc npc) {
+    public static Button bootsSlot(InternalNpc npc, Player player) {
         ItemStack boots = npc.getEquipment().getBoots();
         if (boots.getType().isAir()) {
             return Button.clickable(ItemBuilder.modern(LIME_STAINED_GLASS_PANE)
-                            .setDisplay(Msg.translated("customnpcs.menus.equipment.boots.empty"))
+                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.equipment.boots.empty"))
                             .addFlags(ItemFlag.values())
-                            .setLore(Msg.lore("customnpcs.menus.equipment.boots.change"))
+                            .setLore(Msg.lore(player.locale(), "customnpcs.menus.equipment.boots.change"))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
-                        Player player = (Player) event.getWhoClicked();
+                        Player p = (Player) event.getWhoClicked();
                         if (event.getCursor().getType().name().contains("BOOTS")) {
                             npc.getEquipment().setBoots(event.getCursor().clone());
                             event.getCursor().setAmount(0);
-                            player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                            player.sendMessage(Msg.translate("customnpcs.menus.equipment.boots.message.success", npc.getEquipment().getBoots().getType().name().toLowerCase()));
+                            p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.boots.message.success", npc.getEquipment().getBoots().getType().name().toLowerCase()));
                         } else {
                             if (event.getCursor().getType() == AIR) return;
-                            player.sendMessage(Msg.translated("customnpcs.menus.equipment.boots.message.error"));
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.boots.message.error"));
                             return;
                         }
-                        menuView.replaceButton(40, bootsSlot(npc));
+                        menuView.replaceButton(40, bootsSlot(npc, p));
                     }));
         } else {
-            List<Component> lore = Utils.list(Msg.lore("customnpcs.menus.equipment.boots.change"));
-            lore.add(Msg.translated("customnpcs.remove.description"));
+            List<Component> lore = Utils.list(Msg.lore(player.locale(), "customnpcs.menus.equipment.boots.change"));
+            lore.add(Msg.translate(player.locale(), "customnpcs.remove.description"));
             return Button.clickable(ItemBuilder.modern(boots)
                             .setLore(lore.toArray(new Component[]{}))
                             .setDisplay(Component.text(boots.getType().toString(), NamedTextColor.GREEN))
@@ -453,47 +450,47 @@ public class MenuItems {
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
-                        Player player = (Player) event.getWhoClicked();
+                        Player p = (Player) event.getWhoClicked();
                         if (event.isRightClick()) {
                             npc.getEquipment().setBoots(new ItemStack(AIR));
-                            player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
-                            player.sendMessage(Msg.translated("customnpcs.menus.equipment.boots.reset"));
+                            p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.boots.reset"));
                         } else if (event.getCursor().getType().name().contains("LEGGINGS")) {
                             npc.getEquipment().setBoots(event.getCursor().clone());
                             event.getCursor().setAmount(0);
-                            player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                            player.sendMessage(Msg.translate("customnpcs.menus.equipment.boots.message.success", npc.getEquipment().getBoots().getType().name().toLowerCase()));
+                            p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.boots.message.success", npc.getEquipment().getBoots().getType().name().toLowerCase()));
                         } else {
                             if (event.getCursor().getType() == AIR) return;
-                            player.sendMessage(Msg.translated("customnpcs.menus.equipment.boots.message.error"));
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.boots.message.error"));
                             return;
                         }
-                        menuView.replaceButton(40, bootsSlot(npc));
+                        menuView.replaceButton(40, bootsSlot(npc, p));
                     }));
         }
     }
 
-    public static Button handSlot(InternalNpc npc) {
+    public static Button handSlot(InternalNpc npc, Player player) {
         ItemStack hand = npc.getEquipment().getHand();
         if (hand.getType().isAir()) {
             return Button.clickable(ItemBuilder.modern(YELLOW_STAINED_GLASS_PANE)
                             .addFlags(ItemFlag.values())
-                            .setLore(Msg.lore("customnpcs.menus.equipment.hand.change"))
-                            .setDisplay(Msg.translated("customnpcs.menus.equipment.hand.empty"))
+                            .setLore(Msg.lore(player.locale(), "customnpcs.menus.equipment.hand.change"))
+                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.equipment.hand.empty"))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
-                        Player player = (Player) event.getWhoClicked();
+                        Player p = (Player) event.getWhoClicked();
                         if (event.getCursor().getType() == AIR) return;
                         npc.getEquipment().setHand(event.getCursor().clone());
                         event.getCursor().setAmount(0);
-                        player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                        player.sendMessage(Msg.translate("customnpcs.menus.equipment.hand.message.success", npc.getEquipment().getHand().getType().name().toLowerCase()));
-                        menuView.replaceButton(23, handSlot(npc));
+                        p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.hand.message.success", npc.getEquipment().getHand().getType().name().toLowerCase()));
+                        menuView.replaceButton(23, handSlot(npc, p));
                     }));
         } else {
-            List<Component> lore = Utils.list(Msg.lore("customnpcs.menus.equipment.hand.change"));
-            lore.add(Msg.translated("customnpcs.remove.description"));
+            List<Component> lore = Utils.list(Msg.lore(player.locale(), "customnpcs.menus.equipment.hand.change"));
+            lore.add(Msg.translate(player.locale(), "customnpcs.remove.description"));
             return Button.clickable(ItemBuilder.modern(hand)
                             .setLore(lore.toArray(new Component[]{}))
                             .setDisplay(Component.text(hand.getType().toString(), NamedTextColor.GREEN))
@@ -501,45 +498,45 @@ public class MenuItems {
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
-                        Player player = (Player) event.getWhoClicked();
+                        Player p = (Player) event.getWhoClicked();
                         if (event.isRightClick()) {
                             npc.getEquipment().setHand(new ItemStack(AIR));
-                            player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
-                            player.sendMessage(Msg.translated("customnpcs.menus.equipment.hand.reset"));
-                            menuView.replaceButton(23, handSlot(npc));
+                            p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.hand.reset"));
+                            menuView.replaceButton(23, handSlot(npc, p));
                         } else {
                             if (event.getCursor().getType() == AIR) return;
                             npc.getEquipment().setHand(event.getCursor().clone());
                             event.getCursor().setAmount(0);
-                            player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                            player.sendMessage(Msg.translate("customnpcs.menus.equipment.hand.message.success", npc.getEquipment().getHand().getType().name().toLowerCase()));
-                            menuView.replaceButton(23, handSlot(npc));
+                            p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.hand.message.success", npc.getEquipment().getHand().getType().name().toLowerCase()));
+                            menuView.replaceButton(23, handSlot(npc, p));
                         }
                     }));
         }
     }
 
-    public static Button offhandSlot(InternalNpc npc) {
+    public static Button offhandSlot(InternalNpc npc, Player player) {
         ItemStack offhand = npc.getEquipment().getOffhand();
         if (offhand.getType().isAir()) {
             return Button.clickable(ItemBuilder.modern(YELLOW_STAINED_GLASS_PANE)
-                            .setDisplay(Msg.translated("customnpcs.menus.equipment.offhand.empty"))
-                            .setLore(Msg.lore("customnpcs.menus.equipment.offhand.change"))
+                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.equipment.offhand.empty"))
+                            .setLore(Msg.lore(player.locale(), "customnpcs.menus.equipment.offhand.change"))
                             .addFlags(ItemFlag.values())
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
-                        Player player = (Player) event.getWhoClicked();
+                        Player p = (Player) event.getWhoClicked();
                         if (event.getCursor().getType() == AIR) return;
                         npc.getEquipment().setOffhand(event.getCursor().clone());
                         event.getCursor().setAmount(0);
-                        player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                        player.sendMessage(Msg.translate("customnpcs.menus.equipment.offhand.message.success", npc.getEquipment().getOffhand().getType().name().toLowerCase()));
-                        menuView.replaceButton(21, offhandSlot(npc));
+                        p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.offhand.message.success", npc.getEquipment().getOffhand().getType().name().toLowerCase()));
+                        menuView.replaceButton(21, offhandSlot(npc, p));
                     }));
         } else {
-            List<Component> lore = Utils.list(Msg.lore("customnpcs.menus.equipment.hand.change"));
-            lore.add(Msg.translated("customnpcs.remove.description"));
+            List<Component> lore = Utils.list(Msg.lore(player.locale(), "customnpcs.menus.equipment.hand.change"));
+            lore.add(Msg.translate(player.locale(), "customnpcs.remove.description"));
             return Button.clickable(ItemBuilder.modern(offhand)
                             .setLore(lore.toArray(new Component[]{}))
                             .setDisplay(Component.text(offhand.getType().toString(), NamedTextColor.GREEN))
@@ -547,80 +544,80 @@ public class MenuItems {
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
-                        Player player = (Player) event.getWhoClicked();
+                        Player p = (Player) event.getWhoClicked();
                         if (event.isRightClick()) {
                             npc.getEquipment().setOffhand(new ItemStack(AIR));
-                            player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
-                            player.sendMessage(Msg.translated("customnpcs.menus.equipment.offhand.reset"));
+                            p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.offhand.reset"));
                         } else {
                             if (event.getCursor().getType() == AIR) return;
                             npc.getEquipment().setOffhand(event.getCursor().clone());
                             event.getCursor().setAmount(0);
-                            player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-                            player.sendMessage(Msg.translate("customnpcs.menus.equipment.offhand.message.success", npc.getEquipment().getOffhand().getType().name().toLowerCase()));
+                            p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.offhand.message.success", npc.getEquipment().getOffhand().getType().name().toLowerCase()));
                         }
-                        menuView.replaceButton(21, offhandSlot(npc));
+                        menuView.replaceButton(21, offhandSlot(npc, p));
                     }));
         }
     }
 
-    public static Button toMain() {
-        return Button.clickable(ItemBuilder.modern(BARRIER).setDisplay(Msg.translated("customnpcs.items.go_back")).build(),
+    public static Button toMain(Player player) {
+        return Button.clickable(ItemBuilder.modern(BARRIER).setDisplay(Msg.translate(player.locale(), "customnpcs.items.go_back")).build(),
                 new OpenButtonAction(MenuUtils.NPC_MAIN));
     }
 
-    public static Button toAction() {
-        return Button.clickable(ItemBuilder.modern(ARROW).setDisplay(Msg.translated("customnpcs.items.go_back")).build(),
+    public static Button toAction(Player player) {
+        return Button.clickable(ItemBuilder.modern(ARROW).setDisplay(Msg.translate(player.locale(), "customnpcs.items.go_back")).build(),
                 new OpenButtonAction(MenuUtils.NPC_ACTIONS));
     }
 
-    public static Button toActionSaveConditions() {
-        return Button.clickable(ItemBuilder.modern(ARROW).setDisplay(Msg.translated("customnpcs.items.go_back")).build(),
+    public static Button toActionSaveConditions(Player player) {
+        return Button.clickable(ItemBuilder.modern(ARROW).setDisplay(Msg.translate(player.locale(), "customnpcs.items.go_back")).build(),
                 ButtonClickAction.plain((menu, event) -> {
                     event.setCancelled(true);
-                    Player player = (Player) event.getWhoClicked();
-                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-                    plugin.getLotus().openMenu(player, MenuUtils.NPC_ACTION_CUSTOMIZER);
+                    Player p = (Player) event.getWhoClicked();
+                    p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+                    plugin.getLotus().openMenu(p, MenuUtils.NPC_ACTION_CUSTOMIZER);
                 }));
     }
 
-    public static Button toNewCondition() {
-        return Button.clickable(ItemBuilder.modern(ARROW).setDisplay(Msg.translated("customnpcs.items.go_back")).build(),
+    public static Button toNewCondition(Player player) {
+        return Button.clickable(ItemBuilder.modern(ARROW).setDisplay(Msg.translate(player.locale(), "customnpcs.items.go_back")).build(),
                 new OpenButtonAction(MenuUtils.NPC_NEW_CONDITION));
     }
 
-    public static Button toConditionCustomizer() {
-        return Button.clickable(ItemBuilder.modern(COMPARATOR).setDisplay(Msg.translated("customnpcs.menus.action_customizer.conditions")).build(),
+    public static Button toConditionCustomizer(Player player) {
+        return Button.clickable(ItemBuilder.modern(COMPARATOR).setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.conditions")).build(),
                 new OpenButtonAction(MenuUtils.NPC_CONDITION_CUSTOMIZER));
     }
 
-    public static List<Button> currentActions(InternalNpc npc) {
+    public static List<Button> currentActions(InternalNpc npc, Player player) {
         List<Button> buttons = new ArrayList<>();
 
         for (Action action : npc.getActions()) {
-            buttons.add(Button.clickable(action.getFavicon(), ButtonClickAction.plain((menuView, event) -> {
+            buttons.add(Button.clickable(action.getFavicon(player), ButtonClickAction.plain((menuView, event) -> {
                 event.setCancelled(true);
-                Player player = (Player) event.getWhoClicked();
+                Player p = (Player) event.getWhoClicked();
                 if (event.isRightClick()) {
-                    player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                    p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     npc.removeAction(action);
-                    menuView.getAPI().openMenu(player, MenuUtils.NPC_ACTIONS);
+                    menuView.getAPI().openMenu(p, MenuUtils.NPC_ACTIONS);
                 } else if (event.isLeftClick()) {
                     if (CustomNPCs.ACTION_REGISTRY.canEdit(action.getClass())) {
-                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1F, 1F);
-                        plugin.editingActions.put(player.getUniqueId(), action.clone());
-                        plugin.originalEditingActions.put(player.getUniqueId(), action);
-                        plugin.getLotus().openMenu(player, MenuUtils.NPC_ACTION_CUSTOMIZER);
+                        p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1F, 1F);
+                        plugin.editingActions.put(p.getUniqueId(), action.clone());
+                        plugin.originalEditingActions.put(p.getUniqueId(), action);
+                        plugin.getLotus().openMenu(p, MenuUtils.NPC_ACTION_CUSTOMIZER);
                     } else {
-                        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1F, 1F);
-                        player.sendMessage(Msg.translated("customnpcs.edit.fail"));
+                        p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1F, 1F);
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.edit.fail"));
                     }
                 }
             })));
         }
 
         buttons.add(Button.clickable(ItemBuilder.modern(LILY_PAD)
-                        .setDisplay(Msg.translated("customnpcs.menus.actions.new"))
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.actions.new"))
                         .build(),
                 new OpenButtonAction(MenuUtils.NPC_NEW_ACTION)
         ));
@@ -628,23 +625,23 @@ public class MenuItems {
         return buttons;
     }
 
-    public static Button delayDisplay(Action action) {
+    public static Button delayDisplay(Action action, Player player) {
         return Button.clickable(ItemBuilder.modern(CLOCK)
-                .setDisplay(Msg.translate("customnpcs.menus.action_customizer.delay.name", action.getDelay()))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.delay.name", action.getDelay()))
                 .build(), ButtonClickAction.plain((menuView, event) -> event.setCancelled(true)));
     }
 
-    public static Button decrementDelay(Action action) {
+    public static Button decrementDelay(Action action, Player player) {
         return Button.clickable(ItemBuilder.modern(RED_DYE)
-                        .setDisplay(Msg.translated("customnpcs.menus.action_customizer.delay.decrement"))
-                        .setLore(Msg.lore("customnpcs.menus.action_customizer.delay.decrement.description"))
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.delay.decrement"))
+                        .setLore(Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.decrement.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
-                    Player player = (Player) event.getWhoClicked();
-                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+                    Player p = (Player) event.getWhoClicked();
+                    p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
                     if (action.getDelay() == 0) {
-                        player.sendMessage(Msg.translated("customnpcs.menus.action_customizer.delay.error"));
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.action_customizer.delay.error"));
                         return;
                     }
                     if (event.isShiftClick()) {
@@ -654,14 +651,14 @@ public class MenuItems {
                     } else if (event.isRightClick()) {
                         action.setDelay(Math.max(0, action.getDelay() - 5));
                     }
-                    menuView.updateButton(4, button -> button.setItem(delayDisplay(action).getItem()));
+                    menuView.updateButton(4, button -> button.setItem(delayDisplay(action, p).getItem()));
                 }));
     }
 
-    public static Button incrementDelay(Action action) {
+    public static Button incrementDelay(Action action, Player player) {
         return Button.clickable(ItemBuilder.modern(LIME_DYE)
-                        .setDisplay(Msg.translated("customnpcs.menus.action_customizer.delay.increment"))
-                        .setLore(Msg.lore("customnpcs.menus.action_customizer.delay.increment.description"))
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.delay.increment"))
+                        .setLore(Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.increment.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
@@ -672,32 +669,32 @@ public class MenuItems {
                     } else if (event.isRightClick()) {
                         action.setDelay(action.getDelay() + 5);
                     }
-                    Player player = (Player) event.getWhoClicked();
-                    player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-                    menuView.updateButton(4, button -> button.setItem(delayDisplay(action).getItem()));
+                    Player p = (Player) event.getWhoClicked();
+                    p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+                    menuView.updateButton(4, button -> button.setItem(delayDisplay(action, p).getItem()));
                 }));
     }
 
-    public static Button saveAction(Action action) {
+    public static Button saveAction(Action action, Player player) {
         return Button.clickable(ItemBuilder.modern(LILY_PAD)
-                        .setDisplay(Msg.translated("customnpcs.menus.action_customizer.confirm"))
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.confirm"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
-                    Player player = (Player) event.getWhoClicked();
-                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-                    InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+                    Player p = (Player) event.getWhoClicked();
+                    p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+                    InternalNpc npc = plugin.getEditingNPCs().getIfPresent(p.getUniqueId());
 
                     if (npc == null) {
-                        player.sendMessage(Msg.translated("customnpcs.menus.main.error.no_npc.lore"));
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.main.error.no_npc.lore"));
                         return;
                     }
 
-                    if (CustomNPCs.getInstance().originalEditingActions.get(player.getUniqueId()) != null)
-                        npc.removeAction(CustomNPCs.getInstance().originalEditingActions.remove(player.getUniqueId()));
+                    if (CustomNPCs.getInstance().originalEditingActions.get(p.getUniqueId()) != null)
+                        npc.removeAction(CustomNPCs.getInstance().originalEditingActions.remove(p.getUniqueId()));
                     npc.addAction(action);
 
-                    menuView.getAPI().openMenu(player, MenuUtils.NPC_ACTIONS);
+                    menuView.getAPI().openMenu(p, MenuUtils.NPC_ACTIONS);
                 }));
     }
 
@@ -705,37 +702,39 @@ public class MenuItems {
         return ItemBuilder.modern(CLOCK).setDisplay(text).setLore(lore).build();
     }
 
-    public static Button saveCondition() {
+    public static Button saveCondition(Player player) {
         return Button.clickable(ItemBuilder.modern(LILY_PAD)
-                        .setDisplay(Msg.translated("customnpcs.menus.main.create.name"))
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.create.name"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
 
-                    Player player = (Player) event.getWhoClicked();
-                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-                    Action actionImpl = plugin.editingActions.get(player.getUniqueId());
-                    Condition original = plugin.originalEditingConditionals.get(player.getUniqueId());
+                    Player p = (Player) event.getWhoClicked();
+                    p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+                    Action actionImpl = plugin.editingActions.get(p.getUniqueId());
+                    Condition original = plugin.originalEditingConditionals.get(p.getUniqueId());
                     if (original != null) actionImpl.removeCondition(original);
-                    Condition edited = plugin.editingConditionals.get(player.getUniqueId());
+                    Condition edited = plugin.editingConditionals.get(p.getUniqueId());
                     actionImpl.addCondition(edited);
-                    menuView.getAPI().openMenu(player, MenuUtils.NPC_CONDITIONS);
+                    menuView.getAPI().openMenu(p, MenuUtils.NPC_CONDITIONS);
                 }));
     }
 
-    public static Button comparatorSwitcher(Condition condition) {
+    public static Button comparatorSwitcher(Condition condition, Player player) {
 
         List<Component> lore = new ArrayList<>();
         for (Condition.Comparator c : Condition.Comparator.values()) {
             if (condition.getType() == Condition.Type.NUMERIC || (condition.getType() == Condition.Type.LOGICAL && c.isStrictlyLogical())) {
-                if (condition.getComparator() != c) lore.add(Msg.translated(c.getKey()).color(NamedTextColor.GREEN));
-                else lore.add(Component.text("▸ ", NamedTextColor.DARK_AQUA).append(Msg.translated(c.getKey())));
+                if (condition.getComparator() != c)
+                    lore.add(Msg.translate(player.locale(), c.getKey()).color(NamedTextColor.GREEN));
+                else
+                    lore.add(Component.text("▸ ", NamedTextColor.DARK_AQUA).append(Msg.translate(player.locale(), c.getKey())));
             }
         }
-        lore.add(Msg.translated("customnpcs.items.click_to_change"));
+        lore.add(Msg.translate(player.locale(), "customnpcs.items.click_to_change"));
 
         ItemStack i = ItemBuilder.modern(COMPARATOR)
-                .setDisplay(Msg.translated("customnpcs.comparator"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.comparator"))
                 .setLore(lore.toArray(new Component[]{}))
                 .build();
 
@@ -762,30 +761,30 @@ public class MenuItems {
                     condition.setComparator(comparators.get(index - 1));
                 }
             }
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            menuView.replaceButton(11, comparatorSwitcher(condition));
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            menuView.replaceButton(11, comparatorSwitcher(condition, p));
         }));
     }
 
-    public static Button targetValueSelector(Condition condition) {
+    public static Button targetValueSelector(Condition condition, Player player) {
         ItemStack i = ItemBuilder.modern(OAK_HANGING_SIGN)
-                .setDisplay(Msg.translated("customnpcs.value.select"))
-                .setLore(Msg.translate("customnpcs.value.current", condition.getTarget()),
-                        Msg.translated("customnpcs.items.click_to_change"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.value.select"))
+                .setLore(Msg.translate(player.locale(), "customnpcs.value.current", condition.getTarget()),
+                        Msg.translate(player.locale(), "customnpcs.items.click_to_change"))
                 .build();
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
             event.setCancelled(true);
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            player.closeInventory();
-            plugin.targetWaiting.add(player.getUniqueId());
-            new TargetInputRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            p.closeInventory();
+            plugin.targetWaiting.add(p.getUniqueId());
+            new TargetInputRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
         }));
     }
 
-    public static Button valueSwitcher(Condition condition) {
+    public static Button valueSwitcher(Condition condition, Player player) {
         List<Component> lore = new ArrayList<>();
 
         for (Condition.Value v : Condition.Value.values()) {
@@ -795,15 +794,15 @@ public class MenuItems {
 
 
             if (condition.getValue() != v)
-                lore.add(Msg.translated(v.getTranslationKey()).color(NamedTextColor.GREEN));
+                lore.add(Msg.translate(player.locale(), v.getTranslationKey()).color(NamedTextColor.GREEN));
             else
-                lore.add(Component.text("▸ ", NamedTextColor.DARK_AQUA).append(Msg.translated(v.getTranslationKey())));
+                lore.add(Component.text("▸ ", NamedTextColor.DARK_AQUA).append(Msg.translate(player.locale(), v.getTranslationKey())));
 
         }
-        lore.add(Msg.translated("customnpcs.items.click_to_change"));
+        lore.add(Msg.translate(player.locale(), "customnpcs.items.click_to_change"));
 
         ItemStack i = ItemBuilder.modern(COMPARATOR)
-                .setDisplay(Msg.translated("customnpcs.statistic"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.statistic"))
                 .setLore(lore.toArray(new Component[]{}))
                 .build();
 
@@ -830,223 +829,223 @@ public class MenuItems {
                     condition.setValue(statistics.get(index - 1));
                 }
             }
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            menuView.updateButton(15, button -> button.setItem(valueSwitcher(condition).getItem()));
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            menuView.updateButton(15, button -> button.setItem(valueSwitcher(condition, player).getItem()));
         }));
     }
 
-    public static Button interactableHologram(InternalNpc npc) {
+    public static Button interactableHologram(InternalNpc npc, Player player) {
         boolean hideClickableTag = npc.getSettings().isHideClickableHologram();
         ItemStack i = ItemBuilder.modern(hideClickableTag ? RED_CANDLE : GREEN_CANDLE)
-                .setDisplay(Msg.translated("customnpcs.menus.extra.hologram_visibility"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.extra.hologram_visibility"))
                 .setLore(
                         Component.empty(),
-                        Msg.translated("customnpcs.menus.extra.hologram_visibility.description"),
-                        hideClickableTag ? Msg.translated("customnpcs.menus.extra.hologram_visibility.description.hidden") : Msg.translated("customnpcs.menus.extra.hologram_visibility.description.shown")
+                        Msg.translate(player.locale(), "customnpcs.menus.extra.hologram_visibility.description"),
+                        hideClickableTag ? Msg.translate(player.locale(), "customnpcs.menus.extra.hologram_visibility.description.hidden") : Msg.translate(player.locale(), "customnpcs.menus.extra.hologram_visibility.description.shown")
                 ).build();
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             event.setCancelled(true);
             npc.getSettings().setHideClickableHologram(!hideClickableTag);
-            menuView.replaceButton(12, interactableHologram(npc));
+            menuView.replaceButton(12, interactableHologram(npc, p));
         }));
     }
 
-    public static Button interactableText() {
+    public static Button interactableText(Player player) {
         ItemStack i = ItemBuilder.modern(NAME_TAG)
-                .setDisplay(Msg.translated("customnpcs.menus.extra.hologram_text"))
-                .setLore(Msg.lore("customnpcs.menus.extra.hologram_text.description"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.extra.hologram_text"))
+                .setLore(Msg.lore(player.locale(), "customnpcs.menus.extra.hologram_text.description"))
                 .build();
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
             event.setCancelled(true);
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            plugin.hologramWaiting.add(player.getUniqueId());
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            plugin.hologramWaiting.add(p.getUniqueId());
 
-            player.closeInventory();
-            player.sendMessage(Msg.translated("customnpcs.menus.extra.hologram_text.type"));
-            new InteractableHologramRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
+            p.closeInventory();
+            p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.extra.hologram_text.type"));
+            new InteractableHologramRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
         }));
     }
 
-    public static Button importPlayer() {
+    public static Button importPlayer(Player player) {
         ItemStack i = ItemBuilder.modern(ANVIL)
-                .setDisplay(Msg.translated("customnpcs.menus.skins.player"))
-                .setLore(Msg.lore("customnpcs.menus.skins.player.description"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.skins.player"))
+                .setLore(Msg.lore(player.locale(), "customnpcs.menus.skins.player.description"))
                 .build();
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            player.closeInventory();
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            p.closeInventory();
 
-            plugin.playerWaiting.add(player.getUniqueId());
-            new PlayerNameRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
+            plugin.playerWaiting.add(p.getUniqueId());
+            new PlayerNameRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
             event.setCancelled(true);
         }));
     }
 
-    public static Button useCatalog() {
+    public static Button useCatalog(Player player) {
         ItemStack i = ItemBuilder.modern(ARMOR_STAND)
-                .setDisplay(Msg.translated("customnpcs.menus.skins.catalog"))
-                .setLore(Msg.lore("customnpcs.menus.skins.catalog.description"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.skins.catalog"))
+                .setLore(Msg.lore(player.locale(), "customnpcs.menus.skins.catalog.description"))
                 .build();
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
             event.setCancelled(true);
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             try {
-                CustomNPCs.getInstance().skinCatalogue.open(player);
+                CustomNPCs.getInstance().skinCatalogue.open(p);
             } catch (InvalidPageException e) {
-                player.sendMessage(Msg.translated("customnpcs.error.cant_open_skin_catalog"));
+                p.sendMessage(Msg.translate(p.locale(), "customnpcs.error.cant_open_skin_catalog"));
                 CustomNPCs.getInstance().getLogger().log(Level.SEVERE, "An error occurred whilst opening the Skin Catalog!", e);
             }
         }));
     }
 
-    public static Button importUrl() {
+    public static Button importUrl(Player player) {
         ItemStack i = ItemBuilder.modern(WRITABLE_BOOK)
-                .setDisplay(Msg.translated("customnpcs.menus.skins.url"))
-                .setLore(Msg.lore("customnpcs.menus.skins.url.description"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.skins.url"))
+                .setLore(Msg.lore(player.locale(), "customnpcs.menus.skins.url.description"))
                 .build();
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            player.closeInventory();
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            p.closeInventory();
 
-            plugin.urlWaiting.add(player.getUniqueId());
-            new UrlRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
+            plugin.urlWaiting.add(p.getUniqueId());
+            new UrlRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
             event.setCancelled(true);
         }));
     }
 
-    public static List<Button> conditions(Action action) {
+    public static List<Button> conditions(Action action, Player player) {
         List<Button> buttons = new ArrayList<>();
 
         if (action.getConditions() == null) {
-            return Utils.list(newCondition(action));
+            return Utils.list(newCondition(action, player));
         }
 
         for (Condition condition : action.getConditions()) {
             boolean logical = condition.getType() == Condition.Type.LOGICAL;
             ItemStack i = ItemBuilder.modern(logical ? COMPARATOR : POPPED_CHORUS_FRUIT)
-                    .setDisplay(logical ? Msg.translated("customnpcs.menus.conditions.logical") : Msg.translated("customnpcs.menus.conditions.numeric"))
+                    .setDisplay(logical ? Msg.translate(player.locale(), "customnpcs.menus.conditions.logical") : Msg.translate(player.locale(), "customnpcs.menus.conditions.numeric"))
                     .setLore(
                             Component.empty(),
-                            Msg.translated("customnpcs.menus.conditions.comparator", Msg.translated(condition.getComparator().getKey())),
-                            Msg.translated("customnpcs.menus.conditions.value", Msg.translated(condition.getValue().getTranslationKey())),
-                            Msg.translate("customnpcs.menus.conditions.target", condition.getTarget()),
+                            Msg.translate(player.locale(), "customnpcs.menus.conditions.comparator", Msg.translate(player.locale(), condition.getComparator().getKey())),
+                            Msg.translate(player.locale(), "customnpcs.menus.conditions.value", Msg.translate(player.locale(), condition.getValue().getTranslationKey())),
+                            Msg.translate(player.locale(), "customnpcs.menus.conditions.target", condition.getTarget()),
                             Component.empty(),
-                            Msg.translated("customnpcs.favicons.remove"),
-                            Msg.translated("customnpcs.favicons.edit")
+                            Msg.translate(player.locale(), "customnpcs.favicons.remove"),
+                            Msg.translate(player.locale(), "customnpcs.favicons.edit")
                     ).build();
 
             buttons.add(Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
                 event.setCancelled(true);
-                Player player = (Player) event.getWhoClicked();
+                Player p = (Player) event.getWhoClicked();
 
                 if (event.isRightClick()) {
-                    player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                    p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
                     action.removeCondition(condition);
-                    menuView.getAPI().openMenu(player, MenuUtils.NPC_CONDITIONS);
+                    menuView.getAPI().openMenu(p, MenuUtils.NPC_CONDITIONS);
                 } else {
-                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-                    plugin.editingConditionals.put(player.getUniqueId(), condition.clone());
-                    plugin.originalEditingConditionals.put(player.getUniqueId(), condition);
-                    menuView.getAPI().openMenu(player, MenuUtils.NPC_CONDITION_CUSTOMIZER);
+                    p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+                    plugin.editingConditionals.put(p.getUniqueId(), condition.clone());
+                    plugin.originalEditingConditionals.put(p.getUniqueId(), condition);
+                    menuView.getAPI().openMenu(p, MenuUtils.NPC_CONDITION_CUSTOMIZER);
                 }
             })));
         }
-        buttons.add(newCondition(action));
+        buttons.add(newCondition(action, player));
         return buttons;
     }
 
-    public static Button newCondition(Action action) {
+    public static Button newCondition(Action action, Player player) {
         ItemStack i = ItemBuilder.modern(LILY_PAD)
-                .setDisplay(Msg.translated("customnpcs.menus.conditions.new_condition"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.conditions.new_condition"))
                 .build();
         return Button.clickable(i, new OpenButtonAction(MenuUtils.NPC_NEW_CONDITION));
     }
 
-    public static Button toggleConditionMode(Action action) {
+    public static Button toggleConditionMode(Action action, Player player) {
         boolean isAll = action.getMode() == Condition.SelectionMode.ALL;
         ItemStack i = ItemBuilder.modern(isAll ? GREEN_CANDLE : RED_CANDLE)
-                .setDisplay(Msg.translated("customnpcs.menus.conditions.mode.toggle"))
-                .setLore(isAll ? Msg.translated("customnpcs.menus.conditions.mode.all") : Msg.translated("customnpcs.menus.conditions.mode.one"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.conditions.mode.toggle"))
+                .setLore(isAll ? Msg.translate(player.locale(), "customnpcs.menus.conditions.mode.all") : Msg.translate(player.locale(), "customnpcs.menus.conditions.mode.one"))
                 .build();
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             event.setCancelled(true);
             action.setMode(isAll ? Condition.SelectionMode.ONE : Condition.SelectionMode.ALL);
-            menuView.replaceButton(35, toggleConditionMode(action));
+            menuView.replaceButton(35, toggleConditionMode(action, p));
         }));
     }
 
-    public static Button toCondition() {
+    public static Button toCondition(Player player) {
         ItemStack i = ItemBuilder.modern(ARROW)
-                .setDisplay(Msg.translated("customnpcs.items.go_back"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.items.go_back"))
                 .build();
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             event.setCancelled(true);
-            menuView.getAPI().openMenu(player, MenuUtils.NPC_CONDITIONS);
+            menuView.getAPI().openMenu(p, MenuUtils.NPC_CONDITIONS);
         }));
     }
 
-    public static Button editConditions() {
+    public static Button editConditions(Player player) {
         ItemStack i = ItemBuilder.modern(COMPARATOR)
-                .setDisplay(Msg.translated("customnpcs.menus.action_customizer.conditions"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.conditions"))
                 .build();
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
             event.setCancelled(true);
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            menuView.getAPI().openMenu(player, MenuUtils.NPC_CONDITIONS);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            menuView.getAPI().openMenu(p, MenuUtils.NPC_CONDITIONS);
         }));
     }
 
-    public static Button numeric() {
+    public static Button numeric(Player player) {
         ItemStack i = ItemBuilder.modern(POPPED_CHORUS_FRUIT)
-                .setDisplay(Msg.translated("customnpcs.menus.conditions.new.numeric"))
-                .setLore(Msg.lore("customnpcs.menus.conditions.new.numeric.description"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.conditions.new.numeric"))
+                .setLore(Msg.lore(player.locale(), "customnpcs.menus.conditions.new.numeric.description"))
                 .build();
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
             event.setCancelled(true);
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             Condition conditional = new NumericCondition(Condition.Comparator.EQUAL_TO, Condition.Value.EXP_LEVELS, 0.0);
-            plugin.originalEditingConditionals.remove(player.getUniqueId());
-            plugin.editingConditionals.put(player.getUniqueId(), conditional);
-            menuView.getAPI().openMenu(player, MenuUtils.NPC_CONDITION_CUSTOMIZER);
+            plugin.originalEditingConditionals.remove(p.getUniqueId());
+            plugin.editingConditionals.put(p.getUniqueId(), conditional);
+            menuView.getAPI().openMenu(p, MenuUtils.NPC_CONDITION_CUSTOMIZER);
         }));
     }
 
-    public static Button logic() {
+    public static Button logic(Player player) {
         ItemStack i = ItemBuilder.modern(COMPARATOR)
-                .setDisplay(Msg.translated("customnpcs.menus.conditions.new.logical"))
-                .setLore(Msg.lore("customnpcs.menus.conditions.new.logical.description"))
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.conditions.new.logical"))
+                .setLore(Msg.lore(player.locale(), "customnpcs.menus.conditions.new.logical.description"))
                 .build();
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
             event.setCancelled(true);
-            Player player = (Player) event.getWhoClicked();
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             Condition conditional = new LogicalCondition(Condition.Comparator.EQUAL_TO, Condition.Value.GAMEMODE, "CREATIVE");
-            plugin.originalEditingConditionals.remove(player.getUniqueId());
-            plugin.editingConditionals.put(player.getUniqueId(), conditional);
-            menuView.getAPI().openMenu(player, MenuUtils.NPC_CONDITION_CUSTOMIZER);
+            plugin.originalEditingConditionals.remove(p.getUniqueId());
+            plugin.editingConditionals.put(p.getUniqueId(), conditional);
+            menuView.getAPI().openMenu(p, MenuUtils.NPC_CONDITION_CUSTOMIZER);
         }));
     }
 }

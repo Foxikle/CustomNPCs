@@ -48,7 +48,7 @@ public class EquipmentMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translated("customnpcs.menus.equipment.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.equipment.title"));
     }
 
     @Override
@@ -64,8 +64,8 @@ public class EquipmentMenu implements Menu {
             return Content.builder(capacity)
                     .setButton(22, Button.clickable(
                             ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.main.error.no_npc"))
-                                    .setLore(Msg.lore("customnpcs.menus.main.error.no_npc.lore"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.error.no_npc"))
+                                    .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.error.no_npc.lore"))
                                     .build(),
                             new CloseMenuAction()
                     ))
@@ -74,26 +74,26 @@ public class EquipmentMenu implements Menu {
 
         return Content.builder(capacity)
                 .apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(8, Button.clickable(MenuItems.importArmor(), ButtonClickAction.plain((menuView, event) -> {
+                .setButton(8, Button.clickable(MenuItems.importArmor(player), ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     npc.getEquipment().importFromEntityEquipment(p.getEquipment());
                     p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
 
-                    menuView.replaceButton(13, MenuItems.helmetSlot(npc));
-                    menuView.replaceButton(21, MenuItems.offhandSlot(npc));
-                    menuView.replaceButton(22, MenuItems.chestplateSlot(npc));
-                    menuView.replaceButton(23, MenuItems.handSlot(npc));
-                    menuView.replaceButton(31, MenuItems.leggingsSlot(npc));
-                    menuView.replaceButton(40, MenuItems.bootsSlot(npc));
+                    menuView.replaceButton(13, MenuItems.helmetSlot(npc, player));
+                    menuView.replaceButton(21, MenuItems.offhandSlot(npc, player));
+                    menuView.replaceButton(22, MenuItems.chestplateSlot(npc, player));
+                    menuView.replaceButton(23, MenuItems.handSlot(npc, player));
+                    menuView.replaceButton(31, MenuItems.leggingsSlot(npc, player));
+                    menuView.replaceButton(40, MenuItems.bootsSlot(npc, player));
                 })))
-                .setButton(13, MenuItems.helmetSlot(npc))
-                .setButton(21, MenuItems.offhandSlot(npc))
-                .setButton(22, MenuItems.chestplateSlot(npc))
-                .setButton(23, MenuItems.handSlot(npc))
-                .setButton(31, MenuItems.leggingsSlot(npc))
-                .setButton(40, MenuItems.bootsSlot(npc))
-                .setButton(49, MenuItems.toMain())
+                .setButton(13, MenuItems.helmetSlot(npc, player))
+                .setButton(21, MenuItems.offhandSlot(npc, player))
+                .setButton(22, MenuItems.chestplateSlot(npc, player))
+                .setButton(23, MenuItems.handSlot(npc, player))
+                .setButton(31, MenuItems.leggingsSlot(npc, player))
+                .setButton(40, MenuItems.bootsSlot(npc, player))
+                .setButton(49, MenuItems.toMain(player))
                 .build();
     }
 }

@@ -62,21 +62,8 @@ import static org.bukkit.Material.POTION;
 @Setter
 public class RemoveEffect extends Action {
 
-    public static final Button CREATION_BUTTON = Button.clickable(ItemBuilder.modern(MILK_BUCKET)
-                    .setDisplay(Msg.translate("customnpcs.favicons.remove_effect"))
-                    .setLore(Msg.lore("customnpcs.favicons.remove_effect.description"))
-                    .build(),
-            ButtonClickAction.plain((menuView, event) -> {
-                event.setCancelled(true);
-                Player player = (Player) event.getWhoClicked();
-                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                RemoveEffect actionImpl = new RemoveEffect("SPEED", 0, Condition.SelectionMode.ONE, new ArrayList<>());
-                CustomNPCs.getInstance().editingActions.put(player.getUniqueId(), actionImpl);
-                menuView.getAPI().openMenu(player, actionImpl.getMenu());
-            }));
     private static final List<Field> fields = Stream.of(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
     private String effect;
-
     /**
      * Creates a new GiveEffect with the specified parameters
      *
@@ -85,6 +72,22 @@ public class RemoveEffect extends Action {
     public RemoveEffect(String effect, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
         super(delay, mode, conditionals);
         this.effect = effect;
+    }
+
+    public static Button creationButton(Player player) {
+
+        return Button.clickable(ItemBuilder.modern(MILK_BUCKET)
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.remove_effect"))
+                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.remove_effect.description"))
+                        .build(),
+                ButtonClickAction.plain((menuView, event) -> {
+                    event.setCancelled(true);
+                    Player p = (Player) event.getWhoClicked();
+                    p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    RemoveEffect actionImpl = new RemoveEffect("SPEED", 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    CustomNPCs.getInstance().editingActions.put(player.getUniqueId(), actionImpl);
+                    menuView.getAPI().openMenu(p, actionImpl.getMenu());
+                }));
     }
 
     public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
@@ -105,15 +108,15 @@ public class RemoveEffect extends Action {
     }
 
     @Override
-    public ItemStack getFavicon() {
-        return ItemBuilder.modern(MILK_BUCKET).setDisplay(Msg.translate("customnpcs.favicons.remove_effect"))
+    public ItemStack getFavicon(Player player) {
+        return ItemBuilder.modern(MILK_BUCKET).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.remove_effect"))
                 .setLore(
-                        Msg.translate("customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
                         Msg.format(""),
-                        Msg.translate("customnpcs.favicons.give_effect.effect", effect),
+                        Msg.translate(player.locale(), "customnpcs.favicons.give_effect.effect", effect),
                         Msg.format(""),
-                        Msg.translated("customnpcs.favicons.edit"),
-                        Msg.translated("customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
+                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
                 ).build();
     }
 
@@ -163,7 +166,7 @@ public class RemoveEffect extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translated("customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
         }
 
         @Override
@@ -174,13 +177,13 @@ public class RemoveEffect extends Action {
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
 
-            return MenuUtils.actionBase(action)
-                    .setButton(22, generateToggleEffect())
+            return MenuUtils.actionBase(action, player)
+                    .setButton(22, generateToggleEffect(player))
                     .build();
         }
 
 
-        private Button generateToggleEffect() {
+        private Button generateToggleEffect(Player player) {
             List<Component> lore = new ArrayList<>();
             fields.forEach(field -> {
                 if (!Objects.equals(action.getEffect(), field.getName()))
@@ -188,14 +191,14 @@ public class RemoveEffect extends Action {
                 else lore.add(Utils.mm("<dark_aqua>▸ " + field.getName()));
             });
             return Button.clickable(ItemBuilder.modern(POTION)
-                            .setDisplay(Msg.translate("customnpcs.menus.action.remove_effect.effect"))
+                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.remove_effect.effect"))
                             .addFlags(ItemFlag.values())
                             .setLore(lore.toArray(new Component[]{}))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
-                        Player player = (Player) event.getWhoClicked();
-                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        Player p = (Player) event.getWhoClicked();
+                        p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                         List<String> effects = new ArrayList<>();
                         fields.forEach(field -> effects.add(field.getName()));
 
@@ -213,7 +216,7 @@ public class RemoveEffect extends Action {
                                 setEffect(effects.get(index - 1));
                             }
                         }
-                        menuView.updateButton(22, button -> button.setItem(generateToggleEffect().getItem()));
+                        menuView.updateButton(22, button -> button.setItem(generateToggleEffect(player).getItem()));
                     }));
         }
     }

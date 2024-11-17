@@ -58,21 +58,6 @@ import static org.bukkit.Material.OAK_HANGING_SIGN;
 @Setter
 public class SendServer extends Action {
 
-    public static final Button CREATION_BUTTON = Button.clickable(ItemBuilder.modern(GRASS_BLOCK)
-                    .setDisplay(Msg.translate("customnpcs.favicons.server"))
-                    .setLore(Msg.lore("customnpcs.favicons.server.description"))
-                    .build(),
-            ButtonClickAction.plain((menuView, event) -> {
-                event.setCancelled(true);
-                Player player = (Player) event.getWhoClicked();
-                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                //todo: watch out for duplications
-
-                SendServer actionImpl = new SendServer("server", 0, Condition.SelectionMode.ONE, new ArrayList<>());
-                CustomNPCs.getInstance().editingActions.put(player.getUniqueId(), actionImpl);
-                menuView.getAPI().openMenu(player, actionImpl.getMenu());
-            }));
-
     private String server;
 
     /**
@@ -83,6 +68,24 @@ public class SendServer extends Action {
     public SendServer(String server, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
         super(delay, mode, conditionals);
         this.server = server;
+    }
+
+    public static Button creationButton(Player player) {
+        return
+                Button.clickable(ItemBuilder.modern(GRASS_BLOCK)
+                                .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.server"))
+                                .setLore(Msg.lore(player.locale(), "customnpcs.favicons.server.description"))
+                                .build(),
+                        ButtonClickAction.plain((menuView, event) -> {
+                            event.setCancelled(true);
+                            Player p = (Player) event.getWhoClicked();
+                            p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                            //todo: watch out for duplications
+
+                            SendServer actionImpl = new SendServer("server", 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                            CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
+                            menuView.getAPI().openMenu(p, actionImpl.getMenu());
+                        }));
     }
 
     public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
@@ -126,15 +129,15 @@ public class SendServer extends Action {
     }
 
     @Override
-    public ItemStack getFavicon() {
-        return ItemBuilder.modern(GRASS_BLOCK).setDisplay(Msg.translate("customnpcs.favicons.server"))
+    public ItemStack getFavicon(Player player) {
+        return ItemBuilder.modern(GRASS_BLOCK).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.server"))
                 .setLore(
-                        Msg.translate("customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
                         Msg.format(""),
-                        Msg.translate("customnpcs.favicons.server.target", server),
+                        Msg.translate(player.locale(), "customnpcs.favicons.server.target", server),
                         Msg.format(""),
-                        Msg.translated("customnpcs.favicons.edit"),
-                        Msg.translated("customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
+                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
                 ).build();
     }
 
@@ -163,7 +166,7 @@ public class SendServer extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translated("customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
         }
 
         @Override
@@ -173,10 +176,10 @@ public class SendServer extends Action {
 
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
-            return MenuUtils.actionBase(action)
+            return MenuUtils.actionBase(action, player)
                     .setButton(22, Button.clickable(ItemBuilder.modern(OAK_HANGING_SIGN)
                                     .setDisplay(Component.text(getServer()))
-                                    .setLore(Msg.translate("customnpcs.items.click_to_change"))
+                                    .setLore(Msg.translate(player.locale(), "customnpcs.items.click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 CustomNPCs plugin = CustomNPCs.getInstance();

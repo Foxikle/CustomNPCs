@@ -56,18 +56,6 @@ import static org.bukkit.Material.PAPER;
 @Setter
 public class ActionBar extends Action {
 
-    public static final Button CREATION_BUTTON = Button.clickable(ItemBuilder.modern(IRON_INGOT)
-                    .setDisplay(Msg.translate("customnpcs.favicons.actionbar"))
-                    .setLore(Msg.lore("customnpcs.favicons.actionbar.description"))
-                    .build(),
-            ButtonClickAction.plain((menuView, event) -> {
-                event.setCancelled(true);
-                Player player = (Player) event.getWhoClicked();
-                ActionBar actionImpl = new ActionBar("", 0, Condition.SelectionMode.ONE, new ArrayList<>());
-                CustomNPCs.getInstance().editingActions.put(player.getUniqueId(), actionImpl);
-                menuView.getAPI().openMenu(player, actionImpl.getMenu());
-            }));
-
     private String rawMessage;
 
     /**
@@ -78,6 +66,20 @@ public class ActionBar extends Action {
     public ActionBar(String rawMessage, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
         super(delay, mode, conditionals);
         this.rawMessage = rawMessage;
+    }
+
+    public static Button creationButton(Player player) {
+        return Button.clickable(ItemBuilder.modern(IRON_INGOT)
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.actionbar"))
+                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.actionbar.description"))
+                        .build(),
+                ButtonClickAction.plain((menuView, event) -> {
+                    event.setCancelled(true);
+                    Player p = (Player) event.getWhoClicked();
+                    ActionBar actionImpl = new ActionBar("", 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
+                    menuView.getAPI().openMenu(p, actionImpl.getMenu());
+                }));
     }
 
     public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
@@ -102,15 +104,15 @@ public class ActionBar extends Action {
     }
 
     @Override
-    public ItemStack getFavicon() {
+    public ItemStack getFavicon(Player player) {
         return ItemBuilder.modern(IRON_INGOT)
-                .setDisplay(Msg.translate("customnpcs.favicons.actionbar"))
-                .setLore(Msg.translate("customnpcs.favicons.delay", getDelay()),
-                        Msg.translated("customnpcs.favicons.preview", Msg.format(getRawMessage())),
-                        Msg.format(getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString("customnpcs.messages.empty_string") : getRawMessage()),
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.actionbar"))
+                .setLore(Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "customnpcs.favicons.preview", Msg.format(getRawMessage())),
+                        Msg.format(getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString(player.locale(), "customnpcs.messages.empty_string") : getRawMessage()),
                         Msg.format(""),
-                        Msg.translated("customnpcs.favicons.edit"),
-                        Msg.translated("customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
+                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
                 ).build();
     }
 
@@ -153,7 +155,7 @@ public class ActionBar extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translated("customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
         }
 
         @Override
@@ -163,10 +165,10 @@ public class ActionBar extends Action {
 
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
-            return MenuUtils.actionBase(actionBar)
+            return MenuUtils.actionBase(actionBar, player)
                     .setButton(22, Button.clickable(ItemBuilder.modern(PAPER)
-                                    .setDisplay(Msg.translated(getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString("customnpcs.messages.empty_string") : getRawMessage()))
-                                    .setLore(Msg.translate("customnpcs.items.click_to_change"))
+                                    .setDisplay(Msg.translate(player.locale(), getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString(player.locale(), "customnpcs.messages.empty_string") : getRawMessage()))
+                                    .setLore(Msg.translate(player.locale(), "customnpcs.items.click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);

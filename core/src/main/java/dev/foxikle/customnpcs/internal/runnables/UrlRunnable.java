@@ -54,8 +54,8 @@ public class UrlRunnable extends BukkitRunnable {
         if (!plugin.urlWaiting.contains(player.getUniqueId()))
             this.cancel();
         player.showTitle(Title.title(
-                Msg.translated("customnpcs.data.url.title"),
-                Msg.translated("customnpcs.data.url.subtitle"),
+                Msg.translate(player.locale(), "customnpcs.data.url.title"),
+                Msg.translate(player.locale(), "customnpcs.data.url.subtitle"),
                 Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
         ));
     }
