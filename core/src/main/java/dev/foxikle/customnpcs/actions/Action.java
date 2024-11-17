@@ -28,7 +28,6 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import io.github.mqzen.menus.base.Menu;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +49,6 @@ public abstract class Action {
     private final List<Condition> conditions = new ArrayList<>();
     private int delay = 0;
     private Condition.SelectionMode mode = Condition.SelectionMode.ONE;
-    private ItemStack favicon = new ItemStack(Material.AIR);
 
 
     /**
@@ -131,7 +129,7 @@ public abstract class Action {
      */
     public abstract String serialize();
 
-    public abstract ItemStack getFavicon();
+    public abstract ItemStack getFavicon(Player player);
 
     @Override
     public String toString() {
