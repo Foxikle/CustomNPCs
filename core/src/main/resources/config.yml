@@ -13,25 +13,7 @@
 #    will be automatically generated on the next server start.
 
 # DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.
-CONFIG_VERSION: 7
-
-# PreferredLanguage -> Which language would you like the plugin's interface to appear in?  Please note translations
-# May not be 100% accurate or complete. Please be thankful for the volunteers to donated their time and energy to translating
-# the plugin for you!
-# Valid Options:
-# English: 'ENGLISH', 'EN'
-# 中国人: 'CHINESE', 'ZH' -- Chinese translations courtesy of CNSYGZS
-# Deutsch: 'GERMAN', 'DE' !!INCOMPLETE!! -- German translations courtesy of Felix Brösicke
-# Русский: 'RUSSIAN', 'RU' !!INCOMPLETE!! -- Russian translations courtesy of idontknow0928643
-# More coming soon....
-PreferredLanguage: ENGLISH
-
-# PesterAboutLanguageSettings -> Should the plugin pester players with the permission "customnpcs.*" to change the plugin's configuration locale?
-# It will only pester you if:
-# 1.) Your Minecraft Client language is not set to the currently selected language
-# 2.) The Plugin supports that language
-# The message includes a button to toggle the language, and the message off.
-PesterAboutLanguageSettings: true
+CONFIG_VERSION: 6
 
 # InjectionDistance -> How close should a player be to the NPC before the plugin attempts to inject the NPC (Due to minecraft, npcs automatically remove themselves after getting 48 blocks from the player.
 InjectionDistance: 48
