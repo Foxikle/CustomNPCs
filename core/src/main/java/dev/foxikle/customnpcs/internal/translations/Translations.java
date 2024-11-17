@@ -31,31 +31,26 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class Translations {
-    TranslationRegistry registry = TranslationRegistry.create(Key.key("customnpcs:translations_english"));
+    TranslationRegistry registry = TranslationRegistry.create(Key.key("customnpcs:localization"));
 
 
-    public void setup(Locale locale) {
-//        registry.defaultLocale(locale);
+    public void setup() {
 
-        switch (locale.getLanguage()) {
-            case "zh" -> {
-                ResourceBundle bundle = ResourceBundle.getBundle("localization.Chinese", Locale.SIMPLIFIED_CHINESE, UTF8ResourceBundleControl.get());
-                registry.registerAll(Locale.SIMPLIFIED_CHINESE, bundle, true);
-            }
-            case "ru" -> {
-                ResourceBundle bundle = ResourceBundle.getBundle("localization.Russian", new Locale("ru"), UTF8ResourceBundleControl.get());
-                registry.registerAll(new Locale("ru"), bundle, true);
-            }
-            case "de" -> {
-                ResourceBundle bundle = ResourceBundle.getBundle("localization.German", Locale.GERMAN, UTF8ResourceBundleControl.get());
-                registry.registerAll(Locale.GERMAN, bundle, true);
-            }
-            default -> {
-                ResourceBundle bundle = ResourceBundle.getBundle("localization.English", Locale.US, UTF8ResourceBundleControl.get());
-                registry.registerAll(Locale.US, bundle, true);
-            }
-        }
 
+        ResourceBundle zh = ResourceBundle.getBundle("localization.Chinese", Locale.SIMPLIFIED_CHINESE, UTF8ResourceBundleControl.get());
+        registry.registerAll(Locale.SIMPLIFIED_CHINESE, zh, true);
+
+
+        ResourceBundle ru = ResourceBundle.getBundle("localization.Russian", new Locale("ru"), UTF8ResourceBundleControl.get());
+        registry.registerAll(new Locale("ru"), ru, true);
+
+        ResourceBundle de = ResourceBundle.getBundle("localization.German", Locale.GERMAN, UTF8ResourceBundleControl.get());
+        registry.registerAll(Locale.GERMAN, de, true);
+
+        ResourceBundle en = ResourceBundle.getBundle("localization.English", Locale.US, UTF8ResourceBundleControl.get());
+        registry.registerAll(Locale.ENGLISH, en, true);
+
+        registry.defaultLocale(Locale.ENGLISH);
 
         GlobalTranslator.translator().addSource(registry);
     }
