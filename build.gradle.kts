@@ -127,7 +127,8 @@ tasks {
     shadowJar {
         archiveClassifier.set("")
         relocate("org.bstats", "dev.foxikle.dependencies.bstats")
-        destinationDirectory.set(file(providers.gradleProperty("plugin_dir").get()))
+        // This is used to place the file into a test server's plugin directory.
+        //destinationDirectory.set(file(providers.gradleProperty("plugin_dir").get()))
     }
 }
 
