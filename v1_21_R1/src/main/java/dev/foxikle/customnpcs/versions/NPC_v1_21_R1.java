@@ -49,7 +49,10 @@ import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -59,10 +62,10 @@ import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.entity.CraftTextDisplay;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.scoreboard.CraftScoreboard;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -78,7 +81,7 @@ public class NPC_v1_21_R1 extends ServerPlayer implements InternalNpc {
     // reflection for data accessors
     private static final EntityDataAccessor<net.minecraft.network.chat.Component> TEXT_DISPLAY_ACCESSOR;
     private static final EntityDataAccessor<Byte> BILLBOARD_ACCESSOR;
-    private static final Team NPC_TEAM = Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc");
+
 
     static {
         // "DATA_TEXT_ID" for mojmaps, not sure what spigot would be :)
@@ -98,6 +101,9 @@ public class NPC_v1_21_R1 extends ServerPlayer implements InternalNpc {
             throw new RuntimeException(e);
         }
     }
+
+    private final String MC_NAME;
+    private final ClientboundSetPlayerTeamPacket teamPacket;
 
     private final UUID uuid;
     private final CustomNPCs plugin;
@@ -139,6 +145,13 @@ public class NPC_v1_21_R1 extends ServerPlayer implements InternalNpc {
         this.actionImpls = actionImpls;
         super.connection = new FakeListener_v1_21_R1(((CraftServer) Bukkit.getServer()).getServer(), new FakeConnection_v1_21_R1(PacketFlow.CLIENTBOUND), this);
         this.plugin = plugin;
+
+        this.MC_NAME = uuid.toString().substring(0, 16);
+        Scoreboard scoreboard = ((CraftScoreboard) Bukkit.getScoreboardManager().getMainScoreboard()).getHandle();
+        this.teamPacket = ClientboundSetPlayerTeamPacket.createPlayerPacket(
+                new PlayerTeam(scoreboard, "npc"),
+                MC_NAME,
+                ClientboundSetPlayerTeamPacket.Action.ADD);
     }
 
     /**
@@ -187,14 +200,7 @@ public class NPC_v1_21_R1 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
         super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(equipment.getHand());
-        teamLoop = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            if (getTeam() == null) {
-                NPC_TEAM.addEntry(uuid.toString().substring(0, 16));
-            } else {
-                if (!getTeam().getName().equals("npc"))
-                    NPC_TEAM.addEntry(uuid.toString().substring(0, 16));
-            }
-        }, 1, 5).getTaskId();
+        teamLoop = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> Bukkit.getOnlinePlayers().forEach(player -> ((CraftPlayer) player).getHandle().connection.send(teamPacket)), 1, 5).getTaskId();
         if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
 
@@ -286,7 +292,7 @@ public class NPC_v1_21_R1 extends ServerPlayer implements InternalNpc {
      *
      * @return the Item the NPC is wearing on their feet
      */
-    public org.bukkit.entity.Entity getTarget() {
+    public Entity getTarget() {
         return target;
     }
 
@@ -386,7 +392,7 @@ public class NPC_v1_21_R1 extends ServerPlayer implements InternalNpc {
      * @param p The player to inject
      */
     public void injectPlayer(Player p) {
-        List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>> stuffs = new ArrayList<>();
+        List<Pair<net.minecraft.world.entity.EquipmentSlot, ItemStack>> stuffs = new ArrayList<>();
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.MAINHAND, CraftItemStack.asNMSCopy(equipment.getHand())));
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.OFFHAND, CraftItemStack.asNMSCopy(equipment.getOffhand())));
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.HEAD, CraftItemStack.asNMSCopy(equipment.getHead())));
@@ -412,9 +418,7 @@ public class NPC_v1_21_R1 extends ServerPlayer implements InternalNpc {
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
 
         // create them
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            injectHolograms(p);
-        }, 1);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> injectHolograms(p), 3);
         injectHolograms(p);
 
         // we only want to update them if the server is running placeholder API

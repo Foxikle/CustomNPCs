@@ -49,6 +49,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -58,10 +60,10 @@ import org.bukkit.craftbukkit.v1_20_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftTextDisplay;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R3.scoreboard.CraftScoreboard;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -73,7 +75,9 @@ import java.util.*;
  */
 public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
 
-    private static final Team NPC_TEAM = Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc");
+    private final String MC_NAME;
+    private final ClientboundSetPlayerTeamPacket teamPacket;
+
     // reflection for data accessors
     private final EntityDataAccessor<net.minecraft.network.chat.Component> TEXT_DISPLAY_ACCESSOR;
     private final UUID uuid;
@@ -125,6 +129,13 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
+
+        this.MC_NAME = uuid.toString().substring(0, 16);
+        Scoreboard scoreboard = ((CraftScoreboard) Bukkit.getScoreboardManager().getMainScoreboard()).getHandle();
+        this.teamPacket = ClientboundSetPlayerTeamPacket.createPlayerPacket(
+                new PlayerTeam(scoreboard, "npc"),
+                MC_NAME,
+                ClientboundSetPlayerTeamPacket.Action.ADD);
     }
 
     /**
@@ -173,14 +184,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
         super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(equipment.getHand());
-        teamLoop = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            if (getTeam() == null) {
-                NPC_TEAM.addEntry(uuid.toString().substring(0, 16));
-            } else {
-                if (!getTeam().getName().equals("npc"))
-                    NPC_TEAM.addEntry(uuid.toString().substring(0, 16));
-            }
-        }, 1, 5).getTaskId();
+        teamLoop = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> Bukkit.getOnlinePlayers().forEach(player -> ((CraftPlayer) player).getHandle().connection.send(teamPacket)), 1, 5).getTaskId();
 
         if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
