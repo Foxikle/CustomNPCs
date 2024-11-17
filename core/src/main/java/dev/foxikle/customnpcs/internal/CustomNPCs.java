@@ -76,8 +76,6 @@ import java.util.logging.Logger;
 @Slf4j
 public final class CustomNPCs extends JavaPlugin implements PluginMessageListener {
     public static final ActionRegistry ACTION_REGISTRY = new ActionRegistry();
-    public final static String[] COMPATIBLE_LOCALES = {"en", "zh", "ru", "de"};
-    public static Locale LOCALE = Locale.ENGLISH;
     /**
      * Singleton for the NPCBuilder
      */
@@ -226,10 +224,10 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             return;
         }
 
-        LOCALE = setupLocale(getConfig().getString("PreferredLanguage"));
+
 
         Translations translations = new Translations();
-        translations.setup(LOCALE);
+        translations.setup();
 
         registerNpcTeam();
 
@@ -247,8 +245,14 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             for (UUID uuid : fileManager.getNPCIds()) {
                 fileManager.loadNPC(uuid);
             }
-            //Bukkit.getScheduler().runTaskLater(this, () -> Bukkit.getOnlinePlayers().forEach(player -> npcs.values().forEach(npc -> Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> npc.injectPlayer(player), 5))), 20);
-            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> skinCatalogue = this.getMenuUtils().getSkinCatalogue(), 20);
+
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
+                this.getMenuUtils().getSkinCatalogue(Locale.ENGLISH);
+                this.getMenuUtils().getSkinCatalogue(Locale.GERMAN);
+                this.getMenuUtils().getSkinCatalogue(Locale.SIMPLIFIED_CHINESE);
+                this.getMenuUtils().getSkinCatalogue(new Locale("ru"));
+            }, 20);
+
             // setup bstats
             Metrics metrics = new Metrics(this, 18898);
 
@@ -332,17 +336,17 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         System.setProperty("customnpcs-reload-check", "true");
 
         getLogger().info("Loading action registry...");
-        ACTION_REGISTRY.register("ACTIONBAR", ActionBar.class, ActionBar.CREATION_BUTTON);
-        ACTION_REGISTRY.register("DISPLAY_TITLE", DisplayTitle.class, DisplayTitle.CREATION_BUTTON);
-        ACTION_REGISTRY.register("GIVE_EFFECT", GiveEffect.class, GiveEffect.CREATION_BUTTON);
-        ACTION_REGISTRY.register("GIVE_XP", GiveXP.class, GiveXP.CREATION_BUTTON);
-        ACTION_REGISTRY.register("PLAY_SOUND", PlaySound.class, PlaySound.CREATION_BUTTON);
-        ACTION_REGISTRY.register("REMOVE_EFFECT", RemoveEffect.class, RemoveEffect.CREATION_BUTTON);
-        ACTION_REGISTRY.register("REMOVE_XP", RemoveXP.class, RemoveXP.CREATION_BUTTON);
-        ACTION_REGISTRY.register("RUN_COMMAND", RunCommand.class, RunCommand.CREATION_BUTTON);
-        ACTION_REGISTRY.register("SEND_MESSAGE", SendMessage.class, SendMessage.CREATION_BUTTON);
-        ACTION_REGISTRY.register("SEND_TO_SERVER", SendServer.class, SendServer.CREATION_BUTTON, true, false, true);
-        ACTION_REGISTRY.register("TELEPORT", Teleport.class, Teleport.CREATION_BUTTON);
+        ACTION_REGISTRY.register("ACTIONBAR", ActionBar.class, ActionBar::creationButton);
+        ACTION_REGISTRY.register("DISPLAY_TITLE", DisplayTitle.class, DisplayTitle::creationButton);
+        ACTION_REGISTRY.register("GIVE_EFFECT", GiveEffect.class, GiveEffect::creationButton);
+        ACTION_REGISTRY.register("GIVE_XP", GiveXP.class, GiveXP::creationButton);
+        ACTION_REGISTRY.register("PLAY_SOUND", PlaySound.class, PlaySound::creationButton);
+        ACTION_REGISTRY.register("REMOVE_EFFECT", RemoveEffect.class, RemoveEffect::creationButton);
+        ACTION_REGISTRY.register("REMOVE_XP", RemoveXP.class, RemoveXP::creationButton);
+        ACTION_REGISTRY.register("RUN_COMMAND", RunCommand.class, RunCommand::creationButton);
+        ACTION_REGISTRY.register("SEND_MESSAGE", SendMessage.class, SendMessage::creationButton);
+        ACTION_REGISTRY.register("SEND_TO_SERVER", SendServer.class, SendServer::creationButton, true, false, true);
+        ACTION_REGISTRY.register("TELEPORT", Teleport.class, Teleport::creationButton);
 
         lotus = Lotus.load(this, EventPriority.HIGHEST);
 
