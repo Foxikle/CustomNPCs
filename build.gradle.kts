@@ -46,9 +46,11 @@ dependencies {
     implementation(project(":v1_20_R1", "reobf"))
 }
 
+var pluginVersion = "1.7-pre7"
+
 allprojects {
     group = "dev.foxikle"
-    version = "1.7-pre6"
+    version = pluginVersion
     description = "CustomNPCs"
 }
 
@@ -112,7 +114,7 @@ tasks {
         filteringCharset = Charsets.UTF_8.name()
         val props = mapOf(
                 "name" to project.name,
-                "version" to project.version,
+            "version" to pluginVersion,
                 "description" to project.description,
                 "apiVersion" to "1.20"
         )
