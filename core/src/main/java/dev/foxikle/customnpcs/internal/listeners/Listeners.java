@@ -511,9 +511,6 @@ public class Listeners implements Listener {
         if (plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate") && player.hasPermission("customnpcs.alert")) {
             player.sendMessage(SHOULD_UPDATE_MESSAGE);
         }
-        for (InternalNpc npc : plugin.getNPCs()) {
-            npc.injectPlayer(player);
-        }
         recalcSleepingPercentages();
     }
 
