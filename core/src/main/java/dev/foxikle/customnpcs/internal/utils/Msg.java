@@ -25,39 +25,45 @@ package dev.foxikle.customnpcs.internal.utils;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
-import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.translation.GlobalTranslator;
+
+import java.text.FieldPosition;
+import java.text.MessageFormat;
+import java.util.Locale;
 
 /**
  * A class that handles message translations
  */
 public class Msg {
-    public static Component translated(String key, ComponentLike... args) {
-        return translate(key, (ComponentLike[]) args);
+
+    public static Component translate(Locale locale, String key, Object... args) {
+        return Msg.format(translatedString(locale, key, args));
     }
 
-    public static Component translate(String key, Object... args) {
-        ComponentLike[] components = new ComponentLike[args.length];
+    public static String translatedString(Locale locale, String key, Object... args) {
+        Object[] translatedArgs = new Object[args.length];
         for (int i = 0; i < args.length; i++) {
-            if (args[i] instanceof ComponentLike) {
-                components[i] = (ComponentLike) args[i];
-                continue;
+            if (args[i] instanceof ComponentLike like) {
+                translatedArgs[i] = plainText(like.asComponent());
+            } else if (args[i] instanceof String string) {
+                translatedArgs[i] = string;
+            } else {
+                translatedArgs[i] = args[i];
             }
-            components[i] = Component.text(args[i].toString()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
         }
-        TranslatableComponent c = Component.translatable(key, components);
-        String t = plainText(c);
-        return format(t);
+
+        MessageFormat format = GlobalTranslator.translator().translate(key, locale);
+        assert format != null : "Failed to translate message: " + key + " -- Format is null";
+        StringBuffer buffer = format.format(translatedArgs, new StringBuffer(), new FieldPosition(0));
+
+        return buffer.toString();
     }
 
-    public static String translatedString(String key, ComponentLike... args) {
-        return plainText(Component.translatable(key, args));
-    }
-
-    public static Component[] lore(String key, ComponentLike... args) {
-        return ComponentWrapper.wrap(translate(key, (ComponentLike[]) args), 37)
+    public static Component[] lore(Locale locale, String key, Object... args) {
+        return ComponentWrapper.wrap(translate(locale, key, args), 37)
                 .toArray(Component[]::new);
     }
 
