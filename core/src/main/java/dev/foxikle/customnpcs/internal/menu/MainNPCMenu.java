@@ -62,7 +62,7 @@ public class MainNPCMenu implements Menu {
      */
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translated("customnpcs.menus.main.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.main.title"));
     }
 
     /**
@@ -84,8 +84,8 @@ public class MainNPCMenu implements Menu {
             return Content.builder(capacity)
                     .setButton(22, Button.clickable(
                             ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.main.error.no_npc"))
-                                    .setLore(Msg.lore("customnpcs.menus.main.error.no_npc.lore"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.error.no_npc"))
+                                    .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.error.no_npc.lore"))
                                     .build(),
                             new CloseMenuAction()
                     ))
@@ -95,37 +95,37 @@ public class MainNPCMenu implements Menu {
 
         Content.Builder builder = Content.builder(capacity);
         builder.apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(0, Button.clickable(MenuItems.looking(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
+                .setButton(0, Button.clickable(MenuItems.looking(player), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
                     player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
                     plugin.facingWaiting.add(player.getUniqueId());
                     new FacingDirectionRunnable(plugin, player).go();
                     player.closeInventory();
                 })))
-                .setButton(8, Button.clickable(MenuItems.extraSettings(), new OpenButtonAction(MenuUtils.NPC_EXTRA_SETTINGS)))
-                .setButton(10, MenuItems.rotation(npc))
-                .setButton(13, Button.clickable(MenuItems.skinSelection(npc), new OpenButtonAction(MenuUtils.NPC_SKIN)))
-                .setButton(16, Button.clickable(MenuItems.changeName(npc), ButtonClickAction.plain((menuView, event) -> {
+                .setButton(8, Button.clickable(MenuItems.extraSettings(player), new OpenButtonAction(MenuUtils.NPC_EXTRA_SETTINGS)))
+                .setButton(10, MenuItems.rotation(npc, player))
+                .setButton(13, Button.clickable(MenuItems.skinSelection(npc, player), new OpenButtonAction(MenuUtils.NPC_SKIN)))
+                .setButton(16, Button.clickable(MenuItems.changeName(npc, player), ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
                     plugin.nameWaiting.add(player.getUniqueId());
 
-                    player.sendMessage(Msg.translated("customnpcs.data.name.title"));
+                    player.sendMessage(Msg.translate(player.locale(), "customnpcs.data.name.title"));
 
                     if (plugin.getConfig().getBoolean("NameReferenceMessages")) {
-                        player.sendMessage(Msg.translated("customnpcs.name.reference"));
+                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.name.reference"));
                         player.sendMessage(npc.getSettings().getName());
-                        player.sendMessage(Msg.translated("customnpcs.name.toggle_reference_message"));
+                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.name.toggle_reference_message"));
                     }
                     player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
 
                     new NameRunnable(player, plugin).runTaskTimer(plugin, 1, 15);
                     player.closeInventory();
                 })))
-                .setButton(19, Button.clickable(MenuItems.editEquipment(npc), new OpenButtonAction(MenuUtils.NPC_EQUIPMENT)))
-                .setButton(22, MenuItems.resilient(npc))
-                .setButton(25, MenuItems.interactable(npc))
-                .setButton(34, MenuItems.showActions(npc))
-                .setButton(28, MenuItems.tunnelVision(npc))
-                .setButton(31, Button.clickable(MenuItems.confirmCreation(), ButtonClickAction.plain((menuView, event) -> {
+                .setButton(19, Button.clickable(MenuItems.editEquipment(npc, player), new OpenButtonAction(MenuUtils.NPC_EQUIPMENT)))
+                .setButton(22, MenuItems.resilient(npc, player))
+                .setButton(25, MenuItems.interactable(npc, player))
+                .setButton(34, MenuItems.showActions(npc, player))
+                .setButton(28, MenuItems.tunnelVision(npc, player))
+                .setButton(31, Button.clickable(MenuItems.confirmCreation(player), ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
 
@@ -135,20 +135,21 @@ public class MainNPCMenu implements Menu {
                     p.spawnParticle(Particle.EXPLOSION_LARGE, npc.getSpawnLoc().clone().add(0, 1, 0), 1);
 
                     if (npc.getSettings().isResilient())
-                        p.sendMessage(Msg.translated("customnpcs.menus.main.create.message.resilient"));
-                    else p.sendMessage(Msg.translated("customnpcs.menus.main.create.message.temporary"));
+                        p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.main.create.message.resilient"));
+                    else
+                        p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.main.create.message.temporary"));
 
                     p.closeInventory();
                 })))
-                .setButton(36, Button.clickable(MenuItems.cancelCreation(), ButtonClickAction.plain((menuView, event) -> {
+                .setButton(36, Button.clickable(MenuItems.cancelCreation(player), ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
-                    p.sendMessage(Msg.translated("customnpcs.menus.main.cancel.message"));
+                    p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.main.cancel.message"));
                     p.closeInventory();
                 })));
         if (plugin.getNPCByID(npc.getUniqueID()) != null)
-            builder.setButton(44, Button.clickable(MenuItems.deleteNpc(), ButtonClickAction.plain((menu, event) -> {
+            builder.setButton(44, Button.clickable(MenuItems.deleteNpc(player), ButtonClickAction.plain((menu, event) -> {
                 Player p = (Player) event.getWhoClicked();
                 plugin.getDeltionReason().put(p.getUniqueId(), true);
                 plugin.getLotus().openMenu(p, MenuUtils.NPC_DELETE);

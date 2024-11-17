@@ -46,7 +46,7 @@ public class ExtraSettingsMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate("customnpcs.menus.extra.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.extra.title"));
     }
 
     @Override
@@ -62,8 +62,8 @@ public class ExtraSettingsMenu implements Menu {
             return Content.builder(capacity)
                     .setButton(22, Button.clickable(
                             ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.main.error.no_npc"))
-                                    .setLore(Msg.lore("customnpcs.menus.main.error.no_npc.lore"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.error.no_npc"))
+                                    .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.error.no_npc.lore"))
                                     .build(),
                             new CloseMenuAction()
                     ))
@@ -72,9 +72,9 @@ public class ExtraSettingsMenu implements Menu {
 
         return Content.builder(capacity)
                 .apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(12, MenuItems.interactableHologram(npc))
-                .setButton(14, MenuItems.interactableText())
-                .setButton(18, MenuItems.toMain())
+                .setButton(12, MenuItems.interactableHologram(npc, player))
+                .setButton(14, MenuItems.interactableText(player))
+                .setButton(18, MenuItems.toMain(player))
                 .build();
     }
 }

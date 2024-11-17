@@ -40,7 +40,7 @@ public class NewConditionMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate("customnpcs.menus.conditions.new"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.conditions.new"));
     }
 
     @Override
@@ -52,9 +52,9 @@ public class NewConditionMenu implements Menu {
     public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
         return Content.builder(capacity)
                 .apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(18, MenuItems.toCondition())
-                .setButton(12, MenuItems.numeric())
-                .setButton(14, MenuItems.logic())
+                .setButton(18, MenuItems.toCondition(player))
+                .setButton(12, MenuItems.numeric(player))
+                .setButton(14, MenuItems.logic(player))
                 .build();
     }
 }

@@ -48,10 +48,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * The class to handle the core command
@@ -92,29 +89,29 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             } else if (args.length == 1) {
                 if (args[0].equalsIgnoreCase("help")) {
                     if (!p.hasPermission("customnpcs.commands.help")) {
-                        p.sendMessage(Msg.translated("customnpcs.commands.no_permission"));
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.no_permission"));
                         return true;
                     }
-                    p.sendMessage(Msg.translated("customnpcs.commands.header", Component.text(plugin.getPluginMeta().getVersion())));
+                    p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.header", Component.text(plugin.getPluginMeta().getVersion())));
 
-                    p.sendMessage(getHelpComponent());
+                    p.sendMessage(getHelpComponent(p));
                 } else if (args[0].equalsIgnoreCase("manage")) {
                     if (!p.hasPermission("customnpcs.commands.manage")) {
-                        p.sendMessage(Msg.translated("customnpcs.commands.no_permission"));
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.no_permission"));
                         return true;
                     }
                     if (plugin.getNPCs().isEmpty()) {
-                        p.sendMessage(Msg.translated("customnpcs.commands.manage.no_npcs"));
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.manage.no_npcs"));
                         return true;
                     }
-                    p.sendMessage(Msg.translated("customnpcs.commands.manage.header"));
+                    p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.manage.header"));
                     Component message = Component.empty();
                     for (InternalNpc npc : plugin.getNPCs()) {
                         if (npc.getSettings().isResilient()) {
                             Component name = Utils.mm("<gray>◆<reset> ")
-                                    .append(plugin.getMiniMessage().deserialize(npc.getSettings().getName()).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.manage.copy_uuid")))).clickEvent(net.kyori.adventure.text.event.ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, npc.getUniqueID().toString()))
-                                    .append(Msg.translated("customnpcs.commands.manage.button.edit").appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.manage.button.edit.hover"))).clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc edit " + npc.getUniqueID())))
-                                    .append(Msg.translated("customnpcs.commands.manage.button.delete").appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.manage.button.delete.hover"))).clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc delete " + npc.getUniqueID())))
+                                    .append(plugin.getMiniMessage().deserialize(npc.getSettings().getName()).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.manage.copy_uuid")))).clickEvent(net.kyori.adventure.text.event.ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, npc.getUniqueID().toString()))
+                                    .append(Msg.translate(p.locale(), "customnpcs.commands.manage.button.edit").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.manage.button.edit.hover"))).clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc edit " + npc.getUniqueID())))
+                                    .append(Msg.translate(p.locale(), "customnpcs.commands.manage.button.delete").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.manage.button.delete.hover"))).clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc delete " + npc.getUniqueID())))
                                     .appendNewline().append(Component.text("                                                                                 ", NamedTextColor.DARK_GREEN, TextDecoration.STRIKETHROUGH));
                             message = message.append(name);
                         }
@@ -128,14 +125,14 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     p.performCommand("npc manage");
                 } else if (args[0].equalsIgnoreCase("clear_holograms")) {
                     if (p.hasPermission("customnpcs.commands.removeHolograms")) {
-                        p.sendMessage(Msg.translated("customnpcs.commands.clear_holograms.removed"));
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.clear_holograms.removed"));
                     } else {
-                        p.sendMessage(Msg.translated("customnpcs.commands.no_permission"));
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.no_permission"));
                         return true;
                     }
                 } else if (args[0].equalsIgnoreCase("create")) {
                     if (!p.hasPermission("customnpcs.create")) {
-                        p.sendMessage(Msg.translated("customnpcs.commands.no_permission"));
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.no_permission"));
                         return true;
                     }
                     UUID uuid = UUID.randomUUID();
@@ -144,11 +141,11 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     plugin.getLotus().openMenu(p, MenuUtils.NPC_MAIN);
                 } else if (args[0].equalsIgnoreCase("reload")) {
                     if (!p.hasPermission("customnpcs.commands.reload")) {
-                        p.sendMessage(Msg.translated("customnpcs.commands.no_permission"));
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.no_permission"));
                         return true;
                     }
 
-                    p.sendMessage(Msg.translated("customnpcs.commands.reload.start"));
+                    p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.reload.start"));
                     plugin.reloadConfig();
 
                     try {
@@ -165,11 +162,11 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     plugin.holograms.clear();
                     plugin.onDisable();
                     plugin.onEnable();
-                    p.sendMessage(Msg.translated("customnpcs.commands.reload.end"));
+                    p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.reload.end"));
                 } else if (args[0].equalsIgnoreCase("wiki") || args[0].equalsIgnoreCase("docs")) {
-                    p.sendMessage(Msg.translated("customnpcs.commands.wiki")
+                    p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.wiki")
                             .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, "https://docs.foxikle.dev"))
-                            .appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.wiki.hover"))));
+                            .appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.wiki.hover"))));
                 } else if (args[0].equalsIgnoreCase("disablelangpester")) {
                     if (sender.hasPermission("customnpcs.*")) {
                         plugin.getConfig().set("PesterAboutLanguageSettings", false);
@@ -187,7 +184,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         try {
                             Sound.valueOf(args[1]);
                         } catch (IllegalArgumentException ex) {
-                            p.sendMessage(Msg.translated("customnpcs.commands.setsound.unknown_sound"));
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.setsound.unknown_sound"));
                             return true;
                         }
                         Bukkit.getScheduler().runTask(plugin, () -> {
@@ -197,11 +194,11 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                                 action.setSound(args[1]);
                             } else
                                 throw new IllegalArgumentException("Action " + actionImpl.getClass().getName() + " is not of type PlaySound");
-                            p.sendMessage(Msg.translated("customnpcs.commands.setsound.success", Component.text(args[1])));
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.setsound.success", Component.text(args[1])));
                             plugin.getLotus().openMenu(p, actionImpl.getMenu());
                         });
                     } else {
-                        p.sendMessage(Msg.translated("customnpcs.commands.setsound.was_not_waiting"));
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.setsound.was_not_waiting"));
                     }
                 } else if (args[0].equalsIgnoreCase("switchlang")) {
                     if (!sender.hasPermission("customnpcs.*")) {
@@ -238,7 +235,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     try {
                         uuid = UUID.fromString(args[1]);
                         if (plugin.getNPCByID(uuid) == null) {
-                            p.sendMessage(Msg.translated("customnpcs.commands.invalid_uuid"));
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.invalid_uuid"));
                             return true;
                         }
                         npc = plugin.getNPCByID(uuid);
@@ -253,7 +250,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             }
                         });
                         if (uuids.isEmpty()) {
-                            p.sendMessage(Msg.translated("customnpcs.commands.invalid_name_or_uuid"));
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.invalid_name_or_uuid"));
                             return false;
                         } else if (uuids.size() > 1) {
                             double value = Double.MAX_VALUE;
@@ -270,7 +267,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
 
                         if (uuid == null) return true;
                         if (plugin.getNPCByID(uuid) == null) {
-                            p.sendMessage(Msg.translated("customnpcs.commands.invalid_uuid"));
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.invalid_uuid"));
                             return true;
                         }
                         npc = plugin.getNPCByID(uuid);
@@ -279,7 +276,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                     switch (args[0].toLowerCase()) {
                         case "delete" -> {
                             if (!p.hasPermission("customnpcs.delete")) {
-                                p.sendMessage(Msg.translated("customnpcs.commands.no_permission"));
+                                p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.no_permission"));
                                 return true;
                             }
                             plugin.getEditingNPCs().put(p.getUniqueId(), npc);
@@ -288,7 +285,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         }
                         case "edit" -> {
                             if (!p.hasPermission("customnpcs.edit")) {
-                                p.sendMessage(Msg.translated("customnpcs.commands.no_permission"));
+                                p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.no_permission"));
                                 return true;
                             }
 
@@ -301,14 +298,14 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                         }
                         case "goto" -> {
                             if (!p.hasPermission("customnpcs.commands.goto")) {
-                                p.sendMessage(Msg.translated("customnpcs.commands.no_permission"));
+                                p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.no_permission"));
                                 return true;
                             }
                             p.teleportAsync(npc.getCurrentLocation());
                         }
                         case "clone" -> {
                             if (!p.hasPermission("customnpcs.commands.clone")) {
-                                p.sendMessage(Msg.translated("customnpcs.commands.no_permission"));
+                                p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.no_permission"));
                                 return true;
                             }
                             assert npc != null;
@@ -316,23 +313,23 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                             newNpc.setSpawnLoc(p.getLocation());
                             newNpc.getSettings().setDirection(p.getLocation().getYaw());
                             newNpc.createNPC();
-                            p.sendMessage(Msg.translated("customnpcs.commands.clone.success"));
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.clone.success"));
 
                             // runnable
                         }
                         case "movehere" -> {
                             if (!p.hasPermission("customnpcs.commands.movehere")) {
-                                p.sendMessage(Msg.translated("customnpcs.commands.no_permission"));
+                                p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.no_permission"));
                                 return true;
                             }
-                            p.sendMessage(Msg.translated("customnpcs.commands.move.nudge"));
+                            p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.move.nudge"));
                             assert npc != null;
                             npc.remove();
                             npc.setSpawnLoc(p.getLocation());
                             npc.getSettings().setDirection(p.getLocation().getYaw());
                             npc.createNPC();
                         }
-                        default -> sender.sendMessage(Msg.translated("customnpcs.commands.unknown_command"));
+                        default -> sender.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.unknown_command"));
                     }
                 }
             }
@@ -344,7 +341,7 @@ public class CommandCore implements CommandExecutor, TabCompleter {
                 }
             }
 
-            if (!silent) sender.sendMessage(Msg.translated("customnpcs.commands.reload.start"));
+            if (!silent) sender.sendMessage(Msg.translate(Locale.getDefault(), "customnpcs.commands.reload.start"));
             try {
                 Objects.requireNonNull(Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc")).unregister();
             } catch (IllegalArgumentException | NullPointerException ignored) {
@@ -358,44 +355,44 @@ public class CommandCore implements CommandExecutor, TabCompleter {
             plugin.npcs.clear();
             plugin.holograms.clear();
             plugin.onEnable();
-            if (!silent) sender.sendMessage(Msg.translated("customnpcs.commands.reload.end"));
+            if (!silent) sender.sendMessage(Msg.translate(Locale.getDefault(), "customnpcs.commands.reload.end"));
         }
         return false;
     }
 
     @NotNull
-    private Component getHelpComponent() {
+    private Component getHelpComponent(Player p) {
         Component component = Component.empty();
         component = component.appendNewline()
-                .append(Msg.translated("customnpcs.commands.help.help.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.help.aliases"))))
-                .append(Msg.translated("customnpcs.commands.help.help.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.help.hover"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.help.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.help.aliases"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.help.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.help.hover"))))
                 .appendNewline()
-                .append(Msg.translated("customnpcs.commands.help.manage.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.manage.aliases"))))
-                .append(Msg.translated("customnpcs.commands.help.manage.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.manage.hover"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.manage.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.manage.aliases"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.manage.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.manage.hover"))))
                 .appendNewline()
-                .append(Msg.translated("customnpcs.commands.help.create.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.create.aliases"))))
-                .append(Msg.translated("customnpcs.commands.help.create.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.create.hover"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.create.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.create.aliases"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.create.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.create.hover"))))
                 .appendNewline()
-                .append(Msg.translated("customnpcs.commands.help.delete.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.delete.aliases"))))
-                .append(Msg.translated("customnpcs.commands.help.delete.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.delete.hover"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.delete.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.delete.aliases"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.delete.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.delete.hover"))))
                 .appendNewline()
-                .append(Msg.translated("customnpcs.commands.help.edit.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.edit.aliases"))))
-                .append(Msg.translated("customnpcs.commands.help.edit.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.edit.hover"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.edit.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.edit.aliases"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.edit.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.edit.hover"))))
                 .appendNewline()
-                .append(Msg.translated("customnpcs.commands.help.movehere.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.movehere.aliases"))))
-                .append(Msg.translated("customnpcs.commands.help.movehere.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.movehere.hover"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.movehere.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.movehere.aliases"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.movehere.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.movehere.hover"))))
                 .appendNewline()
-                .append(Msg.translated("customnpcs.commands.help.clone.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.clone.aliases"))))
-                .append(Msg.translated("customnpcs.commands.help.clone.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.clone.hover"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.clone.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.clone.aliases"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.clone.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.clone.hover"))))
                 .appendNewline()
-                .append(Msg.translated("customnpcs.commands.help.reload.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.reload.aliases"))))
-                .append(Msg.translated("customnpcs.commands.help.reload.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.reload.hover"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.reload.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.reload.aliases"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.reload.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.reload.hover"))))
                 .appendNewline()
-                .append(Msg.translated("customnpcs.commands.help.goto.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.goto.aliases"))))
-                .append(Msg.translated("customnpcs.commands.help.goto.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.goto.hover"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.goto.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.goto.aliases"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.goto.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.goto.hover"))))
                 .appendNewline()
-                .append(Msg.translated("customnpcs.commands.help.wiki.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.wiki.aliases"))))
-                .append(Msg.translated("customnpcs.commands.help.wiki.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translated("customnpcs.commands.help.wiki.hover"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.wiki.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.wiki.aliases"))))
+                .append(Msg.translate(p.locale(), "customnpcs.commands.help.wiki.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p.locale(), "customnpcs.commands.help.wiki.hover"))))
                 .appendNewline()
                 .append(Component.text("                                                                                 ", NamedTextColor.DARK_GREEN, TextDecoration.STRIKETHROUGH));
         return component;

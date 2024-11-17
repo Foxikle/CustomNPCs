@@ -58,19 +58,21 @@ import static org.bukkit.Material.PAPER;
 @Setter
 public class SendMessage extends Action {
 
-    public static final Button CREATION_BUTTON = Button.clickable(ItemBuilder.modern(PAPER)
-                    .setDisplay(Msg.translate("customnpcs.favicons.message"))
-                    .setLore(Msg.lore("customnpcs.favicons.message.description"))
-                    .build(),
-            ButtonClickAction.plain((menuView, event) -> {
-                event.setCancelled(true);
-                Player player = (Player) event.getWhoClicked();
-                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+    public static Button creationButton(Player player) {
+        return Button.clickable(ItemBuilder.modern(PAPER)
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.message"))
+                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.message.description"))
+                        .build(),
+                ButtonClickAction.plain((menuView, event) -> {
+                    event.setCancelled(true);
+                    Player p = (Player) event.getWhoClicked();
+                    p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                SendMessage actionImpl = new SendMessage("", 0, Condition.SelectionMode.ONE, new ArrayList<>());
-                CustomNPCs.getInstance().editingActions.put(player.getUniqueId(), actionImpl);
-                menuView.getAPI().openMenu(player, actionImpl.getMenu());
-            }));
+                    SendMessage actionImpl = new SendMessage("", 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
+                    menuView.getAPI().openMenu(p, actionImpl.getMenu());
+                }));
+    }
 
     private String rawMessage;
 
@@ -101,16 +103,16 @@ public class SendMessage extends Action {
     }
 
     @Override
-    public ItemStack getFavicon() {
-        return ItemBuilder.modern(PAPER).setDisplay(Msg.translate("customnpcs.favicons.message"))
+    public ItemStack getFavicon(Player player) {
+        return ItemBuilder.modern(PAPER).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.message"))
                 .setLore(
-                        Msg.translate("customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
                         Msg.format("<dark_aqua><st>                                    "),
-                        Msg.translated("customnpcs.favicons.preview"),
-                        Msg.format(getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString("customnpcs.messages.empty_string") : getRawMessage()),
+                        Msg.translate(player.locale(), "customnpcs.favicons.preview"),
+                        Msg.format(getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString(player.locale(), "customnpcs.messages.empty_string") : getRawMessage()),
                         Msg.format("<dark_aqua><st>                                    "),
-                        Msg.translated("customnpcs.favicons.edit"),
-                        Msg.translated("customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
+                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
                 ).build();
     }
 
@@ -162,7 +164,7 @@ public class SendMessage extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translated("customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
         }
 
         @Override
@@ -172,10 +174,10 @@ public class SendMessage extends Action {
 
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
-            return MenuUtils.actionBase(action)
+            return MenuUtils.actionBase(action, player)
                     .setButton(22, Button.clickable(ItemBuilder.modern(OAK_HANGING_SIGN)
-                                    .setDisplay(Utils.mm(getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString("customnpcs.messages.empty_string") : getRawMessage()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE))
-                                    .setLore(Msg.translate("customnpcs.items.click_to_change"))
+                                    .setDisplay(Utils.mm(getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString(player.locale(), "customnpcs.messages.empty_string") : getRawMessage()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE))
+                                    .setLore(Msg.translate(player.locale(), "customnpcs.items.click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 CustomNPCs plugin = CustomNPCs.getInstance();

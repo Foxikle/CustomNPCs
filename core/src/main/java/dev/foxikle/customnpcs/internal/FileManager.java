@@ -52,7 +52,7 @@ public class FileManager {
     /**
      * The config file version
      */
-    public static final int CONFIG_FILE_VERSION = 7;
+    public static final int CONFIG_FILE_VERSION = 6;
 
     /**
      * The file version of the npcs.yml file
@@ -171,36 +171,6 @@ public class FileManager {
                 yml.set("InjectionInterval", 10);
                 yml.set("HologramUpdateInterval", 200);
                 yml.set("LookInterval", 5);
-                try {
-                    yml.save(file);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            if (version < 7) {
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 7));
-                yml.set("CONFIG_VERSION", 7);
-                yml.set("PesterAboutLanguageSettings", true);
-                yml.setComments("PreferredLanguage", Utils.list(
-                        "PesterAboutLanguageSettings -> Should the plugin pester players with the permission 'customnpcs.*' to change the plugin's configuration locale?",
-                        "It will only pester you if:",
-                        "1.) Your Minecraft Client language is not set to the currently selected language",
-                        "2.) The Plugin supports that language",
-                        "The message includes a button to toggle the language, and the message off."
-                ));
-                yml.set("PreferredLanguage", "ENGLISH");
-                yml.setComments("PreferredLanguage", Utils.list(
-                        "PreferredLanguage -> Which language would you like the plugin's interface to appear in?  Please note translations",
-                        "May not be 100% accurate or complete. Please be thankful for the volunteers to donated their time and energy to translating",
-                        "the plugin for you!",
-                        "Valid Options:",
-                        "English: 'ENGLISH', 'EN'",
-                        "中国人: 'CHINESE', 'ZH' -- Chinese translations courtesy of CNSYGZS",
-                        "Deutsch: 'GERMAN', 'DE' !!INCOMPLETE!! -- German translations courtesy of Felix Brösicke",
-                        "Русский: 'RUSSIAN', 'RU' !!INCOMPLETE!! -- Russian translations courtesy of idontknow0928643",
-                        "More coming soon...."
-                ));
-
                 try {
                     yml.save(file);
                 } catch (IOException e) {

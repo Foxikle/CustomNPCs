@@ -41,7 +41,7 @@ public class SkinMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate("customnpcs.menus.skins.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.skins.title"));
     }
 
     @Override
@@ -53,10 +53,10 @@ public class SkinMenu implements Menu {
     public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
         return Content.builder(capacity)
                 .apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(18, MenuItems.toMain())
-                .setButton(11, MenuItems.importPlayer())
-                .setButton(13, MenuItems.useCatalog())
-                .setButton(15, MenuItems.importUrl())
+                .setButton(18, MenuItems.toMain(player))
+                .setButton(11, MenuItems.importPlayer(player))
+                .setButton(13, MenuItems.useCatalog(player))
+                .setButton(15, MenuItems.importUrl(player))
                 .build();
     }
 }

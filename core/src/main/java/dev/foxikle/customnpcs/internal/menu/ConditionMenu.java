@@ -43,7 +43,7 @@ public class ConditionMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate("customnpcs.menus.conditions.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.conditions.title"));
     }
 
     @Override
@@ -57,10 +57,10 @@ public class ConditionMenu implements Menu {
         return Content.builder(capacity)
                 .apply(content -> {
                     content.fillBorder(MenuItems.MENU_GLASS);
-                    content.addButton(MenuItems.conditions(action).toArray(new Button[]{}));
+                    content.addButton(MenuItems.conditions(action, player).toArray(new Button[]{}));
                 })
-                .setButton(31, MenuItems.toActionSaveConditions())
-                .setButton(35, MenuItems.toggleConditionMode(action))
+                .setButton(31, MenuItems.toActionSaveConditions(player))
+                .setButton(35, MenuItems.toggleConditionMode(action, player))
                 .build();
     }
 }

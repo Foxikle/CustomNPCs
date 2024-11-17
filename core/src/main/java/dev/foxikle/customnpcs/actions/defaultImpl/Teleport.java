@@ -56,19 +56,21 @@ import static org.bukkit.Material.*;
 @Setter
 public class Teleport extends Action {
 
-    public static final Button CREATION_BUTTON = Button.clickable(ItemBuilder.modern(ENDER_PEARL)
-                    .setDisplay(Msg.translate("customnpcs.favicons.teleport"))
-                    .setLore(Msg.lore("customnpcs.favicons.teleport.description"))
-                    .build(),
-            ButtonClickAction.plain((menuView, event) -> {
-                event.setCancelled(true);
-                Player player = (Player) event.getWhoClicked();
-                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+    public static Button creationButton(Player player) {
+        return Button.clickable(ItemBuilder.modern(ENDER_PEARL)
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.teleport"))
+                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.teleport.description"))
+                        .build(),
+                ButtonClickAction.plain((menuView, event) -> {
+                    event.setCancelled(true);
+                    Player p = (Player) event.getWhoClicked();
+                    p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Condition.SelectionMode.ONE, new ArrayList<>());
-                CustomNPCs.getInstance().editingActions.put(player.getUniqueId(), actionImpl);
-                menuView.getAPI().openMenu(player, actionImpl.getMenu());
-            }));
+                    Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
+                    menuView.getAPI().openMenu(p, actionImpl.getMenu());
+                }));
+    }
 
     private double x;
     private double y;
@@ -120,19 +122,19 @@ public class Teleport extends Action {
     }
 
     @Override
-    public ItemStack getFavicon() {
-        return ItemBuilder.modern(ENDER_PEARL).setDisplay(Msg.translated("customnpcs.favicons.teleport"))
+    public ItemStack getFavicon(Player player) {
+        return ItemBuilder.modern(ENDER_PEARL).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.teleport"))
                 .setLore(
-                        Msg.translate("customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
                         Msg.format(""),
-                        Msg.translate("customnpcs.menus.action.teleport.display.x", x),
-                        Msg.translate("customnpcs.menus.action.teleport.display.y", y),
-                        Msg.translate("customnpcs.menus.action.teleport.display.z", z),
-                        Msg.translate("customnpcs.menus.action.teleport.display.pitch", pitch),
-                        Msg.translate("customnpcs.menus.action.teleport.display.yaw", yaw),
+                        Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.x", x),
+                        Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.y", y),
+                        Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.z", z),
+                        Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.pitch", pitch),
+                        Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.yaw", yaw),
                         Msg.format(""),
-                        Msg.translated("customnpcs.favicons.edit"),
-                        Msg.translated("customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
+                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
                 ).build();
     }
 
@@ -169,7 +171,7 @@ public class Teleport extends Action {
     public static class TeleportCustomizer implements Menu {
 
         private final Teleport action;
-        Component displayLore = Msg.translated("customnpcs.menus.action.teleport.in_blocks");
+        Component displayLore;
 
         public TeleportCustomizer(Teleport action) {
             this.action = action;
@@ -182,7 +184,7 @@ public class Teleport extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translated("customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
         }
 
         @Override
@@ -192,22 +194,23 @@ public class Teleport extends Action {
 
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
+            this.displayLore = Msg.translate(player.locale(), "customnpcs.menus.action.teleport.in_blocks");
 
-            Component[] incLore = Msg.lore("customnpcs.menus.action_customizer.delay.increment.description");
-            Component[] decLore = Msg.lore("customnpcs.menus.action_customizer.delay.decrement.description");
+            Component[] incLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.increment.description");
+            Component[] decLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.decrement.description");
 
-            return MenuUtils.actionBase(action)
+            return MenuUtils.actionBase(action, player)
 
                     // displays
-                    .setButton(19, Button.clickable(MenuItems.genericDisplay(Msg.translate("customnpcs.menus.action.teleport.display.x", action.getX()), displayLore), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)))
-                    ).setButton(20, Button.clickable(MenuItems.genericDisplay(Msg.translate("customnpcs.menus.action.teleport.display.y", action.getX()), displayLore), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)))
-                    ).setButton(21, Button.clickable(MenuItems.genericDisplay(Msg.translate("customnpcs.menus.action.teleport.display.z", action.getX()), displayLore), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)))
-                    ).setButton(23, compassDisplay(Msg.translate("customnpcs.menus.action.teleport.display.pitch", action.getPitch()))
-                    ).setButton(24, compassDisplay(Msg.translate("customnpcs.menus.action.teleport.display.yaw", action.getYaw())))
+                    .setButton(19, Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.x", action.getX()), displayLore), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)))
+                    ).setButton(20, Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.y", action.getX()), displayLore), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)))
+                    ).setButton(21, Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.z", action.getX()), displayLore), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)))
+                    ).setButton(23, compassDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.pitch", action.getPitch()))
+                    ).setButton(24, compassDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.yaw", action.getYaw())))
 
                     // increments
                     .setButton(10, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.teleport.increase_x"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.increase_x"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -220,10 +223,10 @@ public class Teleport extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setX(action.getX() + 5);
                                 }
-                                menuView.updateButton(19, button -> button.setItem(MenuItems.genericDisplay(Msg.translate("customnpcs.menus.action.teleport.display.x", action.getX()), displayLore)));
+                                menuView.updateButton(19, button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.x", action.getX()), displayLore)));
                             }))
                     ).setButton(11, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.teleport.increase_y"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.increase_y"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -236,10 +239,10 @@ public class Teleport extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setY(action.getY() + 5);
                                 }
-                                menuView.updateButton(20, button -> button.setItem(MenuItems.genericDisplay(Msg.translate("customnpcs.menus.action.teleport.display.y", action.getY()), displayLore)));
+                                menuView.updateButton(20, button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.y", action.getY()), displayLore)));
                             }))
                     ).setButton(12, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.teleport.increase_z"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.increase_z"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -252,17 +255,17 @@ public class Teleport extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setZ(action.getZ() + 5);
                                 }
-                                menuView.updateButton(21, button -> button.setItem(MenuItems.genericDisplay(Msg.translate("customnpcs.menus.action.teleport.display.z", action.getZ()), displayLore)));
+                                menuView.updateButton(21, button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.z", action.getZ()), displayLore)));
                             }))
                     ).setButton(14, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.teleport.increase_pitch"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.increase_pitch"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 if (action.getPitch() == 90) {
-                                    event.getWhoClicked().sendMessage(Msg.translated("customnpcs.menus.action.teleport.pitch_over_90"));
+                                    event.getWhoClicked().sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.pitch_over_90"));
                                     return;
                                 }
 
@@ -273,17 +276,17 @@ public class Teleport extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setPitch(Math.min(action.getPitch() + 5, 90));
                                 }
-                                menuView.updateButton(23, button -> button.setItem(compassDisplay(Msg.translate("customnpcs.menus.action.teleport.display.pitch", action.getPitch())).getItem()));
+                                menuView.updateButton(23, button -> button.setItem(compassDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.pitch", action.getPitch())).getItem()));
                             }))
                     ).setButton(15, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.teleport.increase_yaw"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.increase_yaw"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 if (action.getYaw() == 180) {
-                                    player.sendMessage(Msg.translated("customnpcs.menus.action.teleport.yaw_over_180"));
+                                    player.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.yaw_over_180"));
                                     return;
                                 }
 
@@ -294,13 +297,13 @@ public class Teleport extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setYaw(Math.min(action.getYaw() + 5, 180));
                                 }
-                                menuView.updateButton(24, button -> button.setItem(compassDisplay(Msg.translate("customnpcs.menus.action.teleport.display.yaw", action.getYaw())).getItem()));
+                                menuView.updateButton(24, button -> button.setItem(compassDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.yaw", action.getYaw())).getItem()));
                             })))
 
                     // decreasers
 
                     .setButton(28, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.teleport.decrease_x"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.decrease_x"))
                                     .setLore(decLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -313,10 +316,10 @@ public class Teleport extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setX(action.getX() - 5);
                                 }
-                                menuView.updateButton(19, button -> button.setItem(MenuItems.genericDisplay(Msg.translate("customnpcs.menus.action.teleport.display.x", action.getX()), displayLore)));
+                                menuView.updateButton(19, button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.x", action.getX()), displayLore)));
                             }))
                     ).setButton(29, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.teleport.decrease_y"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.decrease_y"))
                                     .setLore(decLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -329,10 +332,10 @@ public class Teleport extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setY(action.getY() - 5);
                                 }
-                                menuView.updateButton(20, button -> button.setItem(MenuItems.genericDisplay(Msg.translate("customnpcs.menus.action.teleport.display.y", action.getY()), displayLore)));
+                                menuView.updateButton(20, button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.y", action.getY()), displayLore)));
                             }))
                     ).setButton(30, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.teleport.decrease_z"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.decrease_z"))
                                     .setLore(decLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -345,16 +348,16 @@ public class Teleport extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setZ(action.getZ() - 5);
                                 }
-                                menuView.updateButton(21, button -> button.setItem(MenuItems.genericDisplay(Msg.translate("customnpcs.menus.action.teleport.display.z", action.getZ()), displayLore)));
+                                menuView.updateButton(21, button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.z", action.getZ()), displayLore)));
                             }))
                     ).setButton(32, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.teleport.decrease_pitch"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.decrease_pitch"))
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 if (action.getPitch() == -90) {
-                                    player.sendMessage(Msg.translated("customnpcs.menus.action.teleport.pitch_under_90"));
+                                    player.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.pitch_under_90"));
                                     return;
                                 }
 
@@ -365,16 +368,16 @@ public class Teleport extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setPitch(Math.max(action.getPitch() - 5, -90));
                                 }
-                                menuView.updateButton(23, button -> button.setItem(compassDisplay(Msg.translate("customnpcs.menus.action.teleport.display.pitch", action.getPitch())).getItem()));
+                                menuView.updateButton(23, button -> button.setItem(compassDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.pitch", action.getPitch())).getItem()));
                             }))
                     ).setButton(33, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.teleport.decrease_yaw"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.decrease_yaw"))
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 if (action.getYaw() == -180) {
-                                    player.sendMessage(Msg.translated("customnpcs.menus.action.teleport.yaw_under_180"));
+                                    player.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.yaw_under_180"));
                                     return;
                                 }
 
@@ -385,7 +388,7 @@ public class Teleport extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setYaw(Math.max(action.getYaw() - 5, -180));
                                 }
-                                menuView.updateButton(24, button -> button.setItem(compassDisplay(Msg.translate("customnpcs.menus.action.teleport.display.yaw", action.getYaw())).getItem()));
+                                menuView.updateButton(24, button -> button.setItem(compassDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.yaw", action.getYaw())).getItem()));
                             })))
 
                     .build();

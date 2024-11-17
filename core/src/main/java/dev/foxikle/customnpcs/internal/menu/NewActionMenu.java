@@ -42,7 +42,7 @@ public class NewActionMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate("customnpcs.menus.actions.new.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.actions.new.title"));
     }
 
     @Override
@@ -55,11 +55,11 @@ public class NewActionMenu implements Menu {
         return Content.builder(capacity)
                 .apply(content -> {
                     content.fillBorder(MenuItems.MENU_GLASS);
-                    for (Button button : CustomNPCs.ACTION_REGISTRY.getButtons()) {
+                    for (Button button : CustomNPCs.ACTION_REGISTRY.getButtons(player)) {
                         content.addButton(button);
                     }
                 })
-                .setButton(27, MenuItems.toAction())
+                .setButton(27, MenuItems.toAction(player))
                 .build();
     }
 }

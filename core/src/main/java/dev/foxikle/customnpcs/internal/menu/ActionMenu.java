@@ -46,7 +46,7 @@ public class ActionMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translated("customnpcs.menus.actions.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.actions.title"));
     }
 
     @Override
@@ -63,8 +63,8 @@ public class ActionMenu implements Menu {
                     .apply(content -> content.fillBorder(MenuItems.MENU_GLASS))
                     .setButton(22, Button.clickable(
                             ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.main.error.no_npc"))
-                                    .setLore(Msg.lore("customnpcs.menus.main.error.no_npc.lore"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.error.no_npc"))
+                                    .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.error.no_npc.lore"))
                                     .build(),
                             new CloseMenuAction()
                     ))
@@ -73,8 +73,8 @@ public class ActionMenu implements Menu {
 
         return Content.builder(capacity)
                 .apply(content -> content.fillBorder(MenuItems.MENU_GLASS))
-                .apply(content -> content.addButton(MenuItems.currentActions(npc).toArray(new Button[]{})))
-                .setButton(45, MenuItems.toMain())
+                .apply(content -> content.addButton(MenuItems.currentActions(npc, player).toArray(new Button[]{})))
+                .setButton(45, MenuItems.toMain(player))
                 .build();
     }
 }

@@ -57,18 +57,20 @@ import static org.bukkit.Material.*;
 @Setter
 public class PlaySound extends Action {
 
-    public static final Button CREATION_BUTTON = Button.clickable(ItemBuilder.modern(BELL)
-                    .setDisplay(Msg.translate("customnpcs.favicons.sound"))
-                    .setLore(Msg.lore("customnpcs.favicons.sound.description"))
-                    .build(),
-            ButtonClickAction.plain((menuView, event) -> {
-                event.setCancelled(true);
-                Player player = (Player) event.getWhoClicked();
-                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                PlaySound actionImpl = new PlaySound(Sound.UI_BUTTON_CLICK.name(), 1, 1, 0, Condition.SelectionMode.ONE, new ArrayList<>());
-                CustomNPCs.getInstance().editingActions.put(player.getUniqueId(), actionImpl);
-                menuView.getAPI().openMenu(player, actionImpl.getMenu());
-            }));
+    public static Button creationButton(Player player) {
+        return Button.clickable(ItemBuilder.modern(BELL)
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.sound"))
+                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.sound.description"))
+                        .build(),
+                ButtonClickAction.plain((menuView, event) -> {
+                    event.setCancelled(true);
+                    Player p = (Player) event.getWhoClicked();
+                    p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    PlaySound actionImpl = new PlaySound(Sound.UI_BUTTON_CLICK.name(), 1, 1, 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
+                    menuView.getAPI().openMenu(p, actionImpl.getMenu());
+                }));
+    }
 
     float volume;
     float pitch;
@@ -108,17 +110,17 @@ public class PlaySound extends Action {
     }
 
     @Override
-    public ItemStack getFavicon() {
-        return ItemBuilder.modern(BELL).setDisplay(Msg.translate("customnpcs.favicons.sound"))
+    public ItemStack getFavicon(Player player) {
+        return ItemBuilder.modern(BELL).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.sound"))
                 .setLore(
-                        Msg.translate("customnpcs.favicons.delay", getDelay()),
-                        Msg.translate(""),
-                        Msg.translate("customnpcs.menus.action.sound.sound", sound),
-                        Msg.translate("customnpcs.menus.action.sound.volume", DECIMAL_FORMAT.format(volume)),
-                        Msg.translate("customnpcs.menus.action.sound.pitch", DECIMAL_FORMAT.format(pitch)),
+                        Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), ""),
+                        Msg.translate(player.locale(), "customnpcs.menus.action.sound.sound", sound),
+                        Msg.translate(player.locale(), "customnpcs.menus.action.sound.volume", DECIMAL_FORMAT.format(volume)),
+                        Msg.translate(player.locale(), "customnpcs.menus.action.sound.pitch", DECIMAL_FORMAT.format(pitch)),
                         Msg.format(""),
-                        Msg.translated("customnpcs.favicons.edit"),
-                        Msg.translated("customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
+                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
                 ).build();
     }
 
@@ -166,7 +168,7 @@ public class PlaySound extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translated("customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
         }
 
         @Override
@@ -177,40 +179,40 @@ public class PlaySound extends Action {
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
 
-            Component incLore = Msg.translated("customnpcs.menus.action.sound.increase");
-            Component decLore = Msg.translated("customnpcs.menus.action.sound.decrease");
+            Component incLore = Msg.translate(player.locale(), "customnpcs.menus.action.sound.increase");
+            Component decLore = Msg.translate(player.locale(), "customnpcs.menus.action.sound.decrease");
 
-            return MenuUtils.actionBase(action)
+            return MenuUtils.actionBase(action, player)
 
                     // displays
-                    .setButton(19, pitch())
-                    .setButton(21, volume())
+                    .setButton(19, pitch(player))
+                    .setButton(21, volume(player))
 
                     // increment
                     .setButton(10, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.sound.increase_pitch"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.increase_pitch"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 setPitch(getPitch() + .1f);
-                                menuView.replaceButton(19, pitch());
+                                menuView.replaceButton(19, pitch(player));
                             }))
                     ).setButton(12, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.sound.increase_volume"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.increase_volume"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 setVolume(getVolume() + .1f);
-                                menuView.replaceButton(21, volume());
+                                menuView.replaceButton(21, volume(player));
                             })))
 
                     // decrement
                     .setButton(28, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.sound.decrease_pitch"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.decrease_pitch"))
                                     .setLore(decLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -218,14 +220,14 @@ public class PlaySound extends Action {
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 Player p1 = (Player) event.getWhoClicked();
                                 if (getPitch() - .1 <= 0) {
-                                    p1.sendMessage(Msg.translated("customnpcs.menus.action.sound.invalid_pitch"));
+                                    p1.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.sound.invalid_pitch"));
                                 } else {
                                     setPitch(getPitch() - .1f);
                                 }
-                                menuView.replaceButton(19, pitch());
+                                menuView.replaceButton(19, pitch(player));
                             }))
                     ).setButton(30, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translated("customnpcs.menus.action.sound.decrease_volume"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.decrease_volume"))
                                     .setLore(decLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -233,17 +235,17 @@ public class PlaySound extends Action {
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 Player p1 = (Player) event.getWhoClicked();
                                 if (getVolume() - .1 <= 0) {
-                                    p1.sendMessage(Msg.translated("customnpcs.menus.action.sound.invalid_volume"));
+                                    p1.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.sound.invalid_volume"));
                                 } else {
                                     setVolume(getVolume() - .1f);
-                                    menuView.replaceButton(21, volume());
+                                    menuView.replaceButton(21, volume(player));
                                 }
                             })))
 
                     // select sound button
                     .setButton(24, Button.clickable(ItemBuilder.modern(OAK_SIGN)
-                                    .setDisplay(Msg.translate("customnpcs.menus.action.sound.sound", getSound()))
-                                    .setLore(Component.empty(), Msg.translated("customnpcs.items.click_to_change"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.sound", getSound()))
+                                    .setLore(Component.empty(), Msg.translate(player.locale(), "customnpcs.items.click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
@@ -261,12 +263,12 @@ public class PlaySound extends Action {
 
         }
 
-        private Button volume() {
-            return Button.clickable(MenuItems.genericDisplay(Msg.translate("customnpcs.menus.action.sound.volume", DECIMAL_FORMAT.format(getVolume()))), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)));
+        private Button volume(Player player) {
+            return Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.volume", DECIMAL_FORMAT.format(getVolume()))), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)));
         }
 
-        private Button pitch() {
-            return Button.clickable(MenuItems.genericDisplay(Msg.translate("customnpcs.menus.action.sound.pitch", DECIMAL_FORMAT.format(getPitch()))), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)));
+        private Button pitch(Player player) {
+            return Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.pitch", DECIMAL_FORMAT.format(getPitch()))), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)));
         }
     }
 }

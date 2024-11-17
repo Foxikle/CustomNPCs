@@ -22,7 +22,8 @@
 
 package dev.foxikle.customnpcs.data;
 
-import dev.foxikle.customnpcs.internal.menu.MenuItems;
+import dev.foxikle.customnpcs.internal.utils.Msg;
+import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Material;
@@ -54,12 +55,12 @@ public class Equipment {
      * @param offhand The item in the NPC's offhand
      */
     public Equipment(ItemStack head, ItemStack chest, ItemStack legs, ItemStack boots, ItemStack hand, ItemStack offhand) {
-        this.head = head == null ? MenuItems.ERROR_EQUIPMENT.getItem() : head;
-        this.chest = chest == null ? MenuItems.ERROR_EQUIPMENT.getItem() : chest;
-        this.legs = legs == null ? MenuItems.ERROR_EQUIPMENT.getItem() : legs;
-        this.boots = boots == null ? MenuItems.ERROR_EQUIPMENT.getItem() : boots;
-        this.hand = hand == null ? MenuItems.ERROR_EQUIPMENT.getItem() : hand;
-        this.offhand = offhand == null ? MenuItems.ERROR_EQUIPMENT.getItem() : offhand;
+        this.head = head == null ? ItemBuilder.modern(Material.BEDROCK).setDisplay(Msg.format("<RED><B>ERROR!")).build() : head;
+        this.chest = chest == null ? ItemBuilder.modern(Material.BEDROCK).setDisplay(Msg.format("<RED><B>ERROR!")).build() : chest;
+        this.legs = legs == null ? ItemBuilder.modern(Material.BEDROCK).setDisplay(Msg.format("<RED><B>ERROR!")).build() : legs;
+        this.boots = boots == null ? ItemBuilder.modern(Material.BEDROCK).setDisplay(Msg.format("<RED><B>ERROR!")).build() : boots;
+        this.hand = hand == null ? ItemBuilder.modern(Material.BEDROCK).setDisplay(Msg.format("<RED><B>ERROR!")).build() : hand;
+        this.offhand = offhand == null ? ItemBuilder.modern(Material.BEDROCK).setDisplay(Msg.format("<RED><B>ERROR!")).build() : offhand;
     }
 
     /**

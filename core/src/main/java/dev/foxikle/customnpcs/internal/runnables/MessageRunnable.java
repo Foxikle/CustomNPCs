@@ -59,8 +59,8 @@ public class MessageRunnable extends BukkitRunnable {
         if (!plugin.messageWaiting.contains(player.getUniqueId()))
             this.cancel();
         player.showTitle(Title.title(
-                Msg.translated("customnpcs.data.message.title"),
-                Msg.translated("customnpcs.data.message.subtitle"),
+                Msg.translate(player.locale(), "customnpcs.data.message.title"),
+                Msg.translate(player.locale(), "customnpcs.data.message.subtitle"),
                 Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
         ));
     }
