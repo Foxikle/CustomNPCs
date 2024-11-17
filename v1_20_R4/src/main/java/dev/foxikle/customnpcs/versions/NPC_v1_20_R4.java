@@ -391,6 +391,11 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
      * @param p The player to inject
      */
     public void injectPlayer(Player p) {
+
+        if (world != p.getWorld()) {
+            return;
+        }
+
         List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>> stuffs = new ArrayList<>();
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.MAINHAND, CraftItemStack.asNMSCopy(equipment.getHand())));
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.OFFHAND, CraftItemStack.asNMSCopy(equipment.getOffhand())));
