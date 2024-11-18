@@ -40,6 +40,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -194,6 +195,7 @@ public class FileManager {
                     return false;
                 }
                 yml.set("version", "1.3");
+                version = "1.3";
 
                 plugin.getLogger().warning("Adding delay to old actions.");
                 for (UUID u : getNPCIds()) {
@@ -227,6 +229,7 @@ public class FileManager {
                     return false;
                 }
                 yml.set("version", "1.4");
+                version = "1.4";
 
                 Set<String> npcs = yml.getKeys(false);
                 for (String npc : npcs) {
@@ -262,6 +265,7 @@ public class FileManager {
                 }
 
                 yml.set("version", "1.5");
+                version = "1.5";
 
                 Set<String> npcs = yml.getKeys(false);
                 for (String npc : npcs) {
@@ -286,6 +290,7 @@ public class FileManager {
                 }
 
                 yml.set("version", "1.6");
+                version = "1.6";
                 Set<String> npcs = yml.getKeys(false);
                 for (String npc : npcs) {
                     if (npc.equals("version")) continue; // it's a key
@@ -310,6 +315,7 @@ public class FileManager {
                     return false;
                 }
                 yml.set("version", "1.7");
+                version = "1.7";
 
                 Set<String> npcs = yml.getKeys(false);
                 for (String npc : npcs) {
@@ -578,7 +584,7 @@ public class FileManager {
 
     private BackupResult createBackup(File file) {
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
-        File f = new File(PARENT_DIRECTORY, new Date().toString().replace(" ", "_").replace(":", "_") + "_backup_of_" + file.getName());
+        File f = new File(PARENT_DIRECTORY, new Date().toString().replace(" ", "_").replace(":", "_") + "_backup_of_" + file.getName() + Instant.now().hashCode());
         try {
             if (f.createNewFile()) {
                 yml.save(f);
