@@ -332,8 +332,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         }
 
         listeners.start();
-        // detecting reloads
-        System.setProperty("customnpcs-reload-check", "true");
 
         getLogger().info("Loading action registry...");
         ACTION_REGISTRY.register("ACTIONBAR", ActionBar.class, ActionBar::creationButton);
