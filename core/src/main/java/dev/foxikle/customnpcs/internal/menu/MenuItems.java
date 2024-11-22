@@ -900,7 +900,7 @@ public class MenuItems {
             Player p = (Player) event.getWhoClicked();
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             try {
-                CustomNPCs.getInstance().skinCatalogue.open(p);
+                CustomNPCs.getInstance().getSkinCatalog(p).open(p);
             } catch (InvalidPageException e) {
                 p.sendMessage(Msg.translate(p.locale(), "customnpcs.error.cant_open_skin_catalog"));
                 CustomNPCs.getInstance().getLogger().log(Level.SEVERE, "An error occurred whilst opening the Skin Catalog!", e);
