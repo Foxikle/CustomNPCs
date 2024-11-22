@@ -40,6 +40,8 @@ dependencies {
     implementation("org.mineskin:java-client:1.2.4-SNAPSHOT")
     compileOnly("org.projectlombok:lombok:1.18.34")
     annotationProcessor("org.projectlombok:lombok:1.18.34")
+    implementation("dev.velix:imperat-core:1.3.2")
+    implementation("dev.velix:imperat-bukkit:1.3.2")
 }
 
 tasks {
