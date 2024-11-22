@@ -10,9 +10,6 @@ softdepend:
 description: A simple NPC plugin.
 libraries:
   - com.google.code.gson:gson:2.10.1
-commands:
-  npc:
-    description: The core command for CustomNPCs
 permissions:
   customnpcs.*:
     description: A wildcard permission for CustomNPCs
@@ -30,6 +27,7 @@ permissions:
     - customnpcs.commands.goto
     - customnpcs.alert
     - customnpcs.run_command.enable_console
+    - customnpcs.commands.wiki
   customnpcs.commands.*:
     description: A wildcard permission for all command permissions
     default: op
@@ -42,6 +40,7 @@ permissions:
       - customnpcs.commands.goto
       - customnpcs.commands.clone
       - customnpcs.commands.movehere
+      - customnpcs.commands.wiki
   customnpcs.commands.manage:
     description: A permission required to manage npcs with the /npc manage command.
     default: op
@@ -73,6 +72,9 @@ permissions:
     default: op
   customnpcs.commands.clone:
     description: A permission required to use the /npc clone command
+    default: op
+  customnpcs.commands.wiki:
+    description: A permission required to use /npc wiki or /npc docs
     default: op
   customnpcs.commands.movehere:
     description: A permission required to use the /npc movehere command
