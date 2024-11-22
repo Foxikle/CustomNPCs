@@ -30,12 +30,15 @@ import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Utils;
+import lombok.Getter;
+import lombok.SneakyThrows;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,14 +57,15 @@ public class FileManager {
      * The config file version
      */
     public static final int CONFIG_FILE_VERSION = 6;
-
     /**
      * The file version of the npcs.yml file
      */
     public static final double NPC_FILE_VERSION = 1.6;
-
     public static File PARENT_DIRECTORY = new File("plugins/CustomNPCs/");
-
+    @Getter
+    private final Map<UUID, String> brokenNPCs = new HashMap<>();
+    @Getter
+    private final List<UUID> validNPCs = new ArrayList<>();
     private final CustomNPCs plugin;
 
     /**
@@ -182,8 +186,12 @@ public class FileManager {
 
         // npcs
         {
+            boolean changed = false;
             File file = new File(PARENT_DIRECTORY, "npcs.yml");
+
             YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+
+
             String version = yml.getString("version");
 
 
@@ -306,7 +314,6 @@ public class FileManager {
                 }
             }
 
-
             if (version.equals("1.6")) {
                 plugin.getLogger().warning("Old NPC file version found! Bumping version! (1.6 -> 1.7)");
                 BackupResult br = createBackup(file);
@@ -351,8 +358,6 @@ public class FileManager {
 
                     section.set("actions", newActions);
                 }
-
-
                 try {
                     yml.save(file);
                 } catch (IOException e) {
@@ -385,14 +390,40 @@ public class FileManager {
                     section.set("location", loc); // update the location
                     section.set("direction", null); // remove the direction field
                 }
+                try {
+                    yml.save(file);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
 
-            try {
-                yml.save(file);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            // check for valid NPCs:
+            boolean found = false;
+            Set<String> npcs = yml.getKeys(false);
+            for (String npc : npcs) {
+                if (npc.equals("version")) continue; // not an NPC uuid
+                ConfigurationSection section = yml.getConfigurationSection(npc);
+                boolean err = false;
+                boolean exists = false;
+                UUID uuid = UUID.fromString(npc);
+
+                try {
+                    var sec = section.getLocation("location");
+                    exists = sec != null;
+                } catch (Exception e) {
+                    err = true;
+                }
+
+                if (err || !exists) {
+                    found = true;
+                    String rawName = plugin.getMiniMessage().stripTags(section.getString("name"));
+                    brokenNPCs.put(UUID.fromString(npc), rawName);
+                } else {
+                    validNPCs.add(UUID.fromString(npc));
+                }
             }
+            if (found) printInvalidConfig();
         }
 
         return true;
@@ -480,30 +511,37 @@ public class FileManager {
             }
         }
 
+        String rawName = plugin.getMiniMessage().stripTags(section.getString("name"));
         World world;
         try {
             world = Bukkit.getWorld(Objects.requireNonNull(section.getString("world")));
         } catch (IllegalArgumentException ex) {
             printInvalidConfig();
+            brokenNPCs.put(uuid, rawName);
             return;
         }
+
         Location location;
         try {
             location = section.getLocation("location");
         } catch (Exception ex) {
+            brokenNPCs.put(uuid, rawName);
             printInvalidConfig();
             return;
         }
 
         if (world == null) {
             printInvalidConfig();
+            brokenNPCs.put(uuid, rawName);
             return;
         }
 
         if (location == null) {
             printInvalidConfig();
+            brokenNPCs.put(uuid, rawName);
             return;
         }
+
 
         // use the actions freshly converted
 
@@ -540,6 +578,18 @@ public class FileManager {
         } else {
             plugin.getLogger().severe("The NPC '{name}' could not be created!".replace("{name}", Objects.requireNonNull(section.getString("name"))));
         }
+    }
+
+    @Nullable
+    public YamlConfiguration getNpcYaml() {
+        File file = new File(PARENT_DIRECTORY, "npcs.yml");
+        return YamlConfiguration.loadConfiguration(file);
+    }
+
+    @SneakyThrows
+    public void saveNpcFile(YamlConfiguration section) {
+        File file = new File(PARENT_DIRECTORY, "npcs.yml");
+        section.save(file);
     }
 
     /**
