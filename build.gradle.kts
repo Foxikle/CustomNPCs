@@ -46,7 +46,7 @@ dependencies {
     implementation(project(":v1_20_R1", "reobf"))
 }
 
-var pluginVersion = "1.7-pre9"
+var pluginVersion = "1.7-pre10"
 
 allprojects {
     group = "dev.foxikle"
@@ -128,7 +128,11 @@ tasks {
         archiveClassifier.set("")
         relocate("org.bstats", "dev.foxikle.dependencies.bstats")
         // This is used to place the file into a test server's plugin directory.
-        destinationDirectory.set(file(providers.gradleProperty("plugin_dir").get()))
+        destinationDirectory.set(
+            file(
+                providers.gradleProperty("plugin_dir").orElse(destinationDirectory.get().toString())
+            )
+        )
     }
 }
 
