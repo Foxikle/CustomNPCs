@@ -113,7 +113,7 @@ public class RunCommand extends Action {
         return ItemBuilder.modern(ANVIL).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.command"))
                 .setLore(
                         Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
-                        Msg.translate(player.locale(), ""),
+                        Msg.format(""),
                         Msg.translate(player.locale(), "customnpcs.favicons.command.syntax", command),
                         Msg.translate(player.locale(), "customnpcs.favicons.command.as_console", asConsole),
                         Msg.format(""),
