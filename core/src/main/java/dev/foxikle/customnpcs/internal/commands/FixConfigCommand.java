@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @SubCommand(value = "fixconfig", attachDirectly = true)
+@Permission()
 public class FixConfigCommand {
 
     @Usage
