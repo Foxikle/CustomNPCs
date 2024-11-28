@@ -56,6 +56,11 @@ public class Msg {
         }
 
         MessageFormat format = GlobalTranslator.translator().translate(key, locale);
+        if (format == null) {
+            CustomNPCs.getInstance().getLogger().warning("Could not translate " + key + " to " + locale);
+            return key;
+        }
+
         assert format != null : "Failed to translate message: " + key + " -- Format is null";
         StringBuffer buffer = format.format(translatedArgs, new StringBuffer(), new FieldPosition(0));
 
