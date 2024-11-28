@@ -79,7 +79,7 @@ public class DisplayTitle extends Action {
         this.fadeOut = fadeOut;
     }
 
-    public static final Button creationButton(Player player) {
+    public static Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(OAK_SIGN)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.title"))
                         .setLore(Msg.lore(player.locale(), "customnpcs.favicons.title.description"))
@@ -292,7 +292,7 @@ public class DisplayTitle extends Action {
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (action.fadeIn == 1) {
+                                if (action.fadeOut == 1) {
                                     player.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.title.duration_less_than_1"));
                                     return;
                                 }
