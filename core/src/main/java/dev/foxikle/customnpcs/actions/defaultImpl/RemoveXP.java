@@ -56,7 +56,7 @@ import static org.bukkit.Material.*;
 @Setter
 public class RemoveXP extends Action {
 
-    public static final Button creationButton(Player player) {
+    public static Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(GLASS_BOTTLE)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.remove_xp"))
                         .setLore(Msg.lore(player.locale(), "customnpcs.favicons.remove_xp.description"))

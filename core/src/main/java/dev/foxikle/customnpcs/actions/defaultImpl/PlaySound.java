@@ -114,7 +114,7 @@ public class PlaySound extends Action {
         return ItemBuilder.modern(BELL).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.sound"))
                 .setLore(
                         Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
-                        Msg.translate(player.locale(), ""),
+                        Msg.format(""),
                         Msg.translate(player.locale(), "customnpcs.menus.action.sound.sound", sound),
                         Msg.translate(player.locale(), "customnpcs.menus.action.sound.volume", DECIMAL_FORMAT.format(volume)),
                         Msg.translate(player.locale(), "customnpcs.menus.action.sound.pitch", DECIMAL_FORMAT.format(pitch)),
