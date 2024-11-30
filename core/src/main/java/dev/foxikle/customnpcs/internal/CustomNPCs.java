@@ -461,7 +461,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     }
 
     /**
-     * <p> Gets the delay of an action
+     * <p> Gets the NPC by its UUID
      * </p>
      *
      * @param uuid The UUID of the npc
