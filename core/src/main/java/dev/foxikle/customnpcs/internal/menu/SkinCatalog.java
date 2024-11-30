@@ -24,6 +24,7 @@ package dev.foxikle.customnpcs.internal.menu;
 
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import io.github.mqzen.menus.base.Content;
+import io.github.mqzen.menus.base.MenuView;
 import io.github.mqzen.menus.base.pagination.Page;
 import io.github.mqzen.menus.base.pagination.PageView;
 import io.github.mqzen.menus.base.style.TextLayout;
@@ -33,8 +34,11 @@ import io.github.mqzen.menus.misc.DataRegistry;
 import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,6 +61,20 @@ public class SkinCatalog extends Page {
         return ItemBuilder.modern(Material.ARROW)
                 .setDisplay(Msg.translate(player.locale(), "customnpcs.items.prev_page"))
                 .build();
+    }
+
+    /**
+     * Handles the click sounds on page change
+     *
+     * @param playerMenuView the menu view that the player has clicked on.
+     * @param event          the click event
+     */
+    @Override
+    public void onClick(MenuView<?> playerMenuView, InventoryClickEvent event) {
+        //todo: check the slot clicked and play click sound
+        if ((event.getSlot() == 45 || event.getSlot() == 53) && event.getCurrentItem().getType() == Material.ARROW) {
+            event.getWhoClicked().playSound(Sound.sound(builder -> builder.type(Key.key("minecraft", "ui.button.click")).pitch(1).volume(1).source(Sound.Source.MASTER)));
+        }
     }
 
     @Override
