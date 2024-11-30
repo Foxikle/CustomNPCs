@@ -63,6 +63,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.scoreboard.Team;
@@ -232,8 +233,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         }
 
 
-        Translations translations = new Translations();
-        translations.setup();
+        new Translations().setup();
 
         registerNpcTeam();
 
@@ -245,85 +245,90 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         this.mu = new MenuUtils(this);
         this.updater = new AutoUpdater(this);
         update = updater.checkForUpdates();
-        if (fileManager.createFiles()) {
-            this.getLogger().info("Loading NPCs!");
-            for (UUID uuid : fileManager.getValidNPCs()) {
-                fileManager.loadNPC(uuid);
-            }
 
-            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
-                this.getMenuUtils().getSkinCatalogue(Locale.ENGLISH);
-                this.getMenuUtils().getSkinCatalogue(Locale.GERMAN);
-                this.getMenuUtils().getSkinCatalogue(Locale.SIMPLIFIED_CHINESE);
-                this.getMenuUtils().getSkinCatalogue(new Locale("ru"));
-            }, 20);
-
-            // setup bstats
-            Metrics metrics = new Metrics(this, 18898);
-
-            metrics.addCustomChart(new SimplePie("use_papi", () -> String.valueOf(papi)));
-            metrics.addCustomChart(new SimplePie("look_interval", () -> String.valueOf(getConfig().getInt("LookInterval"))));
-            metrics.addCustomChart(new SimplePie("injection_interval", () -> String.valueOf(getConfig().getInt("InjectionInterval"))));
-            metrics.addCustomChart(new SimplePie("injection_distance", () -> String.valueOf(getConfig().getInt("InjectionDistance"))));
-            metrics.addCustomChart(new SimplePie("hologram_interval", () -> String.valueOf(getConfig().getInt("HologramUpdateInterval"))));
-            metrics.addCustomChart(new SimplePie("update_alerts", () -> String.valueOf(getConfig().getInt("AlertOnUpdate"))));
-            metrics.addCustomChart(new SimplePie("npc_count", () -> String.valueOf(npcs.size())));
-
-            // only supports default actions
-            metrics.addCustomChart(new MultiLineChart("total_actions", () -> {
-
-                int actionbar = 0;
-                int title = 0;
-                int message = 0;
-                int give_effect = 0;
-                int remove_effect = 0;
-                int give_xp = 0;
-                int remove_xp = 0;
-                int play_sound = 0;
-                int teleport = 0;
-                int send_server = 0;
-                int run_command = 0;
-
-                for (InternalNpc npc : npcs.values()) {
-                    for (Action action : npc.getActions()) {
-                        if (action instanceof ActionBar) actionbar++;
-                        else if (action instanceof DisplayTitle) title++;
-                        else if (action instanceof SendMessage) message++;
-                        else if (action instanceof GiveEffect) give_effect++;
-                        else if (action instanceof RemoveEffect) remove_effect++;
-                        else if (action instanceof GiveXP) give_xp++;
-                        else if (action instanceof RemoveXP) remove_xp++;
-                        else if (action instanceof PlaySound) play_sound++;
-                        else if (action instanceof Teleport) teleport++;
-                        else if (action instanceof SendServer) send_server++;
-                        else if (action instanceof RunCommand) run_command++;
-                    }
-                }
-
-                return Map.ofEntries(
-                        Map.entry("ActionBar", actionbar),
-                        Map.entry("DisplayTitle", title),
-                        Map.entry("SendMessage", message),
-                        Map.entry("GiveEffect", give_effect),
-                        Map.entry("RemoveEffect", remove_effect),
-                        Map.entry("GiveXP", give_xp),
-                        Map.entry("RemoveXP", remove_xp),
-                        Map.entry("PlaySound", play_sound),
-                        Map.entry("Teleport", teleport),
-                        Map.entry("SendServer", send_server),
-                        Map.entry("RunCommand", run_command)
-                );
-            }));
-
-            // setup papi
-            if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-                this.getLogger().info("Successfully hooked into PlaceholderAPI.");
-                papi = true;
-            } else {
-                papi = false;
-                this.getLogger().warning("Could not find PlaceholderAPI! PlaceholderAPI isn't required, but CustomNPCs does support it.");
-            }
+        if (!fileManager.createFiles()) {
+            throw new RuntimeException("Failed to create files");
         }
+
+        this.getLogger().info("Loading NPCs!");
+        for (UUID uuid : fileManager.getValidNPCs()) {
+            fileManager.loadNPC(uuid);
+        }
+
+        //generate skin menus for the supported locales
+        Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
+            this.getMenuUtils().getSkinCatalogue(Locale.ENGLISH);
+            this.getMenuUtils().getSkinCatalogue(Locale.GERMAN);
+            this.getMenuUtils().getSkinCatalogue(Locale.SIMPLIFIED_CHINESE);
+            this.getMenuUtils().getSkinCatalogue(new Locale("ru"));
+        }, 20);
+
+        // setup bstats
+        Metrics metrics = new Metrics(this, 18898);
+
+        metrics.addCustomChart(new SimplePie("use_papi", () -> String.valueOf(papi)));
+        metrics.addCustomChart(new SimplePie("look_interval", () -> String.valueOf(getConfig().getInt("LookInterval"))));
+        metrics.addCustomChart(new SimplePie("injection_interval", () -> String.valueOf(getConfig().getInt("InjectionInterval"))));
+        metrics.addCustomChart(new SimplePie("injection_distance", () -> String.valueOf(getConfig().getInt("InjectionDistance"))));
+        metrics.addCustomChart(new SimplePie("hologram_interval", () -> String.valueOf(getConfig().getInt("HologramUpdateInterval"))));
+        metrics.addCustomChart(new SimplePie("update_alerts", () -> String.valueOf(getConfig().getInt("AlertOnUpdate"))));
+        metrics.addCustomChart(new SimplePie("npc_count", () -> String.valueOf(npcs.size())));
+
+        // only supports default actions
+        metrics.addCustomChart(new MultiLineChart("total_actions", () -> {
+
+            int actionbar = 0;
+            int title = 0;
+            int message = 0;
+            int give_effect = 0;
+            int remove_effect = 0;
+            int give_xp = 0;
+            int remove_xp = 0;
+            int play_sound = 0;
+            int teleport = 0;
+            int send_server = 0;
+            int run_command = 0;
+
+            for (InternalNpc npc : npcs.values()) {
+                for (Action action : npc.getActions()) {
+                    if (action instanceof ActionBar) actionbar++;
+                    else if (action instanceof DisplayTitle) title++;
+                    else if (action instanceof SendMessage) message++;
+                    else if (action instanceof GiveEffect) give_effect++;
+                    else if (action instanceof RemoveEffect) remove_effect++;
+                    else if (action instanceof GiveXP) give_xp++;
+                    else if (action instanceof RemoveXP) remove_xp++;
+                    else if (action instanceof PlaySound) play_sound++;
+                    else if (action instanceof Teleport) teleport++;
+                    else if (action instanceof SendServer) send_server++;
+                    else if (action instanceof RunCommand) run_command++;
+                }
+            }
+
+            return Map.ofEntries(
+                    Map.entry("ActionBar", actionbar),
+                    Map.entry("DisplayTitle", title),
+                    Map.entry("SendMessage", message),
+                    Map.entry("GiveEffect", give_effect),
+                    Map.entry("RemoveEffect", remove_effect),
+                    Map.entry("GiveXP", give_xp),
+                    Map.entry("RemoveXP", remove_xp),
+                    Map.entry("PlaySound", play_sound),
+                    Map.entry("Teleport", teleport),
+                    Map.entry("SendServer", send_server),
+                    Map.entry("RunCommand", run_command)
+            );
+        }));
+
+        // setup papi
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            this.getLogger().info("Successfully hooked into PlaceholderAPI.");
+            papi = true;
+        } else {
+            papi = false;
+            this.getLogger().warning("Could not find PlaceholderAPI! PlaceholderAPI isn't required, but CustomNPCs does support it.");
+        }
+
         if (!System.getProperties().containsKey("customnpcs-reload-check")) {
             getLogger().info("Loading listeners...");
             listeners = new Listeners(this);
@@ -417,6 +422,9 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             if (t != null) t.remove();
         }
         if (listeners != null) listeners.stop();
+
+        HandlerList.unregisterAll(this);
+
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
         Bukkit.getScheduler().cancelTasks(this);
