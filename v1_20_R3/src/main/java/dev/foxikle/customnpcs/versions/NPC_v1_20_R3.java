@@ -191,9 +191,6 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
 
         injectionManager = new InjectionManager(plugin, this);
         injectionManager.setup();
-
-        //TODO: change this maybe V
-        Bukkit.getScheduler().runTaskLater(plugin, () -> Bukkit.getOnlinePlayers().forEach(this::injectPlayer), 5);
     }
 
     /**
