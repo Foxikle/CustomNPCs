@@ -443,9 +443,6 @@ public class FileManager {
 
         List<String> actions = new ArrayList<>();
         npc.getActions().forEach(action -> actions.add(action.serialize()));
-
-        npc.getSpawnLoc().setYaw((float) npc.getSettings().getDirection());
-
         assert section != null;
         section.addDefault("value", npc.getSettings().getValue());
         section.addDefault("signature", npc.getSettings().getSignature());
@@ -550,7 +547,6 @@ public class FileManager {
             actions.add(Action.parse(s));
         }
 
-
         InternalNpc npc = plugin.createNPC(
                 world,
                 location,
@@ -565,7 +561,7 @@ public class FileManager {
                         section.getBoolean("clickable"),
                         section.getBoolean("tunnelvision"),
                         true,
-                        section.getDouble("direction"),
+                        location.getYaw(),
                         section.getString("value"),
                         section.getString("signature"),
                         section.getString("skin"),
