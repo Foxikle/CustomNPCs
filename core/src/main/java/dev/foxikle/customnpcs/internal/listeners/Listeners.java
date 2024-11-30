@@ -470,6 +470,7 @@ public class Listeners implements Listener {
             if (message.equalsIgnoreCase("confirm")) {
                 npc.getSettings().setDirection(player.getLocation().getYaw());
                 npc.getSpawnLoc().setPitch(player.getLocation().getPitch());
+                npc.getSpawnLoc().setYaw(player.getLocation().getYaw());
                 player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.facing_direction"));
                 player.playSound(player, Sound.BLOCK_AMETHYST_BLOCK_BREAK, 1, 1);
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_MAIN));
