@@ -34,6 +34,8 @@ public class Translations {
     TranslationRegistry registry = TranslationRegistry.create(Key.key("customnpcs:localization"));
 
 
+    public static final Locale VIETNAMESE = new Locale("vi");
+
     public void setup() {
 
 
@@ -49,6 +51,9 @@ public class Translations {
 
         ResourceBundle en = ResourceBundle.getBundle("localization.English", Locale.US, UTF8ResourceBundleControl.get());
         registry.registerAll(Locale.ENGLISH, en, true);
+
+        ResourceBundle vi = ResourceBundle.getBundle("localization.Vietnamese", VIETNAMESE, UTF8ResourceBundleControl.get());
+        registry.registerAll(VIETNAMESE, vi, true);
 
         registry.defaultLocale(Locale.ENGLISH);
 
