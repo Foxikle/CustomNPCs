@@ -109,4 +109,8 @@ public class ActionRegistry {
         return classToButton.values().stream().map(button -> button.get(locale)).toList();
     }
 
+    public Class<? extends Action> getActionClass(String id) {
+        return idToClass.get(id);
+    }
+
 }
