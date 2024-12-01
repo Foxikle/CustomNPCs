@@ -26,6 +26,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * A class holding the data for an NPC's settings
@@ -36,6 +37,8 @@ public class Settings {
     @Getter boolean interactable = false;
     @Getter boolean tunnelvision = false;
     @Getter boolean resilient = true;
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
     @Getter double direction = 180;
     @Getter String value = "";
     @Getter String signature = "";
