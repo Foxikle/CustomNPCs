@@ -71,7 +71,6 @@ public class SkinCatalog extends Page {
      */
     @Override
     public void onClick(MenuView<?> playerMenuView, InventoryClickEvent event) {
-        //todo: check the slot clicked and play click sound
         if ((event.getSlot() == 45 || event.getSlot() == 53) && event.getCurrentItem().getType() == Material.ARROW) {
             event.getWhoClicked().playSound(Sound.sound(builder -> builder.type(Key.key("minecraft", "ui.button.click")).pitch(1).volume(1).source(Sound.Source.MASTER)));
         }
