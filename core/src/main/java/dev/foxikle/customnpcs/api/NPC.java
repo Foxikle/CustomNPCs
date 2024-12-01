@@ -38,10 +38,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * A class providing a 'Paper API friendly' NPC object requiring no NMS to use within a project.
@@ -78,7 +75,9 @@ public class NPC {
         if (NPCApi.plugin == null) throw new IllegalStateException("You must initialize the api before using it!");
         if (world == null) throw new NullPointerException("world cannot be null.");
         UUID uuid = UUID.randomUUID();
-        this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), new Equipment(), new Settings(), uuid, null, new ArrayList<>());
+        Settings settings = new Settings();
+        settings.setResilient(false);
+        this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), new Equipment(), settings, uuid, null, new ArrayList<>());
     }
 
     /**
@@ -159,6 +158,19 @@ public class NPC {
     }
 
     /**
+     * Adds an Action to this NPC
+     *
+     * @param action the action to add
+     * @return this NPC, for chaining
+     * @see Action
+     * @since 1.7-rc1
+     */
+    public NPC addAction(@NotNull Action action) {
+        npc.addAction(action);
+        return this;
+    }
+
+    /**
      * <p>Sets the NPC's actions to the specified Collection
      * </p>
      *
@@ -214,7 +226,8 @@ public class NPC {
      * @param e      The entity to look at
      * @param atHead If the npc should look head (true), or feet (false)
      */
-    public void lookAt(Entity e, boolean atHead) {
+    public void lookAt(@NotNull Entity e, boolean atHead) {
+        Objects.requireNonNull(e);
         npc.lookAt(atHead ? LookAtAnchor.HEAD : LookAtAnchor.FEET, e);
     }
 
@@ -223,7 +236,8 @@ public class NPC {
      *
      * @param location the location to look at
      */
-    public void lookAt(Location location) {
+    public void lookAt(@NotNull Location location) {
+        Objects.requireNonNull(location);
         npc.lookAt(location);
     }
 
