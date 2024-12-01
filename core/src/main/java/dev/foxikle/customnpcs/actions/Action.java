@@ -23,16 +23,18 @@
 package dev.foxikle.customnpcs.actions;
 
 import dev.foxikle.customnpcs.actions.conditions.Condition;
-import dev.foxikle.customnpcs.actions.defaultImpl.*;
+import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import io.github.mqzen.menus.base.Menu;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -76,27 +78,27 @@ public abstract class Action {
         return conditions;
     }
 
+    /**
+     * @throws NoSuchMethodException if your custom Action classes don't implement a `deserialize` method.
+     */
+    @SneakyThrows
     @Nullable
     public static Action parse(@NotNull String s) {
         Matcher matcher = SPLITTER.matcher(s);
 
         if (matcher.find()) {
             String type = matcher.group();
-            return switch (type) {
-                case "ActionBar" -> ActionBar.deserialize(s, ActionBar.class);
-                case "DisplayTitle" -> DisplayTitle.deserialize(s, DisplayTitle.class);
-                case "GiveEffect" -> GiveEffect.deserialize(s, GiveEffect.class);
-                case "GiveXP" -> GiveXP.deserialize(s, GiveXP.class);
-                case "PlaySound" -> PlaySound.deserialize(s, PlaySound.class);
-                case "RemoveEffect" -> RemoveEffect.deserialize(s, RemoveEffect.class);
-                case "RemoveXP" -> RemoveXP.deserialize(s, RemoveXP.class);
-                case "RunCommand" -> RunCommand.deserialize(s, RunCommand.class);
-                case "SendMessage" -> SendMessage.deserialize(s, SendMessage.class);
-                case "SendServer" -> SendServer.deserialize(s, SendServer.class);
-                case "Teleport" -> Teleport.deserialize(s, Teleport.class);
-                default ->
-                        throw new IllegalStateException("Unexpected value: '" + type + "'; Original String: '" + s + "'");
-            };
+
+            Class<? extends Action> clazz = CustomNPCs.ACTION_REGISTRY.getActionClass(type);
+            if (clazz == null) {
+                System.err.println("Unknown action class " + type);
+                return null; // class doesn't exist in the registry
+            }
+
+            Class<?>[] parameterTypes = new Class<?>[]{String.class, Class.class};
+            Method method = clazz.getMethod("deserialize", parameterTypes);
+            Object result = method.invoke(null, s, clazz);
+            return (Action) result;
         } else {
             return null;
         }
