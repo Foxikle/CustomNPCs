@@ -250,6 +250,19 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             throw new RuntimeException("Failed to create files");
         }
 
+        getLogger().info("Loading action registry...");
+        ACTION_REGISTRY.register("ActionBar", ActionBar.class, ActionBar::creationButton);
+        ACTION_REGISTRY.register("DisplayTitle", DisplayTitle.class, DisplayTitle::creationButton);
+        ACTION_REGISTRY.register("GiveEffect", GiveEffect.class, GiveEffect::creationButton);
+        ACTION_REGISTRY.register("GiveXP", GiveXP.class, GiveXP::creationButton);
+        ACTION_REGISTRY.register("PlaySound", PlaySound.class, PlaySound::creationButton);
+        ACTION_REGISTRY.register("RemoveEffect", RemoveEffect.class, RemoveEffect::creationButton);
+        ACTION_REGISTRY.register("RemoveXP", RemoveXP.class, RemoveXP::creationButton);
+        ACTION_REGISTRY.register("RunCommand", RunCommand.class, RunCommand::creationButton);
+        ACTION_REGISTRY.register("SendMessage", SendMessage.class, SendMessage::creationButton);
+        ACTION_REGISTRY.register("SendServer", SendServer.class, SendServer::creationButton, true, false, true);
+        ACTION_REGISTRY.register("Teleport", Teleport.class, Teleport::creationButton);
+
         this.getLogger().info("Loading NPCs!");
         for (UUID uuid : fileManager.getValidNPCs()) {
             fileManager.loadNPC(uuid);
@@ -338,19 +351,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         }
 
         listeners.start();
-
-        getLogger().info("Loading action registry...");
-        ACTION_REGISTRY.register("ACTIONBAR", ActionBar.class, ActionBar::creationButton);
-        ACTION_REGISTRY.register("DISPLAY_TITLE", DisplayTitle.class, DisplayTitle::creationButton);
-        ACTION_REGISTRY.register("GIVE_EFFECT", GiveEffect.class, GiveEffect::creationButton);
-        ACTION_REGISTRY.register("GIVE_XP", GiveXP.class, GiveXP::creationButton);
-        ACTION_REGISTRY.register("PLAY_SOUND", PlaySound.class, PlaySound::creationButton);
-        ACTION_REGISTRY.register("REMOVE_EFFECT", RemoveEffect.class, RemoveEffect::creationButton);
-        ACTION_REGISTRY.register("REMOVE_XP", RemoveXP.class, RemoveXP::creationButton);
-        ACTION_REGISTRY.register("RUN_COMMAND", RunCommand.class, RunCommand::creationButton);
-        ACTION_REGISTRY.register("SEND_MESSAGE", SendMessage.class, SendMessage::creationButton);
-        ACTION_REGISTRY.register("SEND_TO_SERVER", SendServer.class, SendServer::creationButton, true, false, true);
-        ACTION_REGISTRY.register("TELEPORT", Teleport.class, Teleport::creationButton);
 
         getLogger().info("Loading menus!");
 
