@@ -581,11 +581,19 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
 
         Bukkit.getScheduler().runTask(plugin, () -> {
             setupHologram(settings.getName());
+            if (settings.isHideBackgroundHologram()) hologram.setBackgroundColor(null);
+            if (settings.getHologramBackground() != null) {
+                hologram.setBackgroundColor(settings.getHologramBackground());
+            }
             if (settings.isInteractable() && !settings.isHideClickableHologram()) {
                 if (settings.getCustomInteractableHologram().isEmpty()) {
                     setupClickableHologram(plugin.getConfig().getString("ClickText"));
                 } else {
                     setupClickableHologram(settings.getCustomInteractableHologram());
+                }
+                if (settings.isHideBackgroundHologram()) clickableHologram.setBackgroundColor(null);
+                if (settings.getHologramBackground() != null) {
+                    clickableHologram.setBackgroundColor(settings.getHologramBackground());
                 }
             }
         });
