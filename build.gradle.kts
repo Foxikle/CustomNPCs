@@ -38,6 +38,7 @@ repositories {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":v1_21_R2", "reobf"))
     implementation(project(":v1_21_R1", "reobf"))
     implementation(project(":v1_21_R0", "reobf"))
     implementation(project(":v1_20_R4", "reobf"))
@@ -46,7 +47,7 @@ dependencies {
     implementation(project(":v1_20_R1", "reobf"))
 }
 
-var pluginVersion = "1.7-pre12"
+var pluginVersion = "1.7-pre13"
 
 allprojects {
     group = "dev.foxikle"
