@@ -48,6 +48,6 @@ tasks {
     }
 
     jar {
-        archiveClassifier = "v1_21_R0"
+        archiveClassifier = "v1_21_R1"
     }
 }
