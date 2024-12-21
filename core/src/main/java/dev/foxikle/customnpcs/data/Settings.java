@@ -26,6 +26,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Color;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -46,6 +47,11 @@ public class Settings {
     @Getter String skinName = "not set";
     @Getter boolean hideClickableHologram = false;
     @Getter String customInteractableHologram = "";
+
+    @Getter
+    Color hologramBackground = null;
+    @Getter
+    boolean hideBackgroundHologram = false;
 
 
     /**
