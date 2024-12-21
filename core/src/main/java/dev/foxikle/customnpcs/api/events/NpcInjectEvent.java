@@ -26,6 +26,9 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 
+/**
+ * A class representing an event called upon the injection of an NPC.
+ */
 @Getter
 @SuppressWarnings("unused")
 public class NpcInjectEvent extends NpcEvent {

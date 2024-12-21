@@ -24,23 +24,16 @@ package dev.foxikle.customnpcs.api.events;
 
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import lombok.Getter;
-import lombok.Setter;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
-import org.bukkit.event.Event;
-import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A class representing an event called on the deletion of an NPC.
+ */
 @Getter
-public class NpcDeleteEvent extends Event implements Cancellable {
+public class NpcDeleteEvent extends NpcEvent {
 
     private final DeletionSource deletionSource;
-    private final InternalNpc npc;
-    @Setter
-    private boolean cancelled;
-    private final Player player;
-    private static final HandlerList HANDLERS = new HandlerList();
 
     /**
      * The constructor for the event
@@ -50,18 +43,8 @@ public class NpcDeleteEvent extends Event implements Cancellable {
      * @param deletionSource What the source of this deletion event is
      */
     public NpcDeleteEvent(@Nullable Player player, InternalNpc npc, DeletionSource deletionSource) {
-        super(false);
+        super(player, npc, false);
         this.deletionSource = deletionSource;
-        this.npc = npc;
-        this.player = player;
-    }
-
-    /**
-     * @return the handlerlist
-     */
-    @Override
-    public @NotNull HandlerList getHandlers() {
-        return HANDLERS;
     }
 
     /**

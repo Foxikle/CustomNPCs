@@ -22,6 +22,7 @@
 
 package dev.foxikle.customnpcs.api.events;
 
+import dev.foxikle.customnpcs.api.NPC;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import lombok.Getter;
 import lombok.Setter;
@@ -51,9 +52,25 @@ public abstract class NpcEvent extends PlayerEvent implements Cancellable {
         this.npc = npc;
     }
 
+    /**
+     * A constructor for an NPC event with more control over its async status.
+     *
+     * @param player The player associated with the event
+     * @param npc    The npc involved in the event
+     * @param async  If this event is running on an async thread.
+     */
     public NpcEvent(Player player, InternalNpc npc, boolean async) {
         super(player, async);
         this.npc = npc;
+    }
+
+    /**
+     * Returns an API wrapped NPC object.
+     *
+     * @return The API npc object, with better deprecation.
+     */
+    public NPC apiNPC() {
+        return new NPC(npc);
     }
 
     /**

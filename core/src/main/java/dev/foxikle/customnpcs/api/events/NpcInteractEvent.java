@@ -28,6 +28,9 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
+/**
+ * A class representing an event called upon the interaction of an NPC.
+ */
 @SuppressWarnings("unused")
 public class NpcInteractEvent extends NpcEvent {
 
