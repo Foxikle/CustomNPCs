@@ -108,7 +108,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     @Getter
     private final Cache<UUID, Boolean> deltionReason = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).expireAfterAccess(1, TimeUnit.MINUTES).build();
-    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3"};
+    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4"};
     /**
      * The List of players the plugin is waiting for title text input
      */
@@ -263,9 +263,13 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         ACTION_REGISTRY.register("SendServer", SendServer.class, SendServer::creationButton, true, false, true);
         ACTION_REGISTRY.register("Teleport", Teleport.class, Teleport::creationButton);
 
-        this.getLogger().info("Loading NPCs!");
-        for (UUID uuid : fileManager.getValidNPCs()) {
-            fileManager.loadNPC(uuid);
+        try {
+            this.getLogger().info("Loading NPCs!");
+            for (UUID uuid : fileManager.getValidNPCs()) {
+                fileManager.loadNPC(uuid);
+            }
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "Failed to load NPC:", e);
         }
 
         //generate skin menus for the supported locales
@@ -441,8 +445,10 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
         // don't unregister these on reload
         if (!reloading) {
-            imperat.unregisterAllCommands();
-            imperat.shutdownPlatform();
+            if (imperat != null) {
+                imperat.shutdownPlatform();
+                imperat.unregisterAllCommands();
+            }
         }
     }
 
@@ -535,6 +541,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             case "1.20.5", "1.20.6" -> "v1_20_R4";
             case "1.21", "1.21.1" -> "v1_21_R0";
             case "1.21.2", "1.21.3" -> "v1_21_R1";
+            case "1.21.4" -> "v1_21_R2";
             default -> "";
         };
     }
