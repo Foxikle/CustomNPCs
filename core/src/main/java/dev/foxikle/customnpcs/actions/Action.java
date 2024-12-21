@@ -25,6 +25,7 @@ package dev.foxikle.customnpcs.actions;
 import dev.foxikle.customnpcs.actions.conditions.Condition;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import io.github.mqzen.menus.base.Menu;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,10 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,25 +55,18 @@ public abstract class Action {
      * Default constructor
      */
     public Action() {
+
     }
 
-    public Action(int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+    public Action(int delay, Condition.SelectionMode mode, List<Condition> conditions) {
         this.delay = delay;
         this.mode = mode;
-        this.conditions.addAll(conditionals);
+        this.conditions.addAll(conditions);
     }
 
     protected static List<Condition> deserializeConditions(String json) {
-        List<Condition> conditions = new ArrayList<>();
-        if (!json.isEmpty()) {
-            String[] conditionArray = json.split("},");
-            for (String conditionStr : conditionArray) {
-                conditionStr = conditionStr.endsWith("}") ? conditionStr : conditionStr + "}";
-                Condition condition = Condition.of(conditionStr);
-                conditions.add(condition);
-            }
-        }
-        return conditions;
+        String data = parseArray(json, "conditions").replace("},]", "}]");
+        return CustomNPCs.getGson().fromJson(data, Utils.CONDITIONS_LIST);
     }
 
     /**
@@ -91,7 +82,7 @@ public abstract class Action {
 
             Class<? extends Action> clazz = CustomNPCs.ACTION_REGISTRY.getActionClass(type);
             if (clazz == null) {
-                System.err.println("Unknown action class " + type);
+                CustomNPCs.getInstance().getLogger().severe("Unknown action class " + type);
                 return null; // class doesn't exist in the registry
             }
 
@@ -154,18 +145,157 @@ public abstract class Action {
         return (mode == Condition.SelectionMode.ALL ? !results.contains(false) : results.contains(true));
     }
 
-    protected String getConditionSerialized() {
-        StringBuilder conditions = new StringBuilder();
-        conditions.append("[");
-        for (Condition condition : getConditions()) {
-            conditions.append(condition.toJson()).append(",");
+    private String getConditionSerialized() {
+        return CustomNPCs.getGson().toJson(conditions, Utils.CONDITIONS_LIST);
+    }
+
+    /**
+     * Parses the base data required for every action. (SelectionMode, delay, and conditions)
+     *
+     * @param data The serialized action string
+     * @return The parsed "base" data, required for every action.
+     */
+    protected static ParseResult parseBase(String data) {
+        int delay = parseInt(data, "delay");
+        Condition.SelectionMode mode = parseEnum(data, "mode", Condition.SelectionMode.class);
+        List<Condition> conditions = deserializeConditions(parseString(data, "conditions"));
+        return new ParseResult(delay, mode, conditions);
+    }
+
+    /**
+     * Parses an enum constant from the serialized action string
+     *
+     * @param data the raw, serialized data
+     * @param key  The key supplied during the serialization
+     * @param type the type of the Enum to parse
+     * @param <T>  the enum type
+     * @return The parsed enum constant, by name
+     */
+    protected static <T extends Enum<T>> T parseEnum(String data, String key, Class<T> type) {
+        String constantName = data.replaceAll(".*" + key + "=([A-Z_]+).*", "$1");
+        return Enum.valueOf(type, constantName);
+    }
+
+    /**
+     * Parses an integer from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `delay`
+     * @return The parsed integer.
+     */
+    protected static int parseInt(String data, String key) {
+        return Integer.parseInt(data.replaceAll(".*" + key + "=(\\d+).*", "$1"));
+    }
+
+    /**
+     * Parses a String from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `raw`
+     * @return The parsed string.
+     */
+    protected static String parseString(String data, String key) {
+        return data.replaceAll(".*" + key + "=`(.*?)`.*", "$1");
+    }
+
+    /**
+     * Parses a String from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `raw`
+     * @return The parsed string.
+     */
+    protected static String parseArray(String data, String key) {
+        return data.replaceAll(".*" + key + "=\\[(.*?)].*", "$1");
+    }
+
+    /**
+     * Parses a boolean from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `asConsole`
+     * @return The parsed boolean.
+     */
+    protected static boolean parseBoolean(String data, String key) {
+        return Boolean.parseBoolean(data.replaceAll(".*" + key + "=(true|false).*", "$1"));
+    }
+
+    /**
+     * Parses a float from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `yaw`
+     * @return The parsed float.
+     */
+    protected static float parseFloat(String data, String key) {
+        return Float.parseFloat(data.replaceAll(".*" + key + "=(-?\\d+\\.\\d+).*", "$1"));
+    }
+
+    /**
+     * Parses a double from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `x`
+     * @return The parsed double.
+     */
+    protected static double parseDouble(String data, String key) {
+        return Double.parseDouble(data.replaceAll(".*" + key + "=(-?\\d+\\.\\d+).*", "$1"));
+    }
+
+    /**
+     * Generates the serialized string for storing Actions.
+     * <p>
+     * This correctly serializes `int`, `double`, `float`, `boolean`, {@link String}, {@link Enum<>}
+     *
+     * @param id     The id of the action ID{params...}
+     * @param params The parameters of the action. **DON'T INCLUDE THE DELAY, CONDITIONS, OR SELECTION MODE**
+     * @return The serialized strings
+     */
+    protected String generateSerializedString(String id, Map<String, Object> params) {
+        Map<String, Object> base = new HashMap<>(); // get around Map.of() immutability
+        base.put("delay", delay);
+        base.put("mode", mode);
+        base.put("conditions", getConditionSerialized());
+
+        StringBuilder builder = new StringBuilder(id);
+        builder.append("{");
+
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            builder.append(key).append("=");
+            if (value instanceof String) {
+                builder.append("`").append(value).append("`");
+            } else {
+                builder.append(value);
+            }
+            builder.append(", ");
         }
 
-        if (conditions.length() > 1 && conditions.substring(conditions.length() - 2).equals(","))
-            conditions = new StringBuilder(conditions.substring(0, conditions.length() - 1));
-        conditions.append("]");
-        return conditions.toString();
+        for (Map.Entry<String, Object> entry : base.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            builder.append(key).append("=");
+            if (value instanceof String) {
+                builder.append("`").append(value).append("`");
+            } else {
+                builder.append(value);
+            }
+            builder.append(", ");
+        }
+
+        builder.deleteCharAt(builder.length() - 1); // delete the last comma
+        builder.deleteCharAt(builder.length() - 1); // delete the last comma
+
+
+        builder.append("}");
+
+        return builder.toString();
     }
 
     public abstract Action clone();
+
+    protected record ParseResult (int delay, Condition.SelectionMode mode, List<Condition> conditions) { }
 }
