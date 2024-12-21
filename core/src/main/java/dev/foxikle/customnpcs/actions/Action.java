@@ -1,144 +1,301 @@
+/*
+ * Copyright (c) 2024. Foxikle
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package dev.foxikle.customnpcs.actions;
 
-import dev.foxikle.customnpcs.actions.conditions.Conditional;
+import dev.foxikle.customnpcs.actions.conditions.Condition;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.utils.Utils;
+import io.github.mqzen.menus.base.Menu;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Method;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-/**
- * The object to represent what should be done after an NPC interaction
- */
 @Getter
-public class Action {
+@Setter
+public abstract class Action {
 
+    private static final Pattern SPLITTER = Pattern.compile("^([A-z])*(?=(\\{.*}))");
 
-    private final ActionType actionType;
-    private final List<String> args;
-    private final List<Conditional> conditionals;
-    @Setter
-    private int delay;
-    @Setter
-    private Conditional.SelectionMode mode;
+    private final List<Condition> conditions = new ArrayList<>();
+    private int delay = 0;
+    private Condition.SelectionMode mode = Condition.SelectionMode.ONE;
+
 
     /**
-     * <p> Creates a new Action
-     * </p>
-     *
-     * @param actionType   The type of action to be performed
-     * @param args         The arguments for the Action
-     * @param delay        The amount of ticks to delay an action
-     * @param matchAll     If all the conditions must be met, or one
-     * @param conditionals The conditions to apply to this action
+     * Default constructor
      */
-    public Action(ActionType actionType, List<String> args, int delay, Conditional.SelectionMode matchAll, List<Conditional> conditionals) {
-        this.actionType = actionType;
-        this.args = args;
-        this.delay = delay;
-        this.mode = matchAll;
-        this.conditionals = conditionals;
+    public Action() {
+
     }
 
-    private Action(String subCommand, ArrayList<String> args, int delay) {
-        this.actionType = ActionType.valueOf(subCommand);
-        this.args = args;
+    public Action(int delay, Condition.SelectionMode mode, List<Condition> conditions) {
         this.delay = delay;
-        this.mode = Conditional.SelectionMode.ONE;
-        this.conditionals = new ArrayList<>();
+        this.mode = mode;
+        this.conditions.addAll(conditions);
+    }
+
+    protected static List<Condition> deserializeConditions(String json) {
+        String data = parseArray(json, "conditions").replace("},]", "}]");
+        return CustomNPCs.getGson().fromJson(data, Utils.CONDITIONS_LIST);
     }
 
     /**
-     * <p> Gets the action from a serialized string
-     * </p>
-     *
-     * @param string The string to deserialize.
-     * @return the action that was serialized.
-     * @throws NumberFormatException          If the string was formatted improperly
-     * @throws ArrayIndexOutOfBoundsException if the action was formatted improperly
+     * @throws NoSuchMethodException if your custom Action classes don't implement a `deserialize` method.
      */
-    public static Action of(String string) throws NumberFormatException, ArrayIndexOutOfBoundsException {
-        if (string.contains("%::%")) {
-            ArrayList<String> split = new ArrayList<>(Arrays.stream(string.split("%::%")).toList());
-            String sub = split.get(0);
-            split.remove(0);
-            int delay = Integer.parseInt(split.get(0));
-            split.remove(0);
-            return new Action(sub, split, delay); // doesn't support conditionals
+    @SneakyThrows
+    @Nullable
+    public static Action parse(@NotNull String s) {
+        Matcher matcher = SPLITTER.matcher(s);
+
+        if (matcher.find()) {
+            String type = matcher.group();
+
+            Class<? extends Action> clazz = CustomNPCs.ACTION_REGISTRY.getActionClass(type);
+            if (clazz == null) {
+                CustomNPCs.getInstance().getLogger().severe("Unknown action class " + type);
+                return null; // class doesn't exist in the registry
+            }
+
+            Class<?>[] parameterTypes = new Class<?>[]{String.class, Class.class};
+            Method method = clazz.getMethod("deserialize", parameterTypes);
+            Object result = method.invoke(null, s, clazz);
+            return (Action) result;
         } else {
-            return CustomNPCs.getGson().fromJson(string, Action.class);
+            return null;
         }
     }
 
     /**
-     * <p> Gets a copy of the arguments of an action
-     * </p>
+     * A convenience method to add a condition to the action
      *
-     * @return A copy of the list of arguments for the actions
+     * @param condition the condition to add
      */
-    public List<String> getArgsCopy() {
-        return new ArrayList<>(args);
+    public void addCondition(Condition condition) {
+        conditions.add(condition);
+    }
+
+    public void removeCondition(Condition condition) {
+        conditions.remove(condition);
     }
 
     /**
-     * Adds a condition to the action
+     * Contains the execution of the action
      *
-     * @param conditional the conditional to add
-     * @return if the conditional was successfully added
+     * @param npc    The NPC
+     * @param menu   The menu
+     * @param player The player
      */
-    @SuppressWarnings("UnusedReturnValue")
-    public boolean addConditional(Conditional conditional) {
-        return conditionals.add(conditional);
-    }
+    public abstract void perform(InternalNpc npc, Menu menu, Player player);
 
     /**
-     * Removes a condition from the action
-     *
-     * @param conditional conditional to remove
-     * @return if the condition was successfully removed
+     * Serializes the action to a string
      */
-    @SuppressWarnings("UnusedReturnValue")
-    public boolean removeConditional(Conditional conditional) {
-        return conditionals.remove(conditional);
-    }
+    public abstract String serialize();
 
-    /**
-     * Gets the command that is run to initiate the action.
-     *
-     * @param player the action is targeted at
-     * @return String representing the command. The arguments are: player's uuid, sub command, delay (in ticks), command specific arguments
-     */
-    public String getCommand(@NotNull Player player) {
-        if (processConditions(player)) {
-            return "npcaction " + player.getUniqueId() + " " + actionType.name() + " " + delay + " " + String.join(" ", args);
-        } else {
-            return "npcaction";
-        }
-    }
-
-    private boolean processConditions(Player player) {
-        if (conditionals == null || conditionals.isEmpty()) return true; // no conditions
-
-        Set<Boolean> results = new HashSet<>(2);
-        conditionals.forEach(conditional -> results.add(conditional.compute(player)));
-        return (mode == Conditional.SelectionMode.ALL ? !results.contains(false) : results.contains(true));
-    }
-
-    /**
-     * <p> Gets the json equivalent of this action
-     * </p>
-     *
-     * @return the serialized version of the action (in json)
-     */
-    public String toJson() {
-        return CustomNPCs.getGson().toJson(this);
-    }
+    public abstract ItemStack getFavicon(Player player);
 
     @Override
-    @SuppressWarnings("all")
-    public Action clone() {
-        return new Action(actionType, args, delay, mode, conditionals);
+    public String toString() {
+        return serialize();
     }
+
+    public abstract Menu getMenu();
+
+    /**
+     * Returns if the action should be processed
+     *
+     * @param player the player
+     * @return if the action should be processed
+     */
+    public boolean processConditions(Player player) {
+        if (conditions == null || conditions.isEmpty()) return true; // no conditions
+
+        Set<Boolean> results = new HashSet<>(conditions.size());
+        conditions.forEach(conditional -> results.add(conditional.compute(player)));
+        return (mode == Condition.SelectionMode.ALL ? !results.contains(false) : results.contains(true));
+    }
+
+    private String getConditionSerialized() {
+        return CustomNPCs.getGson().toJson(conditions, Utils.CONDITIONS_LIST);
+    }
+
+    /**
+     * Parses the base data required for every action. (SelectionMode, delay, and conditions)
+     *
+     * @param data The serialized action string
+     * @return The parsed "base" data, required for every action.
+     */
+    protected static ParseResult parseBase(String data) {
+        int delay = parseInt(data, "delay");
+        Condition.SelectionMode mode = parseEnum(data, "mode", Condition.SelectionMode.class);
+        List<Condition> conditions = deserializeConditions(parseString(data, "conditions"));
+        return new ParseResult(delay, mode, conditions);
+    }
+
+    /**
+     * Parses an enum constant from the serialized action string
+     *
+     * @param data the raw, serialized data
+     * @param key  The key supplied during the serialization
+     * @param type the type of the Enum to parse
+     * @param <T>  the enum type
+     * @return The parsed enum constant, by name
+     */
+    protected static <T extends Enum<T>> T parseEnum(String data, String key, Class<T> type) {
+        String constantName = data.replaceAll(".*" + key + "=([A-Z_]+).*", "$1");
+        return Enum.valueOf(type, constantName);
+    }
+
+    /**
+     * Parses an integer from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `delay`
+     * @return The parsed integer.
+     */
+    protected static int parseInt(String data, String key) {
+        return Integer.parseInt(data.replaceAll(".*" + key + "=(\\d+).*", "$1"));
+    }
+
+    /**
+     * Parses a String from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `raw`
+     * @return The parsed string.
+     */
+    protected static String parseString(String data, String key) {
+        return data.replaceAll(".*" + key + "=`(.*?)`.*", "$1");
+    }
+
+    /**
+     * Parses a String from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `raw`
+     * @return The parsed string.
+     */
+    protected static String parseArray(String data, String key) {
+        return data.replaceAll(".*" + key + "=\\[(.*?)].*", "$1");
+    }
+
+    /**
+     * Parses a boolean from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `asConsole`
+     * @return The parsed boolean.
+     */
+    protected static boolean parseBoolean(String data, String key) {
+        return Boolean.parseBoolean(data.replaceAll(".*" + key + "=(true|false).*", "$1"));
+    }
+
+    /**
+     * Parses a float from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `yaw`
+     * @return The parsed float.
+     */
+    protected static float parseFloat(String data, String key) {
+        return Float.parseFloat(data.replaceAll(".*" + key + "=(-?\\d+\\.\\d+).*", "$1"));
+    }
+
+    /**
+     * Parses a double from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `x`
+     * @return The parsed double.
+     */
+    protected static double parseDouble(String data, String key) {
+        return Double.parseDouble(data.replaceAll(".*" + key + "=(-?\\d+\\.\\d+).*", "$1"));
+    }
+
+    /**
+     * Generates the serialized string for storing Actions.
+     * <p>
+     * This correctly serializes `int`, `double`, `float`, `boolean`, {@link String}, {@link Enum<>}
+     *
+     * @param id     The id of the action ID{params...}
+     * @param params The parameters of the action. **DON'T INCLUDE THE DELAY, CONDITIONS, OR SELECTION MODE**
+     * @return The serialized strings
+     */
+    protected String generateSerializedString(String id, Map<String, Object> params) {
+        Map<String, Object> base = new HashMap<>(); // get around Map.of() immutability
+        base.put("delay", delay);
+        base.put("mode", mode);
+        base.put("conditions", getConditionSerialized());
+
+        StringBuilder builder = new StringBuilder(id);
+        builder.append("{");
+
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            builder.append(key).append("=");
+            if (value instanceof String) {
+                builder.append("`").append(value).append("`");
+            } else {
+                builder.append(value);
+            }
+            builder.append(", ");
+        }
+
+        for (Map.Entry<String, Object> entry : base.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            builder.append(key).append("=");
+            if (value instanceof String) {
+                builder.append("`").append(value).append("`");
+            } else {
+                builder.append(value);
+            }
+            builder.append(", ");
+        }
+
+        builder.deleteCharAt(builder.length() - 1); // delete the last comma
+        builder.deleteCharAt(builder.length() - 1); // delete the last comma
+
+
+        builder.append("}");
+
+        return builder.toString();
+    }
+
+    public abstract Action clone();
+
+    protected record ParseResult (int delay, Condition.SelectionMode mode, List<Condition> conditions) { }
 }

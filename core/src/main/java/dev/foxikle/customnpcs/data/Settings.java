@@ -1,9 +1,32 @@
+/*
+ * Copyright (c) 2024. Foxikle
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package dev.foxikle.customnpcs.data;
 
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Color;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -15,6 +38,8 @@ public class Settings {
     @Getter boolean interactable = false;
     @Getter boolean tunnelvision = false;
     @Getter boolean resilient = true;
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
     @Getter double direction = 180;
     @Getter String value = "";
     @Getter String signature = "";
@@ -23,31 +48,11 @@ public class Settings {
     @Getter boolean hideClickableHologram = false;
     @Getter String customInteractableHologram = "";
 
-    /**
-     * Creates a settings object with the specified settings
-     * @param interactable If the npc has actions to execute
-     * @param tunnelvision If the npc will look at players
-     * @param resilient If the npc will persist on restarts
-     * @param direction The direction to look
-     * @param value The value of the npc's skin
-     * @param signature The signature of the npc's skin
-     * @param skinName The name of the skin as it is referenced in the Menu
-     * @param name The name of NPC formatted in SERIALIZED minimessage format
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.7")
-    public Settings(boolean interactable, boolean tunnelvision, boolean resilient, double direction, String value, String signature, String skinName, String name) {
-        this.interactable = interactable;
-        this.tunnelvision = tunnelvision;
-        this.resilient = resilient;
-        this.direction = direction;
-        this.value = value;
-        this.signature = signature;
-        this.skinName = skinName;
-        this.name = name;
-        this.customInteractableHologram = "";
-        this.hideClickableHologram = false;
-    }
+    @Getter
+    Color hologramBackground = null;
+    @Getter
+    boolean hideBackgroundHologram = false;
+
 
     /**
      * Creates a settings object with the specified settings

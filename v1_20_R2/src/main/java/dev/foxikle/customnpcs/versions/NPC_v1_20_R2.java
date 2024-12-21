@@ -1,3 +1,25 @@
+/*
+ * Copyright (c) 2024. Foxikle
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package dev.foxikle.customnpcs.versions;
 
 import com.mojang.authlib.GameProfile;
@@ -9,8 +31,8 @@ import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.InjectionManager;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
-import dev.foxikle.customnpcs.internal.Utils;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -27,6 +49,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -36,6 +60,7 @@ import org.bukkit.craftbukkit.v1_20_R2.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R2.entity.CraftTextDisplay;
 import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R2.scoreboard.CraftScoreboard;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -49,6 +74,10 @@ import java.util.*;
  * The object representing the NPC
  */
 public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
+
+    private final String MC_NAME;
+    private final ClientboundSetPlayerTeamPacket teamPacket;
+
     private final UUID uuid;
     private final CustomNPCs plugin;
     private final World world;
@@ -60,25 +89,26 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
     private TextDisplay clickableHologram;
     private TextDisplay hologram;
     private Player target;
-    private List<Action> actions;
+    private List<Action> actionImpls;
     private String holoName = "ERROR";
     private String clickableName = "ERROR";
     private InjectionManager injectionManager;
+    private int teamLoop;
 
     /**
      * <p> Gets a new NPC
      * </p>
      *
-     * @param actions   The actions for the NPC to execute on interaction
-     * @param plugin    The instance of the Main class
-     * @param uuid      The UUID of the NPC (Should be the same as the gameprofile's uuid)
-     * @param spawnLoc  The location to spawn the NPC
-     * @param target    The Entity the NPC should follow
-     * @param equipment The NPC's equipment
-     * @param settings  The NPC's settings
-     * @param world     The world to create the NPC in
+     * @param actionImpls The actions for the NPC to execute on interaction
+     * @param plugin      The instance of the Main class
+     * @param uuid        The UUID of the NPC (Should be the same as the gameprofile's uuid)
+     * @param spawnLoc    The location to spawn the NPC
+     * @param target      The Entity the NPC should follow
+     * @param equipment   The NPC's equipment
+     * @param settings    The NPC's settings
+     * @param world       The world to create the NPC in
      */
-    public NPC_v1_20_R2(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actions) {
+    public NPC_v1_20_R2(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actionImpls) {
         super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uuid, uuid.toString().substring(0, 16)), ClientInformation.createDefault());
         this.spawnLoc = spawnLoc;
         this.settings = settings;
@@ -86,7 +116,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
         this.world = spawnLoc.getWorld();
         this.uuid = uuid;
         this.target = target;
-        this.actions = new ArrayList<>(actions);
+        this.actionImpls = new ArrayList<>(actionImpls);
         super.connection = new FakeListener_v1_20_R2(((CraftServer) Bukkit.getServer()).getServer(), new FakeConnection_v1_20_R2(PacketFlow.CLIENTBOUND), this);
         this.plugin = plugin;
 
@@ -98,6 +128,13 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
+
+        this.MC_NAME = uuid.toString().substring(0, 16);
+        Scoreboard scoreboard = ((CraftScoreboard) Bukkit.getScoreboardManager().getMainScoreboard()).getHandle();
+        this.teamPacket = ClientboundSetPlayerTeamPacket.createPlayerPacket(
+                new PlayerTeam(scoreboard, "npc"),
+                MC_NAME,
+                ClientboundSetPlayerTeamPacket.Action.ADD);
     }
 
     /**
@@ -146,16 +183,14 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
         super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(equipment.getHand());
-        Bukkit.getScheduler().runTaskLater(plugin, () -> Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc").addEntry(uuid.toString().substring(0, 16)), 1);
+
+        teamLoop = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> Bukkit.getOnlinePlayers().forEach(player -> ((CraftPlayer) player).getHandle().connection.send(teamPacket)), 1, 5).getTaskId();
 
         if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
 
         injectionManager = new InjectionManager(plugin, this);
         injectionManager.setup();
-
-        //TODO: change this maybe V
-        Bukkit.getOnlinePlayers().forEach(this::injectPlayer);
     }
 
     /**
@@ -287,7 +322,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
      *
      * @return Gets the World the NPC is in
      */
-    public World getWorld() {
+    public @NotNull World getWorld() {
         return world;
     }
 
@@ -298,39 +333,41 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
      * @return the list of Actions the NPC executes when interacted with
      */
     public List<Action> getActions() {
-        return actions;
+        return actionImpls;
     }
 
     /**
      * <p> Sets the actions executed when the NPC is interacted with.
      * </p>
      *
-     * @param actions The collection of actions
+     * @param actionImpls The collection of actions
      */
     @Override
-    public void setActions(List<Action> actions) {
-        this.actions = actions;
+    public void setActions(List<Action> actionImpls) {
+        this.actionImpls = actionImpls;
     }
 
     /**
      * <p> Adds an action to the NPC's actions
      * </p>
      *
-     * @param action The action to add
+     * @param actionImpl The action to add
      */
-    public void addAction(Action action) {
-        actions.add(action);
+    @Override
+    public void addAction(Action actionImpl) {
+        actionImpls.add(actionImpl);
     }
 
     /**
      * <p> Removes an action from the NPC's actions
      * </p>
      *
-     * @param action The action to remove
+     * @param actionImpl The action to remove
      * @return if it was successfully removed
      */
-    public boolean removeAction(Action action) {
-        return actions.remove(action);
+    @Override
+    public boolean removeAction(Action actionImpl) {
+        return actionImpls.remove(actionImpl);
     }
 
     /**
@@ -339,6 +376,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
      *
      * @param p The player to inject
      */
+    @Override
     public void injectPlayer(Player p) {
         if(p.getWorld() != spawnLoc.getWorld()) return;
         List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>> stuffs = new ArrayList<>();
@@ -370,17 +408,9 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
         }
 
         // create them
-        if (hologram != null) {
-            ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) hologram).getHandle());
-            connection.send(add);
-        }
+        updateHolograms(p);
 
-        if (clickableHologram != null && settings.isInteractable() && !settings.isHideClickableHologram()) {
-            ClientboundAddEntityPacket add = new ClientboundAddEntityPacket(((CraftTextDisplay) clickableHologram).getHandle());
-            connection.send(add);
-        }
-
-            loops.put(p.getUniqueId(),
+        loops.put(p.getUniqueId(),
                 new BukkitRunnable() {
                     @Override
                     public void run() {
@@ -405,7 +435,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
             net.minecraft.network.chat.Component hologramComponent = net.minecraft.network.chat.Component.Serializer.fromJson(JSONComponentSerializer.json().serialize(plugin.getMiniMessage().deserialize(hologramText)));
             meta.set(0, SynchedEntityData.DataValue.create(TEXT_DISPLAY_ACCESSOR, hologramComponent));
             ClientboundSetEntityDataPacket namePacket = new ClientboundSetEntityDataPacket(hologram.getEntityId(), meta);
-            connection.send(namePacket);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> connection.send(namePacket), 5);
         }
 
         if (clickableHologram != null && settings.isInteractable() && !settings.isHideClickableHologram()) {
@@ -414,7 +444,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
             meta.set(0, SynchedEntityData.DataValue.create(TEXT_DISPLAY_ACCESSOR, clickableComponent));
 
             ClientboundSetEntityDataPacket clickablePacket = new ClientboundSetEntityDataPacket(clickableHologram.getEntityId(), meta);
-            connection.send(clickablePacket);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> connection.send(clickablePacket), 5);
         }
     }
 
@@ -425,6 +455,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
     @Override
     public void remove() {
         injectionManager.shutDown();
+        Bukkit.getScheduler().cancelTask(teamLoop);
         loops.forEach((uuid1, integer) -> Bukkit.getScheduler().cancelTask(integer));
         loops.clear();
 
@@ -541,11 +572,19 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
 
         Bukkit.getScheduler().runTask(plugin, () -> {
             this.hologram = setupHologram(settings.getName());
+            if (settings.isHideBackgroundHologram()) hologram.setBackgroundColor(null);
+            if (settings.getHologramBackground() != null) {
+                hologram.setBackgroundColor(settings.getHologramBackground());
+            }
             if (settings.isInteractable() && !settings.isHideClickableHologram()) {
                 if (settings.getCustomInteractableHologram().isEmpty()) {
                     this.clickableHologram = setupClickableHologram(plugin.getConfig().getString("ClickText"));
                 } else {
                     this.clickableHologram = setupClickableHologram(settings.getCustomInteractableHologram());
+                }
+                if (settings.isHideBackgroundHologram()) clickableHologram.setBackgroundColor(null);
+                if (settings.getHologramBackground() != null) {
+                    clickableHologram.setBackgroundColor(settings.getHologramBackground());
                 }
             }
         });
@@ -562,7 +601,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
 
     @Override
     public InternalNpc clone() {
-        return new NPC_v1_20_R2(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(), UUID.randomUUID(), target, new ArrayList<>(actions));
+        return new NPC_v1_20_R2(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(), UUID.randomUUID(), target, new ArrayList<>(actionImpls));
     }
 }
 

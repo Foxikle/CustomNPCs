@@ -1,18 +1,15 @@
 name: CustomNPCs
-version: '1.6.1'
+version: ${version}
 main: dev.foxikle.customnpcs.internal.CustomNPCs
 api-version: '1.20'
 prefix: CustomNPCs
 authors: [ Foxikle ]
 website: https://foxikle.dev/plugins
+softdepend:
+  - PlaceholderAPI
 description: A simple NPC plugin.
 libraries:
   - com.google.code.gson:gson:2.10.1
-commands:
-  npc:
-    description: The core command for CustomNPCs
-  npcaction:
-    description: no.
 permissions:
   customnpcs.*:
     description: A wildcard permission for CustomNPCs
@@ -29,6 +26,9 @@ permissions:
     - customnpcs.commands.removeHolograms
     - customnpcs.commands.goto
     - customnpcs.alert
+    - customnpcs.run_command.enable_console
+    - customnpcs.commands.wiki
+    - customnpcs.commands.fix_config
   customnpcs.commands.*:
     description: A wildcard permission for all command permissions
     default: op
@@ -41,6 +41,8 @@ permissions:
       - customnpcs.commands.goto
       - customnpcs.commands.clone
       - customnpcs.commands.movehere
+      - customnpcs.commands.wiki
+      - customnpcs.commands.fix_config
   customnpcs.commands.manage:
     description: A permission required to manage npcs with the /npc manage command.
     default: op
@@ -73,9 +75,21 @@ permissions:
   customnpcs.commands.clone:
     description: A permission required to use the /npc clone command
     default: op
+  customnpcs.commands.wiki:
+    description: A permission required to use /npc wiki or /npc docs
+    default: op
   customnpcs.commands.movehere:
     description: A permission required to use the /npc movehere command
     default: op
+  customnpcs.commands.fix_config:
+    description: A permission required to use the /npc fixconfig command
+    default: op
   customnpcs.alert:
     description: A permission to alert if there is a new update available.
+    default: op
+
+  # This permission is only a child of the customnpcs.* permission.
+  # It is incredibly important that this permission is tightly regulated
+  customnpcs.run_command.enable_console:
+    description: A permission required to switch the npc run command action to run the command as the console. !!!! PLEASE BE CAREFUL WITH THIS PERMISSION !!!!!
     default: op
