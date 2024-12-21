@@ -25,7 +25,7 @@ plugins {
     `maven-publish`
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("io.github.goooler.shadow") version "8.1.7"
-    id("io.papermc.paperweight.userdev") version "1.7.4" apply false
+    id("io.papermc.paperweight.userdev") version "1.7.7" apply false
 }
 
 repositories {

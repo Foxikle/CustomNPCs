@@ -22,7 +22,7 @@
 
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "1.7.4"
+    id("io.papermc.paperweight.userdev") version "1.7.7"
 }
 
 repositories {
