@@ -22,6 +22,8 @@
 
 package dev.foxikle.customnpcs.internal.utils;
 
+import com.google.common.reflect.TypeToken;
+import dev.foxikle.customnpcs.actions.conditions.Condition;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -30,6 +32,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +43,9 @@ import java.util.List;
 public class Utils {
 
     public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
+
+    public static final Type CONDITIONS_LIST = new TypeToken<List<Condition>>() {
+    }.getType();
 
     /**
      * Creates a MUTABLE list
