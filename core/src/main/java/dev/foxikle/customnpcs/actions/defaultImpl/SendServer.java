@@ -49,7 +49,9 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.bukkit.Material.GRASS_BLOCK;
 import static org.bukkit.Material.OAK_HANGING_SIGN;
@@ -92,14 +94,10 @@ public class SendServer extends Action {
         if (!clazz.equals(SendServer.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + SendServer.class.getName());
         }
-        String server = serialized.replaceAll(".*server=`(.*?)`.*", "$1");
-        int delay = Integer.parseInt(serialized.replaceAll(".*delay=(\\d+).*", "$1"));
-        Condition.SelectionMode mode = Condition.SelectionMode.valueOf(serialized.replaceAll(".*mode=([A-Z_]+).*", "$1"));
+        String server = parseString(serialized, "server");
+        ParseResult pr = parseBase(serialized);
 
-        String conditionsJson = serialized.replaceAll(".*conditions=\\[(.*?)]}.*", "$1");
-        List<Condition> conditions = deserializeConditions(conditionsJson);
-
-        SendServer message = new SendServer(server, delay, mode, conditions);
+        SendServer message = new SendServer(server, pr.delay(), pr.mode(), pr.conditions());
 
         return clazz.cast(message);
     }
@@ -124,8 +122,9 @@ public class SendServer extends Action {
 
     @Override
     public String serialize() {
-        return "SendServer{server=`" + server + "`, delay=" + getDelay() + ", mode=" + getMode().name() +
-                ", conditions=" + getConditionSerialized() + "}";
+        Map<String, Object> params = new HashMap<>();
+        params.put("server", server);
+        return generateSerializedString("SendServer", params);
     }
 
     @Override

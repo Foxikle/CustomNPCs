@@ -48,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.bukkit.Material.IRON_INGOT;
 import static org.bukkit.Material.PAPER;
@@ -86,14 +87,10 @@ public class ActionBar extends Action {
         if (!clazz.equals(ActionBar.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + ActionBar.class.getName());
         }
-        String rawMessage = serialized.replaceAll(".*raw=`(.*?)`.*", "$1");
-        int delay = Integer.parseInt(serialized.replaceAll(".*delay=(\\d+).*", "$1"));
-        Condition.SelectionMode mode = Condition.SelectionMode.valueOf(serialized.replaceAll(".*mode=([A-Z_]+).*", "$1"));
+        String rawMessage = parseString(serialized, "raw");
+        ParseResult pr = parseBase(serialized);
 
-        String conditionsJson = serialized.replaceAll(".*conditions=\\[(.*?)]}.*", "$1");
-        List<Condition> conditions = deserializeConditions(conditionsJson);
-
-        ActionBar message = new ActionBar(rawMessage, delay, mode, conditions);
+        ActionBar message = new ActionBar(rawMessage, pr.delay(), pr.mode(), pr.conditions());
 
         return clazz.cast(message);
     }
@@ -126,13 +123,12 @@ public class ActionBar extends Action {
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
-        player.sendActionBar(CustomNPCs.getInstance().miniMessage.deserialize(CustomNPCs.getInstance().papi ? PlaceholderAPI.setPlaceholders(player, rawMessage) : rawMessage));
+        player.sendActionBar(Msg.format(CustomNPCs.getInstance().papi ? PlaceholderAPI.setPlaceholders(player, rawMessage) : rawMessage));
     }
 
     @Override
     public String serialize() {
-        return "ActionBar{raw=`" + rawMessage + "`, delay=" + getDelay() + ", mode=" + getMode().name() +
-                ", conditions=" + getConditionSerialized() + "}";
+        return generateSerializedString("ActionBar", Map.of("raw", rawMessage));
     }
 
     @Override

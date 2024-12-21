@@ -48,7 +48,9 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.bukkit.Material.*;
 
@@ -56,28 +58,11 @@ import static org.bukkit.Material.*;
 @Setter
 public class Teleport extends Action {
 
-    public static Button creationButton(Player player) {
-        return Button.clickable(ItemBuilder.modern(ENDER_PEARL)
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.teleport"))
-                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.teleport.description"))
-                        .build(),
-                ButtonClickAction.plain((menuView, event) -> {
-                    event.setCancelled(true);
-                    Player p = (Player) event.getWhoClicked();
-                    p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-
-                    Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Condition.SelectionMode.ONE, new ArrayList<>());
-                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
-                    menuView.getAPI().openMenu(p, actionImpl.getMenu());
-                }));
-    }
-
     private double x;
     private double y;
     private double z;
     private float pitch;
     private float yaw;
-
     /**
      * Creates a new SendMessage with the specified message
      *
@@ -99,25 +84,35 @@ public class Teleport extends Action {
         this.yaw = yaw;
     }
 
+    public static Button creationButton(Player player) {
+        return Button.clickable(ItemBuilder.modern(ENDER_PEARL)
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.teleport"))
+                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.teleport.description"))
+                        .build(),
+                ButtonClickAction.plain((menuView, event) -> {
+                    event.setCancelled(true);
+                    Player p = (Player) event.getWhoClicked();
+                    p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+
+                    Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
+                    menuView.getAPI().openMenu(p, actionImpl.getMenu());
+                }));
+    }
+
     public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
         if (!clazz.equals(Teleport.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + Teleport.class.getName());
         }
 
-        double x = Double.parseDouble(serialized.replaceAll(".*x=(-?\\d+\\.\\d+).*", "$1"));
-        double y = Double.parseDouble(serialized.replaceAll(".*y=(-?\\d+\\.\\d+).*", "$1"));
-        double z = Double.parseDouble(serialized.replaceAll(".*z=(-?\\d+\\.\\d+).*", "$1"));
-        float pitch = Float.parseFloat(serialized.replaceAll(".*pitch=(-?\\d+\\.\\d+).*", "$1"));
-        float yaw = Float.parseFloat(serialized.replaceAll(".*yaw=(-?\\d+\\.\\d+).*", "$1"));
+        double x = parseDouble(serialized, "x");
+        double y = parseDouble(serialized, "y");
+        double z = parseDouble(serialized, "z");
+        float pitch = parseFloat(serialized, "pitch");
+        float yaw = parseFloat(serialized, "yaw");
+        ParseResult pr = parseBase(serialized);
 
-        int delay = Integer.parseInt(serialized.replaceAll(".*delay=(\\d+).*", "$1"));
-        Condition.SelectionMode mode = Condition.SelectionMode.valueOf(serialized.replaceAll(".*mode=([A-Z]+).*", "$1"));
-
-        String conditionsJson = serialized.replaceAll(".*conditions=\\[(.*?)]}.*", "$1");
-        List<Condition> conditions = deserializeConditions(conditionsJson);
-
-        Teleport message = new Teleport(x, y, z, pitch, yaw, delay, mode, conditions);
-
+        Teleport message = new Teleport(x, y, z, pitch, yaw, pr.delay(), pr.mode(), pr.conditions());
         return clazz.cast(message);
     }
 
@@ -159,13 +154,18 @@ public class Teleport extends Action {
 
     @Override
     public String serialize() {
-        return "Teleport{x=" + x + ", y=" + y + ", z=" + z + ", yaw=" + yaw + ", pitch=" + pitch + ", delay="
-                + getDelay() + ", mode=" + getMode().name() + ", conditions=" + getConditionSerialized() + "}";
+        Map<String, Object> params = new HashMap<>();
+        params.put("x", x);
+        params.put("y", y);
+        params.put("z", z);
+        params.put("yaw", yaw);
+        params.put("pitch", pitch);
+        return generateSerializedString("Teleport", params);
     }
 
     @Override
     public Action clone() {
-        return new Teleport(getX(), getY(), getZ(), getYaw(), getPitch(), getDelay(), getMode(), getConditions());
+        return new Teleport(getX(), getY(), getZ(), getPitch(), getYaw(), getDelay(), getMode(), getConditions());
     }
 
     public static class TeleportCustomizer implements Menu {
@@ -198,6 +198,8 @@ public class Teleport extends Action {
 
             Component[] incLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.increment.description");
             Component[] decLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.decrement.description");
+
+            player.sendMessage("Err: " + action.getPitch());
 
             return MenuUtils.actionBase(action, player)
 

@@ -49,6 +49,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.bukkit.Material.*;
 
@@ -91,16 +92,11 @@ public class RemoveXP extends Action {
         if (!clazz.equals(RemoveXP.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RemoveXP.class.getName());
         }
-        int amount = Integer.parseInt(serialized.replaceAll(".*amount=(\\d+).*", "$1"));
-        boolean levels = Boolean.parseBoolean(serialized.replaceAll(".*levels=(true|false).*", "$1"));
+        int amount = parseInt(serialized, "amount");
+        boolean levels = parseBoolean(serialized, "levels");
+        ParseResult pr = parseBase(serialized);
 
-        int delay = Integer.parseInt(serialized.replaceAll(".*delay=(\\d+).*", "$1"));
-        Condition.SelectionMode mode = Condition.SelectionMode.valueOf(serialized.replaceAll(".*mode=([A-Z_]+).*", "$1"));
-
-        String conditionsJson = serialized.replaceAll(".*conditions=\\[(.*?)]}.*", "$1");
-        List<Condition> conditions = deserializeConditions(conditionsJson);
-
-        RemoveXP xp = new RemoveXP(amount, levels, delay, mode, conditions);
+        RemoveXP xp = new RemoveXP(amount, levels, pr.delay(), pr.mode(), pr.conditions());
 
         return clazz.cast(xp);
     }
@@ -148,8 +144,7 @@ public class RemoveXP extends Action {
 
     @Override
     public String serialize() {
-        return "RemoveXP{amount=" + amount + ", levels=" + levels + ", delay=" + getDelay()
-                + ", mode=" + getMode().name() + ", conditions=" + getConditionSerialized() + "}";
+        return generateSerializedString("RemoveXP", Map.of("amount", amount, "levels", levels));
     }
 
     @Override

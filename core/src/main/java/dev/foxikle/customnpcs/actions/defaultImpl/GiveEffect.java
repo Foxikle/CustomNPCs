@@ -52,9 +52,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.bukkit.Material.*;
@@ -100,19 +98,14 @@ public class GiveEffect extends Action {
         if (!clazz.equals(GiveEffect.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + GiveEffect.class.getName());
         }
-        String effect = serialized.replaceAll(".*effect=`(.*?)`.*", "$1");
-        int duration = Integer.parseInt(serialized.replaceAll(".*duration=(\\d+).*", "$1"));
-        int amplifier = Integer.parseInt(serialized.replaceAll(".*amplifier=(\\d+).*", "$1"));
-        boolean particles = Boolean.parseBoolean(serialized.replaceAll(".*particles=(true|false).*", "$1"));
+        String effect = parseString(serialized, "effect");
+        int duration = parseInt(serialized, "duration");
+        int amplifier = parseInt(serialized, "amplifier");
+        boolean particles = parseBoolean(serialized, "particles");
 
+        ParseResult pr = parseBase(serialized);
 
-        int delay = Integer.parseInt(serialized.replaceAll(".*delay=(\\d+).*", "$1"));
-        Condition.SelectionMode mode = Condition.SelectionMode.valueOf(serialized.replaceAll(".*mode=([A-Z_]+).*", "$1"));
-
-        String conditionsJson = serialized.replaceAll(".*conditions=\\[(.*?)]}.*", "$1");
-        List<Condition> conditions = deserializeConditions(conditionsJson);
-
-        GiveEffect message = new GiveEffect(effect, duration, amplifier, particles, delay, mode, conditions);
+        GiveEffect message = new GiveEffect(effect, duration, amplifier, particles, pr.delay(), pr.mode(), pr.conditions());
 
         return clazz.cast(message);
     }
@@ -149,9 +142,13 @@ public class GiveEffect extends Action {
 
     @Override
     public String serialize() {
-        return "GiveEffect{effect=`" + effect + "`, duration=" + getDuration() + ", amplifier=" + getAmplifier() +
-                ", particles=" + isParticles() + ", delay=" + getDelay() + ", mode=" + getMode().name() +
-                ", conditions=" + getConditionSerialized() + "}";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("effect", effect);
+        params.put("duration", duration);
+        params.put("amplifier", amplifier);
+        params.put("particles", particles);
+        return generateSerializedString("GiveEffect", params);
     }
 
     public Action clone() {

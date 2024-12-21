@@ -49,6 +49,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static dev.foxikle.customnpcs.internal.utils.Utils.DECIMAL_FORMAT;
 import static org.bukkit.Material.*;
@@ -94,17 +95,13 @@ public class PlaySound extends Action {
         if (!clazz.equals(PlaySound.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + PlaySound.class.getName());
         }
-        String sound = serialized.replaceAll(".*sound=`(.*?)`.*", "$1");
-        float volume = Float.parseFloat(serialized.replaceAll(".*volume=(-?\\d+\\.\\d+).*", "$1"));
-        float pitch = Float.parseFloat(serialized.replaceAll(".*pitch=(-?\\d+\\.\\d+).*", "$1"));
+        String sound = parseString(serialized, "sound");
+        float volume = parseFloat(serialized, "volume");
+        float pitch = parseFloat(serialized, "pitch");
 
-        int delay = Integer.parseInt(serialized.replaceAll(".*delay=(\\d+).*", "$1"));
-        Condition.SelectionMode mode = Condition.SelectionMode.valueOf(serialized.replaceAll(".*mode=([A-Z_]+).*", "$1"));
+        ParseResult pr = parseBase(serialized);
 
-        String conditionsJson = serialized.replaceAll(".*conditions=\\[(.*?)]}.*", "$1");
-        List<Condition> conditions = deserializeConditions(conditionsJson);
-
-        PlaySound message = new PlaySound(sound, volume, pitch, delay, mode, conditions);
+        PlaySound message = new PlaySound(sound, volume, pitch, pr.delay(), pr.mode(), pr.conditions());
 
         return clazz.cast(message);
     }
@@ -135,14 +132,13 @@ public class PlaySound extends Action {
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
 
-        Sound sound = Sound.valueOf(Sound.class, this.sound);
+        Sound sound = Sound.valueOf(this.sound);
         player.playSound(player.getLocation(), sound, volume, pitch);
     }
 
     @Override
     public String serialize() {
-        return "PlaySound{sound=`" + sound + "`, volume=" + volume + ", pitch=" + pitch + ", delay=" + getDelay() + ", mode=" + getMode().name() +
-                ", conditions=" + getConditionSerialized() + "}";
+        return generateSerializedString("PlaySound", Map.of("sound", sound, "volume", volume, "pitch", pitch));
     }
 
     public Action clone() {

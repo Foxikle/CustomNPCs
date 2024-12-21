@@ -42,6 +42,7 @@ import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
 import lombok.Setter;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -51,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.bukkit.Material.*;
 
@@ -96,15 +98,11 @@ public class RunCommand extends Action {
         if (!clazz.equals(RunCommand.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RunCommand.class.getName());
         }
-        String raw = serialized.replaceAll(".*raw=`(.*?)`.*", "$1");
-        boolean asConsole = Boolean.parseBoolean(serialized.replaceAll(".*asConsole=(true|false).*", "$1"));
-        int delay = Integer.parseInt(serialized.replaceAll(".*delay=(\\d+).*", "$1"));
-        Condition.SelectionMode mode = Condition.SelectionMode.valueOf(serialized.replaceAll(".*mode=([A-Z_]+).*", "$1"));
+        String raw = parseString(serialized, "raw");
+        boolean asConsole = parseBoolean(serialized, "asConsole");
+        ParseResult pr = parseBase(serialized);
 
-        String conditionsJson = serialized.replaceAll(".*conditions=\\[(.*?)]}.*", "$1");
-        List<Condition> conditions = deserializeConditions(conditionsJson);
-
-        RunCommand command = new RunCommand(raw, asConsole, delay, mode, conditions);
+        RunCommand command = new RunCommand(raw, asConsole, pr.delay(), pr.mode(), pr.conditions());
         return clazz.cast(command);
     }
 
@@ -138,13 +136,14 @@ public class RunCommand extends Action {
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
+        String command = this.command;
+        if (CustomNPCs.getInstance().papi) command = PlaceholderAPI.setPlaceholders(player, this.command);
         Bukkit.dispatchCommand(asConsole ? Bukkit.getConsoleSender() : player, command);
     }
 
     @Override
     public String serialize() {
-        return "RunCommand{raw=`" + command + "`, asConsole=" + asConsole + ", delay=" + getDelay() + ", mode=" + getMode().name() +
-                ", conditions=" + getConditionSerialized() + "}";
+        return generateSerializedString("RunCommand", Map.of("raw", command, "asConsole", asConsole));
     }
 
     @Override

@@ -50,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.bukkit.Material.OAK_HANGING_SIGN;
 import static org.bukkit.Material.PAPER;
@@ -90,14 +91,9 @@ public class SendMessage extends Action {
         if (!clazz.equals(SendMessage.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + SendMessage.class.getName());
         }
-        String rawMessage = serialized.replaceAll(".*raw=`(.*?)`.*", "$1");
-        int delay = Integer.parseInt(serialized.replaceAll(".*delay=(\\d+).*", "$1"));
-        Condition.SelectionMode mode = Condition.SelectionMode.valueOf(serialized.replaceAll(".*mode=([A-Z_]+).*", "$1"));
-
-        String conditionsJson = serialized.replaceAll(".*conditions=\\[(.*?)]}.*", "$1");
-        List<Condition> conditions = deserializeConditions(conditionsJson);
-
-        SendMessage message = new SendMessage(rawMessage, delay, mode, conditions);
+        String rawMessage = parseString(serialized, "raw");
+        ParseResult pr = parseBase(serialized);
+        SendMessage message = new SendMessage(rawMessage, pr.delay(), pr.mode(), pr.conditions());
 
         return clazz.cast(message);
     }
@@ -140,8 +136,7 @@ public class SendMessage extends Action {
 
     @Override
     public String serialize() {
-        return "SendMessage{raw=`" + rawMessage + "`, delay=" + getDelay() + ", mode=" + getMode().name() +
-                ",  conditions=" + getConditionSerialized() + "}";
+        return generateSerializedString("SendMessage", Map.of("raw", rawMessage));
     }
 
     @Override

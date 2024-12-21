@@ -52,7 +52,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.bukkit.Material.*;
 
@@ -99,19 +101,15 @@ public class DisplayTitle extends Action {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + DisplayTitle.class.getName());
         }
 
-        String title = serialized.replaceAll(".*title=`(.*?)`.*", "$1");
-        String subTitle = serialized.replaceAll(".*subTitle=`(.*?)`.*", "$1");
-        int in = Integer.parseInt(serialized.replaceAll(".*in=(\\d+).*", "$1"));
-        int stay = Integer.parseInt(serialized.replaceAll(".*stay=(\\d+).*", "$1"));
-        int out = Integer.parseInt(serialized.replaceAll(".*out=(\\d+).*", "$1"));
-        int delay = Integer.parseInt(serialized.replaceAll(".*delay=(\\d+).*", "$1"));
-        Condition.SelectionMode mode = Condition.SelectionMode.valueOf(serialized.replaceAll(".*mode=([A-Z_]+).*", "$1"));
+        String title = parseString(serialized, "title");
+        String subTitle = parseString(serialized, "subTitle");
+        int in = parseInt(serialized, "in");
+        int stay = parseInt(serialized, "stay");
+        int out = parseInt(serialized, "out");
 
+        ParseResult pr = parseBase(serialized);
 
-        String conditionsJson = serialized.replaceAll(".*conditions=\\[(.*?)]}.*", "$1");
-        List<Condition> conditions = deserializeConditions(conditionsJson);
-
-        DisplayTitle message = new DisplayTitle(title, subTitle, in, stay, out, delay, mode, conditions);
+        DisplayTitle message = new DisplayTitle(title, subTitle, in, stay, out, pr.delay(), pr.mode(), pr.conditions());
 
         return clazz.cast(message);
     }
@@ -159,8 +157,15 @@ public class DisplayTitle extends Action {
 
     @Override
     public String serialize() {
-        return "DisplayTitle{title=`" + title + "`, subTitle=`" + subTitle + "`, in=" + fadeIn + ", stay=" + stay + ", out=" + fadeOut + ", delay=" + getDelay() + ", mode=" + getMode().name() +
-                ", conditions=" + getConditionSerialized() + "}";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("title", title);
+        params.put("subTitle", subTitle);
+        params.put("in", fadeIn);
+        params.put("stay", stay);
+        params.put("out", fadeOut);
+
+        return generateSerializedString("DisplayTitle", params);
     }
 
     public Action clone() {

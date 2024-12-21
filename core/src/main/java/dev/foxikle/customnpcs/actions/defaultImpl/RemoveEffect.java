@@ -52,6 +52,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -94,15 +95,9 @@ public class RemoveEffect extends Action {
         if (!clazz.equals(RemoveEffect.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RemoveEffect.class.getName());
         }
-        String effect = serialized.replaceAll(".*effect=`(.*?)`.*", "$1");
-
-        int delay = Integer.parseInt(serialized.replaceAll(".*delay=(\\d+).*", "$1"));
-        Condition.SelectionMode mode = Condition.SelectionMode.valueOf(serialized.replaceAll(".*mode=([A-Z_]+).*", "$1"));
-
-        String conditionsJson = serialized.replaceAll(".*conditions=\\[(.*?)]}.*", "$1");
-        List<Condition> conditions = deserializeConditions(conditionsJson);
-
-        RemoveEffect message = new RemoveEffect(effect, delay, mode, conditions);
+        String effect = parseString(serialized, "effect");
+        ParseResult pr = parseBase(serialized);
+        RemoveEffect message = new RemoveEffect(effect, pr.delay(), pr.mode(), pr.conditions());
 
         return clazz.cast(message);
     }
@@ -142,9 +137,7 @@ public class RemoveEffect extends Action {
 
     @Override
     public String serialize() {
-
-        return "RemoveEffect{effect=`" + effect + "`, delay=" + getDelay() + ", mode=" + getMode().name() +
-                ", conditions=" + getConditionSerialized() + "}";
+        return generateSerializedString("RemoveEffect", Map.of("effect", effect));
     }
 
     @Override
