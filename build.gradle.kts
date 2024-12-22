@@ -47,7 +47,7 @@ dependencies {
     implementation(project(":v1_20_R1", "reobf"))
 }
 
-var pluginVersion = "1.7"
+var pluginVersion = "1.7.1"
 
 allprojects {
     group = "dev.foxikle"
