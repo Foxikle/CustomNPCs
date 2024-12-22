@@ -106,7 +106,7 @@ public class FileManager {
             }
             int version = yml.getInt("CONFIG_VERSION");
 
-            if (version < 7) {
+            if (version < 6) {
                 BackupResult br = createBackup(file);
                 if (!br.success()) {
                     throw new RuntimeException("Failed to create a backup of the config file before updating it!");

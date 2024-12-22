@@ -206,7 +206,7 @@ public abstract class Action {
      * @return The parsed string.
      */
     protected static String parseArray(String data, String key) {
-        return data.replaceAll(".*" + key + "=\\[(.*?)].*", "$1");
+        return data.replaceAll(".*" + key + "=(\\[.*?]).*", "$1");
     }
 
     /**
