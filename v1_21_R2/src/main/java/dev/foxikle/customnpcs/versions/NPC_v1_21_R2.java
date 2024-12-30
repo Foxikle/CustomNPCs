@@ -404,10 +404,10 @@ public class NPC_v1_21_R2 extends ServerPlayer implements InternalNpc {
 
         ClientboundPlayerInfoUpdatePacket playerInfoAdd = new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, this);
         ClientboundAddEntityPacket namedEntitySpawn = new ClientboundAddEntityPacket(getId(), uuid, spawnLoc.x(), spawnLoc.y(), spawnLoc.z(),
-                spawnLoc.getYaw(), spawnLoc.getPitch(), net.minecraft.world.entity.EntityType.PLAYER, 0, new Vec3(0, 0, 0), settings.getDirection());
+                spawnLoc.getYaw(), spawnLoc.getPitch(), net.minecraft.world.entity.EntityType.PLAYER, 0, new Vec3(0, 0, 0), getSpawnLoc().getYaw());
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
-        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (settings.getDirection() * 256 / 360), (byte) (0 / 360), true);
+        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getSpawnLoc().getYaw() * 256 / 360), (byte) (0 / 360), true);
         setSkin();
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
 
@@ -441,7 +441,7 @@ public class NPC_v1_21_R2 extends ServerPlayer implements InternalNpc {
             }.runTaskTimerAsynchronously(plugin, 0, plugin.getConfig().getInt("HologramUpdateInterval")).getTaskId());
         }
 
-        setYRotation((float) settings.getDirection());
+        setYRotation(getSpawnLoc().getYaw());
 
     }
 

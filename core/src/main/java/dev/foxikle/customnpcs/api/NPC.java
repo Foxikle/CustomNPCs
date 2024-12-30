@@ -90,22 +90,6 @@ public class NPC {
         this.npc = npc;
     }
 
-
-    /**
-     * <p>Sets the location of the NPC
-     * </p>
-     *
-     * @param loc the new location for the NPC
-     * @return the NPC with the modified location
-     * @since 1.5.2-pre3
-     * @deprecated see {@link #setPosition(Location)} (typo ;|)
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
-    public NPC setPostion(@NotNull Location loc) {
-        return setPosition(loc);
-    }
-
     /**
      * <p>Sets the location of the NPC
      * </p>
@@ -117,7 +101,6 @@ public class NPC {
     public NPC setPosition(@NotNull Location loc) {
         Preconditions.checkArgument(loc != null, "loc cannot be null.");
         npc.setSpawnLoc(loc);
-        npc.getSettings().setDirection(loc.getYaw());
         return this;
     }
 
@@ -178,10 +161,10 @@ public class NPC {
      * @return the NPC with the modified set of actions
      * @see Action
      * @since 1.5.2-pre3
-     * @deprecated Use  {@link #setActions(Collection)}
+     * @deprecated Use  {@link #setActions(Collection)}, to be removed in 1.9 with the removal of legacy actions.
      */
     @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
     public NPC setLegacyActions(Collection<LegacyAction> actionImpls) {
         List<Action> actionList = new ArrayList<>();
         for (LegacyAction legacyAction : actionImpls) {

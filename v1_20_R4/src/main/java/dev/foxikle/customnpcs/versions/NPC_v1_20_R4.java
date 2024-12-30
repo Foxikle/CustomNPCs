@@ -404,7 +404,7 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
         ClientboundAddEntityPacket namedEntitySpawn = new ClientboundAddEntityPacket(this);
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
-        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (settings.getDirection() * 256 / 360), (byte) (0 / 360), true);
+        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getSpawnLoc().getYaw() * 256 / 360), (byte) (0 / 360), true);
         setSkin();
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
 
@@ -437,7 +437,7 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
             }.runTaskTimerAsynchronously(plugin, 0, plugin.getConfig().getInt("HologramUpdateInterval")).getTaskId());
         }
 
-        setYRotation((float) settings.getDirection());
+        setYRotation(getSpawnLoc().getYaw());
 
     }
 
