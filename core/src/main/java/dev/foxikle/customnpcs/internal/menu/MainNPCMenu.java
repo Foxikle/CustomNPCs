@@ -40,7 +40,6 @@ import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -132,7 +131,7 @@ public class MainNPCMenu implements Menu {
                     Bukkit.getScheduler().runTaskLater(plugin, () -> p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1), 1);
                     Bukkit.getScheduler().runTaskLater(plugin, () -> p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1), 3);
                     Bukkit.getScheduler().runTaskLater(plugin, npc::createNPC, 1);
-                    p.spawnParticle(Particle.EXPLOSION_LARGE, npc.getSpawnLoc().clone().add(0, 1, 0), 1);
+                    p.spawnParticle(npc.spawnParticle(), npc.getSpawnLoc().clone().add(0, 1, 0), 1);
 
                     if (npc.getSettings().isResilient())
                         p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.main.create.message.resilient"));

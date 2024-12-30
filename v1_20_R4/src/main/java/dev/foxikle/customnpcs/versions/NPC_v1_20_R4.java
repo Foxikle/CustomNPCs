@@ -54,6 +54,7 @@ import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.CraftWorld;
@@ -556,6 +557,14 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
     @Override
     public void setEquipment(Equipment e) {
         this.equipment = e;
+    }
+
+    /**
+     * @return Bukkit goobery
+     */
+    @Override
+    public Particle spawnParticle() {
+        return Particle.EXPLOSION;
     }
 
     @Override
