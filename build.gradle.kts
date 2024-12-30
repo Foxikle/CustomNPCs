@@ -47,7 +47,7 @@ dependencies {
     implementation(project(":v1_20_R1", "reobf"))
 }
 
-var pluginVersion = "1.7.2"
+var pluginVersion = "1.8-pre1"
 
 allprojects {
     group = "dev.foxikle"
@@ -79,7 +79,7 @@ publishing {
         }
     }
     publications {
-        create<MavenPublication>("main") {
+        create<MavenPublication>("maven") {
             groupId = project.group.toString()
             artifactId = project.name
             version = project.version.toString()

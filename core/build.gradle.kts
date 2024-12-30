@@ -42,6 +42,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.36")
     compileOnly("dev.velix:imperat-core:1.5.1")
     compileOnly("dev.velix:imperat-bukkit:1.5.1")
+    compileOnly("com.google.protobuf:protobuf-java:4.29.2")
 }
 
 tasks {
