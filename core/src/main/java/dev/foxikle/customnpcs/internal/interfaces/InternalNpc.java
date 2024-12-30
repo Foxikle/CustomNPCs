@@ -27,6 +27,7 @@ import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -272,6 +273,8 @@ public interface InternalNpc {
      * @param e the equipment
      */
     void setEquipment(Equipment e);
+
+    Particle spawnParticle();
 
     /**
      * Clones the NPC object.
