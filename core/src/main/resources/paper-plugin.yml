@@ -10,25 +10,31 @@ softdepend:
 description: A simple NPC plugin.
 libraries:
   - com.google.code.gson:gson:2.10.1
+server:
+  PlaceholderAPI:
+    load: AFTER
+    required: false
+    join-classpath: true
+
 permissions:
   customnpcs.*:
     description: A wildcard permission for CustomNPCs
     default: op
     children:
-    - customnpcs.edit
-    - customnpcs.create
-    - customnpcs.delete
-    - customnpcs.commands.*
-    - customnpcs.commands.manage
-    - customnpcs.commands.help
-    - customnpcs.commands.reload
-    - customnpcs.commands.list
-    - customnpcs.commands.removeHolograms
-    - customnpcs.commands.goto
-    - customnpcs.alert
-    - customnpcs.run_command.enable_console
-    - customnpcs.commands.wiki
-    - customnpcs.commands.fix_config
+      - customnpcs.edit
+      - customnpcs.create
+      - customnpcs.delete
+      - customnpcs.commands.*
+      - customnpcs.commands.manage
+      - customnpcs.commands.help
+      - customnpcs.commands.reload
+      - customnpcs.commands.list
+      - customnpcs.commands.removeHolograms
+      - customnpcs.commands.goto
+      - customnpcs.alert
+      - customnpcs.run_command.enable_console
+      - customnpcs.commands.wiki
+      - customnpcs.commands.fix_config
   customnpcs.commands.*:
     description: A wildcard permission for all command permissions
     default: op
