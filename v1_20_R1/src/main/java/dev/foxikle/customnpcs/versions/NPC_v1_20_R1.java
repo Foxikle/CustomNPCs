@@ -403,7 +403,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         ClientboundAddPlayerPacket namedEntitySpawn = new ClientboundAddPlayerPacket(this);
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
-        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getSettings().getDirection() * 256 / 360), (byte) (0 / 360), true);
+        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getSpawnLoc().getYaw() * 256 / 360), (byte) (0 / 360), true);
         super.detectEquipmentUpdates();
         setSkin();
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
@@ -437,7 +437,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
             }.runTaskTimerAsynchronously(plugin, 0, plugin.getConfig().getInt("HologramUpdateInterval")).getTaskId());
         }
 
-        setYRotation((float) settings.getDirection());
+        setYRotation(getSpawnLoc().getYaw());
     }
 
     private void updateHolograms(Player p) {
@@ -624,7 +624,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.LEGS, equipment.getLegs(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
         super.getBukkitEntity().setItemInHand(equipment.getHand());
-        setYRotation((float) getSettings().getDirection());
+        setYRotation(getSpawnLoc().getYaw());
     }
 
     @Override

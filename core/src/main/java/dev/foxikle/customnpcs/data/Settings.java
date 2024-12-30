@@ -27,7 +27,6 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Color;
-import org.jetbrains.annotations.ApiStatus;
 
 /**
  * A class holding the data for an NPC's settings
@@ -38,9 +37,6 @@ public class Settings {
     @Getter boolean interactable = false;
     @Getter boolean tunnelvision = false;
     @Getter boolean resilient = true;
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
-    @Getter double direction = 180;
     @Getter String value = "";
     @Getter String signature = "";
     String name = "not set";
@@ -59,7 +55,6 @@ public class Settings {
      * @param interactable If the npc has actions to execute
      * @param tunnelvision If the npc will look at players
      * @param resilient If the npc will persist on restarts
-     * @param direction The direction to look
      * @param value The value of the npc's skin
      * @param signature The signature of the npc's skin
      * @param skinName The name of the skin as it is referenced in the Menu
@@ -67,11 +62,10 @@ public class Settings {
      * @param customInteractableHologram The custom hologram
      * @param hideClickableHologram If the NPC's Clickable hologram should be hidden
      */
-    public Settings(boolean interactable, boolean tunnelvision, boolean resilient, double direction, String value, String signature, String skinName, String name, String customInteractableHologram, boolean hideClickableHologram) {
+    public Settings(boolean interactable, boolean tunnelvision, boolean resilient, String value, String signature, String skinName, String name, String customInteractableHologram, boolean hideClickableHologram) {
         this.interactable = interactable;
         this.tunnelvision = tunnelvision;
         this.resilient = resilient;
-        this.direction = direction;
         this.value = value;
         this.signature = signature;
         this.skinName = skinName;
@@ -125,6 +119,6 @@ public class Settings {
 
     @SuppressWarnings("all")
     public Settings clone(){
-        return new Settings(interactable, tunnelvision, resilient, direction, value, signature, skinName, name, customInteractableHologram, hideClickableHologram);
+        return new Settings(interactable, tunnelvision, resilient, value, signature, skinName, name, customInteractableHologram, hideClickableHologram);
     }
 }

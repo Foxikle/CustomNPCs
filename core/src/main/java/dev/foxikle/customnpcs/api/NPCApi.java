@@ -25,7 +25,6 @@ package dev.foxikle.customnpcs.api;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import lombok.experimental.UtilityClass;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.ApiStatus;
 
 import java.util.UUID;
 
@@ -38,16 +37,6 @@ public class NPCApi {
      * A static instance of the plugin for API use.
      */
     static final CustomNPCs plugin = JavaPlugin.getPlugin(CustomNPCs.class);
-
-    /**
-     * Initiailizes the API
-     *
-     * @deprecated since it's no longer necessary
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
-    public static void initialize() {
-    }
 
     /**
      * Gets the NPC object by ID.
