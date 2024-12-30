@@ -417,6 +417,7 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
 
         // create them
+        Bukkit.getScheduler().runTaskLater(plugin, () -> injectHolograms(p), 3);
         injectHolograms(p);
 
         // we only want to update them if the server is running placeholder API
@@ -438,7 +439,6 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
         }
 
         setYRotation((float) settings.getDirection());
-
     }
 
     private void injectHolograms(Player p) {

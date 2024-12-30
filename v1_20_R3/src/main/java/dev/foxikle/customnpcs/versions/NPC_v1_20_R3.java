@@ -400,6 +400,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
 
 
         // create them
+        Bukkit.getScheduler().runTaskLater(plugin, () -> injectHolograms(p), 3);
         injectHolograms(p);
         // we only want to update them if the server is running placeholder API
         if (plugin.papi) {
