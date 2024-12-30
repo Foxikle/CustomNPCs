@@ -71,7 +71,7 @@ public class MenuItems {
     }
 
     public static Button rotation(InternalNpc npc, Player player) {
-        double dir = npc.getSettings().getDirection();
+        double dir = npc.getSpawnLoc().getYaw();
 
         List<Component> lore = new ArrayList<>();
         Map<Integer, Integer> highlightIndexMap = Map.of(180, 0, -135, 1, -90, 2, -45, 3, 0, 4, 45, 5, 90, 6, 135, 7);
@@ -124,7 +124,7 @@ public class MenuItems {
                 }
             }
 
-            npc.getSettings().setDirection(newDir);
+            npc.getSpawnLoc().setYaw((float) newDir);
             menuView.replaceButton(10, rotation(npc, p));
         }));
     }

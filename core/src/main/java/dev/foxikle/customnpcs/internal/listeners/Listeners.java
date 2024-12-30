@@ -167,7 +167,7 @@ public class Listeners implements Listener {
                         return;
                     }
                 }
-                npc.setYRotation((float) npc.getSettings().getDirection());
+                npc.setYRotation(npc.getSpawnLoc().getYaw());
             });
         }
     }
@@ -468,7 +468,6 @@ public class Listeners implements Listener {
                 return;
             }
             if (message.equalsIgnoreCase("confirm")) {
-                npc.getSettings().setDirection(player.getLocation().getYaw());
                 npc.getSpawnLoc().setPitch(player.getLocation().getPitch());
                 npc.getSpawnLoc().setYaw(player.getLocation().getYaw());
                 player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.facing_direction"));

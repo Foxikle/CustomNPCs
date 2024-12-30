@@ -59,7 +59,6 @@ public class MoveCommand {
         assert finalNpc != null;
         finalNpc.remove();
         finalNpc.setSpawnLoc(p.getLocation());
-        finalNpc.getSettings().setDirection(p.getLocation().getYaw());
         finalNpc.createNPC();
     }
 
