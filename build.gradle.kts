@@ -25,7 +25,7 @@ plugins {
     `maven-publish`
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("io.github.goooler.shadow") version "8.1.8"
-    id("io.papermc.paperweight.userdev") version "1.7.7" apply false
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.8" apply false
 }
 
 repositories {
@@ -41,13 +41,13 @@ dependencies {
     implementation(project(":v1_21_R2", "reobf"))
     implementation(project(":v1_21_R1", "reobf"))
     implementation(project(":v1_21_R0", "reobf"))
-    implementation(project(":v1_20_R4", "reobf"))
+    implementation(project(":v1_20_R4"/*, "reobf"*/))
     implementation(project(":v1_20_R3", "reobf"))
     implementation(project(":v1_20_R2", "reobf"))
     implementation(project(":v1_20_R1", "reobf"))
 }
 
-var pluginVersion = "1.7.1"
+var pluginVersion = "1.7.2"
 
 allprojects {
     group = "dev.foxikle"
@@ -79,7 +79,7 @@ publishing {
         }
     }
     publications {
-        create<MavenPublication>("maven") {
+        create<MavenPublication>("main") {
             groupId = project.group.toString()
             artifactId = project.name
             version = project.version.toString()
@@ -114,10 +114,10 @@ tasks {
     processResources {
         filteringCharset = Charsets.UTF_8.name()
         val props = mapOf(
-                "name" to project.name,
+            "name" to project.name,
             "version" to pluginVersion,
-                "description" to project.description,
-                "apiVersion" to "1.20"
+            "description" to project.description,
+            "apiVersion" to "1.20"
         )
         inputs.properties(props)
         filesMatching("plugin.yml") {
@@ -127,7 +127,6 @@ tasks {
 
     shadowJar {
         archiveClassifier.set("")
-        relocate("org.bstats", "dev.foxikle.dependencies.bstats")
         // This is used to place the file into a test server's plugin directory.
         destinationDirectory.set(
             file(
@@ -153,4 +152,5 @@ tasks.register<Javadoc>("aggregatedJavadocs") {
         }
     }
 }
+
 
