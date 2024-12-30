@@ -109,6 +109,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     @Getter
     private final Cache<UUID, Boolean> deltionReason = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).expireAfterAccess(1, TimeUnit.MINUTES).build();
     private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4"};
+    private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
     /**
      * The List of players the plugin is waiting for title text input
      */
@@ -230,6 +231,17 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             printInvalidVersion();
             Bukkit.getPluginManager().disablePlugin(this);
             return;
+        }
+
+        String s = translateVersion();
+
+        try {
+            getLogger().info("Loading class: " + String.format(NPC_CLASS, s));
+            getClassLoader().loadClass(String.format(NPC_CLASS, s));
+        } catch (ClassNotFoundException e) {
+            getLogger().log(Level.SEVERE, "Failed to load NPC class for server version " + s + "!", e);
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "SERVERE ERROR: ", e);
         }
 
 
@@ -522,13 +534,15 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     public InternalNpc createNPC(World world, Location location, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actionImpls) {
         try {
-            String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
             Class<?> clazz = Class.forName(String.format(NPC_CLASS, translateVersion()));
             return (InternalNpc) clazz
                     .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class, UUID.class, Player.class, List.class)
                     .newInstance(this, world, location, equipment, settings, uuid, target, actionImpls);
         } catch (ReflectiveOperationException e) {
             getLogger().log(Level.SEVERE, "An error occurred whilst creating the NPC '{name}! This is most likely a configuration issue.".replace("{name}", settings.getName()), e);
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "An error occurred whilst creating the NPC '{name}!".replace("{name}", settings.getName()), e);
             throw new RuntimeException(e);
         }
     }
