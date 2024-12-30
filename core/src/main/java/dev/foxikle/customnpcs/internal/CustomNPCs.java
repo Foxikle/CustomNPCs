@@ -32,12 +32,9 @@ import dev.foxikle.customnpcs.actions.conditions.ActionAdapter;
 import dev.foxikle.customnpcs.actions.conditions.Condition;
 import dev.foxikle.customnpcs.actions.conditions.ConditionalTypeAdapter;
 import dev.foxikle.customnpcs.actions.defaultImpl.*;
+import dev.foxikle.customnpcs.api.NPC;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
-import dev.foxikle.customnpcs.internal.commands.NpcCommand;
-import dev.foxikle.customnpcs.internal.commands.suggestion.NpcSuggester;
-import dev.foxikle.customnpcs.internal.commands.suggestion.SoundSuggester;
-import dev.foxikle.customnpcs.internal.commands.suggestion.WorldSuggester;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.menu.*;
@@ -45,10 +42,10 @@ import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
 import dev.foxikle.customnpcs.internal.utils.AutoUpdater;
 import dev.foxikle.customnpcs.internal.utils.Utils;
-import dev.velix.imperat.BukkitImperat;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.Imperat;
 import io.github.mqzen.menus.Lotus;
+import io.github.mqzen.menus.adventure.CastingAdventure;
 import io.github.mqzen.menus.base.pagination.Pagination;
 import lombok.Getter;
 import lombok.Setter;
@@ -62,7 +59,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -358,7 +354,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
         getLogger().info("Loading menus!");
 
-        lotus = Lotus.load(this, EventPriority.HIGHEST);
+        lotus = Lotus.load(this, new CastingAdventure<>());
         lotus.registerMenu(new ActionMenu());
         lotus.registerMenu(new ActionCustomizerMenu());
         lotus.registerMenu(new MainNPCMenu());
@@ -376,18 +372,29 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         if (!System.getProperties().containsKey("CUSTOMNPCS_LOADED")) {
             getLogger().info("Loading commands!");
 
-            imperat = BukkitImperat.builder(this).applyBrigadier(true)
-                    .namedSuggestionResolver("sound", new SoundSuggester())
-                    .namedSuggestionResolver("current_npc", new NpcSuggester())
-                    .namedSuggestionResolver("broken_npc", new NpcSuggester())
-                    .namedSuggestionResolver("worlds", new WorldSuggester())
-                    .build();
-
-            // only one command, the rest are sub commands
-            imperat.registerCommand(new NpcCommand());
+//            imperat = BukkitImperat.builder(this).applyBrigadier(true)
+//                    .namedSuggestionResolver("sound", new SoundSuggester())
+//                    .namedSuggestionResolver("current_npc", new NpcSuggester())
+//                    .namedSuggestionResolver("broken_npc", new NpcSuggester())
+//                    .namedSuggestionResolver("worlds", new WorldSuggester())
+//                    .build();
+//
+//            // only one command, the rest are sub commands
+//            imperat.registerCommand(new NpcCommand());
         }
 
         System.setProperty("CUSTOMNPCS_LOADED", "true");
+
+        NPC npc = new NPC(Bukkit.getWorld("world"));
+        npc.setPosition(new Location(Bukkit.getWorld("world"), 0, 100, 0));
+        Settings settings = npc.getSettings();
+        settings.setName("CustomNPCs");
+        settings.setResilient(false);
+        settings.setInteractable(true);
+//        settings.setHologramBackground(Color.BLUE);
+        npc.setSettings(settings);
+        npc.create();
+
     }
 
     private void registerNpcTeam() {

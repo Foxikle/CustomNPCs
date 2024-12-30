@@ -33,7 +33,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.Mqzn:Lotus:1.1.7")
+    implementation("com.github.Mqzn:Lotus:1.4")
     implementation("org.bstats:bstats-bukkit:3.1.0")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
@@ -42,6 +42,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.36")
     implementation("dev.velix:imperat-core:1.5.0")
     implementation("dev.velix:imperat-bukkit:1.5.0")
+    implementation("com.google.protobuf:protobuf-java:4.29.2")
 }
 
 tasks {
