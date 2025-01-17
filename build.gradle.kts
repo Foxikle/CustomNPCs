@@ -25,7 +25,7 @@ plugins {
     `maven-publish`
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("io.github.goooler.shadow") version "8.1.8"
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.8" apply false
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.14" apply false
 }
 
 repositories {
@@ -38,9 +38,9 @@ repositories {
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":v1_21_R2", "reobf"))
-    implementation(project(":v1_21_R1", "reobf"))
-    implementation(project(":v1_21_R0", "reobf"))
+    implementation(project(":v1_21_R2"/*, "reobf"*/))
+    implementation(project(":v1_21_R1"/*, "reobf"*/))
+    implementation(project(":v1_21_R0"/*, "reobf"*/))
     implementation(project(":v1_20_R4"/*, "reobf"*/))
     implementation(project(":v1_20_R3", "reobf"))
     implementation(project(":v1_20_R2", "reobf"))
