@@ -55,14 +55,13 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bstats.bukkit.Metrics;
-import org.bstats.charts.MultiLineChart;
+import org.bstats.charts.AdvancedPie;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -300,11 +299,11 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         metrics.addCustomChart(new SimplePie("injection_interval", () -> String.valueOf(getConfig().getInt("InjectionInterval"))));
         metrics.addCustomChart(new SimplePie("injection_distance", () -> String.valueOf(getConfig().getInt("InjectionDistance"))));
         metrics.addCustomChart(new SimplePie("hologram_interval", () -> String.valueOf(getConfig().getInt("HologramUpdateInterval"))));
-        metrics.addCustomChart(new SimplePie("update_alerts", () -> String.valueOf(getConfig().getInt("AlertOnUpdate"))));
+        metrics.addCustomChart(new SimplePie("update_alerts", () -> String.valueOf(getConfig().getBoolean("AlertOnUpdate"))));
         metrics.addCustomChart(new SimplePie("npc_count", () -> String.valueOf(npcs.size())));
 
         // only supports default actions
-        metrics.addCustomChart(new MultiLineChart("total_actions", () -> {
+        metrics.addCustomChart(new AdvancedPie("total_actions", () -> {
 
             int actionbar = 0;
             int title = 0;
@@ -370,7 +369,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
         getLogger().info("Loading menus!");
 
-        lotus = Lotus.load(this, EventPriority.HIGHEST);
+        lotus = Lotus.load(this);
         lotus.registerMenu(new ActionMenu());
         lotus.registerMenu(new ActionCustomizerMenu());
         lotus.registerMenu(new MainNPCMenu());
