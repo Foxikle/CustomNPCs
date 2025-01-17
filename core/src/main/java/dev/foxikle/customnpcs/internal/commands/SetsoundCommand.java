@@ -30,7 +30,8 @@ import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.Sound;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.entity.Player;
 
 @SubCommand(value = "setsound", attachDirectly = true)
@@ -41,7 +42,7 @@ public class SetsoundCommand {
     @Usage
     public void usage(
             BukkitSource source,
-            @Default("UI_BUTTON_CLICK") @Named("sound") @SuggestionProvider("sound") @Greedy String soundRaw) {
+            @Default("minecraft:ui.button.click") @Named("sound") @SuggestionProvider("sound") @Greedy String soundRaw) {
 
         if (source.isConsole()) {
             source.reply("You can't do this :P");
@@ -51,15 +52,13 @@ public class SetsoundCommand {
         final Player p = source.asPlayer();
         final CustomNPCs plugin = CustomNPCs.getInstance();
         // converts `ui button click` to `UI_BUTTON_CLICK`, like {@link Sound#UI_BUTTON_CLICK}
-        String formatted = soundRaw.trim().replace(" ", "_").toLowerCase();
+        String formatted = soundRaw.trim().toLowerCase();
 
         if (plugin.soundWaiting.contains(p.getUniqueId())) {
-            try {
-                Sound.valueOf(formatted);
-            } catch (IllegalArgumentException ex) {
+            if (Registry.SOUNDS.get(NamespacedKey.fromString(formatted)) == null) {
                 p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.setsound.unknown_sound"));
-                return;
             }
+
             Bukkit.getScheduler().runTask(plugin, () -> {
                 plugin.soundWaiting.remove(p.getUniqueId());
                 Action actionImpl = plugin.editingActions.get(p.getUniqueId());
