@@ -55,14 +55,13 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bstats.bukkit.Metrics;
-import org.bstats.charts.MultiLineChart;
+import org.bstats.charts.AdvancedPie;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -109,6 +108,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     @Getter
     private final Cache<UUID, Boolean> deltionReason = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).expireAfterAccess(1, TimeUnit.MINUTES).build();
     private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4"};
+    private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
     /**
      * The List of players the plugin is waiting for title text input
      */
@@ -232,6 +232,17 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             return;
         }
 
+        String s = translateVersion();
+
+        try {
+            getLogger().info("Loading class: " + String.format(NPC_CLASS, s));
+            getClassLoader().loadClass(String.format(NPC_CLASS, s));
+        } catch (ClassNotFoundException e) {
+            getLogger().log(Level.SEVERE, "Failed to load NPC class for server version " + s + "!", e);
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "SERVERE ERROR: ", e);
+        }
+
 
         new Translations().setup();
 
@@ -288,11 +299,11 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         metrics.addCustomChart(new SimplePie("injection_interval", () -> String.valueOf(getConfig().getInt("InjectionInterval"))));
         metrics.addCustomChart(new SimplePie("injection_distance", () -> String.valueOf(getConfig().getInt("InjectionDistance"))));
         metrics.addCustomChart(new SimplePie("hologram_interval", () -> String.valueOf(getConfig().getInt("HologramUpdateInterval"))));
-        metrics.addCustomChart(new SimplePie("update_alerts", () -> String.valueOf(getConfig().getInt("AlertOnUpdate"))));
+        metrics.addCustomChart(new SimplePie("update_alerts", () -> String.valueOf(getConfig().getBoolean("AlertOnUpdate"))));
         metrics.addCustomChart(new SimplePie("npc_count", () -> String.valueOf(npcs.size())));
 
         // only supports default actions
-        metrics.addCustomChart(new MultiLineChart("total_actions", () -> {
+        metrics.addCustomChart(new AdvancedPie("total_actions", () -> {
 
             int actionbar = 0;
             int title = 0;
@@ -358,7 +369,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
         getLogger().info("Loading menus!");
 
-        lotus = Lotus.load(this, EventPriority.HIGHEST);
+        lotus = Lotus.load(this);
         lotus.registerMenu(new ActionMenu());
         lotus.registerMenu(new ActionCustomizerMenu());
         lotus.registerMenu(new MainNPCMenu());
@@ -522,13 +533,15 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     public InternalNpc createNPC(World world, Location location, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actionImpls) {
         try {
-            String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
             Class<?> clazz = Class.forName(String.format(NPC_CLASS, translateVersion()));
             return (InternalNpc) clazz
                     .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class, UUID.class, Player.class, List.class)
                     .newInstance(this, world, location, equipment, settings, uuid, target, actionImpls);
         } catch (ReflectiveOperationException e) {
             getLogger().log(Level.SEVERE, "An error occurred whilst creating the NPC '{name}! This is most likely a configuration issue.".replace("{name}", settings.getName()), e);
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "An error occurred whilst creating the NPC '{name}!".replace("{name}", settings.getName()), e);
             throw new RuntimeException(e);
         }
     }

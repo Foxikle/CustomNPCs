@@ -25,12 +25,13 @@ package dev.foxikle.customnpcs.internal.menu;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.MenuView;
+import io.github.mqzen.menus.base.pagination.FillRange;
 import io.github.mqzen.menus.base.pagination.Page;
-import io.github.mqzen.menus.base.pagination.PageView;
 import io.github.mqzen.menus.base.style.TextLayout;
 import io.github.mqzen.menus.base.style.TextLayoutPane;
 import io.github.mqzen.menus.misc.Capacity;
 import io.github.mqzen.menus.misc.DataRegistry;
+import io.github.mqzen.menus.misc.Slots;
 import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
@@ -41,12 +42,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class SkinCatalog extends Page {
+
     @Override
-    public int getPageButtonsCount(@Nullable PageView pageView, Player player) {
-        return 28;
+    public FillRange getFillRange(Capacity capacity, Player player) {
+        return FillRange.start(capacity).except(Slots.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 45, 46, 47, 48, 49, 50, 51, 52, 53).getSlots());
     }
 
     @Override
@@ -70,7 +71,7 @@ public class SkinCatalog extends Page {
      * @param event          the click event
      */
     @Override
-    public void onClick(MenuView<?> playerMenuView, InventoryClickEvent event) {
+    public void onPostClick(MenuView<?> playerMenuView, InventoryClickEvent event) {
         if ((event.getSlot() == 45 || event.getSlot() == 53) && event.getCurrentItem().getType() == Material.ARROW) {
             event.getWhoClicked().playSound(Sound.sound(builder -> builder.type(Key.key("minecraft", "ui.button.click")).pitch(1).volume(1).source(Sound.Source.MASTER)));
         }

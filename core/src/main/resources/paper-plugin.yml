@@ -4,31 +4,38 @@ main: dev.foxikle.customnpcs.internal.CustomNPCs
 api-version: '1.20'
 prefix: CustomNPCs
 authors: [ Foxikle ]
-website: https://foxikle.dev/plugins
-softdepend:
-  - PlaceholderAPI
+#website: https://foxikle.dev/plugins
 description: A simple NPC plugin.
-libraries:
-  - com.google.code.gson:gson:2.10.1
+loader: dev.foxikle.customnpcs.internal.NpcLoading
+has-open-classloader: true
+contributors:
+  - FlameyosFlow
+dependencies:
+  server:
+    PlaceholderAPI:
+      load: AFTER
+      required: false
+      join-classpath: true
+
 permissions:
   customnpcs.*:
     description: A wildcard permission for CustomNPCs
     default: op
     children:
-    - customnpcs.edit
-    - customnpcs.create
-    - customnpcs.delete
-    - customnpcs.commands.*
-    - customnpcs.commands.manage
-    - customnpcs.commands.help
-    - customnpcs.commands.reload
-    - customnpcs.commands.list
-    - customnpcs.commands.removeHolograms
-    - customnpcs.commands.goto
-    - customnpcs.alert
-    - customnpcs.run_command.enable_console
-    - customnpcs.commands.wiki
-    - customnpcs.commands.fix_config
+      - customnpcs.edit
+      - customnpcs.create
+      - customnpcs.delete
+      - customnpcs.commands.*
+      - customnpcs.commands.manage
+      - customnpcs.commands.help
+      - customnpcs.commands.reload
+      - customnpcs.commands.list
+      - customnpcs.commands.removeHolograms
+      - customnpcs.commands.goto
+      - customnpcs.alert
+      - customnpcs.run_command.enable_console
+      - customnpcs.commands.wiki
+      - customnpcs.commands.fix_config
   customnpcs.commands.*:
     description: A wildcard permission for all command permissions
     default: op
