@@ -33,15 +33,16 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.Mqzn:Lotus:1.1.7")
-    implementation("org.bstats:bstats-bukkit:3.1.0")
+    compileOnly("com.github.Mqzn:Lotus:1.4.1")
+    compileOnly("org.bstats:bstats-bukkit:3.1.0")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
-    implementation("org.mineskin:java-client:1.2.4-SNAPSHOT")
+    compileOnly("org.mineskin:java-client:1.2.4-SNAPSHOT")
     compileOnly("org.projectlombok:lombok:1.18.36")
     annotationProcessor("org.projectlombok:lombok:1.18.36")
-    implementation("dev.velix:imperat-core:1.5.0")
-    implementation("dev.velix:imperat-bukkit:1.5.0")
+    compileOnly("dev.velix:imperat-core:1.5.1")
+    compileOnly("dev.velix:imperat-bukkit:1.5.1")
+    compileOnly("com.google.protobuf:protobuf-java:4.29.2")
 }
 
 tasks {
@@ -59,7 +60,7 @@ tasks {
 
     processResources {
         filteringCharset = Charsets.UTF_8.name()
-        filesMatching("plugin.yml") {
+        filesMatching("paper-plugin.yml") {
             expand("version" to version)
         }
     }

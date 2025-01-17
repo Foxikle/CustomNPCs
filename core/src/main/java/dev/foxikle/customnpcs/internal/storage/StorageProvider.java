@@ -20,34 +20,17 @@
  * SOFTWARE.
  */
 
-plugins {
-    id("java")
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.14"
-}
+package dev.foxikle.customnpcs.internal.storage;
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven("https://jitpack.io")
-    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
-}
+import org.jetbrains.annotations.ApiStatus;
 
-dependencies {
-    compileOnly("me.clip:placeholderapi:2.11.6")
-    compileOnly(project(":core"))
-    paperweight.paperDevBundle("1.21-R0.1-SNAPSHOT")
-}
+@ApiStatus.Internal
+public interface StorageProvider {
+    void init();
 
-tasks {
-    java {
-        toolchain.languageVersion = JavaLanguageVersion.of(21)
-    }
+    boolean save(byte[] data);
 
-    compileJava {
-        options.release = 21
-    }
+    byte[] load();
 
-    jar {
-        archiveClassifier = "v1_21_R0"
-    }
+    void shutdown();
 }

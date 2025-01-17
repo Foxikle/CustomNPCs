@@ -52,6 +52,7 @@ import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
@@ -625,6 +626,14 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
         super.getBukkitEntity().setItemInHand(equipment.getHand());
         setYRotation(getSpawnLoc().getYaw());
+    }
+
+    /**
+     * @return Bukkit goobery
+     */
+    @Override
+    public Particle spawnParticle() {
+        return Particle.EXPLOSION_LARGE;
     }
 
     @Override

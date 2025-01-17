@@ -169,7 +169,7 @@ public class MenuUtils {
 
         @Override
         public ItemStack toItem() {
-            return ItemBuilder.modern(PLAYER_HEAD).setDisplay(Component.text(name))
+            return ItemBuilder.modern(PLAYER_HEAD).setDisplay(Msg.format("<yellow>" + name))
                     .setLore(
                             Msg.translate(locale, "customnpcs.menus.skin_catalog.items.icon.lore", name),
                             Component.empty(),

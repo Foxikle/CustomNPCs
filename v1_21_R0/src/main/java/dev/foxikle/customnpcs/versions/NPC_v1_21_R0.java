@@ -54,6 +54,7 @@ import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.CraftWorld;
@@ -418,9 +419,7 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
 
         // create them
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            injectHolograms(p);
-        }, 1);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> injectHolograms(p), 1);
         injectHolograms(p);
 
         // we only want to update them if the server is running placeholder API
@@ -620,6 +619,14 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
         super.setYBodyRot(f);
         super.setYHeadRot(f);
         lookAt(Utils.calcLocation(this));
+    }
+
+    /**
+     * @return Bukkit goobery
+     */
+    @Override
+    public Particle spawnParticle() {
+        return Particle.EXPLOSION;
     }
 
     @Override

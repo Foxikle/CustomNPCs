@@ -41,8 +41,9 @@ import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -66,8 +67,8 @@ public class PlaySound extends Action {
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
-                    p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    PlaySound actionImpl = new PlaySound(Sound.UI_BUTTON_CLICK.name(), 1, 1, 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    p.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
+                    PlaySound actionImpl = new PlaySound("minecraft:ui.button.click", 1, 1, 0, Condition.SelectionMode.ONE, new ArrayList<>());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -131,9 +132,8 @@ public class PlaySound extends Action {
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
-
-        Sound sound = Sound.valueOf(this.sound);
-        player.playSound(player.getLocation(), sound, volume, pitch);
+        Sound sound = Sound.sound(Key.key(this.sound), Sound.Source.MASTER, pitch, volume);
+        player.playSound(sound);
     }
 
     @Override
@@ -191,7 +191,7 @@ public class PlaySound extends Action {
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
                                 setPitch(getPitch() + .1f);
                                 menuView.replaceButton(19, pitch(player));
                             }))
@@ -201,7 +201,7 @@ public class PlaySound extends Action {
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
                                 setVolume(getVolume() + .1f);
                                 menuView.replaceButton(21, volume(player));
                             })))
@@ -213,7 +213,7 @@ public class PlaySound extends Action {
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
                                 Player p1 = (Player) event.getWhoClicked();
                                 if (getPitch() - .1 <= 0) {
                                     p1.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.sound.invalid_pitch"));
@@ -228,7 +228,7 @@ public class PlaySound extends Action {
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
                                 Player p1 = (Player) event.getWhoClicked();
                                 if (getVolume() - .1 <= 0) {
                                     p1.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.sound.invalid_volume"));
@@ -245,7 +245,7 @@ public class PlaySound extends Action {
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
                                 Player p = (Player) event.getWhoClicked();
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 p.closeInventory();

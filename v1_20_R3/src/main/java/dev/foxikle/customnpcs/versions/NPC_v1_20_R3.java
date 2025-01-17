@@ -53,6 +53,7 @@ import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_20_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_20_R3.CraftWorld;
@@ -400,6 +401,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
 
 
         // create them
+        Bukkit.getScheduler().runTaskLater(plugin, () -> injectHolograms(p), 3);
         injectHolograms(p);
         // we only want to update them if the server is running placeholder API
         if (plugin.papi) {
@@ -594,6 +596,14 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
         super.setYBodyRot(f);
         super.setYHeadRot(f);
         lookAt(Utils.calcLocation(this));
+    }
+
+    /**
+     * @return Bukkit goobery
+     */
+    @Override
+    public Particle spawnParticle() {
+        return Particle.EXPLOSION_LARGE;
     }
 
     @Override

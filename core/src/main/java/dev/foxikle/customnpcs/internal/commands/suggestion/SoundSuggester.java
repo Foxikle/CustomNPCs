@@ -26,18 +26,31 @@ import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.command.parameters.CommandParameter;
 import dev.velix.imperat.context.SuggestionContext;
 import dev.velix.imperat.resolvers.SuggestionResolver;
-import org.bukkit.Sound;
+import org.bukkit.Keyed;
+import org.bukkit.Registry;
 
-import java.util.Arrays;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public class SoundSuggester implements SuggestionResolver<BukkitSource> {
 
-    // This is easier than using the static one >:)
-    // also NO if you use `Enum::name` the jvm throws an error.
-    @SuppressWarnings("Convert2MethodRef")
-    private static final List<String> SUGGESTIONS = Arrays.stream(Sound.values()).map(sound -> sound.name()).toList();
+    private static final List<String> SUGGESTIONS = new ArrayList<>();
+
+    static {
+        // use reflection because why not
+        try {
+            Class<?> clazz = Class.forName("org.bukkit.Registry");
+            Field registry = clazz.getField("SOUNDS");
+            registry.setAccessible(true);
+            Registry<Keyed> val = (Registry<Keyed>) registry.get(null);
+            val.forEach(registry1 -> SUGGESTIONS.add(registry1.key().toString()));
+        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * {@inheritDoc}
