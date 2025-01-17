@@ -45,7 +45,6 @@ public class NpcLoading implements PluginLoader {
         System.setProperty("bstats.relocatecheck", "false");
         MavenLibraryResolver resolver = new MavenLibraryResolver();
 
-        resolver.addRepository(new RemoteRepository.Builder("foxikle", "default", "https://repo.foxikle.dev/public").build());
         resolver.addRepository(new RemoteRepository.Builder("inventivetalent", "default", "https://repo.inventivetalent.org/repository/public/").build());
         resolver.addRepository(new RemoteRepository.Builder("jitpack", "default", "https://jitpack.io").build());
         resolver.addRepository(new RemoteRepository.Builder("central", "default", "https://repo1.maven.org/maven2/").build());
