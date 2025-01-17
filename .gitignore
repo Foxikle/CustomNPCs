@@ -115,3 +115,6 @@ build
 
 # Common working directory
 run/
+
+# Proto
+compile_proto.sh

@@ -1,0 +1,7 @@
+syntax = "proto3";
+package dev.foxikle.customnpcs.internal.proto;
+
+// action doesn't need migration versions as thats handled by each individual action
+message Action {
+  string serialized_data = 1;
+}

@@ -20,33 +20,17 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.api;
+package dev.foxikle.customnpcs.internal.storage;
 
-import dev.foxikle.customnpcs.internal.CustomNPCs;
-import lombok.experimental.UtilityClass;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.ApiStatus;
 
-import java.util.UUID;
+@ApiStatus.Internal
+public interface StorageProvider {
+    void init();
 
-/**
- * A class providing an interface using non NMS objects to use NPCs
- */
-@UtilityClass
-public class NPCApi {
-    /**
-     * A static instance of the plugin for API use.
-     */
-    static final CustomNPCs plugin = JavaPlugin.getPlugin(CustomNPCs.class);
+    boolean save(byte[] data);
 
-    /**
-     * Gets the NPC object by ID.
-     *
-     * @param uuid the id of the NPC
-     * @return the NPC object associated with the NPC
-     * @throws NullPointerException     if the specified UUID is null
-     * @throws IllegalArgumentException if an NPC doesn't exist by that UUID
-     */
-    public static NPC getNPC(UUID uuid) {
-        return new NPC(plugin.getNPCByID(uuid));
-    }
+    byte[] load();
+
+    void shutdown();
 }

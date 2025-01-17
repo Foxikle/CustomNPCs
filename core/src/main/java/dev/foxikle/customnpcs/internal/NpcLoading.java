@@ -54,6 +54,7 @@ public class NpcLoading implements PluginLoader {
         resolver.addDependency(new Dependency(new DefaultArtifact("com.github.Mqzn:Lotus:1.4.1"), null));
         resolver.addDependency(new Dependency(new DefaultArtifact("dev.velix:imperat-core:1.3.2"), null));
         resolver.addDependency(new Dependency(new DefaultArtifact("dev.velix:imperat-bukkit:1.3.2"), null));
+        resolver.addDependency(new Dependency(new DefaultArtifact("com.google.protobuf:protobuf-java:4.29.2"), null));
 
         classpathBuilder.addLibrary(resolver);
     }

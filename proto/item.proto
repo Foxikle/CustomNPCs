@@ -1,0 +1,8 @@
+syntax = "proto3";
+package dev.foxikle.customnpcs.internal.proto;
+
+// doesn't need a migrations field as that is already handled by Paper's itemstack serialization
+message Item {
+  // byte array
+  bytes serialized = 1;
+}
