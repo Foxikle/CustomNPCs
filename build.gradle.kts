@@ -120,7 +120,7 @@ tasks {
             "apiVersion" to "1.20"
         )
         inputs.properties(props)
-        filesMatching("plugin.yml") {
+        filesMatching("paper-plugin.yml") {
             expand(props)
         }
     }
@@ -152,5 +152,4 @@ tasks.register<Javadoc>("aggregatedJavadocs") {
         }
     }
 }
-
 
