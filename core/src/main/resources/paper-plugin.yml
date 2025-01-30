@@ -12,6 +12,14 @@ contributors:
   - FlameyosFlow
 dependencies:
   server:
+    Multiverse-Core:
+      load: AFTER
+      required: false
+      join-classpath: false
+    MultiWorld:
+      load: AFTER
+      required: false
+      join-classpath: false
     PlaceholderAPI:
       load: AFTER
       required: false
