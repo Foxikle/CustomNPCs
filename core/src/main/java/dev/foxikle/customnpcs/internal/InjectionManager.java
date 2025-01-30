@@ -61,7 +61,11 @@ public class InjectionManager {
                 toRemove.remove(player.getUniqueId());
             }
 
-            if (player.getWorld() != npc.getCurrentLocation().getWorld()) continue;
+            if (player.getWorld() != npc.getCurrentLocation().getWorld()) {
+                toRemove.add(player.getUniqueId()); // add them back as they are in a different dimention
+                continue;
+            }
+
             double distance = player.getLocation().distanceSquared(npc.getCurrentLocation());
             if (distance > INJECTION_DISTANCE) {
                 isVisible.put(player.getUniqueId(), false);
