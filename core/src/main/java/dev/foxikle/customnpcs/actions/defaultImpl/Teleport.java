@@ -199,8 +199,6 @@ public class Teleport extends Action {
             Component[] incLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.increment.description");
             Component[] decLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.decrement.description");
 
-            player.sendMessage("Err: " + action.getPitch());
-
             return MenuUtils.actionBase(action, player)
 
                     // displays
