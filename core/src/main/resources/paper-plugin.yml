@@ -13,15 +13,15 @@ contributors:
 dependencies:
   server:
     Multiverse-Core:
-      load: AFTER
+      load: BEFORE
       required: false
       join-classpath: false
     MultiWorld:
-      load: AFTER
+      load: BEFORE
       required: false
       join-classpath: false
     PlaceholderAPI:
-      load: AFTER
+      load: BEFORE
       required: false
       join-classpath: true
 
