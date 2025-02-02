@@ -132,7 +132,7 @@ public class PlaySound extends Action {
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
-        Sound sound = Sound.sound(Key.key(this.sound), Sound.Source.MASTER, pitch, volume);
+        Sound sound = Sound.sound(Key.key(this.sound), Sound.Source.MASTER, volume, pitch);
         player.playSound(sound);
     }
 
