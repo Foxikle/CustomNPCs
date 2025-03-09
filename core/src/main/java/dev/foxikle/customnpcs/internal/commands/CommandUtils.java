@@ -83,6 +83,9 @@ public class CommandUtils {
                 .append(Msg.translate(p, "customnpcs.commands.help.wiki.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.wiki.aliases"))))
                 .append(Msg.translate(p, "customnpcs.commands.help.wiki.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.wiki.hover"))))
                 .appendNewline()
+                .append(Msg.translate(p, "customnpcs.commands.help.debug.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.debug.aliases"))))
+                .append(Msg.translate(p, "customnpcs.commands.help.debug.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.debug.hover"))))
+                .appendNewline()
                 .append(Component.text("                                                                                 ", NamedTextColor.DARK_GREEN, TextDecoration.STRIKETHROUGH));
         return component;
     }

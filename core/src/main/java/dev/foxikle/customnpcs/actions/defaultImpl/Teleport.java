@@ -199,14 +199,12 @@ public class Teleport extends Action {
             Component[] incLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.increment.description");
             Component[] decLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.decrement.description");
 
-            player.sendMessage("Err: " + action.getPitch());
-
             return MenuUtils.actionBase(action, player)
 
                     // displays
                     .setButton(19, Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.x", action.getX()), displayLore), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)))
-                    ).setButton(20, Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.y", action.getX()), displayLore), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)))
-                    ).setButton(21, Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.z", action.getX()), displayLore), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)))
+                    ).setButton(20, Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.y", action.getY()), displayLore), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)))
+                    ).setButton(21, Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.z", action.getZ()), displayLore), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)))
                     ).setButton(23, compassDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.pitch", action.getPitch()))
                     ).setButton(24, compassDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.teleport.display.yaw", action.getYaw())))
 

@@ -40,9 +40,9 @@ dependencies {
     compileOnly("org.mineskin:java-client:1.2.4-SNAPSHOT")
     compileOnly("org.projectlombok:lombok:1.18.36")
     annotationProcessor("org.projectlombok:lombok:1.18.36")
-    compileOnly("dev.velix:imperat-core:1.5.1")
-    compileOnly("dev.velix:imperat-bukkit:1.5.1")
     compileOnly("com.google.protobuf:protobuf-java:4.29.2")
+    compileOnly("dev.velix:imperat-core:1.7.1")
+    compileOnly("dev.velix:imperat-bukkit:1.7.1")
 }
 
 tasks {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,28 +22,27 @@
 
 package dev.foxikle.customnpcs.internal.commands;
 
+import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.annotations.*;
+import dev.velix.imperat.annotations.Description;
+import dev.velix.imperat.annotations.Permission;
+import dev.velix.imperat.annotations.SubCommand;
+import dev.velix.imperat.annotations.Usage;
 
-import java.util.Locale;
-
-@Command("npc")
-@Description("The main CustomNPCs command")
-@Permission("customnpcs.commands.help")
-@Inherit(
-        {
-                CloneCommand.class, CreateCommand.class, DeleteCommand.class,
-                EditCommand.class, FixConfigCommand.class, ListCommand.class, MoveCommand.class,
-                ReloadCommand.class, SetsoundCommand.class, TeleportCommand.class,
-                WikiCommand.class, HelpCommand.class, ManageCommand.class, DebugCommand.class
-        }
-)
-public class NpcCommand {
-
+@Permission("customnpcs.edit")
+@SubCommand(value = "debug", attachDirectly = true)
+@Description("Enables debug message. (They can be very spammy)")
+public class DebugCommand {
     @Usage
-    public void showHelp(BukkitSource sender) {
-        Locale locale = Locale.getDefault();
-        if (!sender.isConsole()) locale = sender.asPlayer().locale();
-        sender.reply(CommandUtils.getHelpComponent(locale));
+    public void execute(BukkitSource sender) {
+        CustomNPCs plugin = CustomNPCs.getInstance();
+        if (plugin.isDebug()) {
+            sender.reply(Msg.translate(CommandUtils.getLocale(sender), "customnpcs.commands.debug.message.disable"));
+            plugin.setDebug(false);
+        } else {
+            sender.reply(Msg.translate(CommandUtils.getLocale(sender), "customnpcs.commands.debug.message.enable"));
+            plugin.setDebug(true);
+        }
     }
 }

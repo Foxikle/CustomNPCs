@@ -182,6 +182,17 @@ public class FileManager {
                     throw new RuntimeException(e);
                 }
             }
+            if (version < 7) {
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 7));
+                yml.set("CONFIG_VERSION", 7);
+                yml.set("DefaultInterpolationDuration", 5);
+                yml.setComments("DefaultInterpolationDuration", List.of("DefaultInterpolationDuration -> How long should moving NPCs interpolate their Nametags moving?"));
+                try {
+                    yml.save(file);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
 
         // npcs

@@ -13,7 +13,7 @@
 #    will be automatically generated on the next server start.
 
 # DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.
-CONFIG_VERSION: 6
+CONFIG_VERSION: 7
 
 # InjectionDistance -> How close should a player be to the NPC before the plugin attempts to inject the NPC (Due to minecraft, npcs automatically remove themselves after getting 48 blocks from the player.
 InjectionDistance: 48
@@ -43,6 +43,9 @@ DisableCollisions: true
 
 # NameReferenceMessages -> Should the plugin send you a message with the NPC's current name whilst attempting to change it?
 NameReferenceMessages: true
+
+# DefaultInterpolationDuration -> How long should moving NPCs interpolate their Nametags moving?
+DefaultInterpolationDuration: 5
 
 # Skins -> A list of preset Skins
 Skins:

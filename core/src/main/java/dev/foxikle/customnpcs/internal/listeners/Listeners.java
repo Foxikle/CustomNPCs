@@ -167,7 +167,7 @@ public class Listeners implements Listener {
                         return;
                     }
                 }
-                npc.setYRotation(npc.getSpawnLoc().getYaw());
+                npc.setYRotation(npc.getCurrentLocation().getYaw());
             });
         }
     }
@@ -224,7 +224,7 @@ public class Listeners implements Listener {
      * @param e The event callback
      * @since 1.0
      */
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.LOWEST)
     @SuppressWarnings("deprecation")
     public void onChat(AsyncPlayerChatEvent e) {
         Player player = e.getPlayer();

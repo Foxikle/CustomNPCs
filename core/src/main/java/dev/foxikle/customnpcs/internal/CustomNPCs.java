@@ -81,6 +81,8 @@ import java.util.logging.Logger;
  */
 @Slf4j
 public final class CustomNPCs extends JavaPlugin implements PluginMessageListener {
+
+    public static int INTERPOLATION_DURATION;
     public static final ActionRegistry ACTION_REGISTRY = new ActionRegistry();
     /**
      * Singleton for the NPCBuilder
@@ -218,6 +220,10 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     @Setter
     private boolean reloading = false;
 
+    @Getter
+    @Setter
+    private boolean debug = false;
+
     /**
      * <p> Logic for when the plugin is enabled
      * </p>
@@ -242,6 +248,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "SERVERE ERROR: ", e);
         }
+
+        INTERPOLATION_DURATION = getConfig().getInt("DefaultInterpolationDuration");
 
 
         new Translations().setup();
