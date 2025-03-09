@@ -69,6 +69,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The object representing the NPC
@@ -186,7 +187,13 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(equipment.getHand());
 
-        teamLoop = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> Bukkit.getOnlinePlayers().forEach(player -> ((CraftPlayer) player).getHandle().connection.send(teamPacket)), 1, 5).getTaskId();
+        AtomicInteger counter = new AtomicInteger(0);
+        teamLoop = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> Bukkit.getOnlinePlayers().forEach(player -> {
+            if (counter.incrementAndGet() >= 4 && plugin.isDebug()) {
+                player.sendMessage("[DEBUG] Injecting teams packet!");
+            }
+            ((CraftPlayer) player).getHandle().connection.send(teamPacket);
+        }), 1, 5).getTaskId();
 
         if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
@@ -221,6 +228,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         hologram.setBillboard(Display.Billboard.CENTER);
         hologram.text(Component.empty());
         hologram.addScoreboardTag("npcHologram");
+        hologram.setInterpolationDuration(settings.getInterpolationDuration());
         return hologram;
     }
 
@@ -239,6 +247,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         hologram.setBillboard(Display.Billboard.CENTER);
         hologram.text(Component.empty());
         hologram.addScoreboardTag("npcHologram");
+        hologram.setInterpolationDuration(settings.getInterpolationDuration());
         return hologram;
     }
 
@@ -412,6 +421,10 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         connection.send(namedEntitySpawn);
         connection.send(equipmentPacket);
         connection.send(rotation);
+        connection.send(this.teamPacket);
+        if (plugin.isDebug()) {
+            plugin.getLogger().info("[DEBUG] Injected npc '" + this.displayName + "' to player '" + p.getName() + "'");
+        }
 
         Bukkit.getScheduler().runTaskLaterAsynchronously(CustomNPCs.getInstance(), () -> connection.send(playerInforemove), 30);
 
@@ -505,23 +518,10 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
 
     @Override
     public void moveTo(Location v) {
-        moveTo(new Vec3(v.x(), v.y(), v.z()));
-    }
-
-    /**
-     * <p> Thes the Player to the specified Vec3
-     * </p>
-     */
-    @Override
-    public void moveTo(@NotNull Vec3 v) {
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            this.hologram.teleport(new Location(getWorld(), v.x(), settings.isInteractable() && !settings.isHideClickableHologram() ? v.y() + 2.33 : v.y() + 2.05, v.z()));
-            if (settings.isInteractable() && !settings.isHideClickableHologram())
-                this.clickableHologram.teleport(new Location(getWorld(), v.x(), v.y() + 2.05, v.z()));
-        }, 3);
-
-
-        moveTo(v.x(), v.y(), v.z());
+        moveTo(v.x(), v.y(), v.z(), v.getYaw(), v.getPitch());
+        Bukkit.getScheduler().runTaskLater(plugin, () -> this.hologram.teleport(new Location(getWorld(), v.x(), settings.isInteractable() && !settings.isHideClickableHologram() ? v.y() + 2.33 : v.y() + 2.05, v.z())), 3);
+        if (settings.isInteractable() && !settings.isHideClickableHologram())
+            Bukkit.getScheduler().runTaskLater(plugin, () -> this.clickableHologram.teleport(new Location(getWorld(), v.x(), v.y() + 2.05, v.z())), 3);
     }
 
     /**
