@@ -35,7 +35,7 @@ import java.util.Locale;
                 CloneCommand.class, CreateCommand.class, DeleteCommand.class,
                 EditCommand.class, FixConfigCommand.class, ListCommand.class, MoveCommand.class,
                 ReloadCommand.class, SetsoundCommand.class, TeleportCommand.class,
-                WikiCommand.class, HelpCommand.class, ManageCommand.class
+                WikiCommand.class, HelpCommand.class, ManageCommand.class, DebugCommand.class
         }
 )
 public class NpcCommand {
