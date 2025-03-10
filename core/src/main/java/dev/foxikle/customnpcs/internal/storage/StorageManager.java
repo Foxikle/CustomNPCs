@@ -297,6 +297,9 @@ public class StorageManager {
                 }
             }
 
+            // enable debug mode as quickly as possible:
+            plugin.setDebug(yml.getBoolean("DebugMode"));
+
             if (Arrays.stream(VALID_PROVIDERS).noneMatch(s -> s.equalsIgnoreCase(yml.getString("storage.provider")))) {
                 throw new IllegalArgumentException("Invalid config provider " + yml.getString("storage.provider"));
             }
