@@ -23,17 +23,18 @@
 package dev.foxikle.customnpcs.internal.commands;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.FileManager;
 import dev.foxikle.customnpcs.internal.commands.enums.FixConfigWorldStrategy;
+import dev.foxikle.customnpcs.internal.proto.NpcOuterClass;
+import dev.foxikle.customnpcs.internal.proto.ProtoWrapper;
+import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
@@ -86,44 +87,23 @@ public class FixConfigCommand {
         }
 
         CustomNPCs plugin = CustomNPCs.getInstance();
-        FileManager fileManager = plugin.getFileManager();
+        StorageManager storageManager = plugin.getStorageManager();
 
 
         if (target.equalsIgnoreCase("all")) {
             // apply it to all NPCs
 
-            for (UUID uuid : fileManager.getBrokenNPCs().keySet()) {
-                YamlConfiguration yml = fileManager.getNpcYaml();
-                ConfigurationSection parent = yml.getConfigurationSection(uuid.toString());
-                if (parent == null) {
-                    nonExistentNpcs++;
-                    continue;
-                }
+            for (NpcOuterClass.Npc npc : storageManager.getBrokenNPCs().values()) {
 
-                ConfigurationSection location = parent.getConfigurationSection("location");
 
-                Location loc;
-                String locString;
-
-                //Bukkit's terrible config api didn't wipe the section
-                if (location != null) {
-                    assert location != null : "Location is null";
-
-                    double x = location.getDouble("x");
-                    double y = location.getDouble("y");
-                    double z = location.getDouble("z");
-                    float pitch = (float) location.getDouble("pitch");
-                    float yaw = (float) location.getDouble("yaw");
-
-                    loc = new Location(w, x, y, z, pitch, yaw);
-                    locString = "(" + x + "," + y + "," + z + ")";
-                } else {
+                Location loc = ProtoWrapper.fromProtoLocation(npc.getLocation());
+                if (loc == null) {
                     loc = new Location(w, 0, 0, 0, 0, 0);
-                    locString = "(0, 0, 0)";
                     plugin.getLogger().warning("Fixed an NPC whose location data was wiped by Bukkit's configuration API. Its location was set to (0,0,0)");
                     source.reply(Msg.translate(locale, "customnpcs.commands.fix_config.bukkit_wiped_data"));
                 }
 
+                String locString = "(" + loc.x() + ", " + loc.y() + ", " + loc.z() + ")";
 
                 if (strat == FixConfigWorldStrategy.SAFE_LOCATION) {
 
@@ -135,34 +115,34 @@ public class FixConfigCommand {
                         if (traceResult == null) {
                             // The location cannot be safe
 
-                            plugin.getLogger().warning("Failed to fix npc " + uuid + " at " + locString + " -- Location cannot be made safe.");
+                            plugin.getLogger().warning("Failed to fix npc " + npc.getUuid() + " at " + locString + " -- Location cannot be made safe.");
                             failedToFix++;
                             continue;
                         }
                         loc.setY(traceResult.getHitBlock().getY() + 1);
                     }
                     movedbyStrategy++;
-
                 }
 
-                parent.set("location", loc);
                 totalFixed++;
-                fileManager.saveNpcFile(yml);
+                NpcOuterClass.Npc fixed = npc.toBuilder().setLocation(ProtoWrapper.toProtoLocation(loc)).build();
+                storageManager.track(fixed); // retrack the fixed on :)
             }
         } else {
             // find npc by flag
             try {
 
-
-                if (!fileManager.getBrokenNPCs().containsValue(target)) {
+                if (storageManager.getBrokenNPCs().values().stream().noneMatch(npc -> MiniMessage.miniMessage().stripTags(npc.getSettings().getName()).equals(target))) {
                     // it dont exist
                     source.reply(Msg.translate(locale, "customnpcs.commands.invalid_name_or_uuid "));
                     return;
                 }
                 UUID uuid = null;
-                for (Map.Entry<UUID, String> entry : fileManager.getBrokenNPCs().entrySet()) {
-                    if (entry.getValue().equals(target)) {
+                NpcOuterClass.Npc npc = null;
+                for (Map.Entry<UUID, NpcOuterClass.Npc> entry : storageManager.getBrokenNPCs().entrySet()) {
+                    if (MiniMessage.miniMessage().stripTags(entry.getValue().getSettings().getName()).equals(target)) {
                         uuid = entry.getKey();
+                        npc = entry.getValue();
                         break;
                     }
                 }
@@ -172,37 +152,15 @@ public class FixConfigCommand {
                     return;
                 }
 
-                YamlConfiguration yml = fileManager.getNpcYaml();
-                ConfigurationSection parent = yml.getConfigurationSection(uuid.toString());
-                if (parent == null) {
-                    nonExistentNpcs++;
-                    // hacky hacky way to do this
-                    throw new RuntimeException("Catch me!");
-                }
-                ConfigurationSection location = parent.getConfigurationSection("location");
 
-
-                Location loc;
-                String locString;
-
-                //Bukkit's terrible config api didn't wipe the section
-                if (location != null) {
-                    assert location != null : "Location is null";
-
-                    double x = location.getDouble("x");
-                    double y = location.getDouble("y");
-                    double z = location.getDouble("z");
-                    float pitch = (float) location.getDouble("pitch");
-                    float yaw = (float) location.getDouble("yaw");
-
-                    loc = new Location(w, x, y, z, pitch, yaw);
-                    locString = "(" + x + "," + y + "," + z + ")";
-                } else {
+                Location loc = ProtoWrapper.fromProtoLocation(npc.getLocation());
+                if (loc == null) {
                     loc = new Location(w, 0, 0, 0, 0, 0);
-                    locString = "(0, 0, 0)";
                     plugin.getLogger().warning("Fixed an NPC whose location data was wiped by Bukkit's configuration API. Its location was set to (0,0,0)");
                     source.reply(Msg.translate(locale, "customnpcs.commands.fix_config.bukkit_wiped_data"));
                 }
+
+                String locString = "(" + loc.x() + ", " + loc.y() + ", " + loc.z() + ")";
 
 
                 if (strat == FixConfigWorldStrategy.SAFE_LOCATION) {
@@ -224,10 +182,10 @@ public class FixConfigCommand {
 
                 }
 
-                parent.set("location", loc);
-                totalFixed++;
 
-                fileManager.saveNpcFile(yml);
+                totalFixed++;
+                NpcOuterClass.Npc fixed = npc.toBuilder().setLocation(ProtoWrapper.toProtoLocation(loc)).build();
+                storageManager.track(fixed);
             } catch (Exception ignored) {
             }
 

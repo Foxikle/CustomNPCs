@@ -41,6 +41,7 @@ import dev.foxikle.customnpcs.internal.commands.suggestion.WorldSuggester;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.menu.*;
+import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
 import dev.foxikle.customnpcs.internal.utils.AutoUpdater;
@@ -82,8 +83,8 @@ import java.util.logging.Logger;
 @Slf4j
 public final class CustomNPCs extends JavaPlugin implements PluginMessageListener {
 
-    public static int INTERPOLATION_DURATION;
     public static final ActionRegistry ACTION_REGISTRY = new ActionRegistry();
+    public static int INTERPOLATION_DURATION;
     /**
      * Singleton for the NPCBuilder
      */
@@ -203,7 +204,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public MiniMessage miniMessage = MiniMessage.miniMessage();
     Listeners listeners;
     @Getter
-    private FileManager fileManager;
+    private StorageManager storageManager;
     /**
      * Singleton for menu utilities
      */
@@ -241,7 +242,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         String s = translateVersion();
 
         try {
-            getLogger().info("Loading class: " + String.format(NPC_CLASS, s));
+            getLogger().info("Loading NPC class: " + String.format(NPC_CLASS, s));
             getClassLoader().loadClass(String.format(NPC_CLASS, s));
         } catch (ClassNotFoundException e) {
             getLogger().log(Level.SEVERE, "Failed to load NPC class for server version " + s + "!", e);
@@ -260,14 +261,10 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                 .registerTypeAdapter(Condition.class, new ConditionalTypeAdapter())
                 .registerTypeAdapter(LegacyAction.class, new ActionAdapter())
                 .create();
-        this.fileManager = new FileManager(this);
+        this.storageManager = new StorageManager(this);
         this.mu = new MenuUtils(this);
         this.updater = new AutoUpdater(this);
         update = updater.checkForUpdates();
-
-        if (!fileManager.createFiles()) {
-            throw new RuntimeException("Failed to create files");
-        }
 
         getLogger().info("Loading action registry...");
         ACTION_REGISTRY.register("ActionBar", ActionBar.class, ActionBar::creationButton);
@@ -282,13 +279,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         ACTION_REGISTRY.register("SendServer", SendServer.class, SendServer::creationButton, true, false, true);
         ACTION_REGISTRY.register("Teleport", Teleport.class, Teleport::creationButton);
 
-        try {
-            this.getLogger().info("Loading NPCs!");
-            for (UUID uuid : fileManager.getValidNPCs()) {
-                fileManager.loadNPC(uuid);
-            }
-        } catch (Exception e) {
-            getLogger().log(Level.SEVERE, "Failed to load NPC:", e);
+        if (!storageManager.setup()) {
+            throw new RuntimeException("Failed to start storage manager");
         }
 
         //generate skin menus for the supported locales
