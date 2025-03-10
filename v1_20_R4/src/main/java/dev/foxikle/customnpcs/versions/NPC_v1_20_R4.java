@@ -210,7 +210,7 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
             ((CraftPlayer) player).getHandle().connection.send(teamPacket);
         }), 1, 5).getTaskId();
 
-        if (settings.isResilient()) plugin.getFileManager().addNPC(this);
+        if (settings.isResilient()) plugin.getStorageManager().addNPC(this);
         plugin.addNPC(this, hologram);
 
         injectionManager = new InjectionManager(plugin, this);
@@ -533,7 +533,7 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
      * </p>
      */
     public void delete() {
-        plugin.getFileManager().remove(this.uuid);
+        plugin.getStorageManager().remove(this.uuid);
     }
 
     @Override
