@@ -22,15 +22,35 @@
 
 package dev.foxikle.customnpcs.internal.storage;
 
+import dev.foxikle.customnpcs.internal.CustomNPCs;
 import org.jetbrains.annotations.ApiStatus;
+
+import java.util.concurrent.CompletableFuture;
 
 @ApiStatus.Internal
 public interface StorageProvider {
-    void init();
+    /**
+     * Initializes the storage provider. This could be connecting to a database, creating files, etc.
+     */
+    CompletableFuture<Void> init(CustomNPCs plugin);
 
-    boolean save(byte[] data);
+    /**
+     * Saves the given byte array to the storage provider. It should overwrite the data.
+     *
+     * @param data The byte array to save
+     * @return if the save was successful
+     */
+    CompletableFuture<Boolean> save(byte[] data);
 
-    byte[] load();
+    /**
+     * Loads the saved byte array from the storage provider
+     *
+     * @return The array of bytes, or the loaded data.
+     */
+    CompletableFuture<byte[]> load();
 
+    /**
+     * Shuts down the storage provider. This could close buffers, connections, etc.
+     */
     void shutdown();
 }

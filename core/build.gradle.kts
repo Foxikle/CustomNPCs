@@ -22,6 +22,7 @@
 
 plugins {
     id("java")
+    id("io.github.goooler.shadow") version "8.1.8"
 }
 
 repositories {
@@ -40,9 +41,12 @@ dependencies {
     compileOnly("org.mineskin:java-client:1.2.4-SNAPSHOT")
     compileOnly("org.projectlombok:lombok:1.18.36")
     annotationProcessor("org.projectlombok:lombok:1.18.36")
-    compileOnly("com.google.protobuf:protobuf-java:4.29.2")
     compileOnly("dev.velix:imperat-core:1.7.1")
     compileOnly("dev.velix:imperat-bukkit:1.7.1")
+    implementation("com.google.protobuf:protobuf-java:4.29.2")
+    compileOnly("org.mongodb:mongodb-driver-sync:5.3.0")
+    compileOnly("com.mysql:mysql-connector-j:9.1.0")
+    compileOnly("com.zaxxer:HikariCP:6.2.1")
 }
 
 tasks {

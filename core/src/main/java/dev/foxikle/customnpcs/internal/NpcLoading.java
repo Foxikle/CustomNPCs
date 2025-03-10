@@ -52,10 +52,11 @@ public class NpcLoading implements PluginLoader {
         resolver.addDependency(new Dependency(new DefaultArtifact("org.mineskin:java-client:1.2.4-SNAPSHOT"), null));
         resolver.addDependency(new Dependency(new DefaultArtifact("org.bstats:bstats-bukkit:3.1.0"), null));
         resolver.addDependency(new Dependency(new DefaultArtifact("com.github.Mqzn:Lotus:1.4.1"), null));
-        resolver.addDependency(new Dependency(new DefaultArtifact("dev.velix:imperat-core:1.3.2"), null));
-        resolver.addDependency(new Dependency(new DefaultArtifact("dev.velix:imperat-bukkit:1.3.2"), null));
-        resolver.addDependency(new Dependency(new DefaultArtifact("com.google.protobuf:protobuf-java:4.29.2"), null));
-
+        resolver.addDependency(new Dependency(new DefaultArtifact("dev.velix:imperat-core:1.7.1"), null));
+        resolver.addDependency(new Dependency(new DefaultArtifact("dev.velix:imperat-bukkit:1.7.1"), null));
+        resolver.addDependency(new Dependency(new DefaultArtifact("org.mongodb:mongodb-driver-sync:5.3.0"), null));
+        resolver.addDependency(new Dependency(new DefaultArtifact("com.zaxxer:HikariCP:6.2.1"), null));
+        resolver.addDependency(new Dependency(new DefaultArtifact("com.mysql:mysql-connector-j:9.1.0"), null));
         classpathBuilder.addLibrary(resolver);
     }
 }

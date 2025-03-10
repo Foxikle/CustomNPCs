@@ -28,13 +28,16 @@ import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.utils.exceptions.IllegalWorldException;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -111,13 +114,22 @@ public class ProtoWrapper {
 
     @ApiStatus.Internal
     public static ItemOuterClass.Item toProtoItem(ItemStack item) {
+        byte[] data;
+        if (item == null || item.getType() == Material.AIR) {
+            data = new byte[0];
+        } else {
+            data = item.ensureServerConversions().serializeAsBytes();
+        }
         return ItemOuterClass.Item.newBuilder()
-                .setSerialized(ByteString.copyFrom(item.ensureServerConversions().serializeAsBytes()))
+                .setSerialized(ByteString.copyFrom(data))
                 .build();
     }
 
     @ApiStatus.Internal
     public static ItemStack fromProtoItem(ItemOuterClass.Item item) {
+        if (item.getSerialized().toByteArray().length == 0) {
+            return new ItemStack(Material.AIR);
+        }
         return ItemStack.deserializeBytes(item.getSerialized().toByteArray());
     }
 
@@ -170,8 +182,11 @@ public class ProtoWrapper {
     }
 
     @ApiStatus.Internal
-    @SneakyThrows // npe if world doesn't exist. //todo: Do something about this
     public static Location fromProtoLocation(LocationOuterClass.Location location) {
+        //todo: Test this :)
+        if (Bukkit.getWorld(location.getWorld()) == null) {
+            throw new IllegalWorldException("Invalid world: " + location.getWorld());
+        }
         return new Location(
                 Bukkit.getWorld(location.getWorld()),
                 location.getX(), location.getY(),
@@ -189,10 +204,23 @@ public class ProtoWrapper {
     }
 
     @ApiStatus.Internal
+    public static byte[] serializeProtoList(List<NpcOuterClass.Npc> list) {
+        return NpcListOuterClass.NpcList.newBuilder()
+                .addAllNpcs(list)
+                .build().toByteArray();
+    }
+
+    @ApiStatus.Internal
     @SneakyThrows
     public static List<InternalNpc> deserializeList(byte[] bytes) {
+        return deserializeProtoList(bytes).stream().map(ProtoWrapper::fromProtoNpc).collect(Collectors.toList());
+    }
+
+    @ApiStatus.Internal
+    @SneakyThrows
+    public static List<NpcOuterClass.Npc> deserializeProtoList(byte[] bytes) {
         NpcListOuterClass.NpcList list = NpcListOuterClass.NpcList.parseFrom(bytes);
         List<NpcOuterClass.Npc> npcs = list.getNpcsList();
-        return npcs.stream().map(ProtoWrapper::fromProtoNpc).collect(Collectors.toList());
+        return new ArrayList<>(npcs);
     }
 }

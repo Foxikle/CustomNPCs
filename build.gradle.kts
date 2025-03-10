@@ -128,6 +128,9 @@ tasks {
     shadowJar {
         archiveClassifier.set("")
         // This is used to place the file into a test server's plugin directory.
+
+//         thanks, paper
+        relocate("com.google.protobuf", "dev.foxikle.libs.proto")
         destinationDirectory.set(
             file(
                 providers.gradleProperty("plugin_dir").orElse(destinationDirectory.get().toString())
