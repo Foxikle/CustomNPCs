@@ -42,6 +42,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,10 +65,12 @@ public class StorageManager {
     /**
      * The config file version
      */
-    public static final int CONFIG_FILE_VERSION = 6;
+    public static final int CONFIG_FILE_VERSION = 8;
     /**
      * The file version of the npcs.yml file
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.10")
     public static final double NPC_FILE_VERSION = 1.6;
     public static File PARENT_DIRECTORY = new File("plugins/CustomNPCs/");
     @Getter
@@ -78,6 +81,7 @@ public class StorageManager {
     private final List<NpcOuterClass.Npc> trackedNpcs = new ArrayList<>();
 
     private boolean justMigrated = false;
+    @Getter
     private StorageProvider storage = null;
 
     /**
@@ -612,7 +616,7 @@ public class StorageManager {
         return true;
     }
 
-    private boolean loadProto(NpcOuterClass.Npc npc) {
+    public boolean loadProto(NpcOuterClass.Npc npc) {
         if (plugin.isDebug()) {
             plugin.getLogger().info("[DEBUG] Loading NPC " + npc.getUuid());
         }
@@ -769,7 +773,7 @@ public class StorageManager {
         plugin.getLogger().severe("");
     }
 
-    private CompletableFuture<Boolean> saveNpcs() {
+    public CompletableFuture<Boolean> saveNpcs() {
         return storage.save(ProtoWrapper.serializeProtoList(trackedNpcs));
     }
 
@@ -796,6 +800,10 @@ public class StorageManager {
             }
         });
         return future;
+    }
+
+    public void resetTracked() {
+        trackedNpcs.clear();
     }
 
     private record BackupResult(Path filePath, boolean success) {
