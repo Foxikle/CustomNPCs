@@ -38,8 +38,8 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
     compileOnly("org.mineskin:java-client:1.2.4-SNAPSHOT")
-    compileOnly("org.projectlombok:lombok:1.18.36")
-    annotationProcessor("org.projectlombok:lombok:1.18.36")
+    compileOnly("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok:1.18.38")
     compileOnly("dev.velix:imperat-core:1.7.1")
     compileOnly("dev.velix:imperat-bukkit:1.3.2")
 }
