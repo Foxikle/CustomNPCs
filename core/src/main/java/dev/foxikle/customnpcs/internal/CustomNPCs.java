@@ -67,7 +67,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
-import org.mineskin.MineskinClient;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -95,10 +94,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     @Getter
     private static Gson gson;
 
-    /**
-     * The client for the MineSkin API
-     */
-    public final MineskinClient MINESKIN_CLIENT = new MineskinClient("MineSkin-JavaClient");
     /**
      * This may contain NPCs that do not yet exist, as they are in the process of creation.
      */

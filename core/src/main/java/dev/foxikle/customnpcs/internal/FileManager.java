@@ -29,6 +29,7 @@ import dev.foxikle.customnpcs.actions.conditions.Condition;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.utils.SkinUtils;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -193,6 +194,30 @@ public class FileManager {
                     throw new RuntimeException(e);
                 }
             }
+
+            if (version < 8) {
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 8));
+                yml.set("CONFIG_VERSION", 8);
+                ConfigurationSection section = yml.createSection("MineSkin");
+                yml.setComments("MineSkin", List.of(
+                        " ############################",
+                        " #        Skin API          #",
+                        " ############################",
+                        "This plugin uses Mineskin.org's free skin api to generate skins from urls and player names. CustomNPCs comes with an api",
+                        "key embedded, but the same key is used by every other person using the plugin, so it will likely be reaching the rate limit",
+                        "nearly constantly. To combat this, you can use your own API key. You can get one here: https://account.mineskin.org/keys/"
+                ));
+                section.set("ApiKey", "");
+                section.setInlineComments("ApiKey", List.of("Put your api key here, if desired"));
+                section.set("ApiUrl", "");
+                section.setInlineComments("ApiUrl", List.of("Alternatively you can specify a proxied host to use instead: https://docs.mineskin.org/docs/guides/api-best-practises#use-a-proxy-server"));
+                try {
+                    yml.save(file);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            SkinUtils.setup(yml.getString("MineSkin.ApiKey"), yml.getString("MineSkin.ApiUrl"));
         }
 
         // npcs
@@ -436,6 +461,7 @@ public class FileManager {
             }
             if (found) printInvalidConfig();
         }
+
 
         return true;
     }

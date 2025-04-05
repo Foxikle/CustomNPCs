@@ -49,11 +49,12 @@ public class NpcLoading implements PluginLoader {
         resolver.addRepository(new RemoteRepository.Builder("jitpack", "default", "https://jitpack.io").build());
         resolver.addRepository(new RemoteRepository.Builder("central", "default", "https://repo1.maven.org/maven2/").build());
 
-        resolver.addDependency(new Dependency(new DefaultArtifact("org.mineskin:java-client:1.2.4-SNAPSHOT"), null));
+        resolver.addDependency(new Dependency(new DefaultArtifact("org.mineskin:java-client:3.0.2"), null));
+        resolver.addDependency(new Dependency(new DefaultArtifact("org.mineskin:java-client-jsoup:3.0.2"), null));
         resolver.addDependency(new Dependency(new DefaultArtifact("org.bstats:bstats-bukkit:3.1.0"), null));
         resolver.addDependency(new Dependency(new DefaultArtifact("com.github.Mqzn:Lotus:1.4.1"), null));
-        resolver.addDependency(new Dependency(new DefaultArtifact("dev.velix:imperat-core:1.3.2"), null));
-        resolver.addDependency(new Dependency(new DefaultArtifact("dev.velix:imperat-bukkit:1.3.2"), null));
+        resolver.addDependency(new Dependency(new DefaultArtifact("dev.velix:imperat-core:1.8.1"), null));
+        resolver.addDependency(new Dependency(new DefaultArtifact("dev.velix:imperat-bukkit:1.8.1"), null));
 
         classpathBuilder.addLibrary(resolver);
     }

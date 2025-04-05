@@ -33,6 +33,7 @@ import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.SkinUtils;
 import io.github.mqzen.menus.base.MenuView;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,10 +50,16 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.mineskin.data.CodeAndMessage;
+import org.mineskin.data.Visibility;
+import org.mineskin.exception.MineSkinRequestException;
+import org.mineskin.request.GenerateRequest;
+import org.mineskin.response.MineSkinResponse;
 
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -423,21 +430,41 @@ public class Listeners implements Listener {
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.fetching.url"));
             try {
                 URL url = new URL(message);
-                plugin.MINESKIN_CLIENT.generateUrl(url.toString()).whenComplete((skin, throwable) -> {
-                    if (throwable != null) {
-                        if (throwable.getMessage().equalsIgnoreCase("java.lang.RuntimeException: org.mineskin.data.MineskinException: Failed to find image from url")) {
-                            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.no_image_data"));
-                            return;
-                        }
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.unknown_url_error"));
-                        plugin.getLogger().log(Level.SEVERE, "An error occurred whilst parsing this skin from a url.", throwable);
-                        return;
-                    }
-                    npc.getSettings().setSkinData(skin.data.texture.signature, skin.data.texture.value, Msg.translatedString(player.locale(), "customnpcs.skins.imported_by.url"));
-                    plugin.urlWaiting.remove(player.getUniqueId());
-                    player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.success.url", message));
-                    SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_SKIN));
-                });
+
+                GenerateRequest request = GenerateRequest.url(url)
+                        .name("URL Generated Skin")
+                        .visibility(Visibility.UNLISTED);
+                SkinUtils.fetch(request).thenAccept(skin -> {
+                            npc.getSettings().setSkinData(skin.texture().data().signature(), skin.texture().data().value(), Msg.translatedString(player.locale(), "customnpcs.skins.imported_by.url"));
+                            plugin.urlWaiting.remove(player.getUniqueId());
+                            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.success.url", message));
+                            SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_SKIN));
+                        })
+                        .exceptionally(throwable -> {
+
+                            if (throwable instanceof CompletionException completionException) {
+                                throwable = completionException.getCause();
+                            }
+
+                            if (throwable instanceof MineSkinRequestException requestException) {
+                                // get error details
+                                MineSkinResponse<?> response = requestException.getResponse();
+                                Optional<CodeAndMessage> detailsOptional = response.getErrorOrMessage();
+                                Throwable finalThrowable = throwable;
+                                detailsOptional.ifPresent(details -> {
+                                    plugin.getLogger().log(Level.SEVERE, details.code() + " : " + details, finalThrowable);
+                                    System.out.println(details.code() + ": " + details.message());
+                                });
+                            }
+
+                            if (throwable.getMessage().equalsIgnoreCase("java.lang.RuntimeException: org.mineskin.data.MineskinException: Failed to find image from url")) {
+                                player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.no_image_data"));
+                                return null;
+                            }
+                            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.unknown_url_error"));
+                            plugin.getLogger().log(Level.SEVERE, "An error occurred whilst parsing this skin from a url.", throwable);
+                            return null;
+                        });
             } catch (Exception ex) {
                 player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.invalid_url"));
             }
