@@ -668,7 +668,8 @@ public class StorageManager {
             brokenNPCs.put(uuid, proto);
             return false;
         }
-        npc.createNPC();
+        // has to be on a sync thread
+        Bukkit.getScheduler().runTask(plugin, npc::createNPC);
         return true;
     }
 
