@@ -29,7 +29,7 @@ import dev.velix.imperat.resolvers.SuggestionResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
-import java.util.Collection;
+import java.util.List;
 
 public class WorldSuggester implements SuggestionResolver<BukkitSource> {
     /**
@@ -38,7 +38,7 @@ public class WorldSuggester implements SuggestionResolver<BukkitSource> {
      * @return the auto-completed suggestions of the current argument
      */
     @Override
-    public Collection<String> autoComplete(SuggestionContext<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
+    public List<String> autoComplete(SuggestionContext<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
         return Bukkit.getWorlds().stream().map(World::getName).toList();
     }
 }
