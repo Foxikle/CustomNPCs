@@ -56,7 +56,6 @@ public class MoveDataCommand {
             source.reply(Msg.translate(CommandUtils.getLocale(source), "customnpcs.commands.movedata.invalid_operation"));
             return;
         }
-        checkValidOperation(operation);
         if (source.isConsole()) {
             if (!console_confirmed) {
                 console_confirmed = true;
