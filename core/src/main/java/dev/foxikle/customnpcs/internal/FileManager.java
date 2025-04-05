@@ -204,7 +204,7 @@ public class FileManager {
                         " #        Skin API          #",
                         " ############################",
                         "This plugin uses Mineskin.org's free skin api to generate skins from urls and player names. CustomNPCs comes with an api",
-                        "key embedded, but the same key is used by every other person using the plugin, so it will likley be reaching the rate limit",
+                        "key embedded, but the same key is used by every other person using the plugin, so it will likely be reaching the rate limit",
                         "nearly constantly. To combat this, you can use your own API key. You can get one here: https://account.mineskin.org/keys/"
                 ));
                 section.set("ApiKey", "");
