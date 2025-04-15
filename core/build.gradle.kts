@@ -42,7 +42,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
     compileOnly("dev.velix:imperat-core:1.8.1")
-    compileOnly("dev.velix:imperat-bukkit:1.8.1")
+    compileOnly("dev.velix:imperat-bukkit:1.8.4")
 }
 
 tasks {
