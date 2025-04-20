@@ -62,12 +62,18 @@ public class InjectionManager {
             }
 
             if (player.getWorld() != npc.getCurrentLocation().getWorld()) {
-                toRemove.add(player.getUniqueId()); // add them back as they are in a different dimention
+                if (plugin.isDebug()) {
+                    plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler as they are in a different world.", player.getName(), npc.getSettings().getName()));
+                }
+                isVisible.remove(player.getUniqueId());
                 continue;
             }
 
             double distance = player.getLocation().distanceSquared(npc.getCurrentLocation());
             if (distance > INJECTION_DISTANCE) {
+                if (plugin.isDebug()) {
+                    plugin.getLogger().info(String.format("[DEBUG] Tried to inject %s with %s, but they are too far away! (Distance^2: %f )", player.getName(), npc.getSettings().getName(), distance));
+                }
                 isVisible.put(player.getUniqueId(), false);
                 continue;
             }
@@ -82,6 +88,9 @@ public class InjectionManager {
         }
 
         for (UUID uuid : toRemove) {
+            if (plugin.isDebug()) {
+                plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler! (likley offline)", uuid.toString(), npc.getSettings().getName()));
+            }
             isVisible.remove(uuid);
         }
     }

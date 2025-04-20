@@ -59,6 +59,7 @@ import org.mineskin.response.MineSkinResponse;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -77,6 +78,8 @@ public class Listeners implements Listener {
      * @since 1.6.0
      */
     private static final ConcurrentMap<UUID, MovementData> playerMovementData = new ConcurrentHashMap<>();
+
+    private final Map<UUID, Integer> worldSleepingPercentages = new ConcurrentHashMap<>();
 
     // Helper Constants
     // since 1.6.0
@@ -112,6 +115,7 @@ public class Listeners implements Listener {
     }
 
     public void start() {
+        Bukkit.getWorlds().forEach(world -> worldSleepingPercentages.put(world.getUID(), world.getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE)));
         service = Executors.newSingleThreadScheduledExecutor();
         service.scheduleAtFixedRate(() -> Bukkit.getOnlinePlayers().forEach(this::actionPlayerMovement), 1000, plugin.getConfig().getInt("LookInterval") * 50L, TimeUnit.MILLISECONDS);
     }
@@ -119,6 +123,7 @@ public class Listeners implements Listener {
 
     public void stop() {
         service.shutdown();
+        Bukkit.getWorlds().forEach(world -> world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, worldSleepingPercentages.get(world.getUID())));
         CompletableFuture.runAsync(() -> {
             try {
                 if (!service.awaitTermination(2, TimeUnit.SECONDS)) {
@@ -520,6 +525,19 @@ public class Listeners implements Listener {
         if (plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate") && player.hasPermission("customnpcs.alert")) {
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.should_update"));
         }
+
+        Location location = player.getLocation();
+        World world = player.getWorld();
+
+        for (InternalNpc npc : plugin.npcs.values()) {
+            Location spawnLocation = npc.getSpawnLoc();
+            if (world != npc.getWorld()) continue;
+
+            double distanceSquared = location.distanceSquared(spawnLocation);
+            if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
+                npc.lookAt(LookAtAnchor.HEAD, player);
+            }
+        }
         recalcSleepingPercentages();
     }
 
@@ -598,10 +616,15 @@ public class Listeners implements Listener {
         Player player = e.getPlayer();
         Location location = player.getLocation();
         World world = player.getWorld();
+
         for (InternalNpc npc : plugin.npcs.values()) {
+            Location spawnLocation = npc.getSpawnLoc();
             if (world != npc.getWorld()) continue;
-            npc.injectPlayer(player);
-            recalcSleepingPercentages();
+
+            double distanceSquared = location.distanceSquared(spawnLocation);
+            if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
+                npc.lookAt(LookAtAnchor.HEAD, player);
+            }
         }
     }
 
@@ -651,8 +674,15 @@ public class Listeners implements Listener {
 
     private void recalcSleepingPercentages() {
         Bukkit.getWorlds().forEach(world -> {
-            world.getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE);
-            world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, (int) (world.getPlayers().size() / (double) plugin.getNPCs().stream().filter(npc -> npc.getWorld() == world).toList().size()));
+            if (world == null) return;
+            int target = worldSleepingPercentages.get(world.getUID());
+            int npcCount = plugin.getNPCs().stream().filter(npc -> npc.getWorld() == world).toList().size();
+            int playercount = world.getPlayers().size();
+            if (npcCount == 0) {
+                world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, target);
+                return;
+            }
+            world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, (int) (((playercount - npcCount) / (double) playercount) * target));
         });
     }
 
