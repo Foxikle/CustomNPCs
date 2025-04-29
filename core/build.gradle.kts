@@ -33,7 +33,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.github.Mqzn:Lotus:1.4.1")
+//    compileOnly("com.github.Mqzn:Lotus:1.4.4b")
+    compileOnly(files("/home/foxikle/libs/Lotus-1.4.4b.jar"))
     compileOnly("org.bstats:bstats-bukkit:3.1.0")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")

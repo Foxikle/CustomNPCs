@@ -104,7 +104,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     @Getter
     private final Cache<UUID, Boolean> deltionReason = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).expireAfterAccess(1, TimeUnit.MINUTES).build();
-    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4"};
+    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5"};
     private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
     /**
      * The List of players the plugin is waiting for title text input
@@ -558,6 +558,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             case "1.21", "1.21.1" -> "v1_21_R0";
             case "1.21.2", "1.21.3" -> "v1_21_R1";
             case "1.21.4" -> "v1_21_R2";
+            case "1.21.5" -> "v1_21_R3";
             default -> "";
         };
     }

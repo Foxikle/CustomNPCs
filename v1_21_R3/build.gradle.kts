@@ -21,17 +21,33 @@
  */
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.9.0")
+    id("java")
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.16"
 }
-rootProject.name = "customnpcs"
 
-include("core")
-include("v1_20_R3")
-include("v1_20_R2")
-include("v1_20_R1")
-include("v1_20_R4")
-include("v1_21_R0")
-include("v1_21_R1")
-include("v1_21_R2")
-include("v1_21_R3")
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven("https://jitpack.io")
+    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+}
 
+dependencies {
+    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly(project(":core"))
+    paperweight.paperDevBundle("1.21.5-R0.1-SNAPSHOT")
+}
+
+tasks {
+    java {
+        toolchain.languageVersion = JavaLanguageVersion.of(21)
+    }
+
+    compileJava {
+        options.release = 21
+    }
+
+    jar {
+        archiveClassifier = "v1_21_R3"
+    }
+}
