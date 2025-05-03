@@ -30,6 +30,7 @@ import dev.foxikle.customnpcs.internal.menu.MenuItems;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.runnables.SoundRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -249,7 +250,7 @@ public class PlaySound extends Action {
                                 Player p = (Player) event.getWhoClicked();
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 p.closeInventory();
-                                plugin.soundWaiting.add(p.getUniqueId());
+                                plugin.wait(p, WaitingType.SOUND);
                                 new SoundRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                             })))
 

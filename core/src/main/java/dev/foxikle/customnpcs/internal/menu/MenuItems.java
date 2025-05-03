@@ -38,6 +38,7 @@ import dev.foxikle.customnpcs.internal.runnables.UrlRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.OpenButtonAction;
 import dev.foxikle.customnpcs.internal.utils.Utils;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.pagination.exception.InvalidPageException;
 import io.github.mqzen.menus.misc.button.Button;
 import io.github.mqzen.menus.misc.button.actions.ButtonClickAction;
@@ -779,7 +780,7 @@ public class MenuItems {
             Player p = (Player) event.getWhoClicked();
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             p.closeInventory();
-            plugin.targetWaiting.add(p.getUniqueId());
+            plugin.wait(p, WaitingType.TARGET);
             new TargetInputRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
         }));
     }
@@ -864,7 +865,7 @@ public class MenuItems {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            plugin.hologramWaiting.add(p.getUniqueId());
+            plugin.wait(p, WaitingType.HOLOGRAM);
 
             p.closeInventory();
             p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.extra.hologram_text.type"));
@@ -883,7 +884,7 @@ public class MenuItems {
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             p.closeInventory();
 
-            plugin.playerWaiting.add(p.getUniqueId());
+            plugin.wait(p, WaitingType.PLAYER);
             new PlayerNameRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
             event.setCancelled(true);
         }));
@@ -919,7 +920,7 @@ public class MenuItems {
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             p.closeInventory();
 
-            plugin.urlWaiting.add(p.getUniqueId());
+            plugin.wait(p, WaitingType.URL);
             new UrlRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
             event.setCancelled(true);
         }));

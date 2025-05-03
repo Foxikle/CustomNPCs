@@ -20,38 +20,34 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.internal.runnables;
+plugins {
+    id("java")
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.16"
+}
 
-import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.utils.Msg;
-import dev.foxikle.customnpcs.internal.utils.WaitingType;
-import net.kyori.adventure.title.Title;
-import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven("https://jitpack.io")
+    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+}
 
-import java.time.Duration;
+dependencies {
+    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly(project(":core"))
+    paperweight.paperDevBundle("1.21.5-R0.1-SNAPSHOT")
+}
 
-public class FacingDirectionRunnable extends BukkitRunnable {
-
-    private final CustomNPCs plugin;
-    private final Player player;
-
-    public FacingDirectionRunnable(CustomNPCs plugin, Player player) {
-        this.plugin = plugin;
-        this.player = player;
+tasks {
+    java {
+        toolchain.languageVersion = JavaLanguageVersion.of(21)
     }
 
-    public void go(){
-        runTaskTimer(plugin, 0, 10);
+    compileJava {
+        options.release = 21
     }
 
-    @Override
-    public void run() {
-        if (!plugin.isWaiting(player, WaitingType.FACING)) cancel();
-        player.showTitle(Title.title(
-                Msg.translate(player.locale(), "customnpcs.data.facing_direction.title"),
-                Msg.translate(player.locale(), "customnpcs.data.facing_direction.subtitle"),
-                Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
-        ));
+    jar {
+        archiveClassifier = "v1_21_R3"
     }
 }

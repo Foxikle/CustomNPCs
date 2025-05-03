@@ -45,6 +45,7 @@ import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
 import dev.foxikle.customnpcs.internal.utils.AutoUpdater;
 import dev.foxikle.customnpcs.internal.utils.Utils;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import dev.velix.imperat.BukkitImperat;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.Imperat;
@@ -70,6 +71,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -104,60 +106,12 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     @Getter
     private final Cache<UUID, Boolean> deltionReason = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).expireAfterAccess(1, TimeUnit.MINUTES).build();
-    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4"};
+    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5"};
     private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
     /**
-     * The List of players the plugin is waiting for title text input
+     * The map of what the plugin is waiting for the players to enter.
      */
-    public List<UUID> titleWaiting = new ArrayList<>();
-    /**
-     * The List of players the plugin is waiting for subtitle text input
-     */
-    public List<UUID> subtitleWaiting = new ArrayList<>();
-    /**
-     * The List of players the plugin is waiting for title text input
-     */
-    public List<UUID> targetWaiting = new ArrayList<>();
-    /**
-     * The List of players the plugin is waiting for server name text input
-     */
-    public List<UUID> serverWaiting = new ArrayList<>();
-    /**
-     * The List of players the plugin is waiting for action bar text input
-     */
-    public List<UUID> actionbarWaiting = new ArrayList<>();
-    /**
-     * The List of players the plugin is waiting for message text input
-     */
-    public List<UUID> messageWaiting = new ArrayList<>();
-    /**
-     * The List of players the plugin is waiting for confirmation on.
-     */
-    public List<UUID> facingWaiting = new ArrayList<>();
-    /**
-     * The List of players the plugin is waiting for command input
-     */
-    public List<UUID> commandWaiting = new ArrayList<>();
-    /**
-     * The List of players the plugin is waiting for name text input
-     */
-    public List<UUID> nameWaiting = new ArrayList<>();
-    /**
-     * The List of players the plugin is waiting for sound text input
-     */
-    public List<UUID> soundWaiting = new ArrayList<>();
-    /**
-     * The List of players the plugin is waiting for url input
-     */
-    public List<UUID> urlWaiting = new ArrayList<>();
-    /**
-     * The List of players the plugin is waiting for player name input
-     */
-    public List<UUID> playerWaiting = new ArrayList<>();
-    /**
-     * The list of player the plugin is waiting for input from
-     */
-    public List<UUID> hologramWaiting = new ArrayList<>();
+    public Map<UUID, WaitingType> waiting = new ConcurrentHashMap<>();
     /**
      * The List of NPC holograms
      */
@@ -558,6 +512,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             case "1.21", "1.21.1" -> "v1_21_R0";
             case "1.21.2", "1.21.3" -> "v1_21_R1";
             case "1.21.4" -> "v1_21_R2";
+            case "1.21.5" -> "v1_21_R3";
             default -> "";
         };
     }
@@ -585,6 +540,14 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         logger.severe("+------------------------------------------------------------------------------+");
         logger.severe("");
         logger.severe("");
+    }
+
+    public boolean isWaiting(Player player, WaitingType type) {
+        return waiting.getOrDefault(player.getUniqueId(), null) == type;
+    }
+
+    public void wait(Player player, WaitingType type) {
+        waiting.put(player.getUniqueId(), type);
     }
 
     public Pagination getSkinCatalog(Player player) {

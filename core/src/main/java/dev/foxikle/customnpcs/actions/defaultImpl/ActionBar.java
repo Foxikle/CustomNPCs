@@ -29,6 +29,7 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.runnables.ActionbarRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -171,7 +172,7 @@ public class ActionBar extends Action {
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 player.closeInventory();
-                                plugin.actionbarWaiting.add(player.getUniqueId());
+                                plugin.wait(player, WaitingType.ACTIONBAR);
                                 new ActionbarRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                             })))
                     .build();

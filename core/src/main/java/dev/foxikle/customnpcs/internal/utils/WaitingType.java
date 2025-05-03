@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,18 +20,9 @@
  * SOFTWARE.
  */
 
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.9.0")
+package dev.foxikle.customnpcs.internal.utils;
+
+public enum WaitingType {
+    COMMAND, NAME, TARGET, TITLE, MESSAGE, FACING, SOUND,
+    SERVER, ACTIONBAR, URL, PLAYER, HOLOGRAM, SUBTITLE
 }
-rootProject.name = "customnpcs"
-
-include("core")
-include("v1_20_R3")
-include("v1_20_R2")
-include("v1_20_R1")
-include("v1_20_R4")
-include("v1_21_R0")
-include("v1_21_R1")
-include("v1_21_R2")
-include("v1_21_R3")
-

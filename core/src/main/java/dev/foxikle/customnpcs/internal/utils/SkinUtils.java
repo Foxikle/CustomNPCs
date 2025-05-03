@@ -63,7 +63,7 @@ public class SkinUtils {
                     .build();
         }
 
-        // use reflection to change client URL
+        // use reflection to change client URL (probably should change)
         try {
             Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");
             unsafeField.setAccessible(true);

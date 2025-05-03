@@ -24,6 +24,7 @@ package dev.foxikle.customnpcs.internal.runnables;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import net.kyori.adventure.title.Title;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -61,7 +62,7 @@ public class ServerRunnable extends BukkitRunnable {
      */
     @Override
     public void run() {
-        if (!plugin.serverWaiting.contains(player.getUniqueId()))
+        if (!plugin.isWaiting(player, WaitingType.SERVER))
             this.cancel();
         player.showTitle(Title.title(
                 Msg.translate(player.locale(), "customnpcs.data.server.title"),

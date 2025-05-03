@@ -38,16 +38,17 @@ repositories {
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":v1_21_R2"/*, "reobf"*/))
-    implementation(project(":v1_21_R1"/*, "reobf"*/))
-    implementation(project(":v1_21_R0"/*, "reobf"*/))
-    implementation(project(":v1_20_R4"/*, "reobf"*/))
+    implementation(project(":v1_21_R3"))
+    implementation(project(":v1_21_R2"))
+    implementation(project(":v1_21_R1"))
+    implementation(project(":v1_21_R0"))
+    implementation(project(":v1_20_R4"))
     implementation(project(":v1_20_R3", "reobf"))
     implementation(project(":v1_20_R2", "reobf"))
     implementation(project(":v1_20_R1", "reobf"))
 }
 
-var pluginVersion = "1.7.4"
+var pluginVersion = "1.7.4-preview2"
 
 allprojects {
     group = "dev.foxikle"

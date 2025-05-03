@@ -20,38 +20,39 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.internal.runnables;
+package dev.foxikle.customnpcs.versions;
 
-import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.utils.Msg;
-import dev.foxikle.customnpcs.internal.utils.WaitingType;
-import net.kyori.adventure.title.Title;
-import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import org.jetbrains.annotations.NotNull;
 
-import java.time.Duration;
-
-public class FacingDirectionRunnable extends BukkitRunnable {
-
-    private final CustomNPCs plugin;
-    private final Player player;
-
-    public FacingDirectionRunnable(CustomNPCs plugin, Player player) {
-        this.plugin = plugin;
-        this.player = player;
+/**
+ * A fake packet listener for the NPCs
+ */
+public class FakeListener_v1_21_R3 extends ServerGamePacketListenerImpl {
+    /**
+     * <p> Creates a fake ServerGamePacketListenerImpl for NPCs
+     * </p>
+     *
+     * @param server     The server
+     * @param connection The connection
+     * @param npc        The NPC
+     */
+    public FakeListener_v1_21_R3(MinecraftServer server, Connection connection, ServerPlayer npc) {
+        super(server, connection, npc, CommonListenerCookie.createInitial(npc.gameProfile, false));
     }
 
-    public void go(){
-        runTaskTimer(plugin, 0, 10);
-    }
-
+    /**
+     * <p> Overrides the default ServerGamePacketListenerImpl's send packet method
+     * </p>
+     *
+     * @param packet The packet that won't be sent.
+     */
     @Override
-    public void run() {
-        if (!plugin.isWaiting(player, WaitingType.FACING)) cancel();
-        player.showTitle(Title.title(
-                Msg.translate(player.locale(), "customnpcs.data.facing_direction.title"),
-                Msg.translate(player.locale(), "customnpcs.data.facing_direction.subtitle"),
-                Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
-        ));
+    public void send(@NotNull Packet<?> packet) {
     }
 }

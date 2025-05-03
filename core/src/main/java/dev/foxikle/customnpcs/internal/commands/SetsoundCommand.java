@@ -26,6 +26,7 @@ import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.defaultImpl.PlaySound;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
 import net.kyori.adventure.text.Component;
@@ -54,13 +55,13 @@ public class SetsoundCommand {
         // converts `ui button click` to `UI_BUTTON_CLICK`, like {@link Sound#UI_BUTTON_CLICK}
         String formatted = soundRaw.trim().toLowerCase();
 
-        if (plugin.soundWaiting.contains(p.getUniqueId())) {
+        if (plugin.isWaiting(p, WaitingType.SOUND)) {
             if (Registry.SOUNDS.get(NamespacedKey.fromString(formatted)) == null) {
                 p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.setsound.unknown_sound"));
             }
 
             Bukkit.getScheduler().runTask(plugin, () -> {
-                plugin.soundWaiting.remove(p.getUniqueId());
+                plugin.waiting.remove(p.getUniqueId());
                 Action actionImpl = plugin.editingActions.get(p.getUniqueId());
                 if (actionImpl instanceof PlaySound action) {
                     action.setSound(formatted);
