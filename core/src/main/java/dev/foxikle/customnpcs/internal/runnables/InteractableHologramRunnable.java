@@ -24,6 +24,7 @@ package dev.foxikle.customnpcs.internal.runnables;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import net.kyori.adventure.title.Title;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -56,7 +57,7 @@ public class InteractableHologramRunnable extends BukkitRunnable {
      */
     @Override
     public void run() {
-        if (!plugin.hologramWaiting.contains(player.getUniqueId())) this.cancel();
+        if (!plugin.isWaiting(player, WaitingType.HOLOGRAM)) this.cancel();
         player.showTitle(Title.title(
                 Msg.translate(player.locale(), "customnpcs.data.interactable_hologram.title"),
                 Msg.translate(player.locale(), "customnpcs.data.interactable_hologram.subtitle"),

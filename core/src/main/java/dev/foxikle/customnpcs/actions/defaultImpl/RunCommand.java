@@ -31,6 +31,7 @@ import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.runnables.CommandRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -216,7 +217,7 @@ public class RunCommand extends Action {
                         CustomNPCs plugin = CustomNPCs.getInstance();
                         Player p = (Player) event.getWhoClicked();
                         p.closeInventory();
-                        plugin.commandWaiting.add(p.getUniqueId());
+                        plugin.wait(p, WaitingType.COMMAND);
                         new CommandRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                         event.setCancelled(true);
                         player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);

@@ -31,6 +31,7 @@ import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.runnables.SubtitleRunnable;
 import dev.foxikle.customnpcs.internal.runnables.TitleRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -320,7 +321,7 @@ public class DisplayTitle extends Action {
                                 Player p = (Player) event.getWhoClicked();
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 p.closeInventory();
-                                plugin.titleWaiting.add(p.getUniqueId());
+                        plugin.wait(p, WaitingType.TITLE);
                                 new TitleRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                             }))
                     ).setButton(34, Button.clickable(ItemBuilder.modern(DARK_OAK_HANGING_SIGN)
@@ -333,7 +334,7 @@ public class DisplayTitle extends Action {
                                 Player p = (Player) event.getWhoClicked();
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 p.closeInventory();
-                                plugin.subtitleWaiting.add(p.getUniqueId());
+                                plugin.wait(p, WaitingType.SUBTITLE);
                                 new SubtitleRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                             }))
                     ).build();

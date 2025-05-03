@@ -30,6 +30,7 @@ import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.runnables.MessageRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -178,7 +179,7 @@ public class SendMessage extends Action {
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 Player p = (Player) event.getWhoClicked();
                                 p.closeInventory();
-                                plugin.messageWaiting.add(p.getUniqueId());
+                                plugin.wait(p, WaitingType.MESSAGE);
                                 new MessageRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);

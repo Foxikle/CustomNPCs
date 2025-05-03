@@ -28,6 +28,7 @@ import dev.foxikle.customnpcs.internal.runnables.FacingDirectionRunnable;
 import dev.foxikle.customnpcs.internal.runnables.NameRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.OpenButtonAction;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -96,7 +97,7 @@ public class MainNPCMenu implements Menu {
         builder.apply(content -> content.fill(MenuItems.MENU_GLASS))
                 .setButton(0, Button.clickable(MenuItems.looking(player), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
                     player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-                    plugin.facingWaiting.add(player.getUniqueId());
+                    plugin.wait(player, WaitingType.FACING);
                     new FacingDirectionRunnable(plugin, player).go();
                     player.closeInventory();
                 })))
@@ -105,7 +106,7 @@ public class MainNPCMenu implements Menu {
                 .setButton(13, Button.clickable(MenuItems.skinSelection(npc, player), new OpenButtonAction(MenuUtils.NPC_SKIN)))
                 .setButton(16, Button.clickable(MenuItems.changeName(npc, player), ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
-                    plugin.nameWaiting.add(player.getUniqueId());
+                    plugin.wait(player, WaitingType.NAME);
 
                     player.sendMessage(Msg.translate(player.locale(), "customnpcs.data.name.title"));
 
