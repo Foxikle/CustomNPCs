@@ -349,7 +349,7 @@ public class MenuItems {
                             p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.chestplate.reset"));
                             menuView.replaceButton(22, chestplateSlot(npc, p));
                             return;
-                        } else if (event.getCursor().getType().name().contains("CHESTPLATE")) {
+                        } else if (event.getCursor().getType().name().contains("CHESTPLATE") || event.getCursor().getType().name().contains("ELYTRA")) {
                             npc.getEquipment().setChest(event.getCursor().clone());
                             event.getCursor().setAmount(0);
                             p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
