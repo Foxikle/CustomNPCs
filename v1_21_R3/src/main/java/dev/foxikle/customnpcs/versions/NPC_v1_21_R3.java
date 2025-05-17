@@ -198,7 +198,6 @@ public class NPC_v1_21_R3 extends ServerPlayer implements InternalNpc {
         hideNametag.setVisible(false);
         hideNametag.setMarker(true);
         ((CraftArmorStand) hideNametag).getHandle().startRiding(this, true);
-        Bukkit.broadcastMessage("Hiding Nametag!");
 
         if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
