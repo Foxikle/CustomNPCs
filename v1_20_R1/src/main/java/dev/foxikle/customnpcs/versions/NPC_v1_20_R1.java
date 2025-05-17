@@ -402,6 +402,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
         ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getSettings().getDirection() * 256 / 360), (byte) (0 / 360), true);
+        ClientboundSetPassengersPacket hideName = new ClientboundSetPassengersPacket(this);
         super.detectEquipmentUpdates();
         setSkin();
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
@@ -409,6 +410,8 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         connection.send(namedEntitySpawn);
         connection.send(equipmentPacket);
         connection.send(rotation);
+        connection.send(hideName);
+
         if (plugin.isDebug()) {
             plugin.getLogger().info("[DEBUG] Injected npc '" + this.displayName + "' to player '" + p.getName() + "'");
         }

@@ -198,6 +198,7 @@ public class NPC_v1_21_R3 extends ServerPlayer implements InternalNpc {
         hideNametag.setVisible(false);
         hideNametag.setMarker(true);
         ((CraftArmorStand) hideNametag).getHandle().startRiding(this, true);
+        Bukkit.broadcastMessage("Hiding Nametag!");
 
         if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
@@ -409,12 +410,14 @@ public class NPC_v1_21_R3 extends ServerPlayer implements InternalNpc {
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
         ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (settings.getDirection() * 256 / 360), (byte) (0 / 360), true);
         setSkin();
+        ClientboundSetPassengersPacket hideName = new ClientboundSetPassengersPacket(this);
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
 
         connection.send(playerInfoAdd);
         connection.send(namedEntitySpawn);
         connection.send(equipmentPacket);
         connection.send(rotation);
+        connection.send(hideName);
 
         if (plugin.isDebug()) {
             plugin.getLogger().info("[DEBUG] Injected npc '" + this.displayName + "' to player '" + p.getName() + "'");
