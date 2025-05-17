@@ -44,7 +44,6 @@ import dev.foxikle.customnpcs.internal.menu.*;
 import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
 import dev.foxikle.customnpcs.internal.utils.AutoUpdater;
-import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import dev.velix.imperat.BukkitImperat;
 import dev.velix.imperat.BukkitSource;
@@ -66,7 +65,6 @@ import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
-import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -202,8 +200,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
 
         new Translations().setup();
-
-        registerNpcTeam();
 
         gson = new GsonBuilder()
                 .registerTypeAdapter(Condition.class, new ConditionalTypeAdapter())
@@ -358,20 +354,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         System.setProperty("CUSTOMNPCS_LOADED", "true");
     }
 
-    private void registerNpcTeam() {
-        Team team;
-        try {
-            team = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam("npc");
-        } catch (IllegalArgumentException ignored) {
-            team = Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc");
-        }
-        if (team == null) throw new NullPointerException("There was an error whilst creating the NPC team!");
-        team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
-        if (getConfig().getBoolean("DisableCollisions"))
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
-        team.prefix(Utils.mm("<dark_gray>[NPC] "));
-    }
-
     /**
      * <p> Checks if the plugin is compatible with the server version
      * </p>
@@ -400,10 +382,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
         Bukkit.getScheduler().cancelTasks(this);
-        try {
-            Objects.requireNonNull(Bukkit.getScoreboardManager().getMainScoreboard().getTeam("npc")).unregister();
-        } catch (IllegalArgumentException | NullPointerException ignored) {
-        }
         for (InternalNpc npc : npcs.values()) {
             npc.remove();
         }
