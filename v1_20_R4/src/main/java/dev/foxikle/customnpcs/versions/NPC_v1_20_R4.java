@@ -50,19 +50,17 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.scores.PlayerTeam;
-import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.entity.CraftArmorStand;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.entity.CraftTextDisplay;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.scoreboard.CraftScoreboard;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -71,7 +69,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 /**
@@ -84,7 +81,6 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
     private static final EntityDataAccessor<Byte> BILLBOARD_ACCESSOR;
 
     private final String MC_NAME;
-    private final ClientboundSetPlayerTeamPacket teamPacket;
 
     static {
         // "DATA_TEXT_ID" for mojmaps, not sure what spigot would be :)
@@ -114,12 +110,12 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
     private Location spawnLoc;
     private TextDisplay clickableHologram;
     private TextDisplay hologram;
+    private ArmorStand hideNametag;
     private Player target;
     private List<Action> actionImpls;
     private String holoName = "ERROR";
     private String clickableName = "ERROR";
     private InjectionManager injectionManager;
-    private int teamLoop;
 
     /**
      * <p> Gets a new NPC
@@ -147,11 +143,6 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
         this.plugin = plugin;
 
         this.MC_NAME = uuid.toString().substring(0, 16);
-        Scoreboard scoreboard = ((CraftScoreboard) Bukkit.getScoreboardManager().getMainScoreboard()).getHandle();
-        this.teamPacket = ClientboundSetPlayerTeamPacket.createPlayerPacket(
-                new PlayerTeam(scoreboard, "npc"),
-                MC_NAME,
-                ClientboundSetPlayerTeamPacket.Action.ADD);
     }
 
     /**
@@ -201,14 +192,10 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(equipment.getHand());
 
-        AtomicInteger counter = new AtomicInteger(0);
-        teamLoop = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> Bukkit.getOnlinePlayers().forEach(player -> {
-            if (plugin.isDebug()) plugin.getLogger().info("Running team loop id: " + teamLoop);
-            if (counter.getAndIncrement() >= 4 && plugin.isDebug()) {
-                player.sendMessage("[DEBUG] Injecting teams packet!");
-            }
-            ((CraftPlayer) player).getHandle().connection.send(teamPacket);
-        }), 1, 5).getTaskId();
+        hideNametag = world.spawn(spawnLoc, ArmorStand.class);
+        hideNametag.setVisible(false);
+        hideNametag.setMarker(true);
+        ((CraftArmorStand) hideNametag).getHandle().startRiding(this, true);
 
         if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, hologram);
@@ -418,6 +405,7 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
         ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (settings.getDirection() * 256 / 360), (byte) (0 / 360), true);
+        ClientboundSetPassengersPacket hideName = new ClientboundSetPassengersPacket(this);
         setSkin();
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
 
@@ -425,7 +413,7 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
         connection.send(namedEntitySpawn);
         connection.send(equipmentPacket);
         connection.send(rotation);
-        connection.send(this.teamPacket);
+        connection.send(hideName);
 
         if (plugin.isDebug()) {
             plugin.getLogger().info("[DEBUG] Injected npc '" + this.displayName + "' to player '" + p.getName() + "'");
@@ -494,7 +482,6 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
      */
     public void remove() {
         injectionManager.shutDown();
-        Bukkit.getScheduler().cancelTask(teamLoop);
         loops.forEach((uuid1, integer) -> Bukkit.getScheduler().cancelTask(integer));
         loops.clear();
         List<Packet<?>> packets = new ArrayList<>();
@@ -589,6 +576,7 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
 
     @Override
     public void reloadSettings() {
+        if (hideNametag != null) hideNametag.remove();
         if (hologram != null)
             hologram.remove();
         if (clickableHologram != null)

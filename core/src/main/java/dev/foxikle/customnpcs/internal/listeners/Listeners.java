@@ -36,6 +36,7 @@ import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.SkinUtils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.MenuView;
+import io.papermc.paper.event.world.WorldGameRuleChangeEvent;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.*;
@@ -79,9 +80,6 @@ public class Listeners implements Listener {
      * @since 1.6.0
      */
     private static final ConcurrentMap<UUID, MovementData> playerMovementData = new ConcurrentHashMap<>();
-
-    private final Map<UUID, Integer> worldSleepingPercentages = new ConcurrentHashMap<>();
-
     // Helper Constants
     // since 1.6.0
     private static final int FIVE_BLOCKS = 25;
@@ -89,15 +87,12 @@ public class Listeners implements Listener {
     private static final int SIXTY_BLOCKS = 3600; // 60 * 60
     private static final int FORTY_BLOCKS = 2304; // 48 * 48
     private static final double HALF_BLOCK = 0.25;
-
     // Writing Constants
     // since 1.6.0
     private static final BukkitScheduler SCHEDULER = Bukkit.getScheduler();
-
     private static final ConsoleCommandSender CONSOLE_SENDER = Bukkit.getConsoleSender();
-
     private static final Pattern PATTERN = Pattern.compile(" ");
-
+    private final Map<UUID, Integer> worldSleepingPercentages = new ConcurrentHashMap<>();
     /**
      * The instance of the main Class
      */
@@ -639,7 +634,7 @@ public class Listeners implements Listener {
     @EventHandler
     public void onLeave(PlayerQuitEvent e) {
         plugin.waiting.remove(e.getPlayer().getUniqueId());
-        recalcSleepingPercentages();
+        Bukkit.getScheduler().runTaskLater(plugin, this::recalcSleepingPercentages, 1);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -649,7 +644,6 @@ public class Listeners implements Listener {
         }
 
         Player clicker = (Player) e.getWhoClicked();
-
         MenuView<?> menu = plugin.getLotus().getMenuView(clicker.getUniqueId()).orElseGet(() -> {
             if (e.getClickedInventory() == null) return null;
             if (e.getClickedInventory().getHolder() instanceof MenuView<?> playerMenu) {
@@ -675,6 +669,14 @@ public class Listeners implements Listener {
             }
             world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, (int) (((playercount - npcCount) / (double) playercount) * target));
         });
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onGameruleChange(WorldGameRuleChangeEvent event) {
+        if (event.getCommandSender() == null) return; // prevent stack overflows
+        if (!event.getGameRule().equals(GameRule.PLAYERS_SLEEPING_PERCENTAGE)) return;
+        worldSleepingPercentages.put(event.getWorld().getUID(), Integer.parseInt(event.getValue()));
+        recalcSleepingPercentages();
     }
 
     @Getter
