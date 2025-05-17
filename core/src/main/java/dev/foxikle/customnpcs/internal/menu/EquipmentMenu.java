@@ -27,6 +27,7 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
+import io.github.mqzen.menus.base.MenuView;
 import io.github.mqzen.menus.misc.Capacity;
 import io.github.mqzen.menus.misc.DataRegistry;
 import io.github.mqzen.menus.misc.button.Button;
@@ -38,6 +39,7 @@ import io.github.mqzen.menus.titles.MenuTitles;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class EquipmentMenu implements Menu {
@@ -49,6 +51,14 @@ public class EquipmentMenu implements Menu {
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
         return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.equipment.title"));
+    }
+
+    @Override
+    public void onPostClick(MenuView<?> playerMenuView, InventoryClickEvent event) {
+        if (event.getClickedInventory() == null) return;
+        if (event.getClickedInventory() == event.getWhoClicked().getInventory()) {
+            event.setCancelled(false); // allow clicking in own inventory
+        }
     }
 
     @Override
