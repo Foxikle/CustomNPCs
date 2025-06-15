@@ -50,6 +50,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -96,7 +97,6 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
     @Getter
     @Setter
     private Location spawnLoc;
-    private ArmorStand hideNametag;
     private @Nullable ArmorStand seat;
     @Getter
     private TextDisplay clickableHologram;
@@ -115,14 +115,14 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
      * <p> Gets a new NPC
      * </p>
      *
-     * @param actions The actions for the NPC to execute on interaction
-     * @param plugin      The instance of the Main class
-     * @param uniqueID        The UUID of the NPC (Should be the same as the gameprofile's uuid)
-     * @param spawnLoc    The location to spawn the NPC
-     * @param target      The Entity the NPC should follow
-     * @param world       The world the NPC resides in
-     * @param equipment   The NPC's equipment
-     * @param settings    The NPC's settings
+     * @param actions   The actions for the NPC to execute on interaction
+     * @param plugin    The instance of the Main class
+     * @param uniqueID  The UUID of the NPC (Should be the same as the gameprofile's uuid)
+     * @param spawnLoc  The location to spawn the NPC
+     * @param target    The Entity the NPC should follow
+     * @param world     The world the NPC resides in
+     * @param equipment The NPC's equipment
+     * @param settings  The NPC's settings
      */
     public NPC_v1_20_R1(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uniqueID, @Nullable Player target, List<Action> actions) {
         super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uniqueID, uniqueID.toString().substring(0, 16)));
@@ -186,11 +186,6 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().setItemInHand(equipment.getHand());
         setPose(setupPose(settings.getPose()));
 
-        hideNametag = world.spawn(spawnLoc, ArmorStand.class);
-        hideNametag.setVisible(false);
-        hideNametag.setMarker(true);
-        ((CraftArmorStand) hideNametag).getHandle().startRiding(this, true);
-
         if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, holograms);
 
@@ -207,7 +202,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
 
     public void setupHolograms() {
         final double space = 0.28;
-        double startingOffset = settings.getPose().getYOffset();
+        double startingOffset = getPoseOffset(settings.getPose());
         boolean displayClickable = settings.isInteractable() && !settings.isHideClickableHologram() && plugin.getConfig().getBoolean("DisplayClickText");
         if (displayClickable) {
             startingOffset += space;
@@ -242,7 +237,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         // teleport interpolation isnt a thing in this version :(
 
         clickableHologram.setTransformation(new Transformation(
-                new Vector3f(0, (float) settings.getPose().getYOffset(), 0),
+                new Vector3f(0, (float) getPoseOffset(settings.getPose()), 0),
                 clickableHologram.getTransformation().getLeftRotation(),
                 clickableHologram.getTransformation().getScale(),
                 clickableHologram.getTransformation().getRightRotation()
@@ -291,7 +286,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
     @Override
     public void injectPlayer(Player p) {
         if (p.getWorld() != spawnLoc.getWorld()) return;
-        List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>> stuffs = new ArrayList<>();
+        List<Pair<net.minecraft.world.entity.EquipmentSlot, ItemStack>> stuffs = new ArrayList<>();
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.MAINHAND, CraftItemStack.asNMSCopy(equipment.getHand())));
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.OFFHAND, CraftItemStack.asNMSCopy(equipment.getOffhand())));
         stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.HEAD, CraftItemStack.asNMSCopy(equipment.getHead())));
@@ -367,9 +362,11 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         }
         List<Packet<?>> packets = new ArrayList<>();
 
-        for (int i = 0; i < holograms.size(); i++) {
-            TextDisplay hologram = holograms.get(i);
-            packets.add(createMojComponent(hologramText[i], hologram));
+        if (holograms != null) { // during settings reload
+            for (int i = 0; i < holograms.size(); i++) {
+                TextDisplay hologram = holograms.get(i);
+                packets.add(createMojComponent(hologramText[i], hologram));
+            }
         }
 
 
@@ -498,24 +495,22 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
 
         setPose(setupPose(settings.getPose()));
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            setupHolograms();
-            for (TextDisplay hologram : holograms) {
-                hologram.setBackgroundColor(settings.isHideBackgroundHologram() ? null : settings.getHologramBackground());
-            }
+        setupHolograms();
+        for (TextDisplay hologram : holograms) {
+            hologram.setBackgroundColor(settings.isHideBackgroundHologram() ? null : settings.getHologramBackground());
+        }
 
-            if (settings.isInteractable() && !settings.isHideClickableHologram()) {
-                if (settings.getCustomInteractableHologram().isEmpty()) {
-                    setupClickableHologram(plugin.getConfig().getString("ClickText"));
-                } else {
-                    setupClickableHologram(settings.getCustomInteractableHologram());
-                }
-                if (settings.isHideBackgroundHologram()) clickableHologram.setBackgroundColor(null);
-                if (settings.getHologramBackground() != null) {
-                    clickableHologram.setBackgroundColor(settings.getHologramBackground());
-                }
+        if (settings.isInteractable() && !settings.isHideClickableHologram()) {
+            if (settings.getCustomInteractableHologram().isEmpty()) {
+                setupClickableHologram(plugin.getConfig().getString("ClickText"));
+            } else {
+                setupClickableHologram(settings.getCustomInteractableHologram());
             }
-        });
+            if (settings.isHideBackgroundHologram()) clickableHologram.setBackgroundColor(null);
+            if (settings.getHologramBackground() != null) {
+                clickableHologram.setBackgroundColor(settings.getHologramBackground());
+            }
+        }
 
 
         setSkin();
@@ -547,6 +542,17 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
                 yield net.minecraft.world.entity.Pose.DYING;
             }
             default -> net.minecraft.world.entity.Pose.STANDING;
+        };
+    }
+
+    public double getPoseOffset(Pose pose) {
+        return switch (pose) {
+            case STANDING -> 0.63D;
+            case SITTING -> 0.65D;
+            case CROUCHING -> 0.45D;
+            case SWIMMING -> 0.14D;
+            case DYING -> 0.05D;
+            case SLEEPING -> 0.10D;
         };
     }
 

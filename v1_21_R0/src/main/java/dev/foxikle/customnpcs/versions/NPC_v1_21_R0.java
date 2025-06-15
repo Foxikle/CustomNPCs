@@ -109,7 +109,6 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
     @Getter
     @Setter
     private Location spawnLoc;
-    private ArmorStand hideNametag;
     private @Nullable ArmorStand seat;
     @Getter
     private TextDisplay clickableHologram;
@@ -154,16 +153,14 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
             unsetRemoved();
         }
 
-        Bukkit.getScheduler().runTask(plugin, this::setupHolograms);
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            if (settings.isInteractable() && !settings.isHideClickableHologram()) {
-                if (settings.getCustomInteractableHologram() == null || settings.getCustomInteractableHologram().isEmpty()) {
-                    setupClickableHologram(plugin.getConfig().getString("ClickText"));
-                } else {
-                    setupClickableHologram(settings.getCustomInteractableHologram());
-                }
+        setupHolograms();
+        if (settings.isInteractable() && !settings.isHideClickableHologram()) {
+            if (settings.getCustomInteractableHologram() == null || settings.getCustomInteractableHologram().isEmpty()) {
+                setupClickableHologram(plugin.getConfig().getString("ClickText"));
+            } else {
+                setupClickableHologram(settings.getCustomInteractableHologram());
             }
-        });
+        }
 
         setSkin();
         setPosRot(spawnLoc);
@@ -179,11 +176,6 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(equipment.getHand());
         setPose(setupPose(settings.getPose()));
-
-        hideNametag = world.spawn(spawnLoc, ArmorStand.class);
-        hideNametag.setVisible(false);
-        hideNametag.setMarker(true);
-        ((CraftArmorStand) hideNametag).getHandle().startRiding(this, true);
 
         if (settings.isResilient()) plugin.getFileManager().addNPC(this);
         plugin.addNPC(this, holograms);
@@ -201,7 +193,7 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
 
     public void setupHolograms() {
         final double space = 0.28;
-        double startingOffset = settings.getPose().getYOffset();
+        double startingOffset = getPoseOffset(settings.getPose());
         boolean displayClickable = settings.isInteractable() && !settings.isHideClickableHologram() && plugin.getConfig().getBoolean("DisplayClickText");
         if (displayClickable) {
             startingOffset += space;
@@ -236,7 +228,7 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
         clickableHologram.setTeleportDuration(settings.getInterpolationDuration());
 
         clickableHologram.setTransformation(new Transformation(
-                new Vector3f(0, (float) settings.getPose().getYOffset(), 0),
+                new Vector3f(0, (float) getPoseOffset(settings.getPose()), 0),
                 clickableHologram.getTransformation().getLeftRotation(),
                 clickableHologram.getTransformation().getScale(),
                 clickableHologram.getTransformation().getRightRotation()
@@ -387,7 +379,6 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
         packets.add(new ClientboundRemoveEntitiesPacket(super.getId()));
 
         super.remove(RemovalReason.DISCARDED);
-        super.setHealth(0);
         for (Player p : Bukkit.getOnlinePlayers()) {
             ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
             packets.forEach(connection::send);
@@ -460,24 +451,22 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
 
         setPose(setupPose(settings.getPose()));
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            setupHolograms();
-            for (TextDisplay hologram : holograms) {
-                hologram.setBackgroundColor(settings.isHideBackgroundHologram() ? null : settings.getHologramBackground());
-            }
+        setupHolograms();
+        for (TextDisplay hologram : holograms) {
+            hologram.setBackgroundColor(settings.isHideBackgroundHologram() ? null : settings.getHologramBackground());
+        }
 
-            if (settings.isInteractable() && !settings.isHideClickableHologram()) {
-                if (settings.getCustomInteractableHologram().isEmpty()) {
-                    setupClickableHologram(plugin.getConfig().getString("ClickText"));
-                } else {
-                    setupClickableHologram(settings.getCustomInteractableHologram());
-                }
-                if (settings.isHideBackgroundHologram()) clickableHologram.setBackgroundColor(null);
-                if (settings.getHologramBackground() != null) {
-                    clickableHologram.setBackgroundColor(settings.getHologramBackground());
-                }
+        if (settings.isInteractable() && !settings.isHideClickableHologram()) {
+            if (settings.getCustomInteractableHologram().isEmpty()) {
+                setupClickableHologram(plugin.getConfig().getString("ClickText"));
+            } else {
+                setupClickableHologram(settings.getCustomInteractableHologram());
             }
-        });
+            if (settings.isHideBackgroundHologram()) clickableHologram.setBackgroundColor(null);
+            if (settings.getHologramBackground() != null) {
+                clickableHologram.setBackgroundColor(settings.getHologramBackground());
+            }
+        }
 
 
         setSkin();
@@ -517,6 +506,17 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
                 yield net.minecraft.world.entity.Pose.DYING;
             }
             default -> net.minecraft.world.entity.Pose.STANDING;
+        };
+    }
+
+    public double getPoseOffset(Pose pose) {
+        return switch (pose) {
+            case STANDING -> 0.20D;
+            case SITTING -> 0.20D;
+            case CROUCHING -> 0.175D;
+            case SWIMMING -> 0.14D;
+            case DYING -> 0.05D;
+            case SLEEPING -> 0.10D;
         };
     }
 
