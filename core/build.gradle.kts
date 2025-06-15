@@ -22,6 +22,7 @@
 
 plugins {
     id("java")
+    id("io.freefair.lombok") version "8.13.1"
 }
 
 repositories {
@@ -39,8 +40,6 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
     compileOnly("org.mineskin:java-client:3.0.2")
     compileOnly("org.mineskin:java-client-jsoup:3.0.3")
-    compileOnly("org.projectlombok:lombok:1.18.38")
-    annotationProcessor("org.projectlombok:lombok:1.18.38")
     compileOnly("dev.velix:imperat-core:1.8.1")
     compileOnly("dev.velix:imperat-bukkit:1.8.1")
 }
@@ -48,7 +47,7 @@ dependencies {
 val generateClassloader = tasks.register("generateClassloader") {
 
     val outputDir = file("$projectDir/build/generated/sources/classloader")
-    val packageDir = File(outputDir, "net/cytonic/cytosis/utils")
+    val packageDir = File(outputDir, "dev/foxikle/customnpcs/internal/utils")
     val classloaderFile = File(packageDir, "GeneratedClassloader.java")
 
     doLast {
