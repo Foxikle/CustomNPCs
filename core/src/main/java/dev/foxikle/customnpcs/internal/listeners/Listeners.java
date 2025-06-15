@@ -31,7 +31,9 @@ import dev.foxikle.customnpcs.api.events.NpcInteractEvent;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.menu.HologramMenu;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import dev.foxikle.customnpcs.internal.menu.PoseEditorMenu;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.SkinUtils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
@@ -40,6 +42,7 @@ import io.papermc.paper.event.world.WorldGameRuleChangeEvent;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.*;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -52,6 +55,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.Vector;
 import org.mineskin.data.CodeAndMessage;
 import org.mineskin.data.Visibility;
 import org.mineskin.exception.MineSkinRequestException;
@@ -60,10 +64,7 @@ import org.mineskin.response.MineSkinResponse;
 
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -262,16 +263,22 @@ public class Listeners implements Listener {
                 player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
                 return;
             }
+
             if (cancel) {
                 plugin.waiting.remove(player.getUniqueId());
-                SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_MAIN));
+                SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_HOLOGRAMS));
                 e.setCancelled(true);
                 return;
             }
+
             plugin.waiting.remove(player.getUniqueId());
-            npc.getSettings().setName(message);
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.name", Msg.format(message)));
-            SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_MAIN));
+            int index = HologramMenu.editingIndicies.get(player.getUniqueId());
+            if (npc.getSettings().getRawHolograms().length <= index) { // an addition
+                npc.getSettings().setRawHolograms(Arrays.copyOf(npc.getSettings().getRawHolograms(), index + 1)); // extend it by 1
+            }
+            npc.getSettings().getRawHolograms()[index] = message;
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.name", index + 1, Msg.format(message)));
+            SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_HOLOGRAMS));
         } else if (plugin.isWaiting(player, WaitingType.TARGET)) {
             Condition conditional = plugin.editingConditionals.get(player.getUniqueId());
             if (cancel) {
@@ -677,6 +684,57 @@ public class Listeners implements Listener {
         if (!event.getGameRule().equals(GameRule.PLAYERS_SLEEPING_PERCENTAGE)) return;
         worldSleepingPercentages.put(event.getWorld().getUID(), Integer.parseInt(event.getValue()));
         recalcSleepingPercentages();
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onScroll(PlayerItemHeldEvent event) {
+        Player player = event.getPlayer();
+        if (!plugin.isWaiting(player, WaitingType.NUDGE)) return;
+
+        if (plugin.getEditingNPCs().getIfPresent(player.getUniqueId()) == null) {
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+            plugin.waiting.remove(player.getUniqueId());
+            return;
+        }
+        InternalNpc npc = PoseEditorMenu.previewNPCs.get(player.getUniqueId());
+        if (npc == null) {
+            // bad
+            return;
+        }
+        int delta = (event.getNewSlot() - event.getPreviousSlot() + 9) % 9;
+        double multiplier = delta <= 4 ? -.05 : .05; // handle toward or away
+        multiplier = player.isSneaking() ? multiplier * 5 : multiplier; // sneaking makes it use larger jumps
+
+        BlockFace face = player.getFacing();
+        if (player.getLocation().getPitch() < -45) face = BlockFace.UP;
+        if (player.getLocation().getPitch() > 45) face = BlockFace.DOWN;
+
+        Vector vec = face.getDirection().multiply(multiplier);
+        player.playSound(player, Sound.ITEM_FLINTANDSTEEL_USE, 1, 1);
+        npc.getWorld().spawnParticle(Particle.REVERSE_PORTAL, npc.getCurrentLocation().add(vec), 10, 0, 0, 0, 0);
+        npc.moveTo(vec);
+    }
+
+    @EventHandler
+    public void onSwapToOffhand(PlayerSwapHandItemsEvent event) {
+        Player player = event.getPlayer();
+        if (plugin.isWaiting(player, WaitingType.NUDGE)) {
+            event.setCancelled(true);
+            InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+            if (npc == null) {
+                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                return;
+            }
+
+            InternalNpc previewNpc = PoseEditorMenu.previewNPCs.get(player.getUniqueId());
+            plugin.waiting.remove(player.getUniqueId());
+
+            npc.setSpawnLoc(previewNpc.getCurrentLocation());
+            previewNpc.remove();
+
+            plugin.getNPCByID(npc.getUniqueID()).createNPC();
+            plugin.getLotus().openMenu(player, MenuUtils.NPC_MAIN);
+        }
     }
 
     @Getter

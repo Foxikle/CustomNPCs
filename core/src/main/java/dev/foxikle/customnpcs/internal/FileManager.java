@@ -26,6 +26,7 @@ import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.ActionType;
 import dev.foxikle.customnpcs.actions.LegacyAction;
 import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.api.Pose;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
@@ -39,6 +40,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -61,7 +63,7 @@ public class FileManager {
     /**
      * The file version of the npcs.yml file
      */
-    public static final double NPC_FILE_VERSION = 1.6;
+    public static final double NPC_FILE_VERSION = 1.9;
     public static File PARENT_DIRECTORY = new File("plugins/CustomNPCs/");
     @Getter
     private final Map<UUID, String> brokenNPCs = new HashMap<>();
@@ -433,6 +435,36 @@ public class FileManager {
                 }
             }
 
+            // after 1.7.5-pre2
+            if (version.equals("1.8")) {
+                plugin.getLogger().warning("Old NPC file version found! Bumping version! (1.8 -> 1.9)");
+                BackupResult br = createBackup(file);
+                if (!br.success) {
+                    plugin.getLogger().warning("Could not create backup before updating npcs.yml!");
+                    return false;
+                }
+                yml.set("version", "1.9");
+
+                Set<String> npcs = yml.getKeys(false);
+                for (String npc : npcs) {
+                    if (npc.equals("version")) continue; // its a key
+                    ConfigurationSection section = yml.getConfigurationSection(npc);
+
+                    assert section != null : "Section is null -- Upgrading NPC file from 1.8 to 1.9";
+
+                    String[] lines = new String[1];
+                    lines[0] = section.getString("name");
+
+                    section.set("lines", lines); // update the lines
+                    section.set("name", null); // remove the old name field
+                    section.set("pose", Pose.STANDING.name());
+                }
+                try {
+                    yml.save(file);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
             // check for valid NPCs:
             boolean found = false;
@@ -445,7 +477,7 @@ public class FileManager {
                 UUID uuid = UUID.fromString(npc);
 
                 try {
-                    var sec = section.getLocation("location");
+                    Location sec = section.getLocation("location");
                     exists = sec != null;
                 } catch (Exception e) {
                     err = true;
@@ -453,7 +485,7 @@ public class FileManager {
 
                 if (err || !exists) {
                     found = true;
-                    String rawName = plugin.getMiniMessage().stripTags(section.getString("name"));
+                    String rawName = plugin.getMiniMessage().stripTags(section.getStringList("lines").get(0));
                     brokenNPCs.put(UUID.fromString(npc), rawName);
                 } else {
                     validNPCs.add(UUID.fromString(npc));
@@ -495,7 +527,8 @@ public class FileManager {
         section.addDefault("chestItem", npc.getEquipment().getChest());
         section.addDefault("legsItem", npc.getEquipment().getLegs());
         section.addDefault("feetItem", npc.getEquipment().getBoots());
-        section.addDefault("name", npc.getSettings().getName());
+        section.addDefault("lines", npc.getSettings().getRawHolograms());
+        section.addDefault("pose", npc.getSettings().getPose().name());
         section.addDefault("world", npc.getWorld().getName());
         section.addDefault("tunnelvision", npc.getSettings().isTunnelvision());
         yml.options().copyDefaults(true);
@@ -536,8 +569,14 @@ public class FileManager {
                 }
             }
         }
-        if (Objects.requireNonNull(section.getString("name")).contains("§")) {
-            section.set("name", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(section.getString("name")).replace("§", "&"))));
+        List<String> rawLines = section.getStringList("lines");
+        for (int i = 0; i < rawLines.size(); i++) {
+            String line = rawLines.get(i);
+            if (line.contains("§")) {
+                rawLines.set(i, plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(line))));
+
+            }
+
             try {
                 yml.save(file);
             } catch (IOException e) {
@@ -545,7 +584,7 @@ public class FileManager {
             }
         }
 
-        String rawName = plugin.getMiniMessage().stripTags(section.getString("name"));
+        String rawName = plugin.getMiniMessage().stripTags(section.getStringList("lines").get(0));
         World world;
         try {
             world = Bukkit.getWorld(Objects.requireNonNull(section.getString("world")));
@@ -602,14 +641,25 @@ public class FileManager {
                         section.getString("value"),
                         section.getString("signature"),
                         section.getString("skin"),
-                        section.getString("name"),
+                        section.getStringList("lines").toArray(new String[0]),
                         section.getString("customHologram"),
-                        section.getBoolean("hideInteractableHologram")
+                        section.getBoolean("hideInteractableHologram"),
+                        parsePose(section.getString("pose"))
                 ), uuid, null, actions);
         if (npc != null) {
             npc.createNPC();
         } else {
-            plugin.getLogger().severe("The NPC '{name}' could not be created!".replace("{name}", Objects.requireNonNull(section.getString("name"))));
+            plugin.getLogger().severe("The NPC '{name}' could not be created!".replace("{name}", Objects.requireNonNull(section.getStringList("lines").get(0))));
+        }
+    }
+
+    @NotNull
+    private Pose parsePose(String str) {
+        if (str == null) return Pose.STANDING;
+        try {
+            return Pose.valueOf(str.toUpperCase());
+        } catch (Exception e) {
+            return Pose.STANDING;
         }
     }
 
