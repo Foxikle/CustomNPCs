@@ -24,5 +24,6 @@ package dev.foxikle.customnpcs.internal.utils;
 
 public enum WaitingType {
     COMMAND, NAME, TARGET, TITLE, MESSAGE, FACING, SOUND,
-    SERVER, ACTIONBAR, URL, PLAYER, HOLOGRAM, SUBTITLE
+    SERVER, ACTIONBAR, URL, PLAYER, HOLOGRAM, SUBTITLE,
+    NUDGE
 }

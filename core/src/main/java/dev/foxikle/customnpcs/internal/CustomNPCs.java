@@ -81,8 +81,8 @@ import java.util.logging.Logger;
 @Slf4j
 public final class CustomNPCs extends JavaPlugin implements PluginMessageListener {
 
-    public static int INTERPOLATION_DURATION;
     public static final ActionRegistry ACTION_REGISTRY = new ActionRegistry();
+    public static int INTERPOLATION_DURATION;
     /**
      * Singleton for the NPCBuilder
      */
@@ -113,7 +113,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * The List of NPC holograms
      */
-    public List<TextDisplay> holograms = new ArrayList<>();
+    public List<List<TextDisplay>> holograms = new ArrayList<>();
     /**
      * The Map of NPCs keyed by their UUIDs
      */
@@ -335,6 +335,9 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         lotus.registerMenu(new NewConditionMenu());
         lotus.registerMenu(new SkinCatalog());
         lotus.registerMenu(new SkinMenu());
+        lotus.registerMenu(new HologramMenu());
+        lotus.registerMenu(new DeleteLineMenu());
+        lotus.registerMenu(new PoseEditorMenu());
 
         // prevent reload goofery
         if (!System.getProperties().containsKey("CUSTOMNPCS_LOADED")) {
@@ -372,8 +375,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     @Override
     public void onDisable() {
-        for (TextDisplay t : holograms) {
-            if (t != null) t.remove();
+        for (List<TextDisplay> t : holograms) {
+            if (t != null) t.forEach(TextDisplay::remove);
         }
         if (listeners != null) listeners.stop();
 
@@ -415,7 +418,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @param npc      The NPC to add
      * @param hologram the TextDisplay representing the NPC's name
      */
-    public void addNPC(InternalNpc npc, TextDisplay hologram) {
+    public void addNPC(InternalNpc npc, List<TextDisplay> hologram) {
         holograms.add(hologram);
         npcs.put(npc.getUniqueID(), npc);
     }

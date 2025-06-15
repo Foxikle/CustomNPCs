@@ -55,10 +55,12 @@ import static org.bukkit.Material.PLAYER_HEAD;
 public class MenuUtils {
 
     public static final String NPC_DELETE = "npc_delete";
+    public static final String NPC_DELETE_LINE = "npc_delete_line";
     public static final String NPC_MAIN = "npc_main";
     public static final String NPC_EXTRA_SETTINGS = "npc_extra_settings";
     public static final String NPC_ACTIONS = "npc_actions";
     public static final String NPC_NEW_ACTION = "npc_new_action";
+    public static final String NPC_POSE = "npc_pose";
     public static final String NPC_EQUIPMENT = "npc_equipment";
     public static final String NPC_ACTION_CUSTOMIZER = "npc_action_customizer";
     public static final String NPC_CONDITION_CUSTOMIZER = "npc_condition_customizer";
@@ -66,6 +68,7 @@ public class MenuUtils {
     public static final String NPC_NEW_CONDITION = "npc_new_condition";
     public static final String NPC_CONDITIONS = "npc_conditions";
     public static final String NPC_SKIN = "npc_skin";
+    public static final String NPC_HOLOGRAMS = "npc_holograms";
     /**
      * The instance of the main class
      */

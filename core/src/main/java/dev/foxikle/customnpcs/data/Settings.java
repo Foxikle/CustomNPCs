@@ -22,6 +22,7 @@
 
 package dev.foxikle.customnpcs.data;
 
+import dev.foxikle.customnpcs.api.Pose;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,20 +37,31 @@ import org.jetbrains.annotations.ApiStatus;
 @Setter
 public class Settings {
 
-    @Getter boolean interactable = false;
-    @Getter boolean tunnelvision = false;
-    @Getter boolean resilient = true;
+    @Getter
+    boolean interactable = false;
+    @Getter
+    boolean tunnelvision = false;
+    @Getter
+    boolean resilient = true;
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
-    @Getter double direction = 180;
+    @Getter
+    double direction = 180;
     @Getter
     int interpolationDuration = CustomNPCs.INTERPOLATION_DURATION;
-    @Getter String value = "";
-    @Getter String signature = "";
-    String name = "not set";
-    @Getter String skinName = "not set";
-    @Getter boolean hideClickableHologram = false;
-    @Getter String customInteractableHologram = "";
+    @Getter
+    String value = "";
+    @Getter
+    String signature = "";
+    String[] holograms = new String[]{"An Unamed NPC"};
+    @Getter
+    String skinName = "not set";
+    @Getter
+    boolean hideClickableHologram = false;
+    @Getter
+    String customInteractableHologram = "";
+    @Getter
+    Pose pose = Pose.STANDING;
 
     @Getter
     Color hologramBackground = null;
@@ -59,17 +71,20 @@ public class Settings {
 
     /**
      * Creates a settings object with the specified settings
-     * @param interactable If the npc has actions to execute
-     * @param tunnelvision If the npc will look at players
-     * @param resilient If the npc will persist on restarts
-     * @param direction The direction to look
-     * @param value The value of the npc's skin
-     * @param signature The signature of the npc's skin
-     * @param skinName The name of the skin as it is referenced in the Menu
-     * @param name The name of NPC formatted in SERIALIZED minimessage format
+     *
+     * @param interactable               If the npc has actions to execute
+     * @param tunnelvision               If the npc will look at players
+     * @param resilient                  If the npc will persist on restarts
+     * @param direction                  The direction to look
+     * @param value                      The value of the npc's skin
+     * @param signature                  The signature of the npc's skin
+     * @param skinName                   The name of the skin as it is referenced in the Menu
+     * @param name                       The name of NPC formatted in SERIALIZED minimessage format
      * @param customInteractableHologram The custom hologram
-     * @param hideClickableHologram If the NPC's Clickable hologram should be hidden
+     * @param hideClickableHologram      If the NPC's Clickable hologram should be hidden
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
     public Settings(boolean interactable, boolean tunnelvision, boolean resilient, double direction, String value, String signature, String skinName, String name, String customInteractableHologram, boolean hideClickableHologram) {
         this.interactable = interactable;
         this.tunnelvision = tunnelvision;
@@ -78,7 +93,7 @@ public class Settings {
         this.value = value;
         this.signature = signature;
         this.skinName = skinName;
-        this.name = name;
+        this.holograms = new String[]{name};
         this.hideClickableHologram = hideClickableHologram;
         this.customInteractableHologram = customInteractableHologram;
     }
@@ -98,6 +113,8 @@ public class Settings {
      * @param hideClickableHologram      If the NPC's Clickable hologram should be hidden
      * @param interpolationDuration      How long to interpolate the teleportation of the NPC and its nametags
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
     public Settings(boolean interactable, boolean tunnelvision, boolean resilient, double direction, String value, String signature, String skinName, String name, String customInteractableHologram, boolean hideClickableHologram, int interpolationDuration) {
         this.interactable = interactable;
         this.tunnelvision = tunnelvision;
@@ -106,7 +123,65 @@ public class Settings {
         this.value = value;
         this.signature = signature;
         this.skinName = skinName;
-        this.name = name;
+        this.holograms = new String[]{name};
+        this.hideClickableHologram = hideClickableHologram;
+        this.customInteractableHologram = customInteractableHologram;
+        this.interpolationDuration = interpolationDuration;
+    }
+
+    /**
+     * Creates a settings object with the specified settings
+     *
+     * @param interactable               If the npc has actions to execute
+     * @param tunnelvision               If the npc will look at players
+     * @param resilient                  If the npc will persist on restarts
+     * @param direction                  The direction to look
+     * @param value                      The value of the npc's skin
+     * @param signature                  The signature of the npc's skin
+     * @param skinName                   The name of the skin as it is referenced in the Menu
+     * @param holograms                  The lines of the NPC's hologram, formatted in SERIALIZED minimessage format. Index 0 corresponds to the top (first) line.
+     * @param customInteractableHologram The custom hologram
+     * @param hideClickableHologram      If the NPC's Clickable hologram should be hidden
+     * @param pose                       The Pose of the NPC
+     */
+    public Settings(boolean interactable, boolean tunnelvision, boolean resilient, double direction, String value, String signature, String skinName, String[] holograms, String customInteractableHologram, boolean hideClickableHologram, Pose pose) {
+        this.interactable = interactable;
+        this.tunnelvision = tunnelvision;
+        this.resilient = resilient;
+        this.direction = direction;
+        this.value = value;
+        this.signature = signature;
+        this.skinName = skinName;
+        this.holograms = holograms;
+        this.hideClickableHologram = hideClickableHologram;
+        this.customInteractableHologram = customInteractableHologram;
+        this.pose = pose;
+    }
+
+    /**
+     * Creates a settings object with the specified settings
+     *
+     * @param interactable               If the npc has actions to execute
+     * @param tunnelvision               If the npc will look at players
+     * @param resilient                  If the npc will persist on restarts
+     * @param direction                  The direction to look
+     * @param value                      The value of the npc's skin
+     * @param signature                  The signature of the npc's skin
+     * @param skinName                   The name of the skin as it is referenced in the Menu
+     * @param holograms                  The lines of the NPC's hologram, formatted in SERIALIZED minimessage format. Index 0 corresponds to the top (first) line.
+     * @param customInteractableHologram The custom hologram
+     * @param hideClickableHologram      If the NPC's Clickable hologram should be hidden
+     * @param interpolationDuration      How long to interpolate the teleportation of the NPC and its nametags
+     */
+    public Settings(boolean interactable, boolean tunnelvision, boolean resilient, double direction, String value, String signature, String skinName, String[] holograms, String customInteractableHologram, boolean hideClickableHologram, int interpolationDuration) {
+        this.interactable = interactable;
+        this.tunnelvision = tunnelvision;
+        this.resilient = resilient;
+        this.direction = direction;
+        this.value = value;
+        this.signature = signature;
+        this.skinName = skinName;
+        this.holograms = holograms;
         this.hideClickableHologram = hideClickableHologram;
         this.customInteractableHologram = customInteractableHologram;
         this.interpolationDuration = interpolationDuration;
@@ -120,34 +195,102 @@ public class Settings {
     }
 
     /**
-     * gets the NPC's name in serialized minimessage format.
+     * Gets the contents of NPC's holograms. Index 0 corresponds to the top (first) line.
+     *
+     * @return the NPC's holograms, as components
+     */
+    public Component[] getHolograms() {
+        Component[] components = new Component[holograms.length];
+        for (int i = 0; i < holograms.length; i++) {
+            components[i] = MiniMessage.miniMessage().deserialize(holograms[i]);
+        }
+        return components;
+    }
+
+    /**
+     * Sets the NPC's holograms. These components will be serialized into strings following the MiniMessage format for storage. Index 0 corresponds to the top (first) line.
+     *
+     * @param holograms the collection of components
+     */
+    public void setHolograms(Component... holograms) {
+        this.holograms = new String[holograms.length];
+        for (int i = 0; i < holograms.length; i++) {
+            this.holograms[i] = MiniMessage.miniMessage().serialize(holograms[i]);
+        }
+    }
+
+    /**
+     * Gets the contents of NPC's holograms, in serialized MiniMessage format. Index 0 corresponds to the top (first) line.
+     *
+     * @return the NPC's holograms, as serialized MiniMessage strings
+     */
+    public String[] getRawHolograms() {
+        return holograms;
+    }
+
+    /**
+     * Sets the NPC's holograms. The plugin will parse these strings into components following the MiniMessage format. Index 0 corresponds to the top (first) line.
+     *
+     * @param holograms the collection of strings, optionally in minimessage format
+     */
+    public void setRawHolograms(String... holograms) {
+        this.holograms = holograms;
+    }
+
+    /**
+     * Gets the NPC's name in serialized minimessage format. Since 1.7.5 onward, this method returns EITHER: the first (top) hologram OR the default, an empty string.
+     *
      * @return the NPC's serialized name
+     * @deprecated NPCs no longer have "names" per se, but rather a collection of name lines.
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
     public String getName() {
-        return name.replace("%empty%", "");
+        if (holograms.length > 0) {
+            return holograms[0];
+        }
+        return "";
     }
 
     /**
-     * Sets the name of the npc
+     * Sets the top (first) line of the NPC's hologram
+     *
      * @param name as a component
+     * @deprecated As of 1.7.5, NPCs no longer have "names" per se, but rather a collection of name lines. This method sets the first (top) hologram.
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
     public void setName(Component name) {
-        this.name = MiniMessage.miniMessage().serialize(name);
+        String serialized = MiniMessage.miniMessage().serialize(name);
+        if (holograms.length > 0) {
+            holograms[0] = serialized;
+            return;
+        }
+        holograms = new String[]{serialized};
     }
 
     /**
-     * Sets the name of the npc
-     * @param name as a string
+     * Sets the top (first) line of the NPC's hologram
+     *
+     * @param name as a string, serialized in minimessage format
+     * @deprecated As of 1.7.5, NPCs no longer have "names" per se, but rather a collection of name lines. This method sets the first (top) hologram.
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
     public void setName(String name) {
-        this.name = name;
+        if (holograms.length > 0) {
+            holograms[0] = name;
+            return;
+        }
+        holograms = new String[]{name};
     }
 
     /**
      * Sets the skin data in on fell swoop
+     *
      * @param signature the skin signature
-     * @param value the skin value
-     * @param skinName the cosmetic name
+     * @param value     the skin value
+     * @param skinName  the cosmetic name
      */
     public void setSkinData(String signature, String value, String skinName) {
         this.signature = signature;
@@ -156,7 +299,7 @@ public class Settings {
     }
 
     @SuppressWarnings("all")
-    public Settings clone(){
-        return new Settings(interactable, tunnelvision, resilient, direction, value, signature, skinName, name, customInteractableHologram, hideClickableHologram);
+    public Settings clone() {
+        return new Settings(interactable, tunnelvision, resilient, direction, value, signature, skinName, holograms, customInteractableHologram, hideClickableHologram, pose);
     }
 }
