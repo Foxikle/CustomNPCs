@@ -171,6 +171,7 @@ public class Listeners implements Listener {
                 entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
                 for (Entity en : entities) {
                     if (!(en instanceof Player p)) continue;
+                    if (p.getGameMode() == GameMode.SPECTATOR) continue;
                     if (!npc.getSettings().isTunnelvision()) {
                         npc.lookAt(LookAtAnchor.HEAD, p);
                         return;
@@ -182,7 +183,7 @@ public class Listeners implements Listener {
     }
 
     private void trackFromTo(Player player, InternalNpc npc, MovementData data, MovementData oldData) {
-        if (data.distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
+        if (data.distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision() && player.getGameMode() != GameMode.SPECTATOR) {
             npc.lookAt(LookAtAnchor.HEAD, player);
         }
     }
@@ -528,6 +529,8 @@ public class Listeners implements Listener {
         if (plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate") && player.hasPermission("customnpcs.alert")) {
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.should_update"));
         }
+        recalcSleepingPercentages();
+        if (player.getGameMode() == GameMode.SPECTATOR) return;
 
         Location location = player.getLocation();
         World world = player.getWorld();
@@ -541,7 +544,6 @@ public class Listeners implements Listener {
                 npc.lookAt(LookAtAnchor.HEAD, player);
             }
         }
-        recalcSleepingPercentages();
     }
 
     /**
@@ -566,7 +568,11 @@ public class Listeners implements Listener {
      */
     @EventHandler
     public void onTeleport(PlayerTeleportEvent e) {
+        recalcSleepingPercentages();
         Player player = e.getPlayer();
+
+        if (player.getGameMode() == GameMode.SPECTATOR) return;
+
         Location location = player.getLocation();
         World world = player.getWorld();
         for (InternalNpc npc : plugin.npcs.values()) {
@@ -577,7 +583,6 @@ public class Listeners implements Listener {
             if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
                 npc.lookAt(LookAtAnchor.HEAD, player);
             }
-            recalcSleepingPercentages();
         }
     }
 
@@ -591,6 +596,7 @@ public class Listeners implements Listener {
     @EventHandler
     public void onRespawn(PlayerRespawnEvent e) {
         Player player = e.getPlayer();
+        if (player.getGameMode() == GameMode.SPECTATOR) return;
         Location location = player.getLocation();
         World world = player.getWorld();
         for (InternalNpc npc : plugin.npcs.values()) {
@@ -617,6 +623,9 @@ public class Listeners implements Listener {
     @EventHandler
     public void onDimensionChange(PlayerChangedWorldEvent e) {
         Player player = e.getPlayer();
+
+        if (player.getGameMode() == GameMode.SPECTATOR) return;
+
         Location location = player.getLocation();
         World world = player.getWorld();
 
