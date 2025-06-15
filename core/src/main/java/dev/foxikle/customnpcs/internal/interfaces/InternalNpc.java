@@ -32,6 +32,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,10 +65,9 @@ public interface InternalNpc {
      * <p> Creates the NPC's name hologram
      * </p>
      *
-     * @param name The name to give the text display
      * @return the TextDisplay representing the NPC's name tag
      */
-    TextDisplay setupHologram(String name);
+    void setupHolograms();
 
     /**
      * <p> Creates the NPC's clickable hologram
@@ -76,7 +76,7 @@ public interface InternalNpc {
      * @param name The name to give the text display
      * @return the TextDisplay representing the NPC's hologram
      */
-    TextDisplay setupClickableHologram(String name);
+    void setupClickableHologram(String name);
 
     /**
      * Gets the NPC's uuid
@@ -131,7 +131,7 @@ public interface InternalNpc {
      *
      * @return the TextDisplay entity the NPC uses for their name tag
      */
-    TextDisplay getHologram();
+    List<TextDisplay> getHolograms();
 
     /**
      * <p> Gets the text display representing the NPC name
@@ -198,7 +198,7 @@ public interface InternalNpc {
      *
      * @param v The location to move to the npc at
      */
-    void moveTo(Location v);
+    void moveTo(Vector v);
 
     /**
      * <p> Permanently deletes an NPC. Does NOT despawn it.
@@ -274,7 +274,7 @@ public interface InternalNpc {
      */
     void setEquipment(Equipment e);
 
-    Particle spawnParticle();
+    Particle getSpawnParticle();
 
     /**
      * Clones the NPC object.
@@ -283,4 +283,6 @@ public interface InternalNpc {
      * @return the cloned object, with a different memory address.
      */
     InternalNpc clone();
+
+    void teleport(Location loc);
 }

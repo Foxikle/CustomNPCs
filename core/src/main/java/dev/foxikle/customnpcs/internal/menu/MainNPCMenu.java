@@ -25,7 +25,6 @@ package dev.foxikle.customnpcs.internal.menu;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.runnables.FacingDirectionRunnable;
-import dev.foxikle.customnpcs.internal.runnables.NameRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.OpenButtonAction;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
@@ -95,31 +94,16 @@ public class MainNPCMenu implements Menu {
 
         Content.Builder builder = Content.builder(capacity);
         builder.apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(0, Button.clickable(MenuItems.looking(player), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
+                .setButton(10, Button.clickable(MenuItems.looking(player), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
                     player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
                     plugin.wait(player, WaitingType.FACING);
                     new FacingDirectionRunnable(plugin, player).go();
                     player.closeInventory();
                 })))
                 .setButton(8, Button.clickable(MenuItems.extraSettings(player), new OpenButtonAction(MenuUtils.NPC_EXTRA_SETTINGS)))
-                .setButton(10, MenuItems.rotation(npc, player))
+                .setButton(0, MenuItems.toPose(player))
                 .setButton(13, Button.clickable(MenuItems.skinSelection(npc, player), new OpenButtonAction(MenuUtils.NPC_SKIN)))
-                .setButton(16, Button.clickable(MenuItems.changeName(npc, player), ButtonClickAction.plain((menuView, event) -> {
-                    event.setCancelled(true);
-                    plugin.wait(player, WaitingType.NAME);
-
-                    player.sendMessage(Msg.translate(player.locale(), "customnpcs.data.name.title"));
-
-                    if (plugin.getConfig().getBoolean("NameReferenceMessages")) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.name.reference"));
-                        player.sendMessage(npc.getSettings().getName());
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.name.toggle_reference_message"));
-                    }
-                    player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-
-                    new NameRunnable(player, plugin).runTaskTimer(plugin, 1, 15);
-                    player.closeInventory();
-                })))
+                .setButton(16, MenuItems.changeLines(npc, player))
                 .setButton(19, Button.clickable(MenuItems.editEquipment(npc, player), new OpenButtonAction(MenuUtils.NPC_EQUIPMENT)))
                 .setButton(22, MenuItems.resilient(npc, player))
                 .setButton(25, MenuItems.interactable(npc, player))
@@ -132,7 +116,7 @@ public class MainNPCMenu implements Menu {
                     Bukkit.getScheduler().runTaskLater(plugin, () -> p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1), 1);
                     Bukkit.getScheduler().runTaskLater(plugin, () -> p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1), 3);
                     Bukkit.getScheduler().runTaskLater(plugin, npc::createNPC, 1);
-                    p.spawnParticle(npc.spawnParticle(), npc.getSpawnLoc().clone().add(0, 1, 0), 1);
+                    p.spawnParticle(npc.getSpawnParticle(), npc.getSpawnLoc().clone().add(0, 1, 0), 1);
 
                     if (npc.getSettings().isResilient())
                         p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.main.create.message.resilient"));

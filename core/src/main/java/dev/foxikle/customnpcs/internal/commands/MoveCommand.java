@@ -27,6 +27,7 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
@@ -41,7 +42,7 @@ public class MoveCommand {
             @Named("npc") @SuggestionProvider("current_npc") @Greedy String npc
     ) {
         if (source.isConsole()) {
-            source.reply(Msg.format("You can't do this :P"));
+            source.reply(Msg.format("<red>You can't do this :P"));
             return;
         }
 
@@ -57,10 +58,10 @@ public class MoveCommand {
 
         p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.move.nudge"));
         assert finalNpc != null;
+        finalNpc.teleport(p.getLocation());
         finalNpc.remove();
-        finalNpc.setSpawnLoc(p.getLocation());
-        finalNpc.getSettings().setDirection(p.getLocation().getYaw());
         finalNpc.createNPC();
+        Bukkit.getOnlinePlayers().forEach(finalNpc::injectPlayer);
     }
 
 }
