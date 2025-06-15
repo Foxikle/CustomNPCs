@@ -269,7 +269,7 @@ public class MenuItems {
                     ButtonClickAction.plain((menuView, event) -> {
                         Player p = (Player) event.getWhoClicked();
                         event.setCancelled(true);
-                        if (event.getCursor().getType().name().contains("CHESTPLATE")) {
+                        if (event.getCursor().getType().name().contains("CHESTPLATE") || event.getCursor().getType() == Material.ELYTRA) {
                             npc.getEquipment().setChest(event.getCursor().clone());
                             event.getCursor().setAmount(0);
                             p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
@@ -298,7 +298,7 @@ public class MenuItems {
                             p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.chestplate.reset"));
                             menuView.replaceButton(22, chestplateSlot(npc, p));
                             return;
-                        } else if (event.getCursor().getType().name().contains("CHESTPLATE") || event.getCursor().getType().name().contains("ELYTRA")) {
+                        } else if (event.getCursor().getType().name().contains("CHESTPLATE") || event.getCursor().getType() == Material.ELYTRA) {
                             npc.getEquipment().setChest(event.getCursor().clone());
                             event.getCursor().setAmount(0);
                             p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
