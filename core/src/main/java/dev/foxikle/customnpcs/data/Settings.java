@@ -22,6 +22,7 @@
 
 package dev.foxikle.customnpcs.data;
 
+import com.destroystokyo.paper.profile.ProfileProperty;
 import dev.foxikle.customnpcs.api.Pose;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import lombok.Getter;
@@ -29,12 +30,13 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Color;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
  * A class holding the data for an NPC's settings
  */
-@Setter
+@Setter()
 public class Settings {
 
     @Getter
@@ -296,6 +298,23 @@ public class Settings {
         this.signature = signature;
         this.value = value;
         this.skinName = skinName;
+    }
+
+    public void setSkin(Player player) {
+        String signature = null;
+        String value = null;
+        for (ProfileProperty property : player.getPlayerProfile().getProperties()) {
+            if (property.getName().equals("textures")) {
+                signature = property.getSignature();
+                value = property.getValue();
+            }
+        }
+        if (signature == null || value == null) {
+            throw new IllegalStateException("Player does not have a valid skin!");
+        }
+        this.signature = signature;
+        this.value = value;
+        this.skinName = player.getName() + "'s skin";
     }
 
     @SuppressWarnings("all")
