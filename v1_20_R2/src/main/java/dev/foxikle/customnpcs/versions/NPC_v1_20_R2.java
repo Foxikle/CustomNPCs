@@ -50,6 +50,7 @@ import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -65,6 +66,9 @@ import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Transformation;
+import org.bukkit.util.Vector;
+import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
@@ -142,6 +146,10 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
             plugin.getNPCByID(uniqueID).delete();
         }
 
+        if (isRemoved()) {
+            unsetRemoved();
+        }
+
         Bukkit.getScheduler().runTask(plugin, this::setupHolograms);
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (settings.isInteractable() && !settings.isHideClickableHologram()) {
@@ -192,29 +200,46 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
         }
         List<TextDisplay> holograms = new ArrayList<>();
         for (int i = 0; i < settings.getRawHolograms().length; i++) {
-            double y = spawnLoc.y() + startingOffset + (i * space);
-            TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), y, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
+            double y = startingOffset + (i * space);
+            TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(spawnLoc, EntityType.TEXT_DISPLAY);
             hologram.setInvulnerable(true);
             hologram.setBillboard(Display.Billboard.CENTER);
-            hologram.text(Component.empty());
             hologram.addScoreboardTag("npcHologram");
             hologram.setTeleportDuration(settings.getInterpolationDuration());
+            hologram.setTransformation(new Transformation(
+                    new Vector3f(0, (float) y, 0),
+                    hologram.getTransformation().getLeftRotation(),
+                    hologram.getTransformation().getScale(),
+                    hologram.getTransformation().getRightRotation()
+            ));
             holograms.add(hologram);
+            ((CraftTextDisplay) hologram).getHandle().startRiding(this, true);
         }
         this.holograms = holograms.reversed();
     }
 
     public void setupClickableHologram(String name) {
         clickableName = name;
-        clickableHologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(new Location(spawnLoc.getWorld(), spawnLoc.getX(), spawnLoc.getY() + 2.05, spawnLoc.getZ()), EntityType.TEXT_DISPLAY);
+        clickableHologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(spawnLoc, EntityType.TEXT_DISPLAY);
         clickableHologram.setInvulnerable(true);
         clickableHologram.setBillboard(Display.Billboard.CENTER);
         clickableHologram.text(Component.empty());
         clickableHologram.addScoreboardTag("npcHologram");
         clickableHologram.setTeleportDuration(settings.getInterpolationDuration());
+
+        clickableHologram.setTransformation(new Transformation(
+                new Vector3f(0, (float) settings.getPose().getYOffset(), 0),
+                clickableHologram.getTransformation().getLeftRotation(),
+                clickableHologram.getTransformation().getScale(),
+                clickableHologram.getTransformation().getRightRotation()
+        ));
+        ((CraftTextDisplay) clickableHologram).getHandle().startRiding(this, true);
     }
 
     public Location getCurrentLocation() {
+        if (seat != null) {
+            return seat.getLocation();
+        }
         return super.getBukkitEntity().getLocation();
     }
 
@@ -336,6 +361,9 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
                 hologram.remove();
             }
         }
+        if (seat != null) {
+            seat.remove();
+        }
         if (clickableHologram != null) {
             packets.add(new ClientboundRemoveEntitiesPacket(clickableHologram.getEntityId()));
             clickableHologram.remove();
@@ -350,10 +378,21 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
     }
 
     @Override
-    public void moveTo(Location v) {
-        moveTo(v.x(), v.y(), v.z(), v.getYaw(), v.getPitch());
-        spawnLoc = v;
-        reloadSettings();
+    public void moveTo(Vector v) {
+        if (isRemoved()) return;
+        if (seat != null) {
+            ((CraftArmorStand) seat).getHandle().move(MoverType.PLAYER, new Vec3(v.getX(), v.getY(), v.getZ()));
+            spawnLoc = seat.getLocation();
+        } else {
+            super.move(MoverType.PLAYER, new Vec3(v.getX(), v.getY(), v.getZ()));
+            spawnLoc = getCurrentLocation();
+        }
+    }
+
+    @Override
+    public void teleport(Location loc) {
+        teleportTo(loc.x(), loc.y(), loc.z());
+        spawnLoc = loc;
     }
 
     public void delete() {
@@ -394,7 +433,6 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
 
     @Override
     public void reloadSettings() {
-        if (hideNametag != null) hideNametag.remove();
         if (seat != null) {
             seat.remove();
             seat = null;
@@ -449,9 +487,10 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
             case SWIMMING -> net.minecraft.world.entity.Pose.SWIMMING;
             case CROUCHING -> net.minecraft.world.entity.Pose.CROUCHING;
             case SITTING -> {
-                seat = world.spawn(spawnLoc, ArmorStand.class);
+                seat = world.spawn(new Location(world, 0, 0, 0), ArmorStand.class);
                 seat.setMarker(true);
                 seat.setVisible(false);
+                seat.teleport(spawnLoc);
                 startRiding(((CraftArmorStand) seat).getHandle(), true);
                 yield net.minecraft.world.entity.Pose.STANDING;
             }

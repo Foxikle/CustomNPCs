@@ -35,6 +35,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -195,9 +196,31 @@ public class NPC {
      * Move the npc to the specified location. Takes into account pitch and yaw
      *
      * @param location the location to move to
+     * @deprecated Moving takes vectors in preparation for the 1.8 update. To set the yaw and pitch, please use {@link NPC#lookAt(Location)} or {@link NPC#lookAt(Entity, boolean)}. Alternatively, {@link NPC#teleport(Location)} retains the same functionaity.
      */
-    public void moveTo(Location location) {
-        npc.moveTo(location);
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
+    public void moveTo(@NotNull Location location) {
+        teleport(location);
+    }
+
+    /**
+     * Teleports the NPC to the given location, respecting the Yaw and Pitch
+     *
+     * @param location the new Location to teleport to
+     * @since 1.7.5-pre2
+     */
+    public void teleport(@NotNull Location location) {
+        npc.teleport(location);
+    }
+
+    /**
+     * Moves the NPC using the specified vector.
+     *
+     * @param vec the vector specifying how to move the NPC
+     */
+    public void moveTo(Vector vec) {
+        npc.moveTo(vec);
     }
 
     /**
@@ -258,9 +281,8 @@ public class NPC {
      * The NPC will NOT be despawned. Only applicable if the NPC is resilient.
      * </p>
      *
-     * @apiNote If the NpcDeleteEvent gets canceled, this npc will not be deleted.
-     *
      * @throws IllegalStateException if the NPC is not resilient
+     * @apiNote If the NpcDeleteEvent gets canceled, this npc will not be deleted.
      * @since 1.5.2-pre3
      */
     public boolean delete() {
