@@ -25,6 +25,8 @@ package dev.foxikle.customnpcs.data;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import dev.foxikle.customnpcs.api.Pose;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -36,7 +38,9 @@ import org.jetbrains.annotations.ApiStatus;
 /**
  * A class holding the data for an NPC's settings
  */
-@Setter()
+@Setter
+@Builder
+@AllArgsConstructor
 public class Settings {
 
     @Getter
