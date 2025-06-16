@@ -179,7 +179,8 @@ public class Listeners implements Listener {
                         return;
                     }
                 }
-                npc.setYRotation(npc.getCurrentLocation().getYaw());
+                npc.setYRotation(npc.getSpawnLoc().getYaw());
+                npc.setXRotation(npc.getSpawnLoc().getPitch());
             });
         }
     }
