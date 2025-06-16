@@ -135,6 +135,7 @@ public class Listeners implements Listener {
     }
 
     private void actionPlayerMovement(Player player) {
+        if (player.getGameMode() == GameMode.SPECTATOR) return; // we don't care about spectators
         final Location location = player.getLocation();
         final World world = player.getWorld();
 
@@ -150,6 +151,7 @@ public class Listeners implements Listener {
     }
 
     private void processPlayerMovement(final Player player, final InternalNpc npc, final World world, final World npcWorld, final Location location, final UUID uuid) {
+        if (player.getGameMode() == GameMode.SPECTATOR) return; // we don't care about spectators
         final Location npcLocation = npc.getCurrentLocation();
         MovementData oldMovementData; // difference in order of initialization in if/else statement
         MovementData movementData = playerMovementData.get(uuid);
