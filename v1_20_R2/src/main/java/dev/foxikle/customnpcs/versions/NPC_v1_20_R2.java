@@ -260,7 +260,7 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
         ClientboundAddEntityPacket namedEntitySpawn = new ClientboundAddEntityPacket(this);
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
-        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (spawnLoc.getYaw() * 256 / 360), (byte) (0 / 360), true);
+        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getYaw() * 256 / 360), (byte) (0 / 360), true);
         ClientboundSetPassengersPacket hideName = new ClientboundSetPassengersPacket(this);
         setSkin();
 
@@ -424,6 +424,12 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
     }
 
     @Override
+    public void setXRotation(float f) {
+        super.setXRot(f);
+        lookAt(Utils.calcLocation(this));
+    }
+
+    @Override
     public void reloadSettings() {
         if (seat != null) {
             seat.remove();
@@ -507,6 +513,17 @@ public class NPC_v1_20_R2 extends ServerPlayer implements InternalNpc {
     @Override
     public InternalNpc clone() {
         return new NPC_v1_20_R2(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(), UUID.randomUUID(), target, new ArrayList<>(actions));
+    }
+
+
+    @Override
+    public float getYaw() {
+        return getYRot();
+    }
+
+    @Override
+    public float getPitch() {
+        return getXRot();
     }
 }
 

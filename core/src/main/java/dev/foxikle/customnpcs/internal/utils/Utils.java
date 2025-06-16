@@ -130,8 +130,8 @@ public class Utils {
      */
     public static Location calcLocation(InternalNpc npc) {
         Location loc = npc.getCurrentLocation();
-        double pitch = Math.toRadians(npc.getSpawnLoc().getPitch());
-        double yaw = Math.toRadians(npc.getSettings().getDirection());
+        double pitch = Math.toRadians(npc.getPitch());
+        double yaw = Math.toRadians(npc.getYaw());
         // trig to calculate the position
 
 

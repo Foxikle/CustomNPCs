@@ -298,7 +298,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         ClientboundAddPlayerPacket namedEntitySpawn = new ClientboundAddPlayerPacket(this);
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
-        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getSettings().getDirection() * 256 / 360), (byte) (0 / 360), true);
+        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getYRot() * 256 / 360), (byte) (0 / 360), true);
         ClientboundSetPassengersPacket hideName = new ClientboundSetPassengersPacket(this);
         super.detectEquipmentUpdates();
         setSkin();
@@ -342,8 +342,6 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
                 }
             }.runTaskTimerAsynchronously(plugin, 0, plugin.getConfig().getInt("HologramUpdateInterval")).getTaskId());
         }
-
-        setYRotation(spawnLoc.getYaw());
     }
 
     private void injectHolograms(Player p) {
@@ -476,6 +474,12 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
     }
 
     @Override
+    public void setXRotation(float f) {
+        super.setXRot(f);
+        lookAt(Utils.calcLocation(this));
+    }
+
+    @Override
     public void reloadSettings() {
         if (seat != null) {
             seat.remove();
@@ -559,6 +563,16 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
     @Override
     public InternalNpc clone() {
         return new NPC_v1_20_R1(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(), UUID.randomUUID(), target, new ArrayList<>(actions));
+    }
+
+    @Override
+    public float getYaw() {
+        return getYRot();
+    }
+
+    @Override
+    public float getPitch() {
+        return getXRot();
     }
 }
 

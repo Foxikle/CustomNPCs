@@ -235,6 +235,28 @@ public interface InternalNpc {
     void setYRotation(float rot);
 
     /**
+     * Set the x rotation on this entity
+     *
+     * @param rot the pitch
+     */
+    void setXRotation(float rot);
+
+    /**
+     * The yaw of the NPC's head
+     *
+     * @return the yaw from -180 to 180
+     */
+    float getYaw();
+
+    /**
+     * Retrieves the pitch (rotation around the X-axis) of the NPC.
+     *
+     * @return the pitch value, typically within the range of -90 to 90, where -90
+     * represents looking straight up and 90 represents looking straight down.
+     */
+    float getPitch();
+
+    /**
      * Reads the skin data from the Settings object and applies it to the NPC
      * @see Settings
      */

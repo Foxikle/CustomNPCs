@@ -272,7 +272,7 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
         ClientboundAddEntityPacket namedEntitySpawn = new ClientboundAddEntityPacket(this);
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
-        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (spawnLoc.getYaw() * 256 / 360), (byte) (0 / 360), true);
+        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getYaw() * 256 / 360), (byte) (0 / 360), true);
         ClientboundSetPassengersPacket hideName = new ClientboundSetPassengersPacket(this);
         setSkin();
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
@@ -317,8 +317,6 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
                 }
             }.runTaskTimerAsynchronously(plugin, 0, plugin.getConfig().getInt("HologramUpdateInterval")).getTaskId());
         }
-
-        setYRotation(spawnLoc.getYaw());
     }
 
     private void injectHolograms(Player p) {
@@ -491,10 +489,15 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
 
     @Override
     public void setYRotation(float f) {
-        super.setXRot(spawnLoc.getPitch());
         super.setYRot(f);
         super.setYBodyRot(f);
         super.setYHeadRot(f);
+        lookAt(Utils.calcLocation(this));
+    }
+
+    @Override
+    public void setXRotation(float f) {
+        super.setXRot(f);
         lookAt(Utils.calcLocation(this));
     }
 
@@ -533,6 +536,17 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
     @Override
     public InternalNpc clone() {
         return new NPC_v1_20_R4(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(), UUID.randomUUID(), target, new ArrayList<>(actions));
+    }
+
+
+    @Override
+    public float getYaw() {
+        return getYRot();
+    }
+
+    @Override
+    public float getPitch() {
+        return getXRot();
     }
 }
 
