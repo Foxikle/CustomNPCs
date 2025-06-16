@@ -39,21 +39,28 @@ import org.bukkit.inventory.ItemStack;
 @Builder
 public class Equipment {
 
+    @Builder.Default
     private ItemStack head = new ItemStack(Material.AIR);
+    @Builder.Default
     private ItemStack chest = new ItemStack(Material.AIR);
+    @Builder.Default
     private ItemStack legs = new ItemStack(Material.AIR);
+    @Builder.Default
     private ItemStack boots = new ItemStack(Material.AIR);
+    @Builder.Default
     private ItemStack hand = new ItemStack(Material.AIR);
+    @Builder.Default
     private ItemStack offhand = new ItemStack(Material.AIR);
 
 
     /**
      * The constructor to create the equipment object
-     * @param head  The item on the NPC's head
-     * @param chest The item on the NPC's chest
-     * @param legs The item on the NPC's legs
-     * @param boots The item on the NPC's feet
-     * @param hand The item in the NPC's hand
+     *
+     * @param head    The item on the NPC's head
+     * @param chest   The item on the NPC's chest
+     * @param legs    The item on the NPC's legs
+     * @param boots   The item on the NPC's feet
+     * @param hand    The item in the NPC's hand
      * @param offhand The item in the NPC's offhand
      */
     public Equipment(ItemStack head, ItemStack chest, ItemStack legs, ItemStack boots, ItemStack hand, ItemStack offhand) {
@@ -74,6 +81,7 @@ public class Equipment {
 
     /**
      * Imports the relevant items from an EntityEquipment Object
+     *
      * @param e The entity equipment to pull items from.
      */
     public void importFromEntityEquipment(EntityEquipment e) {
@@ -86,7 +94,7 @@ public class Equipment {
     }
 
     @SuppressWarnings("all")
-    public Equipment clone(){
+    public Equipment clone() {
         return new Equipment(head.clone(), chest.clone(), legs.clone(), boots.clone(), hand.clone(), offhand.clone());
     }
 }

@@ -43,35 +43,48 @@ import org.jetbrains.annotations.ApiStatus;
 @AllArgsConstructor
 public class Settings {
 
+    @Builder.Default
     @Getter
     boolean interactable = false;
+    @Builder.Default
     @Getter
     boolean tunnelvision = false;
+    @Builder.Default
     @Getter
     boolean resilient = true;
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
     @Getter
     double direction = 180;
+    @Builder.Default
     @Getter
     int interpolationDuration = CustomNPCs.INTERPOLATION_DURATION;
     @Getter
+    @Builder.Default
     String value = "";
     @Getter
+    @Builder.Default
     String signature = "";
+    @Builder.Default
     String[] holograms = new String[]{"An Unamed NPC"};
     @Getter
+    @Builder.Default
     String skinName = "not set";
     @Getter
+    @Builder.Default
     boolean hideClickableHologram = false;
     @Getter
+    @Builder.Default
     String customInteractableHologram = "";
     @Getter
+    @Builder.Default
     Pose pose = Pose.STANDING;
 
     @Getter
+    @Builder.Default
     Color hologramBackground = null;
     @Getter
+    @Builder.Default
     boolean hideBackgroundHologram = false;
 
 
