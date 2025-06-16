@@ -26,7 +26,6 @@ import dev.foxikle.customnpcs.api.events.NpcDeleteEvent;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import dev.foxikle.customnpcs.internal.utils.Utils;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -36,6 +35,7 @@ import io.github.mqzen.menus.misc.button.actions.ButtonClickAction;
 import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -71,7 +71,7 @@ public class DeleteMenu implements Menu {
                 .setButton(11, Button.clickable(
                         ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
                                 .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.delete.items.confirm.name"))
-                                .setLore(Utils.mm(""), Msg.translate(player.locale(), "customnpcs.menus.delete.items.confirm.lore"))
+                                .setLore(Component.empty(), Msg.translate(player.locale(), "customnpcs.menus.delete.items.confirm.lore"))
                                 .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
                             CustomNPCs plugin = CustomNPCs.getInstance();
                             Player player1 = (Player) inventoryClickEvent.getWhoClicked();

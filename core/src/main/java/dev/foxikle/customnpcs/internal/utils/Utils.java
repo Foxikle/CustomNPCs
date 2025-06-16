@@ -26,8 +26,6 @@ import com.google.common.reflect.TypeToken;
 import dev.foxikle.customnpcs.actions.conditions.Condition;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -146,9 +144,16 @@ public class Utils {
         return loc;
     }
 
+    /**
+     * Formats the given string as a Minimessage component
+     *
+     * @param str The input
+     * @return the component, parsed in MiniMessage format.
+     * @deprecated Use {@link Msg#format(String)} instead.
+     */
+    @Deprecated
     public static Component mm(String str) {
-        if (str.isBlank() || str.isEmpty()) return Component.empty();
-        return MiniMessage.miniMessage().deserialize(str).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
+        return Msg.format(str);
     }
 
 }

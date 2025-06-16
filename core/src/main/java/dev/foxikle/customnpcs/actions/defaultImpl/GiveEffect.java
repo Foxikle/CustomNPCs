@@ -29,7 +29,6 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import dev.foxikle.customnpcs.internal.utils.Utils;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -289,8 +288,8 @@ public class GiveEffect extends Action {
             List<Component> lore = new ArrayList<>();
             fields.forEach(field -> {
                 if (!Objects.equals(action.getEffect(), field.getName()))
-                    lore.add(Utils.mm("<green>" + field.getName()));
-                else lore.add(Utils.mm("<dark_aqua>▸ " + field.getName()));
+                    lore.add(Msg.format("<green>" + field.getName()));
+                else lore.add(Msg.format("<dark_aqua>▸ " + field.getName()));
             });
             return Button.clickable(ItemBuilder.modern(POTION)
                             .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.effect"))

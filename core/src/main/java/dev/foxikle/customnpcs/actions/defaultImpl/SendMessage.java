@@ -29,7 +29,6 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.runnables.MessageRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
@@ -172,7 +171,7 @@ public class SendMessage extends Action {
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
             return MenuUtils.actionBase(action, player)
                     .setButton(22, Button.clickable(ItemBuilder.modern(OAK_HANGING_SIGN)
-                                    .setDisplay(Utils.mm(getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString(player.locale(), "customnpcs.messages.empty_string") : getRawMessage()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE))
+                                    .setDisplay(Msg.format(getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString(player.locale(), "customnpcs.messages.empty_string") : getRawMessage()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE))
                                     .setLore(Msg.translate(player.locale(), "customnpcs.items.click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
