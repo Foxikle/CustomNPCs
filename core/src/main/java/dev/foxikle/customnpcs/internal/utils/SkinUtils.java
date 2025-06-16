@@ -22,64 +22,31 @@
 
 package dev.foxikle.customnpcs.internal.utils;
 
-import dev.foxikle.customnpcs.internal.CustomNPCs;
 import org.jetbrains.annotations.Nullable;
+import org.mineskin.ClientBuilder;
 import org.mineskin.JsoupRequestHandler;
 import org.mineskin.MineSkinClient;
-import org.mineskin.MineSkinClientImpl;
 import org.mineskin.data.JobInfo;
 import org.mineskin.data.SkinInfo;
 import org.mineskin.request.GenerateRequest;
-import sun.misc.Unsafe;
 
-import java.lang.reflect.Field;
 import java.util.concurrent.CompletableFuture;
 
 public class SkinUtils {
     public static MineSkinClient MINESKIN_CLIENT;
-    private static String URL = "https://mineskin.foxikle.dev/"; // free proxied instance
 
     public static void setup(@Nullable String key, @Nullable String url) {
-        if (key == null && url == null) {
-            // Use the defaults
-            MINESKIN_CLIENT = MineSkinClient.builder()
-                    .userAgent("Default-CustomNPCS/v1.7.4")
-                    .requestHandler(JsoupRequestHandler::new)
-                    .build();
-        } else if (url == null) {
-            MINESKIN_CLIENT = MineSkinClient.builder()
-                    .userAgent("UserKey-CustomNPCS/v1.7.4")
-                    .requestHandler(JsoupRequestHandler::new)
-                    .apiKey(key)
-                    .build();
-            // user has a key, so use official mineskin api
-            URL = "https://api.mineskin.org/";
-        } else {
-            // user specified a URL to use
-            URL = url;
-            MINESKIN_CLIENT = MineSkinClient.builder()
-                    .userAgent("UserProxy-CustomNPCs/v1.7.4")
-                    .requestHandler(JsoupRequestHandler::new)
-                    .build();
+
+        ClientBuilder builder = MineSkinClient.builder().requestHandler(JsoupRequestHandler::new);
+        if ((key == null || key.isEmpty()) && (url == null || url.isEmpty())) {
+            builder.userAgent("Default-CustomNPCS/v1.7.4").baseUrl("https://mineskin.foxikle.dev");
+        } else if (url == null || url.isEmpty()) {
+            builder.userAgent("UserKey-CustomNPCS/v1.7.4").apiKey(key);
+        } else { // we don't care if a key is used, if they supply their own proxy
+            if (url.endsWith("/")) url = url.substring(0, url.length() - 1); // trim trailing slash off
+            builder.userAgent("UserProxy-CustomNPCs/v1.7.4").baseUrl(url);
         }
-
-        // use reflection to change client URL (probably should change)
-        try {
-            Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");
-            unsafeField.setAccessible(true);
-            Unsafe unsafe = (Unsafe) unsafeField.get(null);
-
-            Field field = MineSkinClientImpl.class.getDeclaredField("API_BASE");
-            field.setAccessible(true);
-
-            Object base = unsafe.staticFieldBase(field);
-            long offset = unsafe.staticFieldOffset(field);
-            unsafe.putObject(base, offset, URL); // URL must be a String
-            // test it
-            CustomNPCs.getInstance().getLogger().info("Using Skin API URL: " + URL);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
+        MINESKIN_CLIENT = builder.build();
     }
 
     public static CompletableFuture<SkinInfo> fetch(GenerateRequest request) {
