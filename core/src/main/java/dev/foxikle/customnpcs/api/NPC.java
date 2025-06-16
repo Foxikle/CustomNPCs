@@ -236,7 +236,7 @@ public class NPC {
     }
 
     /**
-     * Injects the npc into the player's connection. Thisimport org.jetbrains.annotations.Contract; should be handled by the plugin, but this is here for more control.
+     * Injects the npc into the player's connection. This should be handled by the plugin, but this is here for more control.
      *
      * @param player the player to inject
      * @see Player
