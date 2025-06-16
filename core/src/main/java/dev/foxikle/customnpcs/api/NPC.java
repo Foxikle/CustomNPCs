@@ -38,6 +38,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 import java.util.*;
 
@@ -73,7 +74,7 @@ public class NPC {
      * @since 1.5-pre5
      */
     public NPC(@NotNull World world) {
-        if (NPCApi.plugin == null) throw new IllegalStateException("You must initialize the api before using it!");
+        if (NPCApi.plugin == null) throw new IllegalStateException("The CustomNPCs plugin does not exist!");
         if (world == null) throw new NullPointerException("world cannot be null.");
         UUID uuid = UUID.randomUUID();
         Settings settings = new Settings();
@@ -86,6 +87,7 @@ public class NPC {
      *
      * @param npc the internal npc to wrap for the api
      */
+    @ApiStatus.Internal
     public NPC(InternalNpc npc) {
         if (npc == null) throw new IllegalArgumentException("npc cannot be null.");
         this.npc = npc;
@@ -108,11 +110,12 @@ public class NPC {
     }
 
     /**
-     * <p>Sets the location of the NPC
+     * <p>Sets the location of the NPC.
      * </p>
      *
      * @param loc the new location for the NPC
      * @return the NPC with the modified location
+     * @apiNote If this method is called after {@link NPC#create()}, the {@link NPC#reloadSettings()} should be called in addition.
      * @since 1.5.2-pre3
      */
     public NPC setPosition(@NotNull Location loc) {
@@ -233,7 +236,7 @@ public class NPC {
     }
 
     /**
-     * Injects the npc into the player's connection. This should be handled by the plugin, but this is here for more control.
+     * Injects the npc into the player's connection. Thisimport org.jetbrains.annotations.Contract; should be handled by the plugin, but this is here for more control.
      *
      * @param player the player to inject
      * @see Player
@@ -306,6 +309,20 @@ public class NPC {
      */
     public void remove() {
         npc.remove();
+    }
+
+    /**
+     * Sets the pitch and yaw of the NPC.
+     *
+     * @param yaw   The yaw, between -180 and 180.
+     * @param pitch The pitch, between -90 and 90.
+     * @since 1.7.5-pre3
+     */
+    public void setFacing(@Range(from = -180, to = 180) float yaw, @Range(from = -90, to = 90) float pitch) {
+        Location loc = npc.getSpawnLoc();
+        loc.setYaw(yaw);
+        loc.setPitch(pitch);
+        npc.setSpawnLoc(loc);
     }
 
     /**
