@@ -22,7 +22,7 @@
 
 plugins {
     id("java")
-    id("io.freefair.lombok") version "8.13.1"
+    id("io.freefair.lombok") version "8.14"
 }
 
 repositories {
