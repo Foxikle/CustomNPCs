@@ -22,7 +22,7 @@
 
 plugins {
     id("java")
-    id("io.freefair.lombok") version "8.13.1"
+    id("io.freefair.lombok") version "8.14"
 }
 
 repositories {
@@ -41,7 +41,7 @@ dependencies {
     compileOnly("org.mineskin:java-client:3.0.6-SNAPSHOT")
     compileOnly("org.mineskin:java-client-jsoup:3.0.6-SNAPSHOT")
     compileOnly("dev.velix:imperat-core:1.9.6")
-    compileOnly("dev.velix:imperat-bukkit:1.8.1")
+    compileOnly("dev.velix:imperat-bukkit:1.9.6")
 }
 
 val generateClassloader = tasks.register("generateClassloader") {
