@@ -82,7 +82,7 @@ val generateClassloader = tasks.register("generateClassloader") {
 
                     resolver.addRepository(new RemoteRepository.Builder("inventivetalent", "default", "https://repo.inventivetalent.org/repository/public/").build());
                     resolver.addRepository(new RemoteRepository.Builder("jitpack", "default", "https://jitpack.io").build());
-                    resolver.addRepository(new RemoteRepository.Builder("central", "default", "https://repo1.maven.org/maven2/").build());
+                    resolver.addRepository(new RemoteRepository.Builder("central", "default", "https://maven-central.storage-download.googleapis.com/maven2").build());
                     
                     ${deps.joinToString("\n                    ") { "resolver.addDependency(new Dependency(new DefaultArtifact(\"$it\"), null));" }}
 

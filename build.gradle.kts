@@ -38,6 +38,7 @@ repositories {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":v1_21_R4"))
     implementation(project(":v1_21_R3"))
     implementation(project(":v1_21_R2"))
     implementation(project(":v1_21_R1"))
