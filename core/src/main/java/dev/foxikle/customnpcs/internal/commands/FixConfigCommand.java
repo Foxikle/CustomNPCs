@@ -28,6 +28,7 @@ import dev.foxikle.customnpcs.internal.commands.enums.FixConfigWorldStrategy;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
+import dev.velix.imperat.command.AttachmentMode;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
@@ -41,7 +42,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-@SubCommand(value = "fixconfig", attachDirectly = true)
+@SubCommand(value = "fixconfig", attachment = AttachmentMode.MAIN)
 @Permission("customnpcs.commands.fix_config")
 public class FixConfigCommand {
 

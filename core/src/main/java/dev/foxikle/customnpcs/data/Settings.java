@@ -26,7 +26,6 @@ import com.destroystokyo.paper.profile.ProfileProperty;
 import dev.foxikle.customnpcs.api.Pose;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -39,52 +38,51 @@ import org.jetbrains.annotations.ApiStatus;
  * A class holding the data for an NPC's settings
  */
 @Setter
-@Builder
+//@Builder
 @AllArgsConstructor
 public class Settings {
 
-    @Builder.Default
+    //@Builder.Default
     @Getter
     boolean interactable = false;
-    @Builder.Default
+    //@Builder.Default
     @Getter
     boolean tunnelvision = false;
-    @Builder.Default
+    //@Builder.Default
     @Getter
     boolean resilient = true;
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
     @Getter
     double direction = 180;
-    @Builder.Default
+    //@Builder.Default
     @Getter
     int interpolationDuration = CustomNPCs.INTERPOLATION_DURATION;
     @Getter
-    @Builder.Default
+//@Builder.Default
     String value = "";
     @Getter
-    @Builder.Default
+//@Builder.Default
     String signature = "";
-    @Builder.Default
+    //@Builder.Default
     String[] holograms = new String[]{"An Unamed NPC"};
     @Getter
-    @Builder.Default
+//@Builder.Default
     String skinName = "not set";
     @Getter
-    @Builder.Default
+//@Builder.Default
     boolean hideClickableHologram = false;
     @Getter
-    @Builder.Default
+//@Builder.Default
     String customInteractableHologram = "";
     @Getter
-    @Builder.Default
+//@Builder.Default
     Pose pose = Pose.STANDING;
-
     @Getter
-    @Builder.Default
+//@Builder.Default
     Color hologramBackground = null;
     @Getter
-    @Builder.Default
+//@Builder.Default
     boolean hideBackgroundHologram = false;
 
 

@@ -28,11 +28,12 @@ import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
+import dev.velix.imperat.command.AttachmentMode;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-@SubCommand(value = "delete", attachDirectly = true)
+@SubCommand(value = "delete", attachment = AttachmentMode.MAIN)
 @Permission("customnpcs.delete")
 @Description("Deletes the specified NPC")
 public class DeleteCommand {

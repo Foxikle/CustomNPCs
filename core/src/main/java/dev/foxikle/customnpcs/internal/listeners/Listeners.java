@@ -741,7 +741,10 @@ public class Listeners implements Listener {
             InternalNpc previewNpc = PoseEditorMenu.previewNPCs.get(player.getUniqueId());
             plugin.waiting.remove(player.getUniqueId());
 
-            npc.setSpawnLoc(previewNpc.getCurrentLocation());
+            Location finalLoc = previewNpc.getCurrentLocation();
+            finalLoc.setPitch(npc.getSpawnLoc().getPitch());
+            finalLoc.setYaw(npc.getSpawnLoc().getYaw());
+            npc.setSpawnLoc(finalLoc);
             previewNpc.remove();
 
             plugin.getNPCByID(npc.getUniqueID()).createNPC();

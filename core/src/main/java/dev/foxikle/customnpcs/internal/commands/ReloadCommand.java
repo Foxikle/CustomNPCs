@@ -29,10 +29,11 @@ import dev.velix.imperat.annotations.Description;
 import dev.velix.imperat.annotations.Permission;
 import dev.velix.imperat.annotations.SubCommand;
 import dev.velix.imperat.annotations.Usage;
+import dev.velix.imperat.command.AttachmentMode;
 
 import java.util.Locale;
 
-@SubCommand(value = "reload", attachDirectly = true)
+@SubCommand(value = "reload", attachment = AttachmentMode.MAIN)
 @Permission("customnpcs.commands.reload")
 @Description("Reloads the CustomNPCs and its configuration.")
 public class ReloadCommand {

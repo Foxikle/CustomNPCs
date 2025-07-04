@@ -28,13 +28,14 @@ import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
+import dev.velix.imperat.command.AttachmentMode;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
 @Permission("customnpcs.edit")
-@SubCommand(value = "edit", attachDirectly = true)
+@SubCommand(value = "edit", attachment = AttachmentMode.MAIN)
 @Description("Edits an NPC")
 public class EditCommand {
 

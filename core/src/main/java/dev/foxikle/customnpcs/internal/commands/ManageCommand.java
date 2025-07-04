@@ -26,10 +26,11 @@ import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.Permission;
 import dev.velix.imperat.annotations.SubCommand;
 import dev.velix.imperat.annotations.Usage;
+import dev.velix.imperat.command.AttachmentMode;
 
 import java.util.Locale;
 
-@SubCommand(value = {"manage"}, attachDirectly = true)
+@SubCommand(value = {"manage"}, attachment = AttachmentMode.MAIN)
 @Permission("customnpcs.commands.manage")
 public class ManageCommand {
 

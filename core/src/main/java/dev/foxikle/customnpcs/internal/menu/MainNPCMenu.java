@@ -123,6 +123,8 @@ public class MainNPCMenu implements Menu {
                     else
                         p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.main.create.message.temporary"));
 
+                    npc.reloadSettings();
+
                     p.closeInventory();
                 })))
                 .setButton(36, Button.clickable(MenuItems.cancelCreation(player), ButtonClickAction.plain((menuView, event) -> {

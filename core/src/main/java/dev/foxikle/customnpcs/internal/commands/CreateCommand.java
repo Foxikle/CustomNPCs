@@ -31,12 +31,13 @@ import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.SubCommand;
 import dev.velix.imperat.annotations.Usage;
+import dev.velix.imperat.command.AttachmentMode;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
-@SubCommand(value = {"create"}, attachDirectly = true)
+@SubCommand(value = {"create"}, attachment = AttachmentMode.MAIN)
 public class CreateCommand {
 
     @Usage

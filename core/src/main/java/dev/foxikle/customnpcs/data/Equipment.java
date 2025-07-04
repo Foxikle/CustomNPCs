@@ -24,7 +24,6 @@ package dev.foxikle.customnpcs.data;
 
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Material;
@@ -36,20 +35,12 @@ import org.bukkit.inventory.ItemStack;
  */
 @Setter
 @Getter
-@Builder
 public class Equipment {
-
-    @Builder.Default
     private ItemStack head = new ItemStack(Material.AIR);
-    @Builder.Default
     private ItemStack chest = new ItemStack(Material.AIR);
-    @Builder.Default
     private ItemStack legs = new ItemStack(Material.AIR);
-    @Builder.Default
     private ItemStack boots = new ItemStack(Material.AIR);
-    @Builder.Default
     private ItemStack hand = new ItemStack(Material.AIR);
-    @Builder.Default
     private ItemStack offhand = new ItemStack(Material.AIR);
 
 

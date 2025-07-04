@@ -27,8 +27,9 @@ import dev.velix.imperat.annotations.Description;
 import dev.velix.imperat.annotations.Permission;
 import dev.velix.imperat.annotations.SubCommand;
 import dev.velix.imperat.annotations.Usage;
+import dev.velix.imperat.command.AttachmentMode;
 
-@SubCommand(value = "help", attachDirectly = true)
+@SubCommand(value = "help", attachment = AttachmentMode.MAIN)
 @Permission("customnpcs.commands.help")
 @Description("Displays a help message")
 public class HelpCommand {

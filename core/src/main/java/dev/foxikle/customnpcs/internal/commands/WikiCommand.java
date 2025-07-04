@@ -28,13 +28,14 @@ import dev.velix.imperat.annotations.Description;
 import dev.velix.imperat.annotations.Permission;
 import dev.velix.imperat.annotations.SubCommand;
 import dev.velix.imperat.annotations.Usage;
+import dev.velix.imperat.command.AttachmentMode;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 
 import java.util.Locale;
 
 @Permission("customnpcs.command.wiki")
-@SubCommand(value = "wiki", attachDirectly = true)
+@SubCommand(value = "wiki", attachment = AttachmentMode.MAIN)
 @Description("Supplies a link to the plugin's documentation")
 public class WikiCommand {
 

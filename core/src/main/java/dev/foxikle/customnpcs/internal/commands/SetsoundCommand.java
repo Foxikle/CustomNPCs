@@ -29,13 +29,14 @@ import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
+import dev.velix.imperat.command.AttachmentMode;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.entity.Player;
 
-@SubCommand(value = "setsound", attachDirectly = true)
+@SubCommand(value = "setsound", attachment = AttachmentMode.MAIN)
 @Permission("customnpcs.edit")
 @Description("Sets the sound of the playsound action!")
 public class SetsoundCommand {

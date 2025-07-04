@@ -27,11 +27,12 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
+import dev.velix.imperat.command.AttachmentMode;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-@SubCommand(value = "goto", attachDirectly = true)
+@SubCommand(value = "goto", attachment = AttachmentMode.MAIN)
 @Permission("customnpcs.commands.goto")
 @Description("Teleports you to the specified NPC")
 public class TeleportCommand {
