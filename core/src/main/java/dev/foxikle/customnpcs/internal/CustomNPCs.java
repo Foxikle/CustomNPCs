@@ -177,6 +177,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     @Override
     public void onEnable() {
+        // paper... why??
+        System.setProperty("org.bukkit.plugin.java.LibraryLoader.centralURL", "https://repo1.maven.org/maven2");
         instance = this;
 
         if (!checkForValidVersion()) {
