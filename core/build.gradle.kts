@@ -79,9 +79,9 @@ val generateClassloader = tasks.register("generateClassloader") {
                 public void classloader(@NotNull PluginClasspathBuilder classpathBuilder) {
                     System.setProperty("bstats.relocatecheck", "false");
                     MavenLibraryResolver resolver = new MavenLibraryResolver();
-
-                    resolver.addRepository(new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2/").build()); // shut up paper 
+                    resolver.addRepository(new RemoteRepository.Builder("central", "default", "https://maven-central.storage-download.googleapis.com/maven2/").build()); // shut up paper 
                     resolver.addRepository(new RemoteRepository.Builder("inventivetalent", "default", "https://repo.inventivetalent.org/repository/public/").build());
+                    resolver.addRepository(new RemoteRepository.Builder("foxikle", "default", "https://repo.foxikle.dev/public").build());
                     resolver.addRepository(new RemoteRepository.Builder("jitpack", "default", "https://jitpack.io").build());
                     
                     ${deps.joinToString("\n                    ") { "resolver.addDependency(new Dependency(new DefaultArtifact(\"$it\"), null));" }}
