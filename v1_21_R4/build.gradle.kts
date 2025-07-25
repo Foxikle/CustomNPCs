@@ -22,7 +22,7 @@
 
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.17"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.18"
     id("io.freefair.lombok") version "8.14"
 }
 
