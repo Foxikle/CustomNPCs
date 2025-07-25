@@ -40,7 +40,7 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
     compileOnly("org.mineskin:java-client:3.0.6-SNAPSHOT")
     compileOnly("org.mineskin:java-client-jsoup:3.0.6-SNAPSHOT")
-    compileOnly("dev.velix:imperat-core:1.9.6")
+    compileOnly("dev.velix:imperat-core:1.9.7")
     compileOnly("dev.velix:imperat-bukkit:1.9.6")
 }
 
