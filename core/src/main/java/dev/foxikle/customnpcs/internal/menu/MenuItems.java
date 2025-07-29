@@ -714,7 +714,7 @@ public class MenuItems {
                     } else if (event.isRightClick()) {
                         action.setDelay(Math.max(0, action.getDelay() - 5));
                     }
-                    menuView.updateButton(4, button -> button.setItem(delayDisplay(action, p).getItem()));
+                    menuView.updateButton(1, button -> button.setItem(delayDisplay(action, p).getItem()));
                 }));
     }
 
@@ -734,7 +734,57 @@ public class MenuItems {
                     }
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-                    menuView.updateButton(4, button -> button.setItem(delayDisplay(action, p).getItem()));
+                    menuView.updateButton(1, button -> button.setItem(delayDisplay(action, p).getItem()));
+                }));
+    }
+
+    public static Button cooldownDisplay(Action action, Player player) {
+        return Button.clickable(ItemBuilder.modern(CLOCK)
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.cooldown.name", action.getCooldown()))
+                .build(), ButtonClickAction.plain((menuView, event) -> event.setCancelled(true)));
+    }
+
+    public static Button decrementCooldown(Action action, Player player) {
+        return Button.clickable(ItemBuilder.modern(RED_DYE)
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.cooldown.decrement"))
+                        .setLore(Msg.lore(player.locale(), "customnpcs.menus.action_customizer.cooldown.decrement.description"))
+                        .build(),
+                ButtonClickAction.plain((menuView, event) -> {
+                    event.setCancelled(true);
+                    Player p = (Player) event.getWhoClicked();
+                    p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+                    if (action.getCooldown() == 0) {
+                        p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.action_customizer.cooldown.error"));
+                        return;
+                    }
+                    if (event.isShiftClick()) {
+                        action.setCooldown(Math.max(0, action.getCooldown() - 20));
+                    } else if (event.isLeftClick()) {
+                        action.setCooldown(Math.max(0, action.getCooldown() - 1));
+                    } else if (event.isRightClick()) {
+                        action.setCooldown(Math.max(0, action.getCooldown() - 5));
+                    }
+                    menuView.updateButton(7, button -> button.setItem(cooldownDisplay(action, p).getItem()));
+                }));
+    }
+
+    public static Button incrementCooldown(Action action, Player player) {
+        return Button.clickable(ItemBuilder.modern(LIME_DYE)
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.cooldown.increment"))
+                        .setLore(Msg.lore(player.locale(), "customnpcs.menus.action_customizer.cooldown.increment.description"))
+                        .build(),
+                ButtonClickAction.plain((menuView, event) -> {
+                    event.setCancelled(true);
+                    if (event.isShiftClick()) {
+                        action.setCooldown(action.getCooldown() + 20);
+                    } else if (event.isLeftClick()) {
+                        action.setCooldown(action.getCooldown() + 1);
+                    } else if (event.isRightClick()) {
+                        action.setCooldown(action.getCooldown() + 5);
+                    }
+                    Player p = (Player) event.getWhoClicked();
+                    p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+                    menuView.updateButton(7, button -> button.setItem(cooldownDisplay(action, p).getItem()));
                 }));
     }
 

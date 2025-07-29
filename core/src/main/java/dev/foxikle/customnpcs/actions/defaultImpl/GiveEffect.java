@@ -47,6 +47,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -65,20 +66,37 @@ public class GiveEffect extends Action {
     private String effect;
     private int duration;
     private int amplifier;
+
     /**
      * Creates a new GiveEffect with the specified parameters
      *
      * @param effect The raw message
      */
-    public GiveEffect(String effect, int duration, int amplifier, boolean particles, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals);
+    public GiveEffect(String effect, int duration, int amplifier, boolean particles, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+        super(delay, mode, conditionals, cooldown);
         this.effect = effect;
         this.duration = duration;
         this.amplifier = amplifier;
         this.particles = particles;
     }
 
-    public static final Button creationButton(Player player) {
+    /**
+     * Creates a new GiveEffect with the specified parameters
+     *
+     * @param effect The raw message
+     * @deprecated Use {@link #GiveEffect(String, int, int, boolean, int, Condition.SelectionMode, List, int)}
+     */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
+    public GiveEffect(String effect, int duration, int amplifier, boolean particles, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+        super(delay, mode, conditionals, 0);
+        this.effect = effect;
+        this.duration = duration;
+        this.amplifier = amplifier;
+        this.particles = particles;
+    }
+
+    public static Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(BREWING_STAND)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.give_effect"))
                         .setLore(Msg.lore(player.locale(), "customnpcs.favicons.give_effect.description"))
@@ -87,7 +105,7 @@ public class GiveEffect extends Action {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    GiveEffect actionImpl = new GiveEffect("SPEED", 100, 0, false, 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    GiveEffect actionImpl = new GiveEffect("SPEED", 100, 0, false, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -104,7 +122,7 @@ public class GiveEffect extends Action {
 
         ParseResult pr = parseBase(serialized);
 
-        GiveEffect message = new GiveEffect(effect, duration, amplifier, particles, pr.delay(), pr.mode(), pr.conditions());
+        GiveEffect message = new GiveEffect(effect, duration, amplifier, particles, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
 
         return clazz.cast(message);
     }
@@ -137,6 +155,7 @@ public class GiveEffect extends Action {
         if (PotionEffectType.getByName(effect) == null)
             throw new NullPointerException("Effect " + effect + " does not exist? Please tell @foxikle on discord how you managed this.");
         player.addPotionEffect(new PotionEffect(Objects.requireNonNull(PotionEffectType.getByName(effect)), duration, amplifier, true, !particles));
+        activateCooldown(player.getUniqueId());
     }
 
     @Override
@@ -151,7 +170,7 @@ public class GiveEffect extends Action {
     }
 
     public Action clone() {
-        return new GiveEffect(getEffect(), getDuration(), getAmplifier(), isParticles(), getDelay(), getMode(), new ArrayList<>(getConditions()));
+        return new GiveEffect(getEffect(), getDuration(), getAmplifier(), isParticles(), getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
     }
 
     @Override

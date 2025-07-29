@@ -47,6 +47,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -68,8 +69,21 @@ public class SendServer extends Action {
      *
      * @param server The raw message
      */
+    public SendServer(String server, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+        super(delay, mode, conditionals, cooldown);
+        this.server = server;
+    }
+
+    /**
+     * Creates a new SendMessage with the specified message
+     *
+     * @param server The raw message
+     * @deprecated Use {@link SendServer#SendServer(String, int, Condition.SelectionMode, List, int)}
+     */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
     public SendServer(String server, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals);
+        super(delay, mode, conditionals, 0);
         this.server = server;
     }
 
@@ -85,7 +99,7 @@ public class SendServer extends Action {
                             p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                             //todo: watch out for duplications
 
-                            SendServer actionImpl = new SendServer("server", 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                            SendServer actionImpl = new SendServer("server", 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
                             CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                             menuView.getAPI().openMenu(p, actionImpl.getMenu());
                         }));
@@ -98,7 +112,7 @@ public class SendServer extends Action {
         String server = parseString(serialized, "server");
         ParseResult pr = parseBase(serialized);
 
-        SendServer message = new SendServer(server, pr.delay(), pr.mode(), pr.conditions());
+        SendServer message = new SendServer(server, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
 
         return clazz.cast(message);
     }
@@ -119,6 +133,7 @@ public class SendServer extends Action {
         out.writeUTF(player.getName());
         out.writeUTF(server);
         player.sendPluginMessage(CustomNPCs.getInstance(), "BungeeCord", out.toByteArray());
+        activateCooldown(player.getUniqueId());
     }
 
     @Override
@@ -148,7 +163,7 @@ public class SendServer extends Action {
 
     @Override
     public Action clone() {
-        return new SendServer(server, getDelay(), getMode(), getConditions());
+        return new SendServer(server, getDelay(), getMode(), getConditions(), getCooldown());
     }
 
     public class SendServerCustomizer implements Menu {

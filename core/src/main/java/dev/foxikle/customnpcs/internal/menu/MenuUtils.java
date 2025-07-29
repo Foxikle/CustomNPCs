@@ -88,9 +88,12 @@ public class MenuUtils {
     public static Content.Builder actionBase(Action action, Player player) {
         return Content.builder(Capacity.ofRows(5))
                 .apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(3, MenuItems.decrementDelay(action, player))
-                .setButton(4, MenuItems.delayDisplay(action, player))
-                .setButton(5, MenuItems.incrementDelay(action, player))
+                .setButton(0, MenuItems.decrementDelay(action, player))
+                .setButton(1, MenuItems.delayDisplay(action, player))
+                .setButton(2, MenuItems.incrementDelay(action, player))
+                .setButton(6, MenuItems.decrementCooldown(action, player))
+                .setButton(7, MenuItems.cooldownDisplay(action, player))
+                .setButton(8, MenuItems.incrementCooldown(action, player))
                 .setButton(36, MenuItems.toAction(player))
                 .setButton(40, MenuItems.saveAction(action, player))
                 .setButton(44, MenuItems.editConditions(player));

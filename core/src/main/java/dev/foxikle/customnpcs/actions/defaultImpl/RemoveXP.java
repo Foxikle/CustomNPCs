@@ -45,6 +45,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public class RemoveXP extends Action {
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    RemoveXP actionImpl = new RemoveXP(1, true, 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    RemoveXP actionImpl = new RemoveXP(1, true, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -82,8 +83,23 @@ public class RemoveXP extends Action {
      * @param levels if the xp is in levels
      * @param amount the number of XP to remove
      */
+    public RemoveXP(int amount, boolean levels, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+        super(delay, mode, conditionals, cooldown);
+        this.levels = levels;
+        this.amount = amount;
+    }
+
+    /**
+     * Creates a new SendMessage with the specified message
+     *
+     * @param levels if the xp is in levels
+     * @param amount the number of XP to remove
+     * @deprecated Use {@link #RemoveXP(int, boolean, int, Condition.SelectionMode, List, int)}
+     */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
     public RemoveXP(int amount, boolean levels, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals);
+        super(delay, mode, conditionals, 0);
         this.levels = levels;
         this.amount = amount;
     }
@@ -96,7 +112,7 @@ public class RemoveXP extends Action {
         boolean levels = parseBoolean(serialized, "levels");
         ParseResult pr = parseBase(serialized);
 
-        RemoveXP xp = new RemoveXP(amount, levels, pr.delay(), pr.mode(), pr.conditions());
+        RemoveXP xp = new RemoveXP(amount, levels, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
 
         return clazz.cast(xp);
     }
@@ -140,6 +156,7 @@ public class RemoveXP extends Action {
         } else {
             Utils.setTotalExperience(player, Utils.getTotalExperience(player) - amount);
         }
+        activateCooldown(player.getUniqueId());
     }
 
     @Override
@@ -149,7 +166,7 @@ public class RemoveXP extends Action {
 
     @Override
     public Action clone() {
-        return new RemoveXP(getAmount(), isLevels(), getDelay(), getMode(), new ArrayList<>(getConditions()));
+        return new RemoveXP(getAmount(), isLevels(), getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
     }
 
     public class RemoveXPCustomizer implements Menu {

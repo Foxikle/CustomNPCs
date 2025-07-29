@@ -32,11 +32,14 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
+import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,10 +49,11 @@ public abstract class Action {
 
     private static final Pattern SPLITTER = Pattern.compile("^([A-z])*(?=(\\{.*}))");
 
-    private final List<Condition> conditions = new ArrayList<>();
+    private List<Condition> conditions = new ArrayList<>();
     private int delay = 0;
     private Condition.SelectionMode mode = Condition.SelectionMode.ONE;
-
+    private int cooldown = 0;
+    private Map<UUID, Instant> cooldowns = new ConcurrentHashMap<>();
 
     /**
      * Default constructor
@@ -58,10 +62,21 @@ public abstract class Action {
 
     }
 
-    public Action(int delay, Condition.SelectionMode mode, List<Condition> conditions) {
+    public Action(int delay, Condition.SelectionMode mode, List<Condition> conditions, int cooldown) {
         this.delay = delay;
         this.mode = mode;
-        this.conditions.addAll(conditions);
+        this.conditions = conditions;
+        this.cooldown = cooldown;
+    }
+
+
+    /**
+     * Deprecated, use {@link Action#Action(int, Condition.SelectionMode, List, int)}  Action}
+     */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
+    public Action(int delay, Condition.SelectionMode mode, List<Condition> conditions) {
+        this(delay, mode, conditions, 0);
     }
 
     protected static List<Condition> deserializeConditions(String json) {
@@ -96,70 +111,17 @@ public abstract class Action {
     }
 
     /**
-     * A convenience method to add a condition to the action
-     *
-     * @param condition the condition to add
-     */
-    public void addCondition(Condition condition) {
-        conditions.add(condition);
-    }
-
-    public void removeCondition(Condition condition) {
-        conditions.remove(condition);
-    }
-
-    /**
-     * Contains the execution of the action
-     *
-     * @param npc    The NPC
-     * @param menu   The menu
-     * @param player The player
-     */
-    public abstract void perform(InternalNpc npc, Menu menu, Player player);
-
-    /**
-     * Serializes the action to a string
-     */
-    public abstract String serialize();
-
-    public abstract ItemStack getFavicon(Player player);
-
-    @Override
-    public String toString() {
-        return serialize();
-    }
-
-    public abstract Menu getMenu();
-
-    /**
-     * Returns if the action should be processed
-     *
-     * @param player the player
-     * @return if the action should be processed
-     */
-    public boolean processConditions(Player player) {
-        if (conditions == null || conditions.isEmpty()) return true; // no conditions
-
-        Set<Boolean> results = new HashSet<>(conditions.size());
-        conditions.forEach(conditional -> results.add(conditional.compute(player)));
-        return (mode == Condition.SelectionMode.ALL ? !results.contains(false) : results.contains(true));
-    }
-
-    private String getConditionSerialized() {
-        return CustomNPCs.getGson().toJson(conditions, Utils.CONDITIONS_LIST);
-    }
-
-    /**
      * Parses the base data required for every action. (SelectionMode, delay, and conditions)
      *
      * @param data The serialized action string
      * @return The parsed "base" data, required for every action.
      */
     protected static ParseResult parseBase(String data) {
+        int cooldown = parseInt(data, "cooldown");
         int delay = parseInt(data, "delay");
         Condition.SelectionMode mode = parseEnum(data, "mode", Condition.SelectionMode.class);
         List<Condition> conditions = deserializeConditions(parseString(data, "conditions"));
-        return new ParseResult(delay, mode, conditions);
+        return new ParseResult(delay, mode, conditions, cooldown);
     }
 
     /**
@@ -181,10 +143,14 @@ public abstract class Action {
      *
      * @param data The serialized action string
      * @param key  the key to search for, ie `delay`
-     * @return The parsed integer.
+     * @return The parsed integer. 0, if the key is not found.
      */
     protected static int parseInt(String data, String key) {
-        return Integer.parseInt(data.replaceAll(".*" + key + "=(\\d+).*", "$1"));
+        try {
+            return Integer.parseInt(data.replaceAll(".*" + key + "=(\\d+).*", "$1"));
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
     }
 
     /**
@@ -242,6 +208,75 @@ public abstract class Action {
         return Double.parseDouble(data.replaceAll(".*" + key + "=(-?\\d+\\.\\d+).*", "$1"));
     }
 
+    public boolean isOnCooldown(UUID uuid) {
+        if (!cooldowns.containsKey(uuid)) return false;
+        Instant i = cooldowns.get(uuid);
+        if (i.isBefore(Instant.now())) {
+            cooldowns.remove(uuid);
+            return false;
+        }
+        return true;
+    }
+
+    public void activateCooldown(UUID uuid) {
+        if (cooldown == 0) return;
+        cooldowns.put(uuid, Instant.now().plusMillis(50L * cooldown));
+    }
+
+    /**
+     * A convenience method to add a condition to the action
+     *
+     * @param condition the condition to add
+     */
+    public void addCondition(Condition condition) {
+        conditions.add(condition);
+    }
+
+    public void removeCondition(Condition condition) {
+        conditions.remove(condition);
+    }
+
+    /**
+     * Contains the execution of the action
+     *
+     * @param npc    The NPC
+     * @param menu   The menu
+     * @param player The player
+     */
+    public abstract void perform(InternalNpc npc, Menu menu, Player player);
+
+    /**
+     * Serializes the action to a string
+     */
+    public abstract String serialize();
+
+    public abstract ItemStack getFavicon(Player player);
+
+    @Override
+    public String toString() {
+        return serialize();
+    }
+
+    public abstract Menu getMenu();
+
+    /**
+     * Returns if the action should be processed. This takes the cooldown into account.
+     *
+     * @param player the player
+     * @return if the action should be processed
+     */
+    public boolean processConditions(Player player) {
+        if (isOnCooldown(player.getUniqueId())) return false;
+        if (conditions == null || conditions.isEmpty()) return true; // no conditions
+        Set<Boolean> results = new HashSet<>(conditions.size());
+        conditions.forEach(conditional -> results.add(conditional.compute(player)));
+        return (mode == Condition.SelectionMode.ALL ? !results.contains(false) : results.contains(true));
+    }
+
+    private String getConditionSerialized() {
+        return CustomNPCs.getGson().toJson(conditions, Utils.CONDITIONS_LIST);
+    }
+
     /**
      * Generates the serialized string for storing Actions.
      * <p>
@@ -256,6 +291,7 @@ public abstract class Action {
         base.put("delay", delay);
         base.put("mode", mode);
         base.put("conditions", getConditionSerialized());
+        base.put("cooldown", cooldown);
 
         StringBuilder builder = new StringBuilder(id);
         builder.append("{");
@@ -297,5 +333,14 @@ public abstract class Action {
 
     public abstract Action clone();
 
-    protected record ParseResult (int delay, Condition.SelectionMode mode, List<Condition> conditions) { }
+    protected record ParseResult(int delay, Condition.SelectionMode mode, List<Condition> conditions, int cooldown) {
+        /**
+         * @deprecated Use {@link ParseResult#ParseResult(int, Condition.SelectionMode, List, int)}}
+         */
+        @Deprecated
+        @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
+        public ParseResult(int delay, Condition.SelectionMode mode, List<Condition> conditions) {
+            this(delay, mode, conditions, 0);
+        }
+    }
 }

@@ -180,23 +180,23 @@ public class LegacyAction {
     @Nullable
     public Action toAction() {
         return switch (actionType) {
-            case ACTION_BAR -> new ActionBar(String.join(" ", args), delay, mode, conditionals);
-            case SEND_MESSAGE -> new SendMessage(String.join(" ", args), delay, mode, conditionals);
+            case ACTION_BAR -> new ActionBar(String.join(" ", args), delay, mode, conditionals, 0);
+            case SEND_MESSAGE -> new SendMessage(String.join(" ", args), delay, mode, conditionals, 0);
             case DISPLAY_TITLE ->
-                    new DisplayTitle(String.join(" ", args.subList(3, args.size() - 1)), "", Integer.parseInt(args.get(0)), Integer.parseInt(args.get(1)), Integer.parseInt(args.get(2)), delay, mode, conditionals);
-            case RUN_COMMAND -> new RunCommand(String.join(" ", args), false, delay, mode, conditionals);
+                    new DisplayTitle(String.join(" ", args.subList(3, args.size() - 1)), "", Integer.parseInt(args.get(0)), Integer.parseInt(args.get(1)), Integer.parseInt(args.get(2)), delay, mode, conditionals, 0);
+            case RUN_COMMAND -> new RunCommand(String.join(" ", args), false, delay, mode, conditionals, 0);
             case TELEPORT ->
-                    new Teleport(Double.parseDouble(args.get(0)), Double.parseDouble(args.get(1)), Double.parseDouble(args.get(2)), Float.parseFloat(args.get(3)), Float.parseFloat(args.get(4)), delay, mode, conditionals);
+                    new Teleport(Double.parseDouble(args.get(0)), Double.parseDouble(args.get(1)), Double.parseDouble(args.get(2)), Float.parseFloat(args.get(3)), Float.parseFloat(args.get(4)), delay, mode, conditionals, 0);
             case GIVE_EXP ->
-                    new GiveXP(Integer.parseInt(args.get(0)), Boolean.parseBoolean(args.get(1)), delay, mode, conditionals);
+                    new GiveXP(Integer.parseInt(args.get(0)), Boolean.parseBoolean(args.get(1)), delay, mode, conditionals, 0);
             case ADD_EFFECT ->
-                    new GiveEffect(args.get(3), Integer.parseInt(args.get(0)), Integer.parseInt(args.get(1)), Boolean.parseBoolean(args.get(2)), delay, mode, conditionals);
+                    new GiveEffect(args.get(3), Integer.parseInt(args.get(0)), Integer.parseInt(args.get(1)), Boolean.parseBoolean(args.get(2)), delay, mode, conditionals, 0);
             case PLAY_SOUND ->
-                    new PlaySound(args.get(2), Float.parseFloat(args.get(1)), Float.parseFloat(args.get(0)), delay, mode, conditionals);
+                    new PlaySound(args.get(2), Float.parseFloat(args.get(1)), Float.parseFloat(args.get(0)), delay, mode, conditionals, 0);
             case REMOVE_EXP ->
-                    new RemoveXP(Integer.parseInt(args.get(0)), Boolean.parseBoolean(args.get(1)), delay, mode, conditionals);
-            case REMOVE_EFFECT -> new RemoveEffect(args.get(0), delay, mode, conditionals);
-            case SEND_TO_SERVER -> new SendServer(String.join(" ", args), delay, mode, conditionals);
+                    new RemoveXP(Integer.parseInt(args.get(0)), Boolean.parseBoolean(args.get(1)), delay, mode, conditionals, 0);
+            case REMOVE_EFFECT -> new RemoveEffect(args.get(0), delay, mode, conditionals, 0);
+            case SEND_TO_SERVER -> new SendServer(String.join(" ", args), delay, mode, conditionals, 0);
             case TOGGLE_FOLLOWING -> throw new IllegalArgumentException("Toggle following is no longer supported");
         };
     }

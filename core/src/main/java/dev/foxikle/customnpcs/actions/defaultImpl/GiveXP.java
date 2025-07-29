@@ -44,6 +44,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -66,7 +67,7 @@ public class GiveXP extends Action {
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    GiveXP actionImpl = new GiveXP(1, true, 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    GiveXP actionImpl = new GiveXP(1, true, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -81,8 +82,22 @@ public class GiveXP extends Action {
      * @param levels if the xp is in levels
      * @param amount the number
      */
+    public GiveXP(int amount, boolean levels, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+        super(delay, mode, conditionals, cooldown);
+        this.levels = levels;
+        this.amount = amount;
+    }
+
+    /**
+     * Creates a new SendMessage with the specified message
+     *
+     * @param levels if the xp is in levels
+     * @param amount the number
+     */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
     public GiveXP(int amount, boolean levels, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals);
+        super(delay, mode, conditionals, 0);
         this.levels = levels;
         this.amount = amount;
     }
@@ -96,7 +111,7 @@ public class GiveXP extends Action {
         boolean levels = parseBoolean(serialized, "levels");
         ParseResult pr = parseBase(serialized);
 
-        GiveXP message = new GiveXP(amount, levels, pr.delay(), pr.mode(), pr.conditions());
+        GiveXP message = new GiveXP(amount, levels, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
 
         return clazz.cast(message);
     }
@@ -131,6 +146,7 @@ public class GiveXP extends Action {
         } else {
             player.giveExp(amount, true);
         }
+        activateCooldown(player.getUniqueId());
     }
 
     @Override
@@ -140,7 +156,7 @@ public class GiveXP extends Action {
 
     @Override
     public Action clone() {
-        return new GiveXP(amount, levels, getDelay(), getMode(), new ArrayList<>(getConditions()));
+        return new GiveXP(amount, levels, getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
     }
 
     @Override

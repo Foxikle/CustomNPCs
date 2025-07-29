@@ -46,6 +46,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -59,6 +60,31 @@ import static org.bukkit.Material.PAPER;
 @Setter
 public class SendMessage extends Action {
 
+    private String rawMessage;
+
+    /**
+     * Creates a new SendMessage with the specified message
+     *
+     * @param rawMessage The raw message
+     */
+    public SendMessage(String rawMessage, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+        super(delay, mode, conditionals, cooldown);
+        this.rawMessage = rawMessage;
+    }
+
+    /**
+     * Creates a new SendMessage with the specified message
+     *
+     * @param rawMessage The raw message
+     * @deprecated Use {@link SendMessage#SendMessage(String, int, Condition.SelectionMode, List, int)}
+     */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
+    public SendMessage(String rawMessage, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+        super(delay, mode, conditionals);
+        this.rawMessage = rawMessage;
+    }
+
     public static Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(PAPER)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.message"))
@@ -69,22 +95,10 @@ public class SendMessage extends Action {
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    SendMessage actionImpl = new SendMessage("", 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    SendMessage actionImpl = new SendMessage("", 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
-    }
-
-    private String rawMessage;
-
-    /**
-     * Creates a new SendMessage with the specified message
-     *
-     * @param rawMessage The raw message
-     */
-    public SendMessage(String rawMessage, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals);
-        this.rawMessage = rawMessage;
     }
 
     public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
@@ -93,7 +107,7 @@ public class SendMessage extends Action {
         }
         String rawMessage = parseString(serialized, "raw");
         ParseResult pr = parseBase(serialized);
-        SendMessage message = new SendMessage(rawMessage, pr.delay(), pr.mode(), pr.conditions());
+        SendMessage message = new SendMessage(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
 
         return clazz.cast(message);
     }
@@ -125,13 +139,14 @@ public class SendMessage extends Action {
      */
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
-        if (processConditions(player)) {
-            if (CustomNPCs.getInstance().papi) {
-                player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(PlaceholderAPI.setPlaceholders(player, rawMessage)));
-            } else {
-                player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(rawMessage));
-            }
+        if (!processConditions(player)) return;
+
+        if (CustomNPCs.getInstance().papi) {
+            player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(PlaceholderAPI.setPlaceholders(player, rawMessage)));
+        } else {
+            player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(rawMessage));
         }
+        activateCooldown(player.getUniqueId());
     }
 
     @Override
@@ -141,7 +156,7 @@ public class SendMessage extends Action {
 
     @Override
     public Action clone() {
-        return new SendMessage(rawMessage, getDelay(), getMode(), getConditions());
+        return new SendMessage(rawMessage, getDelay(), getMode(), getConditions(), getCooldown());
     }
 
     public class SendMessageCustomizer implements Menu {
