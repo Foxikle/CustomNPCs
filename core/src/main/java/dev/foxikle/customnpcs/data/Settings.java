@@ -23,23 +23,24 @@
 package dev.foxikle.customnpcs.data;
 
 import com.destroystokyo.paper.profile.ProfileProperty;
+import dev.foxikle.customnpcs.api.NPC;
 import dev.foxikle.customnpcs.api.Pose;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Color;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
  * A class holding the data for an NPC's settings
  */
-@Setter
-//@Builder
 @AllArgsConstructor
+@SuppressWarnings({"UnusedReturnValue", "unused"})
 public class Settings {
 
 
@@ -74,7 +75,6 @@ public class Settings {
     boolean hideBackgroundHologram = false;
     @Getter
     boolean upsideDown = false;
-
 
     /**
      * Creates a settings object with the specified settings
@@ -234,6 +234,142 @@ public class Settings {
     }
 
     /**
+     * Sets if this NPC should be interactable, and if the plugin should process actions, and show the clickable
+     * hologram. Showing the hologram can be overridden with {@link Settings#setHideClickableHologram(boolean)}.
+     *
+     * @param interactable if this NPC should be interactable
+     * @return this, for chaining.
+     */
+    public Settings setInteractable(boolean interactable) {
+        this.interactable = interactable;
+        return this;
+    }
+
+    /**
+     * Sets if this NPC has tunnel vision. If this NPC has tunnel vision, it will not look at nearby players.
+     * To set the direction the NPC looks, there are 3 options.
+     * <br>
+     * {@link NPC#setFacing(float, float)} uses an arbitrary pitch and yaw
+     * <br>
+     * {@link NPC#lookAt(Location)} uses a point in the world to look at
+     * <br>
+     * {@link NPC#lookAt(Entity, boolean)} looks at some point on an entity. true corresponds
+     * to the head of the entity, and false corresponds to the feet of the entity
+     *
+     * @param tunnelvision true to ignore nearby players, false otherwise.
+     * @return this, for chaining.
+     */
+    public Settings setTunnelvision(boolean tunnelvision) {
+        this.tunnelvision = tunnelvision;
+        return this;
+    }
+
+    /**
+     * Sets if this NPC should persist on server restarts. It defaults to <strong>true</strong>. Setting this to false
+     * prevents the plugin from saving this npc.
+     *
+     * @param resilient true to save this npc, false to keep it as a temporary NPC.
+     * @return this, for chaining.
+     */
+    public Settings setResilient(boolean resilient) {
+        this.resilient = resilient;
+        return this;
+    }
+
+    /**
+     * Deprecated: - use {@link NPC#setFacing(float, float)}, {@link NPC#lookAt(Entity, boolean)}, or
+     * {@link NPC#lookAt(Location)} instead.
+     */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
+    public Settings setDirection(double direction) {
+        this.direction = direction;
+        return this;
+    }
+
+    /**
+     * Sets the ticks this NPC should be interpolated for on move. This defaults to the value defined in the config,
+     * but can be overridden for this NPC directly. The interpolation makes the nametags move more smoothly with the
+     * NPC.
+     *
+     * @param duration the number of ticks to interpolate a movement over.
+     * @return this, for chaining.
+     */
+    public Settings setInterpolationDuration(int duration) {
+        this.interpolationDuration = duration;
+        return this;
+    }
+
+    /**
+     * Sets if the "CLICK" hologram (default) should be hidden. If the NPC is not interactable, this setting
+     * has no effect. This defaults to false.
+     *
+     * @param hideClickableHologram true to hide, false to show (default)
+     * @return this, for chaining
+     */
+    public Settings setHideClickableHologram(boolean hideClickableHologram) {
+        this.hideClickableHologram = hideClickableHologram;
+        return this;
+    }
+
+    /**
+     * Allows the "CLICK" hologram (default) to be overridden from the value defined in the config.yml.
+     *
+     * @param customHologram the minimessage encoded component to replace the default with
+     * @return this, for chaining
+     */
+    public Settings setCustomInteractableHologram(String customHologram) {
+        this.customInteractableHologram = customHologram;
+        return this;
+    }
+
+    /**
+     * Allows the "CLICK" hologram (default) to be overridden from the value defined in the config.yml.
+     *
+     * @param customHologram the component to replace the default with
+     * @return this, for chaining
+     */
+    public Settings setCustomInteractableHologram(Component customHologram) {
+        this.customInteractableHologram = MiniMessage.miniMessage().serialize(customHologram);
+        return this;
+    }
+
+    /**
+     * Allows the NPC's pose to be changed. Please note that some poses, like {@link Pose#SLEEPING} and
+     * {@link Pose#SWIMMING} have very small hitboxes, and are hard and/or annoying to interact with.
+     *
+     * @param pose the {@link Pose} to use
+     * @return this, for chaining.
+     */
+    public Settings setPose(Pose pose) {
+        this.pose = pose;
+        return this;
+    }
+
+    @ApiStatus.Experimental
+    public Settings setHologramBackground(Color color) {
+        this.hologramBackground = color;
+        return this;
+    }
+
+    @ApiStatus.Experimental
+    public Settings setHideBackgroundHologram(boolean hideBackgroundHologram) {
+        this.hideBackgroundHologram = hideBackgroundHologram;
+        return this;
+    }
+
+    /**
+     * Allows for setting the NPC's model upside down as if it was named "Dinnerbone" or "Grumm". Defaults to false.
+     *
+     * @param upsideDown true to make the model upsidedown, false for regular.
+     * @return this, for chaining.
+     */
+    public Settings setUpsideDown(boolean upsideDown) {
+        this.upsideDown = upsideDown;
+        return this;
+    }
+
+    /**
      * Gets the contents of NPC's holograms. Index 0 corresponds to the top (first) line.
      *
      * @return the NPC's holograms, as components
@@ -251,11 +387,12 @@ public class Settings {
      *
      * @param holograms the collection of components
      */
-    public void setHolograms(Component... holograms) {
+    public Settings setHolograms(Component... holograms) {
         this.holograms = new String[holograms.length];
         for (int i = 0; i < holograms.length; i++) {
             this.holograms[i] = MiniMessage.miniMessage().serialize(holograms[i]);
         }
+        return this;
     }
 
     /**
@@ -272,8 +409,9 @@ public class Settings {
      *
      * @param holograms the collection of strings, optionally in minimessage format
      */
-    public void setRawHolograms(String... holograms) {
+    public Settings setRawHolograms(String... holograms) {
         this.holograms = holograms;
+        return this;
     }
 
     /**
@@ -299,13 +437,14 @@ public class Settings {
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public void setName(Component name) {
+    public Settings setName(Component name) {
         String serialized = MiniMessage.miniMessage().serialize(name);
         if (holograms.length > 0) {
             holograms[0] = serialized;
-            return;
+            return this;
         }
         holograms = new String[]{serialized};
+        return this;
     }
 
     /**
@@ -316,12 +455,13 @@ public class Settings {
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public void setName(String name) {
+    public Settings setName(String name) {
         if (holograms.length > 0) {
             holograms[0] = name;
-            return;
+            return this;
         }
         holograms = new String[]{name};
+        return this;
     }
 
     /**
@@ -331,13 +471,14 @@ public class Settings {
      * @param value     the skin value
      * @param skinName  the cosmetic name
      */
-    public void setSkinData(String signature, String value, String skinName) {
+    public Settings setSkinData(String signature, String value, String skinName) {
         this.signature = signature;
         this.value = value;
         this.skinName = skinName;
+        return this;
     }
 
-    public void setSkin(Player player) {
+    public Settings setSkin(Player player) {
         String signature = null;
         String value = null;
         for (ProfileProperty property : player.getPlayerProfile().getProperties()) {
@@ -352,6 +493,7 @@ public class Settings {
         this.signature = signature;
         this.value = value;
         this.skinName = player.getName() + "'s skin";
+        return this;
     }
 
     @SuppressWarnings("all")
