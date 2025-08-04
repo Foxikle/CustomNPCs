@@ -151,6 +151,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         this.setPos(location.getX(), location.getY(), location.getZ());
         this.setXRot(location.getPitch());
         this.setYRot(location.getYaw());
+        lookAt(Utils.calcLocation(this));
     }
 
     @Override
@@ -298,7 +299,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
         ClientboundAddPlayerPacket namedEntitySpawn = new ClientboundAddPlayerPacket(this);
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
-        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getYRot() * 256 / 360), (byte) (0 / 360), true);
+        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getYRot() * 256 / 360), (byte) (getXRot() * 256 / 360), true);
         ClientboundSetPassengersPacket hideName = new ClientboundSetPassengersPacket(this);
         super.detectEquipmentUpdates();
         setSkin();

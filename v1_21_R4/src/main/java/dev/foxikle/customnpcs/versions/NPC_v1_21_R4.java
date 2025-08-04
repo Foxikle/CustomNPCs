@@ -145,6 +145,7 @@ public class NPC_v1_21_R4 extends ServerPlayer implements InternalNpc {
         this.setPos(location.getX(), location.getY(), location.getZ());
         this.setXRot(location.getPitch());
         this.setYRot(location.getYaw());
+        lookAt(Utils.calcLocation(this));
     }
 
     public void createNPC() {
@@ -188,7 +189,6 @@ public class NPC_v1_21_R4 extends ServerPlayer implements InternalNpc {
 
         injectionManager = new InjectionManager(plugin, this);
         injectionManager.setup();
-        lookAt(Utils.calcLocation(this));
     }
 
     public void setSkin() {
@@ -277,7 +277,7 @@ public class NPC_v1_21_R4 extends ServerPlayer implements InternalNpc {
                 getYRot(), getXRot(), net.minecraft.world.entity.EntityType.PLAYER, 0, new Vec3(0, 0, 0), getYRot());
         ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
-        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getYRot() * 256 / 360), (byte) (0 / 360), true);
+        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getYRot() * 256 / 360), (byte) (getXRot() * 256 / 360), true);
         setSkin();
         ClientboundSetPassengersPacket hideName = new ClientboundSetPassengersPacket(this);
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
