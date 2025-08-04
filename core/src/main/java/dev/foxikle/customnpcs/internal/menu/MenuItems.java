@@ -986,13 +986,14 @@ public class MenuItems {
     }
 
     public static Button upsideDown(InternalNpc npc, Player player) {
+        List<Component> lore = Utils.list(Component.empty(),
+                Msg.translate(player.locale(), "customnpcs.menus.extra.upside_down.description"));
         boolean upsideDown = npc.getSettings().isUpsideDown();
-        ItemStack i = ItemBuilder.modern(upsideDown ? RED_CANDLE : GREEN_CANDLE)
+        lore.addAll(List.of(upsideDown ? Msg.lore(player.locale(), "customnpcs.menus.extra.upside_down.description.true") : Msg.lore(player.locale(), "customnpcs.menus.extra.upside_down.description.false")));
+        ItemStack i = ItemBuilder.modern(upsideDown ? GREEN_CANDLE : RED_CANDLE)
                 .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.extra.upside_down"))
                 .setLore(
-                        Component.empty(),
-                        Msg.translate(player.locale(), "customnpcs.menus.extra.upside_down.description"),
-                        upsideDown ? Msg.translate(player.locale(), "customnpcs.menus.extra.upside_down.description.false") : Msg.translate(player.locale(), "customnpcs.menus.extra.upside_down.description.true")
+                        lore
                 ).build();
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
