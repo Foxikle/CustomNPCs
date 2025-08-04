@@ -25,7 +25,8 @@ package dev.foxikle.customnpcs.api;
 import lombok.Getter;
 
 /**
- * A class that loosely wraps the Bukkit pose class, which is used internally. It would hold the y offsets for the holograms, but 1.20 broke that :/
+ * A class that loosely wraps the Bukkit pose class, which is used internally. It would hold the y offsets for the
+ * holograms, but 1.20 broke that :/
  *
  * @author Foxikle
  * @since 1.7.5-pre2
