@@ -963,7 +963,7 @@ public class MenuItems {
             p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             event.setCancelled(true);
             npc.getSettings().setHideClickableHologram(!hideClickableTag);
-            menuView.replaceButton(12, interactableHologram(npc, p));
+            menuView.replaceButton(11, interactableHologram(npc, p));
         }));
     }
 
@@ -982,6 +982,25 @@ public class MenuItems {
             p.closeInventory();
             p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.extra.hologram_text.type"));
             new InteractableHologramRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
+        }));
+    }
+
+    public static Button upsideDown(InternalNpc npc, Player player) {
+        boolean upsideDown = npc.getSettings().isHideClickableHologram();
+        ItemStack i = ItemBuilder.modern(upsideDown ? RED_CANDLE : GREEN_CANDLE)
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.extra.upside_down"))
+                .setLore(
+                        Component.empty(),
+                        Msg.translate(player.locale(), "customnpcs.menus.extra.upside_down.description"),
+                        upsideDown ? Msg.translate(player.locale(), "customnpcs.menus.extra.upside_down.description.false") : Msg.translate(player.locale(), "customnpcs.menus.extra.upside_down.description.true")
+                ).build();
+
+        return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            event.setCancelled(true);
+            npc.getSettings().setUpsideDown(!upsideDown);
+            menuView.replaceButton(15, upsideDown(npc, p));
         }));
     }
 

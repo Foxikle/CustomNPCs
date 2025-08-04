@@ -72,8 +72,9 @@ public class ExtraSettingsMenu implements Menu {
 
         return Content.builder(capacity)
                 .apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(12, MenuItems.interactableHologram(npc, player))
-                .setButton(14, MenuItems.interactableText(player))
+                .setButton(11, MenuItems.interactableHologram(npc, player))
+                .setButton(13, MenuItems.interactableText(player))
+                .setButton(15, MenuItems.upsideDown(npc, player))
                 .setButton(18, MenuItems.toMain(player))
                 .build();
     }

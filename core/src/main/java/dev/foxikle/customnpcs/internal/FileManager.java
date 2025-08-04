@@ -531,6 +531,7 @@ public class FileManager {
         section.addDefault("pose", npc.getSettings().getPose().name());
         section.addDefault("world", npc.getWorld().getName());
         section.addDefault("tunnelvision", npc.getSettings().isTunnelvision());
+        section.addDefault("upsideDown", npc.getSettings().isUpsideDown());
         yml.options().copyDefaults(true);
         try {
             yml.save(file);
@@ -644,7 +645,8 @@ public class FileManager {
                         section.getStringList("lines").toArray(new String[0]),
                         section.getString("customHologram"),
                         section.getBoolean("hideInteractableHologram"),
-                        parsePose(section.getString("pose"))
+                        parsePose(section.getString("pose")),
+                        section.getBoolean("upsideDown")
                 ), uuid, null, actions);
         if (npc != null) {
             npc.createNPC();
