@@ -986,7 +986,7 @@ public class MenuItems {
     }
 
     public static Button upsideDown(InternalNpc npc, Player player) {
-        boolean upsideDown = npc.getSettings().isHideClickableHologram();
+        boolean upsideDown = npc.getSettings().isUpsideDown();
         ItemStack i = ItemBuilder.modern(upsideDown ? RED_CANDLE : GREEN_CANDLE)
                 .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.extra.upside_down"))
                 .setLore(
