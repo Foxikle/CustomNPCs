@@ -42,48 +42,38 @@ import org.jetbrains.annotations.ApiStatus;
 @AllArgsConstructor
 public class Settings {
 
-    //@Builder.Default
+
     @Getter
     boolean interactable = false;
-    //@Builder.Default
     @Getter
     boolean tunnelvision = false;
-    //@Builder.Default
     @Getter
     boolean resilient = true;
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
     @Getter
     double direction = 180;
-    //@Builder.Default
     @Getter
     int interpolationDuration = CustomNPCs.INTERPOLATION_DURATION;
     @Getter
-//@Builder.Default
     String value = "";
     @Getter
-//@Builder.Default
     String signature = "";
-    //@Builder.Default
-    String[] holograms = new String[]{"An Unamed NPC"};
+    String[] holograms = new String[]{"An Unnamed NPC"};
     @Getter
-//@Builder.Default
     String skinName = "not set";
     @Getter
-//@Builder.Default
     boolean hideClickableHologram = false;
     @Getter
-//@Builder.Default
     String customInteractableHologram = "";
     @Getter
-//@Builder.Default
     Pose pose = Pose.STANDING;
     @Getter
-//@Builder.Default
     Color hologramBackground = null;
     @Getter
-//@Builder.Default
     boolean hideBackgroundHologram = false;
+    @Getter
+    boolean upsideDown = false;
 
 
     /**
@@ -161,6 +151,8 @@ public class Settings {
      * @param hideClickableHologram      If the NPC's Clickable hologram should be hidden
      * @param pose                       The Pose of the NPC
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
     public Settings(boolean interactable, boolean tunnelvision, boolean resilient, double direction, String value, String signature, String skinName, String[] holograms, String customInteractableHologram, boolean hideClickableHologram, Pose pose) {
         this.interactable = interactable;
         this.tunnelvision = tunnelvision;
@@ -173,6 +165,36 @@ public class Settings {
         this.hideClickableHologram = hideClickableHologram;
         this.customInteractableHologram = customInteractableHologram;
         this.pose = pose;
+    }
+
+    /**
+     * Creates a settings object with the specified settings
+     *
+     * @param interactable               If the npc has actions to execute
+     * @param tunnelvision               If the npc will look at players
+     * @param resilient                  If the npc will persist on restarts
+     * @param direction                  The direction to look
+     * @param value                      The value of the npc's skin
+     * @param signature                  The signature of the npc's skin
+     * @param skinName                   The name of the skin as it is referenced in the Menu
+     * @param holograms                  The lines of the NPC's hologram, formatted in SERIALIZED minimessage format. Index 0 corresponds to the top (first) line.
+     * @param customInteractableHologram The custom hologram
+     * @param hideClickableHologram      If the NPC's Clickable hologram should be hidden
+     * @param pose                       The Pose of the NPC
+     */
+    public Settings(boolean interactable, boolean tunnelvision, boolean resilient, double direction, String value, String signature, String skinName, String[] holograms, String customInteractableHologram, boolean hideClickableHologram, Pose pose, boolean upsideDown) {
+        this.interactable = interactable;
+        this.tunnelvision = tunnelvision;
+        this.resilient = resilient;
+        this.direction = direction;
+        this.value = value;
+        this.signature = signature;
+        this.skinName = skinName;
+        this.holograms = holograms;
+        this.hideClickableHologram = hideClickableHologram;
+        this.customInteractableHologram = customInteractableHologram;
+        this.pose = pose;
+        this.upsideDown = upsideDown;
     }
 
     /**

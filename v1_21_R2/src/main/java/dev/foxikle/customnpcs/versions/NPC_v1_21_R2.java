@@ -141,7 +141,7 @@ public class NPC_v1_21_R2 extends ServerPlayer implements InternalNpc {
      * @param equipment   The NPC's equipment
      */
     public NPC_v1_21_R2(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uniqueID, @Nullable Player target, List<Action> actions) {
-        super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uniqueID, uniqueID.toString().substring(0, 16)), ClientInformation.createDefault());
+        super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uniqueID, Utils.getNpcName(settings, uniqueID)), ClientInformation.createDefault());
         this.spawnLoc = spawnLoc;
         this.equipment = equipment;
         this.settings = settings;
@@ -318,8 +318,9 @@ public class NPC_v1_21_R2 extends ServerPlayer implements InternalNpc {
         }
 
         Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> connection.send(playerInforemove), 30);
-        super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
-
+        if (!settings.isUpsideDown()) {
+            super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
+        }
         // create them
         Bukkit.getScheduler().runTaskLater(plugin, () -> injectHolograms(p), 3);
         injectHolograms(p);

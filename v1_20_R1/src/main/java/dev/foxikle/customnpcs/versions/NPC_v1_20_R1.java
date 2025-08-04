@@ -125,7 +125,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
      * @param settings  The NPC's settings
      */
     public NPC_v1_20_R1(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uniqueID, @Nullable Player target, List<Action> actions) {
-        super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uniqueID, uniqueID.toString().substring(0, 16)));
+        super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uniqueID, Utils.getNpcName(settings, uniqueID)));
         this.spawnLoc = spawnLoc;
         this.equipment = equipment;
         this.world = spawnLoc.getWorld();
@@ -320,8 +320,9 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
 
         Bukkit.getScheduler().runTaskLaterAsynchronously(CustomNPCs.getInstance(), () -> connection.send(playerInforemove), 30);
 
-        super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
-
+        if (!settings.isUpsideDown()) {
+            super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
+        }
 
         // create them
         injectHolograms(p);

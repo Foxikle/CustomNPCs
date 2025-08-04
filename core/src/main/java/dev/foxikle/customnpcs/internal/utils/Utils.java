@@ -24,16 +24,19 @@ package dev.foxikle.customnpcs.internal.utils;
 
 import com.google.common.reflect.TypeToken;
 import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * A class holding usful methods
@@ -88,6 +91,11 @@ public class Utils {
      */
     public static int getTotalExperience(Player player) {
         return Math.round(player.getExp() * player.getExpToLevel()) + getTotalExperience(player.getLevel());
+    }
+
+    @ApiStatus.Internal
+    public static String getNpcName(Settings settings, UUID npcUUID) {
+        return settings.isUpsideDown() ? "Dinnerbone" : npcUUID.toString().substring(0, 16);
     }
 
     /**
