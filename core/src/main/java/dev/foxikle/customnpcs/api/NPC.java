@@ -25,8 +25,9 @@ package dev.foxikle.customnpcs.api;
 import com.google.common.base.Preconditions;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.LegacyAction;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.api.events.NpcDeleteEvent;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
@@ -80,7 +81,7 @@ public class NPC {
         UUID uuid = UUID.randomUUID();
         Settings settings = new Settings();
         settings.setResilient(false);
-        this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), new Equipment(), settings, uuid, null, new ArrayList<>(), new ArrayList<>(), Condition.SelectionMode.ONE);
+        this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), new Equipment(), settings, uuid, null, new ArrayList<>(), new ArrayList<>(), Selector.ONE);
     }
 
     /**

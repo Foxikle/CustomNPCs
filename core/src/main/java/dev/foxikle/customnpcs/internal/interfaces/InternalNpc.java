@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.internal.interfaces;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.InjectionManager;
@@ -73,13 +74,13 @@ public interface InternalNpc {
 
     /**
      * Gets which selection mode should be used when determining if this NPC should be injectioned
-     * @return return the desired {@link Condition.SelectionMode}
+     * @return return the desired {@link Selector}
      */
-    Condition.SelectionMode getInjectionSelectionMode();
+    Selector getInjectionSelectionMode();
 
     void setInjectionConditions(List<Condition> conditions);
 
-    void setInjectionSelectionMode(Condition.SelectionMode mode);
+    void setInjectionSelectionMode(Selector mode);
 
     /**
      * <p> Creates the NPC and injects it into every player
@@ -351,6 +352,6 @@ public interface InternalNpc {
     default boolean passesInectionConditions(Player player) {
         Map<Condition, Boolean> map = evaluateInjectionConditions(player);
         if (map.isEmpty()) return true;
-        return (getInjectionSelectionMode() == Condition.SelectionMode.ALL ? !map.containsValue(false) : map.containsValue(true));
+        return (getInjectionSelectionMode() == Selector.ALL ? !map.containsValue(false) : map.containsValue(true));
     }
 }

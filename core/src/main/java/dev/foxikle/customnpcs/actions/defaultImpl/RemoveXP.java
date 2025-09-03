@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -68,7 +69,7 @@ public class RemoveXP extends Action {
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    RemoveXP actionImpl = new RemoveXP(1, true, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    RemoveXP actionImpl = new RemoveXP(1, true, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -83,7 +84,7 @@ public class RemoveXP extends Action {
      * @param levels if the xp is in levels
      * @param amount the number of XP to remove
      */
-    public RemoveXP(int amount, boolean levels, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public RemoveXP(int amount, boolean levels, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.levels = levels;
         this.amount = amount;
@@ -94,11 +95,11 @@ public class RemoveXP extends Action {
      *
      * @param levels if the xp is in levels
      * @param amount the number of XP to remove
-     * @deprecated Use {@link #RemoveXP(int, boolean, int, Condition.SelectionMode, List, int)}
+     * @deprecated Use {@link #RemoveXP(int, boolean, int, Selector, List, int)}
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public RemoveXP(int amount, boolean levels, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+    public RemoveXP(int amount, boolean levels, int delay, Selector mode, List<Condition> conditionals) {
         super(delay, mode, conditionals, 0);
         this.levels = levels;
         this.amount = amount;

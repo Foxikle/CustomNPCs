@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -71,7 +72,7 @@ public class RunCommand extends Action {
                     Player p = (Player) event.getWhoClicked();
                     event.setCancelled(true);
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    RunCommand actionImpl = new RunCommand("say hi", false, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    RunCommand actionImpl = new RunCommand("say hi", false, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -90,7 +91,7 @@ public class RunCommand extends Action {
      * @param mode         The mode
      * @param conditionals The conditionals
      */
-    public RunCommand(String rawCommand, boolean asConsole, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public RunCommand(String rawCommand, boolean asConsole, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.command = rawCommand;
         this.asConsole = asConsole;
@@ -104,11 +105,11 @@ public class RunCommand extends Action {
      * @param delay        The delay
      * @param mode         The mode
      * @param conditionals The conditionals
-     * @deprecated Use {@link #RunCommand(String, boolean, int, Condition.SelectionMode, List, int)}
+     * @deprecated Use {@link #RunCommand(String, boolean, int, Selector, List, int)}
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public RunCommand(String rawCommand, boolean asConsole, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+    public RunCommand(String rawCommand, boolean asConsole, int delay, Selector mode, List<Condition> conditionals) {
         super(delay, mode, conditionals, 0);
         this.command = rawCommand;
         this.asConsole = asConsole;

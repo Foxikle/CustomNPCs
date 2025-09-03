@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -72,7 +73,7 @@ public class GiveEffect extends Action {
      *
      * @param effect The raw message
      */
-    public GiveEffect(String effect, int duration, int amplifier, boolean particles, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public GiveEffect(String effect, int duration, int amplifier, boolean particles, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.effect = effect;
         this.duration = duration;
@@ -84,11 +85,11 @@ public class GiveEffect extends Action {
      * Creates a new GiveEffect with the specified parameters
      *
      * @param effect The raw message
-     * @deprecated Use {@link #GiveEffect(String, int, int, boolean, int, Condition.SelectionMode, List, int)}
+     * @deprecated Use {@link #GiveEffect(String, int, int, boolean, int, Selector, List, int)}
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public GiveEffect(String effect, int duration, int amplifier, boolean particles, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+    public GiveEffect(String effect, int duration, int amplifier, boolean particles, int delay, Selector mode, List<Condition> conditionals) {
         super(delay, mode, conditionals, 0);
         this.effect = effect;
         this.duration = duration;
@@ -105,7 +106,7 @@ public class GiveEffect extends Action {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    GiveEffect actionImpl = new GiveEffect("SPEED", 100, 0, false, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    GiveEffect actionImpl = new GiveEffect("SPEED", 100, 0, false, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));

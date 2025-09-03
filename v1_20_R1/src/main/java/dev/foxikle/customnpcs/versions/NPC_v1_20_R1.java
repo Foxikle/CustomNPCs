@@ -26,8 +26,9 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.api.Pose;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
@@ -105,7 +106,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
     @Setter
     private List<Condition> injectionConditions;
     @Setter
-    private Condition.SelectionMode injectionSelectionMode;
+    private Selector injectionSelectionMode;
 
 
     /**
@@ -121,7 +122,7 @@ public class NPC_v1_20_R1 extends ServerPlayer implements InternalNpc {
      * @param equipment The NPC's equipment
      * @param settings  The NPC's settings
      */
-    public NPC_v1_20_R1(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uniqueID, @Nullable Player target, List<Action> actions, List<Condition> injectionConditions, Condition.SelectionMode injectionSelectionMode) {
+    public NPC_v1_20_R1(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uniqueID, @Nullable Player target, List<Action> actions, List<Condition> injectionConditions, Selector injectionSelectionMode) {
         super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uniqueID, Utils.getNpcName(settings, uniqueID)));
         this.spawnLoc = spawnLoc;
         this.equipment = equipment;

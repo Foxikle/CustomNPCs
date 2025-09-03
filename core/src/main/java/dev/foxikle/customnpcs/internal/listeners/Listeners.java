@@ -25,7 +25,7 @@ package dev.foxikle.customnpcs.internal.listeners;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.actions.defaultImpl.*;
 import dev.foxikle.customnpcs.api.events.NpcInteractEvent;
 import dev.foxikle.customnpcs.internal.CustomNPCs;

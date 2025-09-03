@@ -28,10 +28,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.LegacyAction;
-import dev.foxikle.customnpcs.actions.conditions.ActionAdapter;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
-import dev.foxikle.customnpcs.actions.conditions.ConditionalTypeAdapter;
+import dev.foxikle.customnpcs.actions.ActionAdapter;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.ConditionalTypeAdapter;
 import dev.foxikle.customnpcs.actions.defaultImpl.*;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.commands.NpcCommand;
@@ -471,11 +472,11 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * @return the created NPC
      * @throws RuntimeException If the reflective creation of the NPC object fails
      */
-    public InternalNpc createNPC(World world, Location location, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actions, List<Condition> conditions, Condition.SelectionMode injectionMode) {
+    public InternalNpc createNPC(World world, Location location, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actions, List<Condition> conditions, Selector injectionMode) {
         try {
             Class<?> clazz = Class.forName(String.format(NPC_CLASS, translateVersion()));
             return (InternalNpc) clazz
-                    .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class, UUID.class, Player.class, List.class, List.class, Condition.SelectionMode.class)
+                    .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class, UUID.class, Player.class, List.class, List.class, Selector.class)
                     .newInstance(this, world, location, equipment, settings, uuid, target, actions, conditions, injectionMode);
         } catch (ReflectiveOperationException e) {
             getLogger().log(Level.SEVERE, "An error occurred whilst creating the NPC '{name}! This is most likely a configuration issue.".replace("{name}", settings.getName()), e);

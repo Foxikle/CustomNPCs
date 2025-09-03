@@ -25,9 +25,7 @@ package dev.foxikle.customnpcs.internal.menu;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
-import dev.foxikle.customnpcs.actions.conditions.LogicalCondition;
-import dev.foxikle.customnpcs.actions.conditions.NumericCondition;
+import dev.foxikle.customnpcs.conditions.*;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
@@ -836,7 +834,7 @@ public class MenuItems {
     public static Button comparatorSwitcher(Condition condition, Player player) {
 
         List<Component> lore = new ArrayList<>();
-        for (Condition.Comparator c : Condition.Comparator.values()) {
+        for (Comparator c : Comparator.values()) {
             if (condition.getType() == Condition.Type.NUMERIC || (condition.getType() == Condition.Type.LOGICAL && c.isStrictlyLogical())) {
                 if (condition.getComparator() != c)
                     lore.add(Msg.translate(player.locale(), c.getKey()).color(NamedTextColor.GREEN));
@@ -853,8 +851,8 @@ public class MenuItems {
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
             event.setCancelled(true);
-            List<Condition.Comparator> comparators = new ArrayList<>();
-            for (Condition.Comparator value : Condition.Comparator.values()) {
+            List<Comparator> comparators = new ArrayList<>();
+            for (Comparator value : Comparator.values()) {
                 if (condition.getType() == Condition.Type.LOGICAL && !value.isStrictlyLogical()) {
                     continue;
                 }
@@ -1107,7 +1105,7 @@ public class MenuItems {
     }
 
     public static Button toggleConditionMode(Action action, Player player) {
-        boolean isAll = action.getMode() == Condition.SelectionMode.ALL;
+        boolean isAll = action.getMode() == Selector.ALL;
         ItemStack i = ItemBuilder.modern(isAll ? GREEN_CANDLE : RED_CANDLE)
                 .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.conditions.mode.toggle"))
                 .setLore(isAll ? Msg.translate(player.locale(), "customnpcs.menus.conditions.mode.all") : Msg.translate(player.locale(), "customnpcs.menus.conditions.mode.one"))
@@ -1117,7 +1115,7 @@ public class MenuItems {
             Player p = (Player) event.getWhoClicked();
             p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             event.setCancelled(true);
-            action.setMode(isAll ? Condition.SelectionMode.ONE : Condition.SelectionMode.ALL);
+            action.setMode(isAll ? Selector.ONE : Selector.ALL);
             menuView.replaceButton(35, toggleConditionMode(action, p));
         }));
     }
@@ -1158,7 +1156,7 @@ public class MenuItems {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            Condition conditional = new NumericCondition(Condition.Comparator.EQUAL_TO, Condition.Value.EXP_LEVELS, 0.0);
+            Condition conditional = new NumericCondition(Comparator.EQUAL_TO, Condition.Value.EXP_LEVELS, 0.0);
             plugin.originalEditingConditionals.remove(p.getUniqueId());
             plugin.editingConditionals.put(p.getUniqueId(), conditional);
             menuView.getAPI().openMenu(p, MenuUtils.NPC_CONDITION_CUSTOMIZER);
@@ -1175,7 +1173,7 @@ public class MenuItems {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            Condition conditional = new LogicalCondition(Condition.Comparator.EQUAL_TO, Condition.Value.GAMEMODE, "CREATIVE");
+            Condition conditional = new LogicalCondition(Comparator.EQUAL_TO, Condition.Value.GAMEMODE, "CREATIVE");
             plugin.originalEditingConditionals.remove(p.getUniqueId());
             plugin.editingConditionals.put(p.getUniqueId(), conditional);
             menuView.getAPI().openMenu(p, MenuUtils.NPC_CONDITION_CUSTOMIZER);

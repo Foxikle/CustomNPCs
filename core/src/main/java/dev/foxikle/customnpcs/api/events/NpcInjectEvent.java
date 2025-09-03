@@ -22,7 +22,7 @@
 
 package dev.foxikle.customnpcs.api.events;
 
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import lombok.Getter;
 import org.bukkit.entity.Player;

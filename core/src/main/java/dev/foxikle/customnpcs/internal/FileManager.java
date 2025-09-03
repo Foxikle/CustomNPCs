@@ -25,8 +25,9 @@ package dev.foxikle.customnpcs.internal;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.ActionType;
 import dev.foxikle.customnpcs.actions.LegacyAction;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.api.Pose;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
@@ -254,7 +255,7 @@ public class FileManager {
                         String sub = split.get(0);
                         split.remove(0);
                         int delay = 0;
-                        LegacyAction actionImpl = new LegacyAction(ActionType.valueOf(sub), split, delay, Condition.SelectionMode.ONE, new ArrayList<>());
+                        LegacyAction actionImpl = new LegacyAction(ActionType.valueOf(sub), split, delay, Selector.ONE, new ArrayList<>());
                         convertedActions.add(actionImpl.toJson());
                     }
                     s.set("actions", convertedActions);
@@ -482,7 +483,7 @@ public class FileManager {
 
                     assert section != null : "Section is null -- Upgrading NPC file from 1.9 to 1.10";
 
-                    section.set("injectionConditionSelector", Condition.SelectionMode.ONE.name());
+                    section.set("injectionConditionSelector", Selector.ONE.name());
                     section.set("injectionConditions", CustomNPCs.getGson().toJson(new ArrayList<>(), Utils.CONDITIONS_LIST));
 
                 }
@@ -588,7 +589,7 @@ public class FileManager {
                 Bukkit.getLogger().info("Converting legacy commands to Actions.");
                 String command = section.getString("command");
                 assert command != null;
-                LegacyAction actionImpl = new LegacyAction(ActionType.RUN_COMMAND, Utils.list(command.split(" ")), 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                LegacyAction actionImpl = new LegacyAction(ActionType.RUN_COMMAND, Utils.list(command.split(" ")), 0, Selector.ONE, new ArrayList<>());
                 actionImpls.add(actionImpl);
                 section.set("actions", actionImpls);
                 section.set("command", null);
@@ -679,7 +680,7 @@ public class FileManager {
                         section.getBoolean("upsideDown")
                 ), uuid, null, actions,
                 CustomNPCs.getGson().fromJson(section.getString("injectionConditions"), Utils.CONDITIONS_LIST),
-                Condition.SelectionMode.valueOf(section.getString("injectionConditionSelector")));
+                Selector.valueOf(section.getString("injectionConditionSelector")));
         if (npc != null) {
             npc.createNPC();
         } else {

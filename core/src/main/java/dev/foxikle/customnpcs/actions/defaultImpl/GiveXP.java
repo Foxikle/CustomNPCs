@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -67,7 +68,7 @@ public class GiveXP extends Action {
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    GiveXP actionImpl = new GiveXP(1, true, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    GiveXP actionImpl = new GiveXP(1, true, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -82,7 +83,7 @@ public class GiveXP extends Action {
      * @param levels if the xp is in levels
      * @param amount the number
      */
-    public GiveXP(int amount, boolean levels, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public GiveXP(int amount, boolean levels, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.levels = levels;
         this.amount = amount;
@@ -96,7 +97,7 @@ public class GiveXP extends Action {
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public GiveXP(int amount, boolean levels, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+    public GiveXP(int amount, boolean levels, int delay, Selector mode, List<Condition> conditionals) {
         super(delay, mode, conditionals, 0);
         this.levels = levels;
         this.amount = amount;
