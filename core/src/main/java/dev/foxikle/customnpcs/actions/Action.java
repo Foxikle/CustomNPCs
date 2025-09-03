@@ -53,7 +53,7 @@ public abstract class Action {
     private int delay = 0;
     private Condition.SelectionMode mode = Condition.SelectionMode.ONE;
     private int cooldown = 0;
-    private Map<UUID, Instant> cooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Instant> cooldowns = new ConcurrentHashMap<>();
 
     /**
      * Default constructor

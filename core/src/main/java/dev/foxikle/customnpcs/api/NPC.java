@@ -25,6 +25,7 @@ package dev.foxikle.customnpcs.api;
 import com.google.common.base.Preconditions;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.LegacyAction;
+import dev.foxikle.customnpcs.actions.conditions.Condition;
 import dev.foxikle.customnpcs.api.events.NpcDeleteEvent;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
@@ -79,7 +80,7 @@ public class NPC {
         UUID uuid = UUID.randomUUID();
         Settings settings = new Settings();
         settings.setResilient(false);
-        this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), new Equipment(), settings, uuid, null, new ArrayList<>());
+        this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), new Equipment(), settings, uuid, null, new ArrayList<>(), new ArrayList<>(), Condition.SelectionMode.ONE);
     }
 
     /**
@@ -238,6 +239,11 @@ public class NPC {
     /**
      * Injects the npc into the player's connection. This should be handled by the plugin, but this is here for more control.
      *
+     * <p>
+     *   This feature bypasses injection conditions! If you would like to have the plugin reevaluate if a player should
+     *   be injected, you can remove this NPC from their client with {@link NPC#withdraw(Player)}, and
+     * </p>
+     *
      * @param player the player to inject
      * @see Player
      * @since 1.5.2-pre3
@@ -389,5 +395,25 @@ public class NPC {
      */
     public void reloadSettings() {
         npc.reloadSettings();
+    }
+
+    /**
+     * The inverse operation of injecting this NPC into a player's client.
+     * <p>
+     *     This does **NOT** remove the NPC from the server, and the npc may be reinjected later.
+     * </p>
+     * @param player the player to remove the NPC from
+     */
+    public void withdraw(Player player) {
+        npc.withdraw(player);
+    }
+
+    /**
+     * Tells this NPC's InjectionManager to inject this player again, on the next injection check. This may cause the
+     * NPC to twitch and flicker.
+     * @param player the player to mark for injection. Only this player will be affected
+     */
+    public void markForInjection(Player player){
+        npc.getInjectionManager().markForInjection(player.getUniqueId());
     }
 }

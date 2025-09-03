@@ -466,6 +466,33 @@ public class FileManager {
                 }
             }
 
+            if (version.equals("1.9")) {
+                plugin.getLogger().warning("Old NPC file version found! Bumping version! (1.9 -> 1.10)");
+                BackupResult br = createBackup(file);
+                if (!br.success) {
+                    plugin.getLogger().warning("Could not create backup before updating npcs.yml!");
+                    return false;
+                }
+                yml.set("version", "1.9");
+
+                Set<String> npcs = yml.getKeys(false);
+                for (String npc : npcs) {
+                    if (npc.equals("version")) continue; // its a key
+                    ConfigurationSection section = yml.getConfigurationSection(npc);
+
+                    assert section != null : "Section is null -- Upgrading NPC file from 1.9 to 1.10";
+
+                    section.set("injectionConditionSelector", Condition.SelectionMode.ONE.name());
+                    section.set("injectionConditions", CustomNPCs.getGson().toJson(new ArrayList<>(), Utils.CONDITIONS_LIST));
+
+                }
+                try {
+                    yml.save(file);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
             // check for valid NPCs:
             boolean found = false;
             Set<String> npcs = yml.getKeys(false);
@@ -532,6 +559,8 @@ public class FileManager {
         section.addDefault("world", npc.getWorld().getName());
         section.addDefault("tunnelvision", npc.getSettings().isTunnelvision());
         section.addDefault("upsideDown", npc.getSettings().isUpsideDown());
+        section.addDefault("injectionConditionSelector", npc.getInjectionSelectionMode());
+        section.addDefault("injectionConditions", CustomNPCs.getGson().toJson(npc.getInjectionConditions(), Utils.CONDITIONS_LIST));
         yml.options().copyDefaults(true);
         try {
             yml.save(file);
@@ -624,6 +653,7 @@ public class FileManager {
             actions.add(Action.parse(s));
         }
 
+
         InternalNpc npc = plugin.createNPC(
                 world,
                 location,
@@ -647,7 +677,9 @@ public class FileManager {
                         section.getBoolean("hideInteractableHologram"),
                         parsePose(section.getString("pose")),
                         section.getBoolean("upsideDown")
-                ), uuid, null, actions);
+                ), uuid, null, actions,
+                CustomNPCs.getGson().fromJson(section.getString("injectionConditions"), Utils.CONDITIONS_LIST),
+                Condition.SelectionMode.valueOf(section.getString("injectionConditionSelector")));
         if (npc != null) {
             npc.createNPC();
         } else {

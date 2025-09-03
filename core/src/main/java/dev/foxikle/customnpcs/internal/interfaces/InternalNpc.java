@@ -23,8 +23,10 @@
 package dev.foxikle.customnpcs.internal.interfaces;
 
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.actions.conditions.Condition;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
+import dev.foxikle.customnpcs.internal.InjectionManager;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -37,7 +39,9 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -54,6 +58,28 @@ public interface InternalNpc {
      * @param location The location to set the NPC
      */
     void setPosRot(Location location);
+
+    /**
+     * Gets the list of conditions checked upon injection checks
+     * @return
+     */
+    List<Condition> getInjectionConditions();
+
+    /**
+     * Gets this NPC's InjectionManager to handle marking players for reinjection
+     * @return
+     */
+    InjectionManager getInjectionManager();
+
+    /**
+     * Gets which selection mode should be used when determining if this NPC should be injectioned
+     * @return return the desired {@link Condition.SelectionMode}
+     */
+    Condition.SelectionMode getInjectionSelectionMode();
+
+    void setInjectionConditions(List<Condition> conditions);
+
+    void setInjectionSelectionMode(Condition.SelectionMode mode);
 
     /**
      * <p> Creates the NPC and injects it into every player
@@ -307,4 +333,24 @@ public interface InternalNpc {
     InternalNpc clone();
 
     void teleport(Location loc);
+
+    /**
+     * Remove this NPC from this player.
+     * @param player the player to withdraw
+     */
+    void withdraw(Player player);
+
+    default Map<Condition, Boolean> evaluateInjectionConditions(Player player){
+        Map<Condition, Boolean> map = new HashMap<>();
+        for (Condition c : getInjectionConditions()) {
+            map.put(c, c.compute(player));
+        }
+        return map;
+    }
+
+    default boolean passesInectionConditions(Player player) {
+        Map<Condition, Boolean> map = evaluateInjectionConditions(player);
+        if (map.isEmpty()) return true;
+        return (getInjectionSelectionMode() == Condition.SelectionMode.ALL ? !map.containsValue(false) : map.containsValue(true));
+    }
 }

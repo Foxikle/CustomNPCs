@@ -608,7 +608,7 @@ public class Listeners implements Listener {
 
             double distanceSquared = location.distanceSquared(spawnLocation);
             if (distanceSquared <= FIFTY_BLOCKS) {
-                SCHEDULER.runTaskLater(plugin, () -> npc.injectPlayer(player), 5);
+                SCHEDULER.runTaskLater(plugin, () -> npc.getInjectionManager().markForInjection(player.getUniqueId()), 5);
             }
 
             if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
