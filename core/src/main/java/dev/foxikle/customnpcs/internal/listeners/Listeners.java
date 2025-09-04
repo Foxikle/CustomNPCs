@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,18 +25,24 @@ package dev.foxikle.customnpcs.internal.listeners;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.actions.defaultImpl.*;
 import dev.foxikle.customnpcs.api.events.NpcInteractEvent;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.menu.HologramMenu;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import dev.foxikle.customnpcs.internal.menu.PoseEditorMenu;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.SkinUtils;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.MenuView;
+import io.papermc.paper.event.world.WorldGameRuleChangeEvent;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.*;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -49,11 +55,16 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.Vector;
+import org.mineskin.data.CodeAndMessage;
+import org.mineskin.data.Visibility;
+import org.mineskin.exception.MineSkinRequestException;
+import org.mineskin.request.GenerateRequest;
+import org.mineskin.response.MineSkinResponse;
 
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Collection;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -70,7 +81,6 @@ public class Listeners implements Listener {
      * @since 1.6.0
      */
     private static final ConcurrentMap<UUID, MovementData> playerMovementData = new ConcurrentHashMap<>();
-
     // Helper Constants
     // since 1.6.0
     private static final int FIVE_BLOCKS = 25;
@@ -78,15 +88,12 @@ public class Listeners implements Listener {
     private static final int SIXTY_BLOCKS = 3600; // 60 * 60
     private static final int FORTY_BLOCKS = 2304; // 48 * 48
     private static final double HALF_BLOCK = 0.25;
-
     // Writing Constants
     // since 1.6.0
     private static final BukkitScheduler SCHEDULER = Bukkit.getScheduler();
-
     private static final ConsoleCommandSender CONSOLE_SENDER = Bukkit.getConsoleSender();
-
     private static final Pattern PATTERN = Pattern.compile(" ");
-
+    private final Map<UUID, Integer> worldSleepingPercentages = new ConcurrentHashMap<>();
     /**
      * The instance of the main Class
      */
@@ -105,6 +112,7 @@ public class Listeners implements Listener {
     }
 
     public void start() {
+        Bukkit.getWorlds().forEach(world -> worldSleepingPercentages.put(world.getUID(), world.getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE)));
         service = Executors.newSingleThreadScheduledExecutor();
         service.scheduleAtFixedRate(() -> Bukkit.getOnlinePlayers().forEach(this::actionPlayerMovement), 1000, plugin.getConfig().getInt("LookInterval") * 50L, TimeUnit.MILLISECONDS);
     }
@@ -112,6 +120,7 @@ public class Listeners implements Listener {
 
     public void stop() {
         service.shutdown();
+        Bukkit.getWorlds().forEach(world -> world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, worldSleepingPercentages.get(world.getUID())));
         CompletableFuture.runAsync(() -> {
             try {
                 if (!service.awaitTermination(2, TimeUnit.SECONDS)) {
@@ -126,6 +135,7 @@ public class Listeners implements Listener {
     }
 
     private void actionPlayerMovement(Player player) {
+        if (player.getGameMode() == GameMode.SPECTATOR) return; // we don't care about spectators
         final Location location = player.getLocation();
         final World world = player.getWorld();
 
@@ -141,6 +151,7 @@ public class Listeners implements Listener {
     }
 
     private void processPlayerMovement(final Player player, final InternalNpc npc, final World world, final World npcWorld, final Location location, final UUID uuid) {
+        if (player.getGameMode() == GameMode.SPECTATOR) return; // we don't care about spectators
         final Location npcLocation = npc.getCurrentLocation();
         MovementData oldMovementData; // difference in order of initialization in if/else statement
         MovementData movementData = playerMovementData.get(uuid);
@@ -162,18 +173,20 @@ public class Listeners implements Listener {
                 entities.removeIf(entity -> entity.getScoreboardTags().contains("NPC"));
                 for (Entity en : entities) {
                     if (!(en instanceof Player p)) continue;
+                    if (p.getGameMode() == GameMode.SPECTATOR) continue;
                     if (!npc.getSettings().isTunnelvision()) {
                         npc.lookAt(LookAtAnchor.HEAD, p);
                         return;
                     }
                 }
-                npc.setYRotation(npc.getCurrentLocation().getYaw());
+                npc.setYRotation(npc.getSpawnLoc().getYaw());
+                npc.setXRotation(npc.getSpawnLoc().getPitch());
             });
         }
     }
 
     private void trackFromTo(Player player, InternalNpc npc, MovementData data, MovementData oldData) {
-        if (data.distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
+        if (data.distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision() && player.getGameMode() != GameMode.SPECTATOR) {
             npc.lookAt(LookAtAnchor.HEAD, player);
         }
     }
@@ -230,44 +243,50 @@ public class Listeners implements Listener {
         Player player = e.getPlayer();
         String message = e.getMessage();
         boolean cancel = message.equalsIgnoreCase("quit") || message.equalsIgnoreCase("exit") || message.equalsIgnoreCase("stop") || message.equalsIgnoreCase("cancel");
-        if (plugin.commandWaiting.contains(player.getUniqueId())) {
+        if (plugin.isWaiting(player, WaitingType.COMMAND)) {
             Action actionImpl = plugin.editingActions.get(player.getUniqueId());
             if (!(actionImpl instanceof RunCommand runCommand)) {
                 plugin.getLogger().warning("Expected action to be an instance of 'RunCommand', got " + actionImpl.getClass().getSimpleName());
                 return;
             }
             if (cancel) {
-                plugin.commandWaiting.remove(player.getUniqueId());
+                plugin.waiting.remove(player.getUniqueId());
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
                 e.setCancelled(true);
                 return;
             }
-            plugin.commandWaiting.remove(player.getUniqueId());
+            plugin.waiting.remove(player.getUniqueId());
             runCommand.setCommand(message);
 
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.command", message));
 
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
-        } else if (plugin.nameWaiting.contains(player.getUniqueId())) {
+        } else if (plugin.isWaiting(player, WaitingType.NAME)) {
             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
             if (npc == null) {
                 player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
                 return;
             }
+
             if (cancel) {
-                plugin.nameWaiting.remove(player.getUniqueId());
-                SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_MAIN));
+                plugin.waiting.remove(player.getUniqueId());
+                SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_HOLOGRAMS));
                 e.setCancelled(true);
                 return;
             }
-            plugin.nameWaiting.remove(player.getUniqueId());
-            npc.getSettings().setName(message);
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.name", Msg.format(message)));
-            SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_MAIN));
-        } else if (plugin.targetWaiting.contains(player.getUniqueId())) {
+
+            plugin.waiting.remove(player.getUniqueId());
+            int index = HologramMenu.editingIndicies.get(player.getUniqueId());
+            if (npc.getSettings().getRawHolograms().length <= index) { // an addition
+                npc.getSettings().setRawHolograms(Arrays.copyOf(npc.getSettings().getRawHolograms(), index + 1)); // extend it by 1
+            }
+            npc.getSettings().getRawHolograms()[index] = message;
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.name", index + 1, Msg.format(message)));
+            SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_HOLOGRAMS));
+        } else if (plugin.isWaiting(player, WaitingType.TARGET)) {
             Condition conditional = plugin.editingConditionals.get(player.getUniqueId());
             if (cancel) {
-                plugin.targetWaiting.remove(player.getUniqueId());
+                plugin.waiting.remove(player.getUniqueId());
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_CONDITION_CUSTOMIZER));
                 e.setCancelled(true);
                 return;
@@ -280,98 +299,98 @@ public class Listeners implements Listener {
                     return;
                 }
             }
-            plugin.targetWaiting.remove(player.getUniqueId());
+            plugin.waiting.remove(player.getUniqueId());
             conditional.setTargetValue(message);
             plugin.editingConditionals.put(player.getUniqueId(), conditional);
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.conditions.set.target", message));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_CONDITION_CUSTOMIZER));
-        } else if (plugin.titleWaiting.contains(player.getUniqueId())) {
+        } else if (plugin.isWaiting(player, WaitingType.TITLE)) {
             Action actionImpl = plugin.editingActions.get(player.getUniqueId());
             if (!(actionImpl instanceof DisplayTitle setTitle)) {
                 return;
             }
 
             if (cancel) {
-                plugin.titleWaiting.remove(player.getUniqueId());
+                plugin.waiting.remove(player.getUniqueId());
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
                 e.setCancelled(true);
                 return;
             }
-            plugin.titleWaiting.remove(player.getUniqueId());
+            plugin.waiting.remove(player.getUniqueId());
 
             setTitle.setTitle(message);
 
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.title", Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
-        } else if (plugin.subtitleWaiting.contains(player.getUniqueId())) {
+        } else if (plugin.isWaiting(player, WaitingType.SUBTITLE)) {
             Action actionImpl = plugin.editingActions.get(player.getUniqueId());
             if (!(actionImpl instanceof DisplayTitle setTitle)) {
                 return;
             }
 
             if (cancel) {
-                plugin.subtitleWaiting.remove(player.getUniqueId());
+                plugin.waiting.remove(player.getUniqueId());
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
                 e.setCancelled(true);
                 return;
             }
-            plugin.subtitleWaiting.remove(player.getUniqueId());
+            plugin.waiting.remove(player.getUniqueId());
 
             setTitle.setSubTitle(message);
 
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.subtitle", Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
-        } else if (plugin.messageWaiting.contains(player.getUniqueId())) {
+        } else if (plugin.isWaiting(player, WaitingType.MESSAGE)) {
             Action actionImpl = plugin.editingActions.get(player.getUniqueId());
             if (!(actionImpl instanceof SendMessage sendMessage)) {
                 return;
             }
             if (cancel) {
-                plugin.messageWaiting.remove(player.getUniqueId());
+                plugin.waiting.remove(player.getUniqueId());
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
                 e.setCancelled(true);
                 return;
             }
-            plugin.messageWaiting.remove(player.getUniqueId());
+            plugin.waiting.remove(player.getUniqueId());
             sendMessage.setRawMessage(message);
 
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.message", Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
-        } else if (plugin.serverWaiting.contains(player.getUniqueId())) {
+        } else if (plugin.isWaiting(player, WaitingType.SERVER)) {
             Action actionImpl = plugin.editingActions.get(player.getUniqueId());
             if (!(actionImpl instanceof SendServer runServer)) {
                 return;
             }
             if (cancel) {
-                plugin.serverWaiting.remove(player.getUniqueId());
+                plugin.waiting.remove(player.getUniqueId());
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
                 e.setCancelled(true);
                 return;
             }
-            plugin.serverWaiting.remove(player.getUniqueId());
+            plugin.waiting.remove(player.getUniqueId());
 
             runServer.setServer(message);
 
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.server", Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
-        } else if (plugin.actionbarWaiting.contains(player.getUniqueId())) {
+        } else if (plugin.isWaiting(player, WaitingType.ACTIONBAR)) {
             Action actionImpl = plugin.editingActions.get(player.getUniqueId());
             if (!(actionImpl instanceof ActionBar actionBar)) {
                 return;
             }
             if (cancel) {
-                plugin.actionbarWaiting.remove(player.getUniqueId());
+                plugin.waiting.remove(player.getUniqueId());
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
                 e.setCancelled(true);
                 return;
             }
-            plugin.actionbarWaiting.remove(player.getUniqueId());
+            plugin.waiting.remove(player.getUniqueId());
             actionBar.setRawMessage(message);
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.actionbar", Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
-        } else if (plugin.playerWaiting.contains(player.getUniqueId())) {
+        } else if (plugin.isWaiting(player, WaitingType.PLAYER)) {
             if (cancel) {
-                plugin.playerWaiting.remove(player.getUniqueId());
+                plugin.waiting.remove(player.getUniqueId());
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_SKIN));
                 e.setCancelled(true);
                 return;
@@ -404,12 +423,12 @@ public class Listeners implements Listener {
                 e.setCancelled(true);
                 return;
             }
-            plugin.playerWaiting.remove(player.getUniqueId());
+            plugin.waiting.remove(player.getUniqueId());
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.success.player_name", name));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_SKIN));
-        } else if (plugin.urlWaiting.contains(player.getUniqueId())) {
+        } else if (plugin.isWaiting(player, WaitingType.URL)) {
             if (cancel) {
-                plugin.urlWaiting.remove(player.getUniqueId());
+                plugin.waiting.remove(player.getUniqueId());
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_SKIN));
                 e.setCancelled(true);
                 return;
@@ -423,27 +442,47 @@ public class Listeners implements Listener {
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.fetching.url"));
             try {
                 URL url = new URL(message);
-                plugin.MINESKIN_CLIENT.generateUrl(url.toString()).whenComplete((skin, throwable) -> {
-                    if (throwable != null) {
-                        if (throwable.getMessage().equalsIgnoreCase("java.lang.RuntimeException: org.mineskin.data.MineskinException: Failed to find image from url")) {
-                            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.no_image_data"));
-                            return;
-                        }
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.unknown_url_error"));
-                        plugin.getLogger().log(Level.SEVERE, "An error occurred whilst parsing this skin from a url.", throwable);
-                        return;
-                    }
-                    npc.getSettings().setSkinData(skin.data.texture.signature, skin.data.texture.value, Msg.translatedString(player.locale(), "customnpcs.skins.imported_by.url"));
-                    plugin.urlWaiting.remove(player.getUniqueId());
-                    player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.success.url", message));
-                    SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_SKIN));
-                });
+
+                GenerateRequest request = GenerateRequest.url(url)
+                        .name("URL Generated Skin")
+                        .visibility(Visibility.UNLISTED);
+                SkinUtils.fetch(request).thenAccept(skin -> {
+                            npc.getSettings().setSkinData(skin.texture().data().signature(), skin.texture().data().value(), Msg.translatedString(player.locale(), "customnpcs.skins.imported_by.url"));
+                            plugin.waiting.remove(player.getUniqueId());
+                            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.success.url", message));
+                            SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_SKIN));
+                        })
+                        .exceptionally(throwable -> {
+
+                            if (throwable instanceof CompletionException completionException) {
+                                throwable = completionException.getCause();
+                            }
+
+                            if (throwable instanceof MineSkinRequestException requestException) {
+                                // get error details
+                                MineSkinResponse<?> response = requestException.getResponse();
+                                Optional<CodeAndMessage> detailsOptional = response.getErrorOrMessage();
+                                Throwable finalThrowable = throwable;
+                                detailsOptional.ifPresent(details -> {
+                                    plugin.getLogger().log(Level.SEVERE, details.code() + " : " + details, finalThrowable);
+                                    System.out.println(details.code() + ": " + details.message());
+                                });
+                            }
+
+                            if (throwable.getMessage().equalsIgnoreCase("java.lang.RuntimeException: org.mineskin.data.MineskinException: Failed to find image from url")) {
+                                player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.no_image_data"));
+                                return null;
+                            }
+                            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.unknown_url_error"));
+                            plugin.getLogger().log(Level.SEVERE, "An error occurred whilst parsing this skin from a url.", throwable);
+                            return null;
+                        });
             } catch (Exception ex) {
                 player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.invalid_url"));
             }
-        } else if (plugin.hologramWaiting.contains(player.getUniqueId())) {
+        } else if (plugin.isWaiting(player, WaitingType.HOLOGRAM)) {
             if (cancel) {
-                plugin.titleWaiting.remove(player.getUniqueId());
+                plugin.waiting.remove(player.getUniqueId());
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_EXTRA_SETTINGS));
                 e.setCancelled(true);
                 return;
@@ -453,14 +492,14 @@ public class Listeners implements Listener {
                 player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
                 return;
             }
-            plugin.hologramWaiting.remove(player.getUniqueId());
+            plugin.waiting.remove(player.getUniqueId());
             e.setCancelled(true);
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.clickable_hologram", Msg.format(message)));
             npc.getSettings().setCustomInteractableHologram(message);
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_EXTRA_SETTINGS));
-        } else if (plugin.facingWaiting.contains(player.getUniqueId())) {
+        } else if (plugin.isWaiting(player, WaitingType.FACING)) {
             e.setCancelled(true);
-            plugin.facingWaiting.remove(player.getUniqueId());
+            plugin.waiting.remove(player.getUniqueId());
             if (cancel) return;
             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
             if (npc == null) {
@@ -493,6 +532,20 @@ public class Listeners implements Listener {
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.should_update"));
         }
         recalcSleepingPercentages();
+        if (player.getGameMode() == GameMode.SPECTATOR) return;
+
+        Location location = player.getLocation();
+        World world = player.getWorld();
+
+        for (InternalNpc npc : plugin.npcs.values()) {
+            Location spawnLocation = npc.getSpawnLoc();
+            if (world != npc.getWorld()) continue;
+
+            double distanceSquared = location.distanceSquared(spawnLocation);
+            if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
+                npc.lookAt(LookAtAnchor.HEAD, player);
+            }
+        }
     }
 
     /**
@@ -517,7 +570,11 @@ public class Listeners implements Listener {
      */
     @EventHandler
     public void onTeleport(PlayerTeleportEvent e) {
+        recalcSleepingPercentages();
         Player player = e.getPlayer();
+
+        if (player.getGameMode() == GameMode.SPECTATOR) return;
+
         Location location = player.getLocation();
         World world = player.getWorld();
         for (InternalNpc npc : plugin.npcs.values()) {
@@ -528,7 +585,6 @@ public class Listeners implements Listener {
             if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
                 npc.lookAt(LookAtAnchor.HEAD, player);
             }
-            recalcSleepingPercentages();
         }
     }
 
@@ -542,6 +598,7 @@ public class Listeners implements Listener {
     @EventHandler
     public void onRespawn(PlayerRespawnEvent e) {
         Player player = e.getPlayer();
+        if (player.getGameMode() == GameMode.SPECTATOR) return;
         Location location = player.getLocation();
         World world = player.getWorld();
         for (InternalNpc npc : plugin.npcs.values()) {
@@ -550,7 +607,7 @@ public class Listeners implements Listener {
 
             double distanceSquared = location.distanceSquared(spawnLocation);
             if (distanceSquared <= FIFTY_BLOCKS) {
-                SCHEDULER.runTaskLater(plugin, () -> npc.injectPlayer(player), 5);
+                SCHEDULER.runTaskLater(plugin, () -> npc.getInjectionManager().markForInjection(player.getUniqueId()), 5);
             }
 
             if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
@@ -568,12 +625,20 @@ public class Listeners implements Listener {
     @EventHandler
     public void onDimensionChange(PlayerChangedWorldEvent e) {
         Player player = e.getPlayer();
+
+        if (player.getGameMode() == GameMode.SPECTATOR) return;
+
         Location location = player.getLocation();
         World world = player.getWorld();
+
         for (InternalNpc npc : plugin.npcs.values()) {
+            Location spawnLocation = npc.getSpawnLoc();
             if (world != npc.getWorld()) continue;
-            npc.injectPlayer(player);
-            recalcSleepingPercentages();
+
+            double distanceSquared = location.distanceSquared(spawnLocation);
+            if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {
+                npc.lookAt(LookAtAnchor.HEAD, player);
+            }
         }
     }
 
@@ -586,18 +651,8 @@ public class Listeners implements Listener {
      */
     @EventHandler
     public void onLeave(PlayerQuitEvent e) {
-        Player player = e.getPlayer();
-        plugin.commandWaiting.remove(player.getUniqueId());
-        plugin.nameWaiting.remove(player.getUniqueId());
-        plugin.targetWaiting.remove(player.getUniqueId());
-        plugin.titleWaiting.remove(player.getUniqueId());
-        plugin.messageWaiting.remove(player.getUniqueId());
-        plugin.serverWaiting.remove(player.getUniqueId());
-        plugin.actionbarWaiting.remove(player.getUniqueId());
-        plugin.urlWaiting.remove(player.getUniqueId());
-        plugin.playerWaiting.remove(player.getUniqueId());
-        plugin.hologramWaiting.remove(player.getUniqueId());
-        recalcSleepingPercentages();
+        plugin.waiting.remove(e.getPlayer().getUniqueId());
+        Bukkit.getScheduler().runTaskLater(plugin, this::recalcSleepingPercentages, 1);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -607,7 +662,6 @@ public class Listeners implements Listener {
         }
 
         Player clicker = (Player) e.getWhoClicked();
-
         MenuView<?> menu = plugin.getLotus().getMenuView(clicker.getUniqueId()).orElseGet(() -> {
             if (e.getClickedInventory() == null) return null;
             if (e.getClickedInventory().getHolder() instanceof MenuView<?> playerMenu) {
@@ -623,9 +677,78 @@ public class Listeners implements Listener {
 
     private void recalcSleepingPercentages() {
         Bukkit.getWorlds().forEach(world -> {
-            world.getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE);
-            world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, (int) (world.getPlayers().size() / (double) plugin.getNPCs().stream().filter(npc -> npc.getWorld() == world).toList().size()));
+            if (world == null) return;
+            int target = worldSleepingPercentages.get(world.getUID());
+            int npcCount = plugin.getNPCs().stream().filter(npc -> npc.getWorld() == world).toList().size();
+            int playercount = world.getPlayers().size();
+            if (npcCount == 0) {
+                world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, target);
+                return;
+            }
+            world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, (int) (((playercount - npcCount) / (double) playercount) * target));
         });
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onGameruleChange(WorldGameRuleChangeEvent event) {
+        if (event.getCommandSender() == null) return; // prevent stack overflows
+        if (!event.getGameRule().equals(GameRule.PLAYERS_SLEEPING_PERCENTAGE)) return;
+        worldSleepingPercentages.put(event.getWorld().getUID(), Integer.parseInt(event.getValue()));
+        recalcSleepingPercentages();
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onScroll(PlayerItemHeldEvent event) {
+        Player player = event.getPlayer();
+        if (!plugin.isWaiting(player, WaitingType.NUDGE)) return;
+
+        if (plugin.getEditingNPCs().getIfPresent(player.getUniqueId()) == null) {
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+            plugin.waiting.remove(player.getUniqueId());
+            return;
+        }
+        InternalNpc npc = PoseEditorMenu.previewNPCs.get(player.getUniqueId());
+        if (npc == null) {
+            // bad
+            return;
+        }
+        int delta = (event.getNewSlot() - event.getPreviousSlot() + 9) % 9;
+        double multiplier = delta <= 4 ? -.05 : .05; // handle toward or away
+        multiplier = player.isSneaking() ? multiplier * 5 : multiplier; // sneaking makes it use larger jumps
+
+        BlockFace face = player.getFacing();
+        if (player.getLocation().getPitch() < -45) face = BlockFace.UP;
+        if (player.getLocation().getPitch() > 45) face = BlockFace.DOWN;
+
+        Vector vec = face.getDirection().multiply(multiplier);
+        player.playSound(player, Sound.ITEM_FLINTANDSTEEL_USE, 1, 1);
+        npc.getWorld().spawnParticle(Particle.REVERSE_PORTAL, npc.getCurrentLocation().add(vec), 10, 0, 0, 0, 0);
+        npc.moveTo(vec);
+    }
+
+    @EventHandler
+    public void onSwapToOffhand(PlayerSwapHandItemsEvent event) {
+        Player player = event.getPlayer();
+        if (plugin.isWaiting(player, WaitingType.NUDGE)) {
+            event.setCancelled(true);
+            InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+            if (npc == null) {
+                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                return;
+            }
+
+            InternalNpc previewNpc = PoseEditorMenu.previewNPCs.get(player.getUniqueId());
+            plugin.waiting.remove(player.getUniqueId());
+
+            Location finalLoc = previewNpc.getCurrentLocation();
+            finalLoc.setPitch(npc.getSpawnLoc().getPitch());
+            finalLoc.setYaw(npc.getSpawnLoc().getYaw());
+            npc.setSpawnLoc(finalLoc);
+            previewNpc.remove();
+
+            plugin.getNPCByID(npc.getUniqueID()).createNPC();
+            plugin.getLotus().openMenu(player, MenuUtils.NPC_MAIN);
+        }
     }
 
     @Getter

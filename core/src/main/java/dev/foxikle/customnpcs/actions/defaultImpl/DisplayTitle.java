@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -31,6 +32,7 @@ import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.runnables.SubtitleRunnable;
 import dev.foxikle.customnpcs.internal.runnables.TitleRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -48,6 +50,7 @@ import net.kyori.adventure.title.Title;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -67,13 +70,31 @@ public class DisplayTitle extends Action {
     private int fadeIn;
     private int stay;
     private int fadeOut;
+
     /**
      * Creates a new SendMessage with the specified message
      *
      * @param title The raw message
      */
-    public DisplayTitle(String title, String subTitle, int fadeIn, int stay, int fadeOut, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals);
+    public DisplayTitle(String title, String subTitle, int fadeIn, int stay, int fadeOut, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
+        super(delay, mode, conditionals, cooldown);
+        this.title = title;
+        this.subTitle = subTitle;
+        this.fadeIn = fadeIn;
+        this.stay = stay;
+        this.fadeOut = fadeOut;
+    }
+
+    /**
+     * Creates a new SendMessage with the specified message
+     *
+     * @param title The raw message
+     * @deprecated Use {@link DisplayTitle#DisplayTitle(String, String, int, int, int, int, Selector, List, int)}}
+     */
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
+    @Deprecated
+    public DisplayTitle(String title, String subTitle, int fadeIn, int stay, int fadeOut, int delay, Selector mode, List<Condition> conditionals) {
+        super(delay, mode, conditionals, 0);
         this.title = title;
         this.subTitle = subTitle;
         this.fadeIn = fadeIn;
@@ -90,7 +111,7 @@ public class DisplayTitle extends Action {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(p, Sound.UI_BUTTON_CLICK, 1, 1);
-                    DisplayTitle actionImpl = new DisplayTitle("Title", "Subtitle", 10, 10, 10, 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    DisplayTitle actionImpl = new DisplayTitle("Title", "Subtitle", 10, 10, 10, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -109,7 +130,7 @@ public class DisplayTitle extends Action {
 
         ParseResult pr = parseBase(serialized);
 
-        DisplayTitle message = new DisplayTitle(title, subTitle, in, stay, out, pr.delay(), pr.mode(), pr.conditions());
+        DisplayTitle message = new DisplayTitle(title, subTitle, in, stay, out, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
 
         return clazz.cast(message);
     }
@@ -153,6 +174,7 @@ public class DisplayTitle extends Action {
         Component subtitleComponent = CustomNPCs.getInstance().miniMessage.deserialize(CustomNPCs.getInstance().papi ? PlaceholderAPI.setPlaceholders(player, subTitle) : subTitle);
 
         player.showTitle(Title.title(titleComponent, subtitleComponent, Title.Times.times(Duration.ofMillis(fadeIn * 50L), Duration.ofMillis(stay * 50L), Duration.ofMillis(fadeOut * 50L))));
+        activateCooldown(player.getUniqueId());
     }
 
     @Override
@@ -169,7 +191,7 @@ public class DisplayTitle extends Action {
     }
 
     public Action clone() {
-        return new DisplayTitle(title, subTitle, fadeIn, stay, fadeOut, getDelay(), getMode(), new ArrayList<>(getConditions()));
+        return new DisplayTitle(title, subTitle, fadeIn, stay, fadeOut, getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
     }
 
     public static class DisplayTitleCustomizer implements Menu {
@@ -320,7 +342,7 @@ public class DisplayTitle extends Action {
                                 Player p = (Player) event.getWhoClicked();
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 p.closeInventory();
-                                plugin.titleWaiting.add(p.getUniqueId());
+                        plugin.wait(p, WaitingType.TITLE);
                                 new TitleRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                             }))
                     ).setButton(34, Button.clickable(ItemBuilder.modern(DARK_OAK_HANGING_SIGN)
@@ -333,7 +355,7 @@ public class DisplayTitle extends Action {
                                 Player p = (Player) event.getWhoClicked();
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 p.closeInventory();
-                                plugin.subtitleWaiting.add(p.getUniqueId());
+                                plugin.wait(p, WaitingType.SUBTITLE);
                                 new SubtitleRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                             }))
                     ).build();

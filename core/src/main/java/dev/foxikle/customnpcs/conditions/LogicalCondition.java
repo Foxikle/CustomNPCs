@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,29 +20,32 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.conditions;
+package dev.foxikle.customnpcs.conditions;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffectType;
+
+import java.util.Objects;
 
 /**
- * The object representing a comparison of two numeric values
+ * The object representing two non-numeric values
  */
-public class NumericCondition implements Condition {
-
-    private final Type type = Type.NUMERIC;
+public class LogicalCondition implements Condition {
+    private final Type type = Type.LOGICAL;
     private Comparator comparator;
     private Value value;
-    private double target;
+    private String target;
 
     /**
      * @param comparator the comparator to use
      * @param value      the value to compare
      * @param target     the target to compare to
-     * @see Condition.Value
-     * @see Condition.Comparator
+     * @see Value
+     * @see Comparator
      */
-    public NumericCondition(Comparator comparator, Value value, double target) {
+    public LogicalCondition(Comparator comparator, Value value, String target) {
         this.comparator = comparator;
         this.value = value;
         this.target = target;
@@ -56,32 +59,24 @@ public class NumericCondition implements Condition {
      */
     @Override
     public boolean compute(Player player) {
-        double value = 0;
+        boolean value = false;
         switch (this.value) {
-            case X_COORD -> value = player.getLocation().x();
-            case Y_COORD -> value = player.getLocation().y();
-            case Z_COORD -> value = player.getLocation().z();
-            case EXP_LEVELS -> value = player.getLevel();
-            case EXP_POINTS -> value = player.getExp();
+            case HAS_PERMISSION -> value = player.hasPermission(target);
+            case HAS_EFFECT ->
+                    value = player.hasPotionEffect(Objects.requireNonNull(PotionEffectType.getByName(target)));
+            case GAMEMODE -> value = player.getGameMode().equals(GameMode.valueOf(target));
+            case IS_FLYING -> value = player.isFlying();
+            case IS_SPRINTING -> value = player.isSprinting();
+            case IS_SNEAKING -> value = player.isSneaking();
+            case IS_FROZEN -> value = player.isFrozen();
+            case IS_GLIDING -> value = player.isGliding();
         }
         switch (comparator) {
             case EQUAL_TO -> {
-                return value == target;
+                return value;
             }
             case NOT_EQUAL_TO -> {
-                return value != target;
-            }
-            case LESS_THAN -> {
-                return value < target;
-            }
-            case LESS_THAN_OR_EQUAL_TO -> {
-                return value <= target;
-            }
-            case GREATER_THAN -> {
-                return value > target;
-            }
-            case GREATER_THAN_OR_EQUAL_TO -> {
-                return value >= target;
+                return !value;
             }
         }
         return false;
@@ -101,15 +96,15 @@ public class NumericCondition implements Condition {
      * @param data the serialized condition
      * @return the condition from the json
      */
-    public static NumericCondition of(String data) {
-        return CustomNPCs.getGson().fromJson(data, NumericCondition.class);
+    public static LogicalCondition of(String data) {
+        return CustomNPCs.getGson().fromJson(data, LogicalCondition.class);
     }
 
     /**
      * Gets the type of condition
      *
      * @return the condition type
-     * @see Condition.Type
+     * @see Type
      */
     @Override
     public Type getType() {
@@ -120,7 +115,7 @@ public class NumericCondition implements Condition {
      * Sets the comparator of this condition
      *
      * @param comparator the comparator to compare the value and target value
-     * @see Condition.Comparator
+     * @see Comparator
      */
     @Override
     public void setComparator(Comparator comparator) {
@@ -131,7 +126,7 @@ public class NumericCondition implements Condition {
      * Sets the value of this condition
      *
      * @param value the value to compare
-     * @see Condition.Value
+     * @see Value
      */
     @Override
     public void setValue(Value value) {
@@ -145,14 +140,14 @@ public class NumericCondition implements Condition {
      */
     @Override
     public void setTargetValue(String targetValue) {
-        this.target = Double.parseDouble(targetValue);
+        this.target = targetValue;
     }
 
     /**
      * Gets the value the condition is comparing
      *
      * @return the value the condition is comparing
-     * @see Condition.Value
+     * @see Value
      */
     @Override
     public Value getValue() {
@@ -166,7 +161,16 @@ public class NumericCondition implements Condition {
      */
     @Override
     public String getTarget() {
-        return String.valueOf(target);
+        return target;
+    }
+
+    @Override
+    public Condition clone() {
+        try {
+            return (LogicalCondition) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return new LogicalCondition(comparator, value, target);
+        }
     }
 
     /**
@@ -178,14 +182,5 @@ public class NumericCondition implements Condition {
     @Override
     public Comparator getComparator() {
         return this.comparator;
-    }
-
-    @Override
-    public Condition clone() {
-        try {
-            return (NumericCondition) super.clone();
-        } catch (CloneNotSupportedException e) {
-            return new NumericCondition(comparator, value, target);
-        }
     }
 }

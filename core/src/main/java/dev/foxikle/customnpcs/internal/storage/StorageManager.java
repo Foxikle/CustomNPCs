@@ -25,7 +25,8 @@ package dev.foxikle.customnpcs.internal.storage;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.ActionType;
 import dev.foxikle.customnpcs.actions.LegacyAction;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.api.Pose;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
@@ -43,6 +44,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -214,85 +216,43 @@ public class StorageManager {
 
                 yml.set("CONFIG_VERSION", 8);
                 ConfigurationSection storage = yml.createSection("storage");
-                yml.setComments("storage", Utils.list("",
-                        "+---------------------------------------+",
-                        "|           NPC Data Storage            |",
-                        "+---------------------------------------+"
-                ));
+                yml.setComments("storage", Utils.list("", "+---------------------------------------+", "|           NPC Data Storage            |", "+---------------------------------------+"));
 
                 storage.set("provider", "LOCAL");
-                storage.setComments("provider", Utils.list("",
-                        "+---------------------------------------+",
-                        "|           Storage Provider            |",
-                        "+---------------------------------------+",
-                        "",
-                        "The storage proivder determines how the plugin stores the NPC data. There are 3 options:",
-                        "",
-                        "\"LOCAL\" is used by default. It stores the data on the same disc the server is running on. It is a good choice if you don't want to deal with setting up a database or don't have one.",
-                        "\"MYSQL\" is a typical relational database. It's not really optimized for this kind of storage, it's a good choice if you already use a MySQL or MariaDB database.",
-                        "\"MONGODB\" is the recommended option for using remote storage. It tends to be more performant and optimized for storing BLOBs."
-                ));
+                storage.setComments("provider", Utils.list("", "+---------------------------------------+", "|           Storage Provider            |", "+---------------------------------------+", "", "The storage proivder determines how the plugin stores the NPC data. There are 3 options:", "", "\"LOCAL\" is used by default. It stores the data on the same disc the server is running on. It is a good choice if you don't want to deal with setting up a database or don't have one.", "\"MYSQL\" is a typical relational database. It's not really optimized for this kind of storage, it's a good choice if you already use a MySQL or MariaDB database.", "\"MONGODB\" is the recommended option for using remote storage. It tends to be more performant and optimized for storing BLOBs."));
 
                 ConfigurationSection mysql = storage.createSection("mysql");
-                storage.setComments("mysql", Utils.list("",
-                        "+---------------------------------------+",
-                        "|         MySQL Configuration           |",
-                        "+---------------------------------------+",
-                        "These settings only matter if the provider is set to \"MYSQL\""
-                ));
+                storage.setComments("mysql", Utils.list("", "+---------------------------------------+", "|         MySQL Configuration           |", "+---------------------------------------+", "These settings only matter if the provider is set to \"MYSQL\""));
 
                 mysql.set("hostname", "YOUR_HOST");
-                mysql.setComments("hostname", Utils.list(
-                        "hostname -> the host name, or ip address of your database server."
-                ));
+                mysql.setComments("hostname", Utils.list("hostname -> the host name, or ip address of your database server."));
 
                 mysql.set("port", 3306);
-                mysql.setComments("port", Utils.list(
-                        "port -> The port the database runs on. Don't change this unless you know what you're doing"
-                ));
+                mysql.setComments("port", Utils.list("port -> The port the database runs on. Don't change this unless you know what you're doing"));
 
                 mysql.set("username", "YOUR_USERNAME");
-                mysql.setComments("username", Utils.list(
-                        "username -> The database username"
-                ));
+                mysql.setComments("username", Utils.list("username -> The database username"));
 
                 mysql.set("password", "YOUR_PASSWORD");
-                mysql.setComments("password", Utils.list(
-                        "password -> The database password"
-                ));
+                mysql.setComments("password", Utils.list("password -> The database password"));
 
                 mysql.set("database", "YOUR_DATABASE");
-                mysql.setComments("database", Utils.list(
-                        "database -> The name of the database to use"
-                ));
+                mysql.setComments("database", Utils.list("database -> The name of the database to use"));
 
                 mysql.set("table", "npcs");
-                mysql.setComments("table", Utils.list(
-                        "table -> The name of the table used to store the data in. This can be used to separate your npc configurations across servers. ie: lobby, survival, etc."
-                ));
+                mysql.setComments("table", Utils.list("table -> The name of the table used to store the data in. This can be used to separate your npc configurations across servers. ie: lobby, survival, etc."));
 
                 ConfigurationSection mongo = storage.createSection("mongo");
-                storage.setComments("mongo", Utils.list("",
-                        "+---------------------------------------+",
-                        "|        MongoDB Configuration          |",
-                        "+---------------------------------------+",
-                        "These settings only matter if the provider is set to \"MONGODB\""
-                ));
+                storage.setComments("mongo", Utils.list("", "+---------------------------------------+", "|        MongoDB Configuration          |", "+---------------------------------------+", "These settings only matter if the provider is set to \"MONGODB\""));
 
                 mongo.set("connectionString", "YOUR_CONNECTION_STRING");
-                mongo.setComments("connectionString", Utils.list(
-                        "connectionString -> The connection string provided by your mongo server."
-                ));
+                mongo.setComments("connectionString", Utils.list("connectionString -> The connection string provided by your mongo server."));
 
                 mongo.set("database", "YOUR_DATABASE");
-                mongo.setComments("database", Utils.list(
-                        "database -> The name of the database to use"
-                ));
+                mongo.setComments("database", Utils.list("database -> The name of the database to use"));
 
                 mongo.set("document", "npcs");
-                mongo.setComments("document", Utils.list(
-                        "document -> The document to use to store the data. This can be used to separate your npc configurations across servers. ie: lobby, survival, etc."
-                ));
+                mongo.setComments("document", Utils.list("document -> The document to use to store the data. This can be used to separate your npc configurations across servers. ie: lobby, survival, etc."));
 
                 try {
                     yml.save(file);
@@ -340,7 +300,7 @@ public class StorageManager {
                             String sub = split.get(0);
                             split.remove(0);
                             int delay = 0;
-                            LegacyAction actionImpl = new LegacyAction(ActionType.valueOf(sub), split, delay, Condition.SelectionMode.ONE, new ArrayList<>());
+                            LegacyAction actionImpl = new LegacyAction(ActionType.valueOf(sub), split, delay, Selector.ONE, new ArrayList<>());
                             convertedActions.add(actionImpl.toJson());
                         }
                         s.set("actions", convertedActions);
@@ -718,9 +678,19 @@ public class StorageManager {
             actions.add(Action.parse(s));
         }
 
-        InternalNpc npc = plugin.createNPC(world, location, new Equipment(section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getItemStack("handItem"), section.getItemStack("offhandItem")), new Settings(section.getBoolean("clickable"), section.getBoolean("tunnelvision"), true, section.getString("value"), section.getString("signature"), section.getString("skin"), section.getString("name"), section.getString("customHologram"), section.getBoolean("hideInteractableHologram")), uuid, null, actions);
+        InternalNpc npc = plugin.createNPC(world, location, new Equipment(section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getItemStack("handItem"), section.getItemStack("offhandItem")), new Settings(section.getBoolean("clickable"), section.getBoolean("tunnelvision"), true, section.getString("value"), section.getString("signature"), section.getString("skin"), section.getStringList("lines").toArray(new String[0]), section.getString("customHologram"), section.getBoolean("hideInteractableHologram"), parsePose(section.getString("pose")), section.getBoolean("upsideDown")), uuid, null, actions, /*todo: fix this!*/ null, null);
 
         return ProtoWrapper.toProtoNpc(npc);
+    }
+
+    @NotNull
+    private Pose parsePose(String str) {
+        if (str == null) return Pose.STANDING;
+        try {
+            return Pose.valueOf(str.toUpperCase());
+        } catch (Exception e) {
+            return Pose.STANDING;
+        }
     }
 
 

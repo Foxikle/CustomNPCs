@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +23,14 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.runnables.ActionbarRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -44,6 +46,7 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -63,9 +66,22 @@ public class ActionBar extends Action {
      * Creates a new SendMessage with the specified message
      *
      * @param rawMessage The raw message
+     * @deprecated Use {@link ActionBar#ActionBar(String, int, Selector, List, int)}
      */
-    public ActionBar(String rawMessage, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals);
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
+    public ActionBar(String rawMessage, int delay, Selector mode, List<Condition> conditionals) {
+        super(delay, mode, conditionals, 0);
+        this.rawMessage = rawMessage;
+    }
+
+    /**
+     * Creates a new SendMessage with the specified message
+     *
+     * @param rawMessage The raw message
+     */
+    public ActionBar(String rawMessage, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
+        super(delay, mode, conditionals, cooldown);
         this.rawMessage = rawMessage;
     }
 
@@ -77,7 +93,7 @@ public class ActionBar extends Action {
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
-                    ActionBar actionImpl = new ActionBar("", 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    ActionBar actionImpl = new ActionBar("", 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -90,7 +106,7 @@ public class ActionBar extends Action {
         String rawMessage = parseString(serialized, "raw");
         ParseResult pr = parseBase(serialized);
 
-        ActionBar message = new ActionBar(rawMessage, pr.delay(), pr.mode(), pr.conditions());
+        ActionBar message = new ActionBar(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
 
         return clazz.cast(message);
     }
@@ -124,6 +140,7 @@ public class ActionBar extends Action {
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
         player.sendActionBar(Msg.format(CustomNPCs.getInstance().papi ? PlaceholderAPI.setPlaceholders(player, rawMessage) : rawMessage));
+        activateCooldown(player.getUniqueId());
     }
 
     @Override
@@ -133,7 +150,7 @@ public class ActionBar extends Action {
 
     @Override
     public Action clone() {
-        return new ActionBar(rawMessage, getDelay(), getMode(), new ArrayList<>(getConditions()));
+        return new ActionBar(rawMessage, getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
     }
 
     public class ActionbarCustomizer implements Menu {
@@ -171,7 +188,7 @@ public class ActionBar extends Action {
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 player.closeInventory();
-                                plugin.actionbarWaiting.add(player.getUniqueId());
+                                plugin.wait(player, WaitingType.ACTIONBAR);
                                 new ActionbarRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                             })))
                     .build();

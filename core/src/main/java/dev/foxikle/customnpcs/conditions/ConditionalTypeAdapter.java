@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,13 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.conditions;
+package dev.foxikle.customnpcs.conditions;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import dev.foxikle.customnpcs.actions.conditions.Condition.Comparator;
-import dev.foxikle.customnpcs.actions.conditions.Condition.Type;
-import dev.foxikle.customnpcs.actions.conditions.Condition.Value;
+import dev.foxikle.customnpcs.conditions.Condition.Type;
+import dev.foxikle.customnpcs.conditions.Condition.Value;
 
 import java.io.IOException;
 

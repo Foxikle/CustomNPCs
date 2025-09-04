@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,8 @@
 
 package dev.foxikle.customnpcs.internal.commands;
 
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
@@ -31,12 +33,13 @@ import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.SubCommand;
 import dev.velix.imperat.annotations.Usage;
+import dev.velix.imperat.command.AttachmentMode;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
-@SubCommand(value = {"create"}, attachDirectly = true)
+@SubCommand(value = {"create"}, attachment = AttachmentMode.MAIN)
 public class CreateCommand {
 
     @Usage
@@ -48,7 +51,7 @@ public class CreateCommand {
         final Player p = source.asPlayer();
         final UUID uuid = UUID.randomUUID();
         final CustomNPCs plugin = CustomNPCs.getInstance();
-        InternalNpc npc = plugin.createNPC(p.getWorld(), p.getLocation(), new Equipment(), new Settings(), uuid, null, new ArrayList<>());
+        InternalNpc npc = plugin.createNPC(p.getWorld(), p.getLocation(), new Equipment(), new Settings(), uuid, null, new ArrayList<>(), new ArrayList<>(), Selector.ONE);
         plugin.getEditingNPCs().put(p.getUniqueId(), npc);
         plugin.getLotus().openMenu(p, MenuUtils.NPC_MAIN);
     }

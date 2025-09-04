@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
+import dev.velix.imperat.command.AttachmentMode;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
@@ -42,6 +43,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+@SubCommand(value = "fixconfig", attachment = AttachmentMode.MAIN)
+@Permission("customnpcs.commands.fix_config")
 public class FixConfigCommand {
 
     @Usage

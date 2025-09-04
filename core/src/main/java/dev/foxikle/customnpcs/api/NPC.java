@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,9 @@ package dev.foxikle.customnpcs.api;
 import com.google.common.base.Preconditions;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.LegacyAction;
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.api.events.NpcDeleteEvent;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
@@ -35,8 +37,10 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 import java.util.*;
 
@@ -72,12 +76,12 @@ public class NPC {
      * @since 1.5-pre5
      */
     public NPC(@NotNull World world) {
-        if (NPCApi.plugin == null) throw new IllegalStateException("You must initialize the api before using it!");
+        if (NPCApi.plugin == null) throw new IllegalStateException("The CustomNPCs plugin does not exist!");
         if (world == null) throw new NullPointerException("world cannot be null.");
         UUID uuid = UUID.randomUUID();
         Settings settings = new Settings();
         settings.setResilient(false);
-        this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), new Equipment(), settings, uuid, null, new ArrayList<>());
+        this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), new Equipment(), settings, uuid, null, new ArrayList<>(), new ArrayList<>(), Selector.ONE);
     }
 
     /**
@@ -85,17 +89,19 @@ public class NPC {
      *
      * @param npc the internal npc to wrap for the api
      */
+    @ApiStatus.Internal
     public NPC(InternalNpc npc) {
         if (npc == null) throw new IllegalArgumentException("npc cannot be null.");
         this.npc = npc;
     }
 
     /**
-     * <p>Sets the location of the NPC
+     * <p>Sets the location of the NPC.
      * </p>
      *
      * @param loc the new location for the NPC
      * @return the NPC with the modified location
+     * @apiNote If this method is called after {@link NPC#create()}, the {@link NPC#reloadSettings()} should be called in addition.
      * @since 1.5.2-pre3
      */
     public NPC setPosition(@NotNull Location loc) {
@@ -178,9 +184,31 @@ public class NPC {
      * Move the npc to the specified location. Takes into account pitch and yaw
      *
      * @param location the location to move to
+     * @deprecated Moving takes vectors in preparation for the 1.8 update. To set the yaw and pitch, please use {@link NPC#lookAt(Location)} or {@link NPC#lookAt(Entity, boolean)}. Alternatively, {@link NPC#teleport(Location)} retains the same functionaity.
      */
-    public void moveTo(Location location) {
-        npc.moveTo(location);
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
+    public void moveTo(@NotNull Location location) {
+        teleport(location);
+    }
+
+    /**
+     * Teleports the NPC to the given location, respecting the Yaw and Pitch
+     *
+     * @param location the new Location to teleport to
+     * @since 1.7.5-pre2
+     */
+    public void teleport(@NotNull Location location) {
+        npc.teleport(location);
+    }
+
+    /**
+     * Moves the NPC using the specified vector.
+     *
+     * @param vec the vector specifying how to move the NPC
+     */
+    public void moveTo(Vector vec) {
+        npc.moveTo(vec);
     }
 
     /**
@@ -194,6 +222,11 @@ public class NPC {
 
     /**
      * Injects the npc into the player's connection. This should be handled by the plugin, but this is here for more control.
+     *
+     * <p>
+     *   This feature bypasses injection conditions! If you would like to have the plugin reevaluate if a player should
+     *   be injected, you can remove this NPC from their client with {@link NPC#withdraw(Player)}, and
+     * </p>
      *
      * @param player the player to inject
      * @see Player
@@ -241,9 +274,8 @@ public class NPC {
      * The NPC will NOT be despawned. Only applicable if the NPC is resilient.
      * </p>
      *
-     * @apiNote If the NpcDeleteEvent gets canceled, this npc will not be deleted.
-     *
      * @throws IllegalStateException if the NPC is not resilient
+     * @apiNote If the NpcDeleteEvent gets canceled, this npc will not be deleted.
      * @since 1.5.2-pre3
      */
     public boolean delete() {
@@ -267,6 +299,20 @@ public class NPC {
      */
     public void remove() {
         npc.remove();
+    }
+
+    /**
+     * Sets the pitch and yaw of the NPC.
+     *
+     * @param yaw   The yaw, between -180 and 180.
+     * @param pitch The pitch, between -90 and 90.
+     * @since 1.7.5-pre3
+     */
+    public void setFacing(@Range(from = -180, to = 180) float yaw, @Range(from = -90, to = 90) float pitch) {
+        Location loc = npc.getSpawnLoc();
+        loc.setYaw(yaw);
+        loc.setPitch(pitch);
+        npc.setSpawnLoc(loc);
     }
 
     /**
@@ -333,5 +379,25 @@ public class NPC {
      */
     public void reloadSettings() {
         npc.reloadSettings();
+    }
+
+    /**
+     * The inverse operation of injecting this NPC into a player's client.
+     * <p>
+     *     This does **NOT** remove the NPC from the server, and the npc may be reinjected later.
+     * </p>
+     * @param player the player to remove the NPC from
+     */
+    public void withdraw(Player player) {
+        npc.withdraw(player);
+    }
+
+    /**
+     * Tells this NPC's InjectionManager to inject this player again, on the next injection check. This may cause the
+     * NPC to twitch and flicker.
+     * @param player the player to mark for injection. Only this player will be affected
+     */
+    public void markForInjection(Player player){
+        npc.getInjectionManager().markForInjection(player.getUniqueId());
     }
 }

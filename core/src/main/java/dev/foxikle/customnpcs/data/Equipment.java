@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@ package dev.foxikle.customnpcs.data;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import lombok.Getter;
-import lombok.Setter;
 import org.bukkit.Material;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
@@ -33,10 +32,9 @@ import org.bukkit.inventory.ItemStack;
 /**
  * The class representing the NPC's items
  */
-@Setter
 @Getter
+@SuppressWarnings("UnusedReturnValue")
 public class Equipment {
-
     private ItemStack head = new ItemStack(Material.AIR);
     private ItemStack chest = new ItemStack(Material.AIR);
     private ItemStack legs = new ItemStack(Material.AIR);
@@ -47,11 +45,12 @@ public class Equipment {
 
     /**
      * The constructor to create the equipment object
-     * @param head  The item on the NPC's head
-     * @param chest The item on the NPC's chest
-     * @param legs The item on the NPC's legs
-     * @param boots The item on the NPC's feet
-     * @param hand The item in the NPC's hand
+     *
+     * @param head    The item on the NPC's head
+     * @param chest   The item on the NPC's chest
+     * @param legs    The item on the NPC's legs
+     * @param boots   The item on the NPC's feet
+     * @param hand    The item in the NPC's hand
      * @param offhand The item in the NPC's offhand
      */
     public Equipment(ItemStack head, ItemStack chest, ItemStack legs, ItemStack boots, ItemStack hand, ItemStack offhand) {
@@ -72,19 +71,87 @@ public class Equipment {
 
     /**
      * Imports the relevant items from an EntityEquipment Object
+     *
      * @param e The entity equipment to pull items from.
      */
-    public void importFromEntityEquipment(EntityEquipment e) {
+    public Equipment importFromEntityEquipment(EntityEquipment e) {
         this.head = e.getHelmet() != null ? e.getHelmet().clone() : new ItemStack(Material.AIR);
         this.chest = e.getChestplate() != null ? e.getChestplate().clone() : new ItemStack(Material.AIR);
         this.legs = e.getLeggings() != null ? e.getLeggings().clone() : new ItemStack(Material.AIR);
         this.boots = e.getBoots() != null ? e.getBoots().clone() : new ItemStack(Material.AIR);
         this.hand = e.getItemInMainHand().clone();
         this.offhand = e.getItemInOffHand().clone();
+        return this;
     }
 
     @SuppressWarnings("all")
-    public Equipment clone(){
+    public Equipment clone() {
         return new Equipment(head.clone(), chest.clone(), legs.clone(), boots.clone(), hand.clone(), offhand.clone());
+    }
+
+    /**
+     * Sets the items on the NPC's head
+     *
+     * @param itemStack the item to use
+     * @return this, for chaining
+     */
+    public Equipment setHead(ItemStack itemStack) {
+        head = itemStack;
+        return this;
+    }
+
+    /**
+     * Sets the items on the NPC's chest
+     *
+     * @param itemStack the item to use
+     * @return this, for chaining
+     */
+    public Equipment setChest(ItemStack itemStack) {
+        chest = itemStack;
+        return this;
+    }
+
+    /**
+     * Sets the items on the NPC's legs
+     *
+     * @param itemStack the item to use
+     * @return this, for chaining
+     */
+    public Equipment setLegs(ItemStack itemStack) {
+        legs = itemStack;
+        return this;
+    }
+
+    /**
+     * Sets the items on the NPC's feet
+     *
+     * @param itemStack the item to use
+     * @return this, for chaining
+     */
+    public Equipment setBoots(ItemStack itemStack) {
+        boots = itemStack;
+        return this;
+    }
+
+    /**
+     * Sets the items on the NPC's offhand
+     *
+     * @param itemStack the item to use
+     * @return this, for chaining
+     */
+    public Equipment setOffhand(ItemStack itemStack) {
+        offhand = itemStack;
+        return this;
+    }
+
+    /**
+     * Sets the items on the NPC's main hand
+     *
+     * @param itemStack the item to use
+     * @return this, for chaining
+     */
+    public Equipment setHand(ItemStack itemStack) {
+        hand = itemStack;
+        return this;
     }
 }

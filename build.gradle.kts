@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@ plugins {
     `maven-publish`
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("io.github.goooler.shadow") version "8.1.8"
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.14" apply false
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.18" apply false
 }
 
 repositories {
@@ -38,16 +38,18 @@ repositories {
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":v1_21_R2"/*, "reobf"*/))
-    implementation(project(":v1_21_R1"/*, "reobf"*/))
-    implementation(project(":v1_21_R0"/*, "reobf"*/))
-    implementation(project(":v1_20_R4"/*, "reobf"*/))
+    implementation(project(":v1_21_R4"))
+    implementation(project(":v1_21_R3"))
+    implementation(project(":v1_21_R2"))
+    implementation(project(":v1_21_R1"))
+    implementation(project(":v1_21_R0"))
+    implementation(project(":v1_20_R4"))
     implementation(project(":v1_20_R3", "reobf"))
     implementation(project(":v1_20_R2", "reobf"))
     implementation(project(":v1_20_R1", "reobf"))
 }
 
-var pluginVersion = "1.8-pre1"
+var pluginVersion = "1.8-pre2"
 
 allprojects {
     group = "dev.foxikle"
@@ -79,7 +81,7 @@ publishing {
         }
     }
     publications {
-        create<MavenPublication>("maven") {
+        create<MavenPublication>("main") {
             groupId = project.group.toString()
             artifactId = project.name
             version = project.version.toString()
@@ -128,9 +130,6 @@ tasks {
     shadowJar {
         archiveClassifier.set("")
         // This is used to place the file into a test server's plugin directory.
-
-//         thanks, paper
-        relocate("com.google.protobuf", "dev.foxikle.libs.proto")
         destinationDirectory.set(
             file(
                 providers.gradleProperty("plugin_dir").orElse(destinationDirectory.get().toString())
@@ -155,4 +154,3 @@ tasks.register<Javadoc>("aggregatedJavadocs") {
         }
     }
 }
-

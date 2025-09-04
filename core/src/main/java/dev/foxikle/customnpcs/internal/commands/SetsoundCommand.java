@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,15 +26,17 @@ import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.defaultImpl.PlaySound;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
+import dev.velix.imperat.command.AttachmentMode;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.entity.Player;
 
-@SubCommand(value = "setsound", attachDirectly = true)
+@SubCommand(value = "setsound", attachment = AttachmentMode.MAIN)
 @Permission("customnpcs.edit")
 @Description("Sets the sound of the playsound action!")
 public class SetsoundCommand {
@@ -54,13 +56,13 @@ public class SetsoundCommand {
         // converts `ui button click` to `UI_BUTTON_CLICK`, like {@link Sound#UI_BUTTON_CLICK}
         String formatted = soundRaw.trim().toLowerCase();
 
-        if (plugin.soundWaiting.contains(p.getUniqueId())) {
+        if (plugin.isWaiting(p, WaitingType.SOUND)) {
             if (Registry.SOUNDS.get(NamespacedKey.fromString(formatted)) == null) {
                 p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.setsound.unknown_sound"));
             }
 
             Bukkit.getScheduler().runTask(plugin, () -> {
-                plugin.soundWaiting.remove(p.getUniqueId());
+                plugin.waiting.remove(p.getUniqueId());
                 Action actionImpl = plugin.editingActions.get(p.getUniqueId());
                 if (actionImpl instanceof PlaySound action) {
                     action.setSound(formatted);
