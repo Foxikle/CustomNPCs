@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,14 +28,14 @@ import dev.velix.imperat.command.parameters.CommandParameter;
 import dev.velix.imperat.context.SuggestionContext;
 import dev.velix.imperat.resolvers.SuggestionResolver;
 
-import java.util.Collection;
+import java.util.List;
 
 public class NpcSuggester implements SuggestionResolver<BukkitSource> {
     /**
      * {@inheritDoc}
      */
     @Override
-    public Collection<String> autoComplete(SuggestionContext<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
+    public List<String> autoComplete(SuggestionContext<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
         final CustomNPCs plugin = CustomNPCs.getInstance();
         return plugin.npcs.values().stream().map(npc -> plugin.getMiniMessage().stripTags(npc.getSettings().getName())).toList();
     }

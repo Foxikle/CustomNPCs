@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,13 +23,14 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.runnables.MessageRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import dev.foxikle.customnpcs.internal.utils.Utils;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -46,6 +47,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -59,6 +61,31 @@ import static org.bukkit.Material.PAPER;
 @Setter
 public class SendMessage extends Action {
 
+    private String rawMessage;
+
+    /**
+     * Creates a new SendMessage with the specified message
+     *
+     * @param rawMessage The raw message
+     */
+    public SendMessage(String rawMessage, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
+        super(delay, mode, conditionals, cooldown);
+        this.rawMessage = rawMessage;
+    }
+
+    /**
+     * Creates a new SendMessage with the specified message
+     *
+     * @param rawMessage The raw message
+     * @deprecated Use {@link SendMessage#SendMessage(String, int, Selector, List, int)}
+     */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
+    public SendMessage(String rawMessage, int delay, Selector mode, List<Condition> conditionals) {
+        super(delay, mode, conditionals);
+        this.rawMessage = rawMessage;
+    }
+
     public static Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(PAPER)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.message"))
@@ -69,22 +96,10 @@ public class SendMessage extends Action {
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    SendMessage actionImpl = new SendMessage("", 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    SendMessage actionImpl = new SendMessage("", 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
-    }
-
-    private String rawMessage;
-
-    /**
-     * Creates a new SendMessage with the specified message
-     *
-     * @param rawMessage The raw message
-     */
-    public SendMessage(String rawMessage, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals);
-        this.rawMessage = rawMessage;
     }
 
     public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
@@ -93,7 +108,7 @@ public class SendMessage extends Action {
         }
         String rawMessage = parseString(serialized, "raw");
         ParseResult pr = parseBase(serialized);
-        SendMessage message = new SendMessage(rawMessage, pr.delay(), pr.mode(), pr.conditions());
+        SendMessage message = new SendMessage(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
 
         return clazz.cast(message);
     }
@@ -125,13 +140,14 @@ public class SendMessage extends Action {
      */
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
-        if (processConditions(player)) {
-            if (CustomNPCs.getInstance().papi) {
-                player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(PlaceholderAPI.setPlaceholders(player, rawMessage)));
-            } else {
-                player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(rawMessage));
-            }
+        if (!processConditions(player)) return;
+
+        if (CustomNPCs.getInstance().papi) {
+            player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(PlaceholderAPI.setPlaceholders(player, rawMessage)));
+        } else {
+            player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(rawMessage));
         }
+        activateCooldown(player.getUniqueId());
     }
 
     @Override
@@ -141,7 +157,7 @@ public class SendMessage extends Action {
 
     @Override
     public Action clone() {
-        return new SendMessage(rawMessage, getDelay(), getMode(), getConditions());
+        return new SendMessage(rawMessage, getDelay(), getMode(), getConditions(), getCooldown());
     }
 
     public class SendMessageCustomizer implements Menu {
@@ -171,14 +187,14 @@ public class SendMessage extends Action {
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
             return MenuUtils.actionBase(action, player)
                     .setButton(22, Button.clickable(ItemBuilder.modern(OAK_HANGING_SIGN)
-                                    .setDisplay(Utils.mm(getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString(player.locale(), "customnpcs.messages.empty_string") : getRawMessage()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE))
+                                    .setDisplay(Msg.format(getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString(player.locale(), "customnpcs.messages.empty_string") : getRawMessage()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE))
                                     .setLore(Msg.translate(player.locale(), "customnpcs.items.click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 Player p = (Player) event.getWhoClicked();
                                 p.closeInventory();
-                                plugin.messageWaiting.add(p.getUniqueId());
+                                plugin.wait(p, WaitingType.MESSAGE);
                                 new MessageRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);

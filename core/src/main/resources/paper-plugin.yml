@@ -6,8 +6,8 @@ prefix: CustomNPCs
 authors: [ Foxikle ]
 #website: https://foxikle.dev/plugins
 description: A simple NPC plugin.
-loader: dev.foxikle.customnpcs.internal.NpcLoading
-has-open-classloader: false
+loader: dev.foxikle.customnpcs.internal.utils.GeneratedClassloader
+has-open-classloader: true
 contributors:
   - FlameyosFlow
 dependencies:

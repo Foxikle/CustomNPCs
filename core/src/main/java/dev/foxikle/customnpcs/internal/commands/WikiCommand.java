@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,13 +28,14 @@ import dev.velix.imperat.annotations.Description;
 import dev.velix.imperat.annotations.Permission;
 import dev.velix.imperat.annotations.SubCommand;
 import dev.velix.imperat.annotations.Usage;
+import dev.velix.imperat.command.AttachmentMode;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 
 import java.util.Locale;
 
 @Permission("customnpcs.command.wiki")
-@SubCommand(value = "wiki", attachDirectly = true)
+@SubCommand(value = "wiki", attachment = AttachmentMode.MAIN)
 @Description("Supplies a link to the plugin's documentation")
 public class WikiCommand {
 

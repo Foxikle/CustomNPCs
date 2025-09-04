@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +23,12 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import dev.foxikle.customnpcs.internal.utils.Utils;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -46,6 +46,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -65,13 +66,27 @@ public class RemoveEffect extends Action {
 
     private static final List<Field> fields = Stream.of(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
     private String effect;
+
     /**
      * Creates a new GiveEffect with the specified parameters
      *
      * @param effect The raw message
      */
-    public RemoveEffect(String effect, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals);
+    public RemoveEffect(String effect, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
+        super(delay, mode, conditionals, cooldown);
+        this.effect = effect;
+    }
+
+    /**
+     * Creates a new GiveEffect with the specified parameters
+     *
+     * @param effect The raw message
+     * @deprecated Use {@link #RemoveEffect(String, int, Selector, List, int)}
+     */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
+    public RemoveEffect(String effect, int delay, Selector mode, List<Condition> conditionals) {
+        super(delay, mode, conditionals, 0);
         this.effect = effect;
     }
 
@@ -85,7 +100,7 @@ public class RemoveEffect extends Action {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    RemoveEffect actionImpl = new RemoveEffect("SPEED", 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    RemoveEffect actionImpl = new RemoveEffect("SPEED", 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(player.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -97,7 +112,7 @@ public class RemoveEffect extends Action {
         }
         String effect = parseString(serialized, "effect");
         ParseResult pr = parseBase(serialized);
-        RemoveEffect message = new RemoveEffect(effect, pr.delay(), pr.mode(), pr.conditions());
+        RemoveEffect message = new RemoveEffect(effect, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
 
         return clazz.cast(message);
     }
@@ -133,6 +148,7 @@ public class RemoveEffect extends Action {
         if (PotionEffectType.getByName(effect) == null)
             throw new NullPointerException("Effect " + effect + " does not exist? Please tell @foxikle on discord how you managed this.");
         player.removePotionEffect(Objects.requireNonNull(PotionEffectType.getByName(effect)));
+        activateCooldown(player.getUniqueId());
     }
 
     @Override
@@ -142,7 +158,7 @@ public class RemoveEffect extends Action {
 
     @Override
     public Action clone() {
-        return new RemoveEffect(effect, getDelay(), getMode(), new ArrayList<>(getConditions()));
+        return new RemoveEffect(effect, getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
     }
 
     public class RemoveEffectCustomizer implements Menu {
@@ -180,8 +196,8 @@ public class RemoveEffect extends Action {
             List<Component> lore = new ArrayList<>();
             fields.forEach(field -> {
                 if (!Objects.equals(action.getEffect(), field.getName()))
-                    lore.add(Utils.mm("<green>" + field.getName()));
-                else lore.add(Utils.mm("<dark_aqua>▸ " + field.getName()));
+                    lore.add(Msg.format("<green>" + field.getName()));
+                else lore.add(Msg.format("<dark_aqua>▸ " + field.getName()));
             });
             return Button.clickable(ItemBuilder.modern(POTION)
                             .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.remove_effect.effect"))

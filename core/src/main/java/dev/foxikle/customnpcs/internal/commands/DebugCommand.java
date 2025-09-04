@@ -29,9 +29,10 @@ import dev.velix.imperat.annotations.Description;
 import dev.velix.imperat.annotations.Permission;
 import dev.velix.imperat.annotations.SubCommand;
 import dev.velix.imperat.annotations.Usage;
+import dev.velix.imperat.command.AttachmentMode;
 
 @Permission("customnpcs.edit")
-@SubCommand(value = "debug", attachDirectly = true)
+@SubCommand(value = "debug", attachment = AttachmentMode.MAIN)
 @Description("Enables debug message. (They can be very spammy)")
 public class DebugCommand {
     @Usage

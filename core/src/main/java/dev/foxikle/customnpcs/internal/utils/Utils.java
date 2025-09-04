@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,19 +23,20 @@
 package dev.foxikle.customnpcs.internal.utils;
 
 import com.google.common.reflect.TypeToken;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * A class holding usful methods
@@ -92,6 +93,11 @@ public class Utils {
         return Math.round(player.getExp() * player.getExpToLevel()) + getTotalExperience(player.getLevel());
     }
 
+    @ApiStatus.Internal
+    public static String getNpcName(Settings settings, UUID npcUUID) {
+        return settings.isUpsideDown() ? "Dinnerbone" : npcUUID.toString().substring(0, 16);
+    }
+
     /**
      * Sets the player's total experience, including levels
      *
@@ -132,8 +138,8 @@ public class Utils {
      */
     public static Location calcLocation(InternalNpc npc) {
         Location loc = npc.getCurrentLocation();
-        double pitch = Math.toRadians(npc.getSpawnLoc().getPitch());
-        double yaw = Math.toRadians(npc.getSpawnLoc().getYaw());
+        double pitch = Math.toRadians(npc.getPitch());
+        double yaw = Math.toRadians(npc.getYaw());
         // trig to calculate the position
 
 
@@ -146,9 +152,16 @@ public class Utils {
         return loc;
     }
 
+    /**
+     * Formats the given string as a Minimessage component
+     *
+     * @param str The input
+     * @return the component, parsed in MiniMessage format.
+     * @deprecated Use {@link Msg#format(String)} instead.
+     */
+    @Deprecated
     public static Component mm(String str) {
-        if (str.isBlank() || str.isEmpty()) return Component.empty();
-        return MiniMessage.miniMessage().deserialize(str).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
+        return Msg.format(str);
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,11 @@
 package dev.foxikle.customnpcs.internal.interfaces;
 
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
+import dev.foxikle.customnpcs.internal.InjectionManager;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -32,11 +35,14 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -55,6 +61,28 @@ public interface InternalNpc {
     void setPosRot(Location location);
 
     /**
+     * Gets the list of conditions checked upon injection checks
+     * @return
+     */
+    List<Condition> getInjectionConditions();
+
+    /**
+     * Gets this NPC's InjectionManager to handle marking players for reinjection
+     * @return
+     */
+    InjectionManager getInjectionManager();
+
+    /**
+     * Gets which selection mode should be used when determining if this NPC should be injectioned
+     * @return return the desired {@link Selector}
+     */
+    Selector getInjectionSelectionMode();
+
+    void setInjectionConditions(List<Condition> conditions);
+
+    void setInjectionSelectionMode(Selector mode);
+
+    /**
      * <p> Creates the NPC and injects it into every player
      * </p>
      */
@@ -64,10 +92,9 @@ public interface InternalNpc {
      * <p> Creates the NPC's name hologram
      * </p>
      *
-     * @param name The name to give the text display
      * @return the TextDisplay representing the NPC's name tag
      */
-    TextDisplay setupHologram(String name);
+    void setupHolograms();
 
     /**
      * <p> Creates the NPC's clickable hologram
@@ -76,7 +103,7 @@ public interface InternalNpc {
      * @param name The name to give the text display
      * @return the TextDisplay representing the NPC's hologram
      */
-    TextDisplay setupClickableHologram(String name);
+    void setupClickableHologram(String name);
 
     /**
      * Gets the NPC's uuid
@@ -131,7 +158,7 @@ public interface InternalNpc {
      *
      * @return the TextDisplay entity the NPC uses for their name tag
      */
-    TextDisplay getHologram();
+    List<TextDisplay> getHolograms();
 
     /**
      * <p> Gets the text display representing the NPC name
@@ -198,7 +225,7 @@ public interface InternalNpc {
      *
      * @param v The location to move to the npc at
      */
-    void moveTo(Location v);
+    void moveTo(Vector v);
 
     /**
      * <p> Permanently deletes an NPC. Does NOT despawn it.
@@ -233,6 +260,28 @@ public interface InternalNpc {
      * @param rot the yaw
      */
     void setYRotation(float rot);
+
+    /**
+     * Set the x rotation on this entity
+     *
+     * @param rot the pitch
+     */
+    void setXRotation(float rot);
+
+    /**
+     * The yaw of the NPC's head
+     *
+     * @return the yaw from -180 to 180
+     */
+    float getYaw();
+
+    /**
+     * Retrieves the pitch (rotation around the X-axis) of the NPC.
+     *
+     * @return the pitch value, typically within the range of -90 to 90, where -90
+     * represents looking straight up and 90 represents looking straight down.
+     */
+    float getPitch();
 
     /**
      * Reads the skin data from the Settings object and applies it to the NPC
@@ -274,7 +323,7 @@ public interface InternalNpc {
      */
     void setEquipment(Equipment e);
 
-    Particle spawnParticle();
+    Particle getSpawnParticle();
 
     /**
      * Clones the NPC object.
@@ -283,4 +332,26 @@ public interface InternalNpc {
      * @return the cloned object, with a different memory address.
      */
     InternalNpc clone();
+
+    void teleport(Location loc);
+
+    /**
+     * Remove this NPC from this player.
+     * @param player the player to withdraw
+     */
+    void withdraw(Player player);
+
+    default Map<Condition, Boolean> evaluateInjectionConditions(Player player){
+        Map<Condition, Boolean> map = new HashMap<>();
+        for (Condition c : getInjectionConditions()) {
+            map.put(c, c.compute(player));
+        }
+        return map;
+    }
+
+    default boolean passesInectionConditions(Player player) {
+        Map<Condition, Boolean> map = evaluateInjectionConditions(player);
+        if (map.isEmpty()) return true;
+        return (getInjectionSelectionMode() == Selector.ALL ? !map.containsValue(false) : map.containsValue(true));
+    }
 }

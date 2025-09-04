@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,12 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
+import dev.velix.imperat.command.AttachmentMode;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-@SubCommand(value = "clone", attachDirectly = true)
+@SubCommand(value = "clone", attachment = AttachmentMode.MAIN)
 @Permission("customnpcs.commands.clone")
 @Description("Clones the the npcs.")
 public class CloneCommand {

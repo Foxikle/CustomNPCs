@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,15 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.conditions;
+package dev.foxikle.customnpcs.actions;
 
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import dev.foxikle.customnpcs.actions.ActionType;
-import dev.foxikle.customnpcs.actions.LegacyAction;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.ConditionalTypeAdapter;
+import dev.foxikle.customnpcs.conditions.Selector;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -83,7 +84,7 @@ public class ActionAdapter extends TypeAdapter<LegacyAction> {
         List<String> args = new ArrayList<>();
         int delay = 0;
         List<Condition> conditions = new ArrayList<>();
-        Condition.SelectionMode selectionMode = null;
+        Selector selectionMode = null;
 
 
         while (in.hasNext()) {
@@ -98,7 +99,7 @@ public class ActionAdapter extends TypeAdapter<LegacyAction> {
                     in.endArray();
                 }
                 case "delay" -> delay = in.nextInt();
-                case "mode" -> selectionMode = Condition.SelectionMode.valueOf(in.nextString());
+                case "mode" -> selectionMode = Selector.valueOf(in.nextString());
                 case "conditionals" -> {
                     in.beginArray();
                     while(in.hasNext()) {

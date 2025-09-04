@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@ package dev.foxikle.customnpcs.internal.runnables;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import net.kyori.adventure.title.Title;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -55,7 +56,7 @@ public class CommandRunnable extends BukkitRunnable {
      */
     @Override
     public void run() {
-        if (!plugin.commandWaiting.contains(player.getUniqueId()))
+        if (!plugin.isWaiting(player, WaitingType.COMMAND))
             this.cancel();
         player.showTitle(Title.title(
                 Msg.translate(player.locale(), "customnpcs.data.command.title"),

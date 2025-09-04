@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,10 +55,12 @@ import static org.bukkit.Material.PLAYER_HEAD;
 public class MenuUtils {
 
     public static final String NPC_DELETE = "npc_delete";
+    public static final String NPC_DELETE_LINE = "npc_delete_line";
     public static final String NPC_MAIN = "npc_main";
     public static final String NPC_EXTRA_SETTINGS = "npc_extra_settings";
     public static final String NPC_ACTIONS = "npc_actions";
     public static final String NPC_NEW_ACTION = "npc_new_action";
+    public static final String NPC_POSE = "npc_pose";
     public static final String NPC_EQUIPMENT = "npc_equipment";
     public static final String NPC_ACTION_CUSTOMIZER = "npc_action_customizer";
     public static final String NPC_CONDITION_CUSTOMIZER = "npc_condition_customizer";
@@ -66,6 +68,7 @@ public class MenuUtils {
     public static final String NPC_NEW_CONDITION = "npc_new_condition";
     public static final String NPC_CONDITIONS = "npc_conditions";
     public static final String NPC_SKIN = "npc_skin";
+    public static final String NPC_HOLOGRAMS = "npc_holograms";
     /**
      * The instance of the main class
      */
@@ -85,9 +88,12 @@ public class MenuUtils {
     public static Content.Builder actionBase(Action action, Player player) {
         return Content.builder(Capacity.ofRows(5))
                 .apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(3, MenuItems.decrementDelay(action, player))
-                .setButton(4, MenuItems.delayDisplay(action, player))
-                .setButton(5, MenuItems.incrementDelay(action, player))
+                .setButton(0, MenuItems.decrementDelay(action, player))
+                .setButton(1, MenuItems.delayDisplay(action, player))
+                .setButton(2, MenuItems.incrementDelay(action, player))
+                .setButton(6, MenuItems.decrementCooldown(action, player))
+                .setButton(7, MenuItems.cooldownDisplay(action, player))
+                .setButton(8, MenuItems.incrementCooldown(action, player))
                 .setButton(36, MenuItems.toAction(player))
                 .setButton(40, MenuItems.saveAction(action, player))
                 .setButton(44, MenuItems.editConditions(player));

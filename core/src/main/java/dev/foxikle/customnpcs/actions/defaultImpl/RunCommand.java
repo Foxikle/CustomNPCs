@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -31,6 +32,7 @@ import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.runnables.CommandRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -48,6 +50,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -69,7 +72,7 @@ public class RunCommand extends Action {
                     Player p = (Player) event.getWhoClicked();
                     event.setCancelled(true);
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    RunCommand actionImpl = new RunCommand("say hi", false, 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    RunCommand actionImpl = new RunCommand("say hi", false, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -88,8 +91,26 @@ public class RunCommand extends Action {
      * @param mode         The mode
      * @param conditionals The conditionals
      */
-    public RunCommand(String rawCommand, boolean asConsole, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals);
+    public RunCommand(String rawCommand, boolean asConsole, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
+        super(delay, mode, conditionals, cooldown);
+        this.command = rawCommand;
+        this.asConsole = asConsole;
+    }
+
+    /**
+     * Creates a new RunCommand with the specified command
+     *
+     * @param rawCommand   The raw command
+     * @param asConsole    If the command should be executed as a console command.
+     * @param delay        The delay
+     * @param mode         The mode
+     * @param conditionals The conditionals
+     * @deprecated Use {@link #RunCommand(String, boolean, int, Selector, List, int)}
+     */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
+    public RunCommand(String rawCommand, boolean asConsole, int delay, Selector mode, List<Condition> conditionals) {
+        super(delay, mode, conditionals, 0);
         this.command = rawCommand;
         this.asConsole = asConsole;
     }
@@ -102,7 +123,7 @@ public class RunCommand extends Action {
         boolean asConsole = parseBoolean(serialized, "asConsole");
         ParseResult pr = parseBase(serialized);
 
-        RunCommand command = new RunCommand(raw, asConsole, pr.delay(), pr.mode(), pr.conditions());
+        RunCommand command = new RunCommand(raw, asConsole, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
         return clazz.cast(command);
     }
 
@@ -139,6 +160,7 @@ public class RunCommand extends Action {
         String command = this.command;
         if (CustomNPCs.getInstance().papi) command = PlaceholderAPI.setPlaceholders(player, this.command);
         Bukkit.dispatchCommand(asConsole ? Bukkit.getConsoleSender() : player, command);
+        activateCooldown(player.getUniqueId());
     }
 
     @Override
@@ -148,7 +170,7 @@ public class RunCommand extends Action {
 
     @Override
     public Action clone() {
-        return new RunCommand(command, asConsole, getDelay(), getMode(), new ArrayList<>(getConditions()));
+        return new RunCommand(command, asConsole, getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
     }
 
     public class RunCommandCustomizer implements Menu {
@@ -216,7 +238,7 @@ public class RunCommand extends Action {
                         CustomNPCs plugin = CustomNPCs.getInstance();
                         Player p = (Player) event.getWhoClicked();
                         p.closeInventory();
-                        plugin.commandWaiting.add(p.getUniqueId());
+                        plugin.wait(p, WaitingType.COMMAND);
                         new CommandRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                         event.setCancelled(true);
                         player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,7 @@ public class Msg {
         Object[] translatedArgs = new Object[args.length];
         for (int i = 0; i < args.length; i++) {
             if (args[i] instanceof ComponentLike like) {
-                translatedArgs[i] = plainText(like.asComponent());
+                translatedArgs[i] = minimessage(like.asComponent());
             } else if (args[i] instanceof String string) {
                 translatedArgs[i] = string;
             } else {
@@ -61,9 +61,7 @@ public class Msg {
             return key;
         }
 
-        assert format != null : "Failed to translate message: " + key + " -- Format is null";
         StringBuffer buffer = format.format(translatedArgs, new StringBuffer(), new FieldPosition(0));
-
         return buffer.toString();
     }
 
@@ -72,10 +70,19 @@ public class Msg {
                 .toArray(Component[]::new);
     }
 
+    public static Component[] vlore(Locale locale, String key, int width, Object... args) {
+        return ComponentWrapper.wrap(translate(locale, key, args), width)
+                .toArray(Component[]::new);
+    }
+
     public static Component format(String str) {
         return CustomNPCs.getInstance().getMiniMessage().deserialize(str)
                 .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
                 .colorIfAbsent(NamedTextColor.WHITE);
+    }
+
+    public static String minimessage(Component component) {
+        return CustomNPCs.getInstance().getMiniMessage().serialize(component);
     }
 
     public static String plainText(Component comp) {

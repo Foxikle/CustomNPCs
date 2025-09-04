@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,13 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
+import dev.velix.imperat.command.AttachmentMode;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-@SubCommand(value = "movehere", attachDirectly = true)
+@SubCommand(value = "movehere", attachment = AttachmentMode.MAIN)
 @Permission("customnpcs.commands.movehere")
 public class MoveCommand {
 
@@ -41,7 +43,7 @@ public class MoveCommand {
             @Named("npc") @SuggestionProvider("current_npc") @Greedy String npc
     ) {
         if (source.isConsole()) {
-            source.reply(Msg.format("You can't do this :P"));
+            source.reply(Msg.format("<red>You can't do this :P"));
             return;
         }
 
@@ -57,9 +59,13 @@ public class MoveCommand {
 
         p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.move.nudge"));
         assert finalNpc != null;
+        finalNpc.teleport(p.getLocation());
         finalNpc.remove();
         finalNpc.setSpawnLoc(p.getLocation());
         finalNpc.createNPC();
+        Bukkit.getOnlinePlayers().forEach(pl ->
+                finalNpc.getInjectionManager().markForInjection(pl.getUniqueId())
+        );
     }
 
 }

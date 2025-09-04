@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -45,6 +46,7 @@ import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -75,8 +77,32 @@ public class Teleport extends Action {
      * @param delay        The delay
      * @param mode         The selection mode of the action's conditions
      */
-    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals);
+    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
+        super(delay, mode, conditionals, cooldown);
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.pitch = pitch;
+        this.yaw = yaw;
+    }
+
+    /**
+     * Creates a new SendMessage with the specified message
+     *
+     * @param x            The x coordinate
+     * @param y            The y coordinate
+     * @param z            The z coordinate
+     * @param pitch        The pitch of the player
+     * @param yaw          The yaw of the player
+     * @param conditionals The conditionals
+     * @param delay        The delay
+     * @param mode         The selection mode of the action's conditions
+     * @deprecated Use {@link Teleport#Teleport(double, double, double, float, float, int, Selector, List, int)}
+     */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
+    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Selector mode, List<Condition> conditionals) {
+        super(delay, mode, conditionals, 0);
         this.x = x;
         this.y = y;
         this.z = z;
@@ -94,7 +120,7 @@ public class Teleport extends Action {
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                    Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -112,7 +138,7 @@ public class Teleport extends Action {
         float yaw = parseFloat(serialized, "yaw");
         ParseResult pr = parseBase(serialized);
 
-        Teleport message = new Teleport(x, y, z, pitch, yaw, pr.delay(), pr.mode(), pr.conditions());
+        Teleport message = new Teleport(x, y, z, pitch, yaw, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
         return clazz.cast(message);
     }
 
@@ -148,8 +174,8 @@ public class Teleport extends Action {
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
-
         player.teleportAsync(new Location(npc.getWorld(), x, y, z, yaw, pitch));
+        activateCooldown(player.getUniqueId());
     }
 
     @Override
@@ -165,7 +191,7 @@ public class Teleport extends Action {
 
     @Override
     public Action clone() {
-        return new Teleport(getX(), getY(), getZ(), getPitch(), getYaw(), getDelay(), getMode(), getConditions());
+        return new Teleport(getX(), getY(), getZ(), getPitch(), getYaw(), getDelay(), getMode(), getConditions(), getCooldown());
     }
 
     public static class TeleportCustomizer implements Menu {

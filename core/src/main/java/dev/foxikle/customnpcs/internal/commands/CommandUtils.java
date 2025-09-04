@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@ import com.google.common.collect.Iterables;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.velix.imperat.BukkitSource;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
@@ -104,7 +103,7 @@ public class CommandUtils {
         Component message = Msg.translate(p, "customnpcs.commands.manage.header").appendNewline();
         for (InternalNpc npc : plugin.getNPCs()) {
             if (npc.getSettings().isResilient()) {
-                Component name = Utils.mm("<gray>◆<reset> ")
+                Component name = Msg.format("<gray>◆<reset> ")
                         .append(plugin.getMiniMessage().deserialize(npc.getSettings().getName()).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.manage.copy_uuid")))).clickEvent(net.kyori.adventure.text.event.ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, npc.getUniqueID().toString()))
                         .append(Msg.translate(p, "customnpcs.commands.manage.button.edit").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.manage.button.edit.hover"))).clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc edit " + npc.getUniqueID())))
                         .append(Msg.translate(p, "customnpcs.commands.manage.button.delete").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.manage.button.delete.hover"))).clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc delete " + npc.getUniqueID())))

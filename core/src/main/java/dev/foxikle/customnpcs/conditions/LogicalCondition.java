@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Foxikle
+ * Copyright (c) 2024-2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.conditions;
+package dev.foxikle.customnpcs.conditions;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import org.bukkit.GameMode;
