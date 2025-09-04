@@ -1,9 +1,0 @@
-syntax = "proto3";
-package dev.foxikle.customnpcs.internal.proto;
-
-import "npc.proto";
-
-// This is the data that gets stored in a file or database somewhere,
-message NpcList {
-  repeated Npc npcs = 1;
-}

@@ -31,6 +31,7 @@ import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
+import dev.velix.imperat.command.AttachmentMode;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -43,7 +44,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@SubCommand(value = "movedata", attachDirectly = true)
+@SubCommand(value = "movedata", attachment = AttachmentMode.MAIN)
 @Permission("customnpcs.commands.movedata")
 public class MoveDataCommand {
 

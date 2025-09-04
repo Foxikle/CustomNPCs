@@ -669,7 +669,6 @@ public class FileManager {
                         section.getBoolean("clickable"),
                         section.getBoolean("tunnelvision"),
                         true,
-                        location.getYaw(),
                         section.getString("value"),
                         section.getString("signature"),
                         section.getString("skin"),
