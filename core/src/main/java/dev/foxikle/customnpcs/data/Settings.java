@@ -35,11 +35,13 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 /**
  * A class holding the data for an NPC's settings
  */
 @AllArgsConstructor
+@ConfigSerializable
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class Settings {
 

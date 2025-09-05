@@ -32,7 +32,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class FileStorage implements StorageProvider {
 
-    public static final File FILE = new File("plugins/CustomNPCs/npcs.dat");
+    public static final File FILE = new File("plugins/CustomNPCs/npcs.json");
 
     /**
      * Creates files
@@ -57,10 +57,10 @@ public class FileStorage implements StorageProvider {
      * {@inheritDoc}
      */
     @Override
-    public CompletableFuture<Boolean> save(byte[] data) {
+    public CompletableFuture<Boolean> save(String json) {
         return CompletableFuture.supplyAsync(() -> {
             try (FileOutputStream fos = new FileOutputStream(FILE)) {
-                fos.write(data);
+                fos.write(json.getBytes());
             } catch (IOException e) {
                 throw new RuntimeException("Failed to save local storage file.", e);
             }
@@ -72,10 +72,10 @@ public class FileStorage implements StorageProvider {
      * {@inheritDoc}
      */
     @Override
-    public CompletableFuture<byte[]> load() {
+    public CompletableFuture<String> load() {
         return CompletableFuture.supplyAsync(() -> {
             try (FileInputStream fis = new FileInputStream(FILE)) {
-                return fis.readAllBytes();
+                return new String(fis.readAllBytes());
             } catch (Exception e) {
                 throw new RuntimeException("Failed to load local storage file.", e);
             }

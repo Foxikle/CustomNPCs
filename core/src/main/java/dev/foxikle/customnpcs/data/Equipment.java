@@ -28,12 +28,14 @@ import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 /**
  * The class representing the NPC's items
  */
 @Getter
 @SuppressWarnings("UnusedReturnValue")
+@ConfigSerializable
 public class Equipment {
     private ItemStack head = new ItemStack(Material.AIR);
     private ItemStack chest = new ItemStack(Material.AIR);

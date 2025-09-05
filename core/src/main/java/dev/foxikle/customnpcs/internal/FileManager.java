@@ -25,7 +25,6 @@ package dev.foxikle.customnpcs.internal;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.ActionType;
 import dev.foxikle.customnpcs.actions.LegacyAction;
-import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.api.Pose;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;

@@ -105,7 +105,7 @@ public class RemoveXP extends Action {
         this.amount = amount;
     }
 
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+    public static <T extends Condition> T deserialize(String serialized, Class<T> clazz) {
         if (!clazz.equals(RemoveXP.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RemoveXP.class.getName());
         }

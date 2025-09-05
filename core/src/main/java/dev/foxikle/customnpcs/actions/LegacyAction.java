@@ -22,8 +22,8 @@
 
 package dev.foxikle.customnpcs.actions;
 
-import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.actions.defaultImpl.*;
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import lombok.Getter;

@@ -25,7 +25,6 @@ package dev.foxikle.customnpcs.api;
 import com.google.common.base.Preconditions;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.LegacyAction;
-import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.api.events.NpcDeleteEvent;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;

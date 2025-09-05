@@ -37,17 +37,17 @@ public interface StorageProvider {
     /**
      * Saves the given byte array to the storage provider. It should overwrite the data.
      *
-     * @param data The byte array to save
+     * @param json The json array to save
      * @return if the save was successful
      */
-    CompletableFuture<Boolean> save(byte[] data);
+    CompletableFuture<Boolean> save(String json);
 
     /**
      * Loads the saved byte array from the storage provider
      *
-     * @return The array of bytes, or the loaded data.
+     * @return The array of json NPC data, or the loaded data.
      */
-    CompletableFuture<byte[]> load();
+    CompletableFuture<String> load();
 
     /**
      * Shuts down the storage provider. This could close buffers, connections, etc.

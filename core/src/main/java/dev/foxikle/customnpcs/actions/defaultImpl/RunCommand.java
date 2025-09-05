@@ -115,7 +115,7 @@ public class RunCommand extends Action {
         this.asConsole = asConsole;
     }
 
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+    public static <T extends Condition> T deserialize(String serialized, Class<T> clazz) {
         if (!clazz.equals(RunCommand.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RunCommand.class.getName());
         }

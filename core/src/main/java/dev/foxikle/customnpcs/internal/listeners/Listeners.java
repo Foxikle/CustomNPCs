@@ -25,9 +25,9 @@ package dev.foxikle.customnpcs.internal.listeners;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.actions.defaultImpl.*;
 import dev.foxikle.customnpcs.api.events.NpcInteractEvent;
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
@@ -284,14 +284,14 @@ public class Listeners implements Listener {
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.name", index + 1, Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_HOLOGRAMS));
         } else if (plugin.isWaiting(player, WaitingType.TARGET)) {
-            Condition conditional = plugin.editingConditionals.get(player.getUniqueId());
+            Condition condition = plugin.editingConditionals.get(player.getUniqueId());
             if (cancel) {
                 plugin.waiting.remove(player.getUniqueId());
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_CONDITION_CUSTOMIZER));
                 e.setCancelled(true);
                 return;
             }
-            if (conditional.getType() == Condition.Type.NUMERIC) {
+            if (condition.getType() == Condition.Type.NUMERIC) {
                 try {
                     Double.parseDouble(message);
                 } catch (NumberFormatException ignored) {
@@ -300,8 +300,8 @@ public class Listeners implements Listener {
                 }
             }
             plugin.waiting.remove(player.getUniqueId());
-            conditional.setTargetValue(message);
-            plugin.editingConditionals.put(player.getUniqueId(), conditional);
+            condition.setTargetValue(message);
+            plugin.editingConditionals.put(player.getUniqueId(), condition);
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.conditions.set.target", message));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_CONDITION_CUSTOMIZER));
         } else if (plugin.isWaiting(player, WaitingType.TITLE)) {

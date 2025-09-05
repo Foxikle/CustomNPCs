@@ -24,8 +24,6 @@ package dev.foxikle.customnpcs.internal.commands;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.commands.enums.FixConfigWorldStrategy;
-import dev.foxikle.customnpcs.internal.proto.NpcOuterClass;
-import dev.foxikle.customnpcs.internal.proto.ProtoWrapper;
 import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;

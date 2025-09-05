@@ -31,11 +31,10 @@ import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
-import dev.foxikle.customnpcs.internal.proto.NpcOuterClass;
-import dev.foxikle.customnpcs.internal.proto.ProtoWrapper;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.exceptions.IllegalWorldException;
 import dev.foxikle.customnpcs.internal.utils.exceptions.UntrackedNpcException;
+import io.leangen.geantyref.TypeToken;
 import lombok.Getter;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
@@ -45,6 +44,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.configurate.ConfigurationNode;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,6 +63,8 @@ import java.util.stream.Collectors;
 public class StorageManager {
 
     public static final String[] VALID_PROVIDERS = {"LOCAL", "MONGODB", "MYSQL"};
+    public static final TypeToken<List<StorableNPC>> NPC_LIST = new TypeToken<>() {
+    };
 
     /**
      * The config file version
@@ -76,11 +78,11 @@ public class StorageManager {
     public static final double NPC_FILE_VERSION = 1.6;
     public static File PARENT_DIRECTORY = new File("plugins/CustomNPCs/");
     @Getter
-    private final Map<UUID, NpcOuterClass.Npc> brokenNPCs = new HashMap<>();
+    private final Map<UUID, StorableNPC> brokenNPCs = new HashMap<>();
     @Getter
     private final List<UUID> validNPCs = new ArrayList<>();
     private final CustomNPCs plugin;
-    private final List<NpcOuterClass.Npc> trackedNpcs = new ArrayList<>();
+    private final List<StorableNPC> trackedNpcs = new ArrayList<>();
 
     private boolean justMigrated = false;
     @Getter
@@ -508,7 +510,7 @@ public class StorageManager {
             // migrate data to the new storage provider!
             plugin.getLogger().warning(" <!>  --  Migrating NPCs to dataformat 2!  --  <!>");
 
-            List<NpcOuterClass.Npc> migrated = new ArrayList<>();
+            List<StorableNPC> migrated = new ArrayList<>();
             for (String key : yml.getKeys(false)) {
                 if (key.equals("version")) continue; // version tracking
                 migrated.add(migrateNPC(UUID.fromString(key)));
@@ -549,25 +551,25 @@ public class StorageManager {
                     }
 
                     // track the npcs
-                    for (NpcOuterClass.Npc npc : internalNpcs) {
+                    for (StorableNPC npc : internalNpcs) {
                         if (plugin.isDebug()) {
-                            plugin.getLogger().info("[DEBUG] Tracking NPC " + npc.getUuid());
+                            plugin.getLogger().info("[DEBUG] Tracking NPC " + npc.getUniqueID());
                         }
                         track(npc);
-                        if (loadProto(npc)) {
+                        if (loadStorable(npc)) {
                             successfullyLoaded.incrementAndGet();
                         } else {
-                            plugin.getLogger().log(Level.WARNING, "NPC " + npc.getUuid() + " could not be loaded!");
+                            plugin.getLogger().log(Level.WARNING, "NPC " + npc.getUniqueID() + " could not be loaded!");
                         }
                     }
                     plugin.getLogger().info("Succesfully loaded " + successfullyLoaded + " NPCs, failed to load " + (trackedNpcs.size() - successfullyLoaded.get()) + " NPCs.");
                 }));
             } else {
                 trackedNpcs.forEach(npc -> {
-                    if (loadProto(npc)) {
+                    if (loadStorable(npc)) {
                         successfullyLoaded.incrementAndGet();
                     } else {
-                        plugin.getLogger().log(Level.WARNING, "NPC " + npc.getUuid() + " could not be loaded!");
+                        plugin.getLogger().log(Level.WARNING, "NPC " + npc.getUniqueID() + " could not be loaded!");
                     }
                 });
                 plugin.getLogger().info("Succesfully loaded " + successfullyLoaded + " cached NPCs, failed to load " + (trackedNpcs.size() - successfullyLoaded.get()) + " NPCs.");
@@ -576,24 +578,24 @@ public class StorageManager {
         return true;
     }
 
-    public boolean loadProto(NpcOuterClass.Npc npc) {
+    public boolean loadStorable(StorableNPC npc) {
         if (plugin.isDebug()) {
-            plugin.getLogger().info("[DEBUG] Loading NPC " + npc.getUuid());
+            plugin.getLogger().info("[DEBUG] Loading NPC " + npc.getUniqueID());
         }
         try {
-            if (loadNPC(UUID.fromString(npc.getUuid()))) {
+            if (loadNPC(npc.getUniqueID())) {
                 return true;
             } else {
-                plugin.getLogger().warning("Failed to load NPC " + npc.getUuid() + "!");
+                plugin.getLogger().warning("Failed to load NPC " + npc.getUniqueID() + "!");
             }
         } catch (IllegalWorldException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUuid() + " due to an invalid world.");
+            plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " due to an invalid world.");
         } catch (UntrackedNpcException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUuid() + " as it was not tracked.");
+            plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " as it was not tracked.");
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUuid() + " due to an unknown error.", e);
+            plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " due to an unknown error.", e);
         }
-        brokenNPCs.put(UUID.fromString(npc.getUuid()), npc);
+        brokenNPCs.put(npc.getUniqueID(), npc);
         return false;
     }
 
@@ -604,7 +606,7 @@ public class StorageManager {
      * @param npc The NPC to store
      */
     public void addNPC(InternalNpc npc) {
-        trackedNpcs.add(ProtoWrapper.toProtoNpc(npc));
+        trackedNpcs.add(new StorableNPC(npc));
         saveNpcs();
     }
 
@@ -616,16 +618,16 @@ public class StorageManager {
      * @return if the load was successful
      */
     public boolean loadNPC(UUID uuid) {
-        if (trackedNpcs.stream().noneMatch(npc -> npc.getUuid().equals(uuid.toString()))) {
+        if (trackedNpcs.stream().noneMatch(npc -> npc.getUniqueID().equals(uuid.toString()))) {
             throw new IllegalArgumentException("NPC does not exist!");
         }
-        NpcOuterClass.Npc proto = trackedNpcs.stream().filter(n -> n.getUuid().equals(uuid.toString())).findFirst().orElse(null);
-        if (proto == null) throw new IllegalArgumentException("NPC does not exist!"); // should never be thrown
+        StorableNPC stored = trackedNpcs.stream().filter(n -> n.getUniqueID().equals(uuid.toString())).findFirst().orElse(null);
+        if (stored == null) throw new IllegalArgumentException("NPC does not exist!"); // should never be thrown
 
-        InternalNpc npc = ProtoWrapper.fromProtoNpc(proto);
+        InternalNpc npc = stored.toPluginObject();
         if (npc.getWorld() == null) {
             printInvalidConfig();
-            brokenNPCs.put(uuid, proto);
+            brokenNPCs.put(uuid, stored);
             return false;
         }
         // has to be on a sync thread
@@ -633,7 +635,7 @@ public class StorageManager {
         return true;
     }
 
-    public NpcOuterClass.Npc migrateNPC(UUID uuid) {
+    public StorableNPC migrateNPC(UUID uuid) {
         File file = new File("plugins/CustomNPCs/npcs.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection section = yml.getConfigurationSection(uuid.toString());
@@ -680,7 +682,7 @@ public class StorageManager {
 
         InternalNpc npc = plugin.createNPC(world, location, new Equipment(section.getItemStack("headItem"), section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack("feetItem"), section.getItemStack("handItem"), section.getItemStack("offhandItem")), new Settings(section.getBoolean("clickable"), section.getBoolean("tunnelvision"), true, section.getString("value"), section.getString("signature"), section.getString("skin"), section.getStringList("lines").toArray(new String[0]), section.getString("customHologram"), section.getBoolean("hideInteractableHologram"), parsePose(section.getString("pose")), section.getBoolean("upsideDown")), uuid, null, actions, /*todo: fix this!*/ null, null);
 
-        return ProtoWrapper.toProtoNpc(npc);
+        return new StorableNPC(npc);
     }
 
     @NotNull
@@ -701,7 +703,7 @@ public class StorageManager {
      * @return the set of stored NPC uuids.
      */
     public Set<UUID> getNPCIds() {
-        return trackedNpcs.stream().map(npc -> UUID.fromString(npc.getUuid())).collect(Collectors.toSet());
+        return trackedNpcs.stream().map(npc -> npc.getUniqueID()).collect(Collectors.toSet());
     }
 
     /**
@@ -711,9 +713,9 @@ public class StorageManager {
      * @param uuid The NPC uuid to remove
      */
     public void remove(UUID uuid) {
-        NpcOuterClass.Npc proto = trackedNpcs.stream().filter(npc -> npc.getUuid().equals(uuid.toString())).findFirst().orElse(null);
-        if (proto == null) throw new IllegalArgumentException("NPC does not exist!");
-        trackedNpcs.remove(proto);
+        StorableNPC stored = trackedNpcs.stream().filter(npc -> npc.getUniqueID().equals(uuid)).findFirst().orElse(null);
+        if (stored == null) throw new IllegalArgumentException("NPC does not exist!");
+        trackedNpcs.remove(stored);
         saveNpcs();
     }
 
@@ -745,27 +747,32 @@ public class StorageManager {
     }
 
     public CompletableFuture<Boolean> saveNpcs() {
-        return storage.save(ProtoWrapper.serializeProtoList(trackedNpcs));
+        ConfigurationNode node = CustomNPCs.CONFIGURATE.build().createNode();
+        try {
+            node.set(trackedNpcs);
+            return storage.save(CustomNPCs.CONFIGURATE.buildAndSaveString(node));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public void track(NpcOuterClass.Npc proto) {
-        NpcOuterClass.Npc found = trackedNpcs.stream().filter(npc -> npc.getUuid().equals(proto.getUuid())).findFirst().orElse(null);
-        if (found != null) trackedNpcs.remove(found);
-        trackedNpcs.add(proto);
+    public void track(StorableNPC stored) {
+        trackedNpcs.stream().filter(npc -> npc.getUniqueID().equals(stored.getUniqueID())).findFirst().ifPresent(trackedNpcs::remove);
+        trackedNpcs.add(stored);
     }
 
     /**
      * Gets ALL npcs stored in the storage provider, their configurations are not validated.
      */
-    public CompletableFuture<List<NpcOuterClass.Npc>> getAllNpcs() {
-        CompletableFuture<List<NpcOuterClass.Npc>> future = new CompletableFuture<>();
-        storage.load().whenComplete((bytes, throwable) -> {
+    public CompletableFuture<List<StorableNPC>> getAllNpcs() {
+        CompletableFuture<List<StorableNPC>> future = new CompletableFuture<>();
+        storage.load().whenComplete((json, throwable) -> {
             if (throwable != null) {
                 future.completeExceptionally(throwable);
                 return;
             }
             try {
-                future.complete(ProtoWrapper.deserializeProtoList(bytes));
+                future.complete(CustomNPCs.CONFIGURATE.buildAndLoadString(json).get(NPC_LIST));
             } catch (Exception e) {
                 future.completeExceptionally(e);
             }

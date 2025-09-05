@@ -24,9 +24,8 @@ package dev.foxikle.customnpcs.internal.commands;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
-import dev.foxikle.customnpcs.internal.proto.NpcOuterClass;
-import dev.foxikle.customnpcs.internal.proto.ProtoWrapper;
 import dev.foxikle.customnpcs.internal.storage.FileStorage;
+import dev.foxikle.customnpcs.internal.storage.StorableNPC;
 import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
@@ -131,7 +130,7 @@ public class MoveDataCommand {
                 return;
             }
 
-            List<NpcOuterClass.Npc> local = ProtoWrapper.deserializeProtoList(currentData);
+            List<StorableNPC> local = ProtoWrapper.deserializeProtoList(currentData);
             sm.getAllNpcs().whenComplete((remote, throwable) -> {
                 if (throwable != null) {
                     plugin.getLogger().log(Level.SEVERE, "An error occurred while fetching remote NPC data!", throwable);
@@ -139,9 +138,9 @@ public class MoveDataCommand {
                     return;
                 }
 
-                List<NpcOuterClass.Npc> merged = Stream.concat(remote.stream(), local.stream())
+                List<StorableNPC> merged = Stream.concat(remote.stream(), local.stream())
                         .collect(Collectors.toMap(
-                                NpcOuterClass.Npc::getUuid, npc -> npc, (t, t2) -> discardRemote ? t : t2)
+                                StorableNPC::getUniqueID, npc -> npc, (t, t2) -> discardRemote ? t : t2)
                         ).values().stream().toList();
                 finalizeMove(source, plugin, sm, merged);
             });
@@ -170,12 +169,12 @@ public class MoveDataCommand {
                 return;
             }
 
-            List<NpcOuterClass.Npc> toWrite = ProtoWrapper.deserializeProtoList(currentData);
+            List<StorableNPC> toWrite = ProtoWrapper.deserializeProtoList(currentData);
             finalizeMove(source, plugin, sm, toWrite);
         });
     }
 
-    private void finalizeMove(BukkitSource source, CustomNPCs plugin, StorageManager sm, List<NpcOuterClass.Npc> toWrite) {
+    private void finalizeMove(BukkitSource source, CustomNPCs plugin, StorageManager sm, List<StorableNPC> toWrite) {
         Bukkit.getScheduler().runTask(plugin, () -> {
             sm.resetTracked();
 
@@ -183,9 +182,9 @@ public class MoveDataCommand {
             plugin.getNPCs().forEach(InternalNpc::remove);
             plugin.npcs.clear();
 
-            for (NpcOuterClass.Npc npc : toWrite) {
+            for (StorableNPC npc : toWrite) {
                 sm.track(npc);
-                sm.loadProto(npc);
+                sm.loadStorable(npc);
             }
 
             sm.saveNpcs().whenComplete((aBoolean, throwable1) -> {

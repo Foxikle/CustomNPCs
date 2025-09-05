@@ -61,7 +61,7 @@ public class MysqlStorage implements StorageProvider {
         return CompletableFuture.supplyAsync(() -> {
             try (HikariDataSource dataSource = new HikariDataSource(config)) {
                 try (Connection connection = dataSource.getConnection()) {
-                    PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS npc_data (id VARCHAR(255) PRIMARY KEY, data MEDIUMBLOB)");
+                    PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS npc_data (id VARCHAR(255) PRIMARY KEY, data LONGTEXT)");
                     statement.executeUpdate();
                 } catch (Exception e) {
                     plugin.getLogger().log(Level.SEVERE, "Failed to create table", e);
@@ -83,7 +83,7 @@ public class MysqlStorage implements StorageProvider {
      * @return if the save was successful
      */
     @Override
-    public CompletableFuture<Boolean> save(byte[] data) {
+    public CompletableFuture<Boolean> save(String data) {
         return CompletableFuture.supplyAsync(() -> {
             try (HikariDataSource dataSource = new HikariDataSource(config)) {
                 try (Connection connection = dataSource.getConnection()) {
@@ -92,7 +92,7 @@ public class MysqlStorage implements StorageProvider {
                     String sql = "INSERT INTO npc_data (id, data) VALUES (?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)";
                     try (PreparedStatement statement = connection.prepareStatement(sql)) {
                         statement.setString(1, tableName);  // Set the id parameter
-                        statement.setBytes(2, data); // Set the data (MEDIUMBLOB)
+                        statement.setString(2, data); // Set the data (MEDIUMBLOB)
 
                         // Execute the insert query
                         statement.executeUpdate();
@@ -111,7 +111,7 @@ public class MysqlStorage implements StorageProvider {
      * @return The array of bytes, or the loaded data.
      */
     @Override
-    public CompletableFuture<byte[]> load() {
+    public CompletableFuture<String> load() {
         return CompletableFuture.supplyAsync(() -> {
             try (HikariDataSource dataSource = new HikariDataSource(config)) {
                 try (Connection connection = dataSource.getConnection()) {
@@ -123,10 +123,10 @@ public class MysqlStorage implements StorageProvider {
 
                         // Execute the  query
                         ResultSet rs = statement.executeQuery();
-                        byte[] data = new byte[0];
+                        String data = "";
                         while (rs.next()) {
                             // should only run once, as primary keys are unique.
-                            data = rs.getBytes("data");
+                            data = rs.getString("data");
                         }
                         return data;
                     }

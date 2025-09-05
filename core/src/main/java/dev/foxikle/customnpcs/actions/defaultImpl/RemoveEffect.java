@@ -106,7 +106,7 @@ public class RemoveEffect extends Action {
                 }));
     }
 
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+    public static <T extends Condition> T deserialize(String serialized, Class<T> clazz) {
         if (!clazz.equals(RemoveEffect.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RemoveEffect.class.getName());
         }

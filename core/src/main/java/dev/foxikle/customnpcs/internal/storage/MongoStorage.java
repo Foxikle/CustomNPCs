@@ -76,13 +76,13 @@ public class MongoStorage implements StorageProvider {
      * @return if the save was successful
      */
     @Override
-    public CompletableFuture<Boolean> save(byte[] data) {
+    public CompletableFuture<Boolean> save(String data) {
         checkState();
         return CompletableFuture.supplyAsync(() -> {
             try (MongoClient client = MongoClients.create(settings)) {
                 MongoDatabase db = client.getDatabase(database);
 
-                Document doc = new Document("_id", document).append("data", new Binary(data));
+                Document doc = new Document("_id", document).append("data", data);
                 // replace it if it exists :)
                 db.getCollection("customnpcs").replaceOne(Filters.eq("_id", document), doc, new ReplaceOptions().upsert(true));
                 return true;
@@ -99,15 +99,15 @@ public class MongoStorage implements StorageProvider {
      * @return The array of bytes, or the loaded data.
      */
     @Override
-    public CompletableFuture<byte[]> load() {
+    public CompletableFuture<String> load() {
         checkState();
         return CompletableFuture.supplyAsync(() -> {
             try (MongoClient client = MongoClients.create(settings)) {
                 MongoDatabase db = client.getDatabase(database);
 
                 Document doc = db.getCollection("customnpcs").find(Filters.eq("_id", document)).first();
-                if (doc == null) return new byte[0]; // no data saved
-                return doc.get("data", Binary.class).getData();
+                if (doc == null) return ""; // no data saved
+                return doc.getString("data");
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

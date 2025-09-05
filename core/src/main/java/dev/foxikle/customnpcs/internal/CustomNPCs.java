@@ -47,6 +47,8 @@ import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
 import dev.foxikle.customnpcs.internal.utils.AutoUpdater;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
+import dev.foxikle.customnpcs.internal.utils.configurate.ActionSerializer;
+import dev.foxikle.customnpcs.internal.utils.configurate.ConditionSerializer;
 import dev.velix.imperat.BukkitImperat;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.Imperat;
@@ -68,6 +70,9 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.configurate.gson.GsonConfigurationLoader;
+import org.spongepowered.configurate.loader.ConfigurationLoader;
+import org.spongepowered.configurate.objectmapping.ObjectMapper;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -85,6 +90,16 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
     public static final ActionRegistry ACTION_REGISTRY = new ActionRegistry();
     public static int INTERPOLATION_DURATION;
+    public static final GsonConfigurationLoader.Builder CONFIGURATE = GsonConfigurationLoader.builder()
+            .indent(0)
+            .defaultOptions(opts -> opts
+                    .shouldCopyDefaults(true)
+                    .serializers(builder -> {
+                        builder.registerAnnotatedObjects(ObjectMapper.factory());
+                        builder.register(Action.class, new ActionSerializer());
+                        builder.register(Condition.class, new ConditionSerializer());
+                    })
+            );
     /**
      * Singleton for the NPCBuilder
      */

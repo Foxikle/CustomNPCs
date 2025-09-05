@@ -45,6 +45,7 @@ dependencies {
     compileOnly("org.mongodb:mongodb-driver-sync:5.3.0")
     compileOnly("com.mysql:mysql-connector-j:9.1.0")
     compileOnly("com.zaxxer:HikariCP:6.2.1")
+    compileOnly("org.spongepowered:configurate-gson:4.2.0")
 }
 
 val generateClassloader = tasks.register("generateClassloader") {
