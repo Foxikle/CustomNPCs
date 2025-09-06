@@ -22,8 +22,9 @@
 
 package dev.foxikle.customnpcs.actions;
 
-import dev.foxikle.customnpcs.actions.conditions.Condition;
 import dev.foxikle.customnpcs.actions.defaultImpl.*;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import lombok.Getter;
 import lombok.Setter;
@@ -51,7 +52,7 @@ public class LegacyAction {
     @Setter
     private int delay;
     @Setter
-    private Condition.SelectionMode mode;
+    private Selector mode;
 
     /**
      * <p> Creates a new Action
@@ -63,7 +64,7 @@ public class LegacyAction {
      * @param matchAll     If all the conditions must be met, or one
      * @param conditionals The conditions to apply to this action
      */
-    public LegacyAction(ActionType actionType, List<String> args, int delay, Condition.SelectionMode matchAll, List<Condition> conditionals) {
+    public LegacyAction(ActionType actionType, List<String> args, int delay, Selector matchAll, List<Condition> conditionals) {
         this.actionType = actionType;
         this.args = args;
         this.delay = delay;
@@ -75,7 +76,7 @@ public class LegacyAction {
         this.actionType = ActionType.valueOf(subCommand);
         this.args = args;
         this.delay = delay;
-        this.mode = Condition.SelectionMode.ONE;
+        this.mode = Selector.ONE;
         this.conditionals = new ArrayList<>();
     }
 
@@ -152,7 +153,7 @@ public class LegacyAction {
 
         Set<Boolean> results = new HashSet<>(2);
         conditionals.forEach(conditional -> results.add(conditional.compute(player)));
-        return (mode == Condition.SelectionMode.ALL ? !results.contains(false) : results.contains(true));
+        return (mode == Selector.ALL ? !results.contains(false) : results.contains(true));
     }
 
     /**

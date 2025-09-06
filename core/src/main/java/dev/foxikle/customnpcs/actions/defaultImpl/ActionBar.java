@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
@@ -65,11 +66,11 @@ public class ActionBar extends Action {
      * Creates a new SendMessage with the specified message
      *
      * @param rawMessage The raw message
-     * @deprecated Use {@link ActionBar#ActionBar(String, int, Condition.SelectionMode, List, int)}
+     * @deprecated Use {@link ActionBar#ActionBar(String, int, Selector, List, int)}
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public ActionBar(String rawMessage, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+    public ActionBar(String rawMessage, int delay, Selector mode, List<Condition> conditionals) {
         super(delay, mode, conditionals, 0);
         this.rawMessage = rawMessage;
     }
@@ -79,7 +80,7 @@ public class ActionBar extends Action {
      *
      * @param rawMessage The raw message
      */
-    public ActionBar(String rawMessage, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public ActionBar(String rawMessage, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.rawMessage = rawMessage;
     }
@@ -92,7 +93,7 @@ public class ActionBar extends Action {
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
-                    ActionBar actionImpl = new ActionBar("", 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    ActionBar actionImpl = new ActionBar("", 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));

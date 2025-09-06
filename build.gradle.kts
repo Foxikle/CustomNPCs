@@ -49,7 +49,7 @@ dependencies {
     implementation(project(":v1_20_R1", "reobf"))
 }
 
-var pluginVersion = "1.7.5"
+var pluginVersion = "1.8-pre2"
 
 allprojects {
     group = "dev.foxikle"
@@ -122,7 +122,7 @@ tasks {
             "apiVersion" to "1.20"
         )
         inputs.properties(props)
-        filesMatching("plugin.yml") {
+        filesMatching("paper-plugin.yml") {
             expand(props)
         }
     }
@@ -154,5 +154,3 @@ tasks.register<Javadoc>("aggregatedJavadocs") {
         }
     }
 }
-
-

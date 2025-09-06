@@ -20,19 +20,15 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.conditions;
+package dev.foxikle.customnpcs.conditions;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.ApiStatus;
 
 /**
  * The object representing a comparison of two numeric values
- * @deprecated See {@link NumericCondition}
  */
-@Deprecated
-@ApiStatus.ScheduledForRemoval(inVersion = "1.8.0")
-public class NumericConditional implements Condition {
+public class NumericCondition implements Condition {
 
     private final Type type = Type.NUMERIC;
     private Comparator comparator;
@@ -40,14 +36,13 @@ public class NumericConditional implements Condition {
     private double target;
 
     /**
-     *
      * @param comparator the comparator to use
-     * @param value the value to compare
-     * @param target the target to compare to
-     * @see Value
+     * @param value      the value to compare
+     * @param target     the target to compare to
+     * @see Condition.Value
      * @see Comparator
      */
-    public NumericConditional(Comparator comparator, Value value, double target) {
+    public NumericCondition(Comparator comparator, Value value, double target) {
         this.comparator = comparator;
         this.value = value;
         this.target = target;
@@ -55,6 +50,7 @@ public class NumericConditional implements Condition {
 
     /**
      * Computes the condition to determine if the action should be executed
+     *
      * @param player The player to fetch data from
      * @return if the action should be executed
      */
@@ -93,26 +89,27 @@ public class NumericConditional implements Condition {
 
     /**
      * Serializes the condition to json using Gson
+     *
      * @return the serialized condition
      */
     @Override
-    public String toJson(){
+    public String toJson() {
         return CustomNPCs.getGson().toJson(this);
     }
 
     /**
-     *
      * @param data the serialized condition
      * @return the condition from the json
      */
-    public static NumericConditional of(String data) {
-        return CustomNPCs.getGson().fromJson(data, NumericConditional.class);
+    public static NumericCondition of(String data) {
+        return CustomNPCs.getGson().fromJson(data, NumericCondition.class);
     }
 
     /**
      * Gets the type of condition
+     *
      * @return the condition type
-     * @see Type
+     * @see Condition.Type
      */
     @Override
     public Type getType() {
@@ -121,6 +118,7 @@ public class NumericConditional implements Condition {
 
     /**
      * Sets the comparator of this condition
+     *
      * @param comparator the comparator to compare the value and target value
      * @see Comparator
      */
@@ -131,8 +129,9 @@ public class NumericConditional implements Condition {
 
     /**
      * Sets the value of this condition
+     *
      * @param value the value to compare
-     * @see Value
+     * @see Condition.Value
      */
     @Override
     public void setValue(Value value) {
@@ -141,6 +140,7 @@ public class NumericConditional implements Condition {
 
     /**
      * Sets the target value of this condition
+     *
      * @param targetValue the target value
      */
     @Override
@@ -150,8 +150,9 @@ public class NumericConditional implements Condition {
 
     /**
      * Gets the value the condition is comparing
-     * @see Value
+     *
      * @return the value the condition is comparing
+     * @see Condition.Value
      */
     @Override
     public Value getValue() {
@@ -160,6 +161,7 @@ public class NumericConditional implements Condition {
 
     /**
      * Gets the target of the condition
+     *
      * @return returns the target value
      */
     @Override
@@ -169,6 +171,7 @@ public class NumericConditional implements Condition {
 
     /**
      * Gets the comparator the condition uses to compare the value and target value.
+     *
      * @return the comparator
      * @see Comparator
      */
@@ -180,9 +183,9 @@ public class NumericConditional implements Condition {
     @Override
     public Condition clone() {
         try {
-            return (NumericConditional) super.clone();
+            return (NumericCondition) super.clone();
         } catch (CloneNotSupportedException e) {
-            return new NumericConditional(comparator, value, target);
+            return new NumericCondition(comparator, value, target);
         }
     }
 }

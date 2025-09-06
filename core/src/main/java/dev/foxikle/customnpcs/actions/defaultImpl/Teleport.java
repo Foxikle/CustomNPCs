@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -76,7 +77,7 @@ public class Teleport extends Action {
      * @param delay        The delay
      * @param mode         The selection mode of the action's conditions
      */
-    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.x = x;
         this.y = y;
@@ -96,11 +97,11 @@ public class Teleport extends Action {
      * @param conditionals The conditionals
      * @param delay        The delay
      * @param mode         The selection mode of the action's conditions
-     * @deprecated Use {@link Teleport#Teleport(double, double, double, float, float, int, Condition.SelectionMode, List, int)}
+     * @deprecated Use {@link Teleport#Teleport(double, double, double, float, float, int, Selector, List, int)}
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Selector mode, List<Condition> conditionals) {
         super(delay, mode, conditionals, 0);
         this.x = x;
         this.y = y;
@@ -119,7 +120,7 @@ public class Teleport extends Action {
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));

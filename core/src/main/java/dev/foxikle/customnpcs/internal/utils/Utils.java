@@ -23,7 +23,7 @@
 package dev.foxikle.customnpcs.internal.utils;
 
 import com.google.common.reflect.TypeToken;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import net.kyori.adventure.text.Component;

@@ -25,8 +25,6 @@ package dev.foxikle.customnpcs.internal.commands;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.annotations.*;
 
-import java.util.Locale;
-
 @Command("npc")
 @Description("The main CustomNPCs command")
 @Permission("customnpcs.commands.help")
@@ -35,15 +33,14 @@ import java.util.Locale;
                 CloneCommand.class, CreateCommand.class, DeleteCommand.class,
                 EditCommand.class, FixConfigCommand.class, ListCommand.class, MoveCommand.class,
                 ReloadCommand.class, SetsoundCommand.class, TeleportCommand.class,
-                WikiCommand.class, HelpCommand.class, ManageCommand.class, DebugCommand.class
+                WikiCommand.class, HelpCommand.class, ManageCommand.class, DebugCommand.class,
+                MoveDataCommand.class
         }
 )
 public class NpcCommand {
 
     @Usage
     public void showHelp(BukkitSource sender) {
-        Locale locale = Locale.getDefault();
-        if (!sender.isConsole()) locale = sender.asPlayer().locale();
-        sender.reply(CommandUtils.getHelpComponent(locale));
+        sender.reply(CommandUtils.getHelpComponent(CommandUtils.getLocale(sender)));
     }
 }

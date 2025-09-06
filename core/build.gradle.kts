@@ -42,6 +42,10 @@ dependencies {
     compileOnly("org.mineskin:java-client-jsoup:3.0.6")
     compileOnly("dev.velix:imperat-bukkit:1.9.7")
     compileOnly("dev.velix:imperat-core:1.9.7")
+    compileOnly("org.mongodb:mongodb-driver-sync:5.3.0")
+    compileOnly("com.mysql:mysql-connector-j:9.1.0")
+    compileOnly("com.zaxxer:HikariCP:6.2.1")
+    compileOnly("org.spongepowered:configurate-gson:4.2.0")
 }
 
 val generateClassloader = tasks.register("generateClassloader") {
