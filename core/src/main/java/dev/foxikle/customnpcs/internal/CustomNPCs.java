@@ -47,8 +47,7 @@ import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
 import dev.foxikle.customnpcs.internal.utils.AutoUpdater;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
-import dev.foxikle.customnpcs.internal.utils.configurate.ActionSerializer;
-import dev.foxikle.customnpcs.internal.utils.configurate.ConditionSerializer;
+import dev.foxikle.customnpcs.internal.utils.configurate.*;
 import dev.velix.imperat.BukkitImperat;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.Imperat;
@@ -62,11 +61,13 @@ import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
@@ -98,6 +99,9 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                         builder.registerAnnotatedObjects(ObjectMapper.factory());
                         builder.register(Action.class, new ActionSerializer());
                         builder.register(Condition.class, new ConditionSerializer());
+                        builder.register(Location.class, new LocationSerializer());
+                        builder.register(ItemStack.class, new ItemstackSerializer());
+                        builder.register(Color.class, new ColorSerializer());
                     })
             );
     /**

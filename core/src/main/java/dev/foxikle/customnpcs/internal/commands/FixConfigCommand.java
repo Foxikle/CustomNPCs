@@ -24,6 +24,7 @@ package dev.foxikle.customnpcs.internal.commands;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.commands.enums.FixConfigWorldStrategy;
+import dev.foxikle.customnpcs.internal.storage.StorableNPC;
 import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.velix.imperat.BukkitSource;
@@ -92,10 +93,10 @@ public class FixConfigCommand {
         if (target.equalsIgnoreCase("all")) {
             // apply it to all NPCs
 
-            for (NpcOuterClass.Npc npc : storageManager.getBrokenNPCs().values()) {
+            for (StorableNPC npc : storageManager.getBrokenNPCs().values()) {
 
 
-                Location loc = ProtoWrapper.fromProtoLocation(npc.getLocation());
+                Location loc = npc.getSpawnLoc();
                 if (loc == null) {
                     loc = new Location(w, 0, 0, 0, 0, 0);
                     plugin.getLogger().warning("Fixed an NPC whose location data was wiped by Bukkit's configuration API. Its location was set to (0,0,0)");
@@ -114,7 +115,7 @@ public class FixConfigCommand {
                         if (traceResult == null) {
                             // The location cannot be safe
 
-                            plugin.getLogger().warning("Failed to fix npc " + npc.getUuid() + " at " + locString + " -- Location cannot be made safe.");
+                            plugin.getLogger().warning("Failed to fix npc " + npc.getUniqueID() + " at " + locString + " -- Location cannot be made safe.");
                             failedToFix++;
                             continue;
                         }
@@ -124,8 +125,8 @@ public class FixConfigCommand {
                 }
 
                 totalFixed++;
-                NpcOuterClass.Npc fixed = npc.toBuilder().setLocation(ProtoWrapper.toProtoLocation(loc)).build();
-                storageManager.track(fixed); // retrack the fixed on :)
+                npc.setSpawnLoc(loc);
+                storageManager.track(npc); // retrack the fixed on :)
             }
         } else {
             // find npc by flag
@@ -137,8 +138,8 @@ public class FixConfigCommand {
                     return;
                 }
                 UUID uuid = null;
-                NpcOuterClass.Npc npc = null;
-                for (Map.Entry<UUID, NpcOuterClass.Npc> entry : storageManager.getBrokenNPCs().entrySet()) {
+                StorableNPC npc = null;
+                for (Map.Entry<UUID, StorableNPC> entry : storageManager.getBrokenNPCs().entrySet()) {
                     if (MiniMessage.miniMessage().stripTags(entry.getValue().getSettings().getName()).equals(target)) {
                         uuid = entry.getKey();
                         npc = entry.getValue();
@@ -152,7 +153,7 @@ public class FixConfigCommand {
                 }
 
 
-                Location loc = ProtoWrapper.fromProtoLocation(npc.getLocation());
+                Location loc = npc.getSpawnLoc();
                 if (loc == null) {
                     loc = new Location(w, 0, 0, 0, 0, 0);
                     plugin.getLogger().warning("Fixed an NPC whose location data was wiped by Bukkit's configuration API. Its location was set to (0,0,0)");
@@ -183,8 +184,8 @@ public class FixConfigCommand {
 
 
                 totalFixed++;
-                NpcOuterClass.Npc fixed = npc.toBuilder().setLocation(ProtoWrapper.toProtoLocation(loc)).build();
-                storageManager.track(fixed);
+                npc.setSpawnLoc(loc);
+                storageManager.track(npc);
             } catch (Exception ignored) {
             }
 

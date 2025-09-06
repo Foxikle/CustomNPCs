@@ -7,7 +7,10 @@ import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -18,9 +21,12 @@ import java.util.UUID;
 
 @ConfigSerializable
 @Data
+@NoArgsConstructor
 public class StorableNPC {
-    private final UUID uniqueID;
-    private final String world;
+    @Setter(AccessLevel.NONE)
+    private UUID uniqueID;
+    @Setter(AccessLevel.NONE)
+    private String world;
     private Settings settings;
     private Equipment equipment;
     private Location spawnLoc;

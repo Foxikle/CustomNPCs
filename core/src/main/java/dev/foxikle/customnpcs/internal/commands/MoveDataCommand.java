@@ -33,6 +33,7 @@ import dev.velix.imperat.annotations.*;
 import dev.velix.imperat.command.AttachmentMode;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.spongepowered.configurate.ConfigurateException;
 
 import java.io.FileInputStream;
 import java.util.HashMap;
@@ -130,7 +131,12 @@ public class MoveDataCommand {
                 return;
             }
 
-            List<StorableNPC> local = ProtoWrapper.deserializeProtoList(currentData);
+            List<StorableNPC> local;
+            try {
+                local = CustomNPCs.CONFIGURATE.buildAndLoadString(new String(currentData)).get(StorageManager.NPC_LIST);
+            } catch (ConfigurateException e) {
+                throw new RuntimeException(e);
+            }
             sm.getAllNpcs().whenComplete((remote, throwable) -> {
                 if (throwable != null) {
                     plugin.getLogger().log(Level.SEVERE, "An error occurred while fetching remote NPC data!", throwable);
@@ -169,7 +175,12 @@ public class MoveDataCommand {
                 return;
             }
 
-            List<StorableNPC> toWrite = ProtoWrapper.deserializeProtoList(currentData);
+            List<StorableNPC> toWrite;
+            try {
+                toWrite = CustomNPCs.CONFIGURATE.buildAndLoadString(new String(currentData)).get(StorageManager.NPC_LIST);
+            } catch (ConfigurateException e) {
+                throw new RuntimeException(e);
+            }
             finalizeMove(source, plugin, sm, toWrite);
         });
     }

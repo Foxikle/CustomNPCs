@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 
 public class FileStorage implements StorageProvider {
@@ -60,7 +61,7 @@ public class FileStorage implements StorageProvider {
     public CompletableFuture<Boolean> save(String json) {
         return CompletableFuture.supplyAsync(() -> {
             try (FileOutputStream fos = new FileOutputStream(FILE)) {
-                fos.write(json.getBytes());
+                fos.write(json.getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
                 throw new RuntimeException("Failed to save local storage file.", e);
             }
@@ -75,7 +76,7 @@ public class FileStorage implements StorageProvider {
     public CompletableFuture<String> load() {
         return CompletableFuture.supplyAsync(() -> {
             try (FileInputStream fis = new FileInputStream(FILE)) {
-                return new String(fis.readAllBytes());
+                return new String(fis.readAllBytes(), StandardCharsets.UTF_8);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to load local storage file.", e);
             }
