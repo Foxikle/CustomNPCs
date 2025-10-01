@@ -23,7 +23,7 @@
 plugins {
     id("java")
     id("io.freefair.lombok") version "9.0.0"
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.18"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.19"
 }
 
 repositories {
