@@ -20,35 +20,22 @@
  * SOFTWARE.
  */
 
-plugins {
-    id("java")
-    id("io.freefair.lombok") version "9.0.0"
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.19"
-}
+package dev.foxikle.customnpcs.versions;
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven("https://jitpack.io")
-    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
-}
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.PacketFlow;
 
-dependencies {
-    compileOnly("me.clip:placeholderapi:2.11.6")
-    compileOnly(project(":core"))
-    paperweight.paperDevBundle("1.21.1-R0.1-SNAPSHOT")
-}
-
-tasks {
-    java {
-        toolchain.languageVersion = JavaLanguageVersion.of(21)
-    }
-
-    compileJava {
-        options.release = 21
-    }
-
-    jar {
-        archiveClassifier = "v1_21_R0"
+/**
+ * A fake connection for the NPCs
+ */
+public class FakeConnection_v1_21_R5 extends Connection {
+    /**
+     * <p> Creates a fake Connection for NPC
+     * </p>
+     *
+     * @param enumprotocoldirection The protocol direction
+     */
+    public FakeConnection_v1_21_R5(PacketFlow enumprotocoldirection) {
+        super(enumprotocoldirection);
     }
 }
