@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
@@ -71,7 +72,7 @@ public class RemoveEffect extends Action {
      *
      * @param effect The raw message
      */
-    public RemoveEffect(String effect, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public RemoveEffect(String effect, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.effect = effect;
     }
@@ -80,11 +81,11 @@ public class RemoveEffect extends Action {
      * Creates a new GiveEffect with the specified parameters
      *
      * @param effect The raw message
-     * @deprecated Use {@link #RemoveEffect(String, int, Condition.SelectionMode, List, int)}
+     * @deprecated Use {@link #RemoveEffect(String, int, Selector, List, int)}
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public RemoveEffect(String effect, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+    public RemoveEffect(String effect, int delay, Selector mode, List<Condition> conditionals) {
         super(delay, mode, conditionals, 0);
         this.effect = effect;
     }
@@ -99,13 +100,13 @@ public class RemoveEffect extends Action {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    RemoveEffect actionImpl = new RemoveEffect("SPEED", 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    RemoveEffect actionImpl = new RemoveEffect("SPEED", 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(player.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
     }
 
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+    public static <T extends Condition> T deserialize(String serialized, Class<T> clazz) {
         if (!clazz.equals(RemoveEffect.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RemoveEffect.class.getName());
         }

@@ -59,7 +59,7 @@ public class EditCommand {
         final CustomNPCs plugin = CustomNPCs.getInstance();
         final InternalNpc finalNpc = plugin.getNPCByID(uuid);
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            InternalNpc newNpc = plugin.createNPC(p.getWorld(), finalNpc.getSpawnLoc(), finalNpc.getEquipment(), finalNpc.getSettings(), finalNpc.getUniqueID(), null, finalNpc.getActions());
+            InternalNpc newNpc = plugin.createNPC(p.getWorld(), finalNpc.getSpawnLoc(), finalNpc.getEquipment(), finalNpc.getSettings(), finalNpc.getUniqueID(), null, finalNpc.getActions(), finalNpc.getInjectionConditions(), finalNpc.getInjectionSelectionMode());
             plugin.getEditingNPCs().put(p.getUniqueId(), newNpc);
             plugin.getLotus().openMenu(p, MenuUtils.NPC_MAIN);
         }, 1);

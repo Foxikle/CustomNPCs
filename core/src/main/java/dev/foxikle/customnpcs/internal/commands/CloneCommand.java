@@ -59,7 +59,6 @@ public class CloneCommand {
         assert finalNpc != null;
         InternalNpc newNpc = finalNpc.clone();
         newNpc.setSpawnLoc(p.getLocation());
-        newNpc.getSettings().setDirection(p.getLocation().getYaw());
         newNpc.createNPC();
         p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.clone.success"));
     }

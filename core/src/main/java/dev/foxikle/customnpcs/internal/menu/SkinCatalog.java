@@ -64,6 +64,7 @@ public class SkinCatalog extends Page {
                 .build();
     }
 
+
     /**
      * Handles the click sounds on page change
      *

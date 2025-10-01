@@ -25,7 +25,8 @@ package dev.foxikle.customnpcs.actions.defaultImpl;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
@@ -69,7 +70,7 @@ public class SendServer extends Action {
      *
      * @param server The raw message
      */
-    public SendServer(String server, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public SendServer(String server, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.server = server;
     }
@@ -78,11 +79,11 @@ public class SendServer extends Action {
      * Creates a new SendMessage with the specified message
      *
      * @param server The raw message
-     * @deprecated Use {@link SendServer#SendServer(String, int, Condition.SelectionMode, List, int)}
+     * @deprecated Use {@link SendServer#SendServer(String, int, Selector, List, int)}
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public SendServer(String server, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+    public SendServer(String server, int delay, Selector mode, List<Condition> conditionals) {
         super(delay, mode, conditionals, 0);
         this.server = server;
     }
@@ -99,7 +100,7 @@ public class SendServer extends Action {
                             p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                             //todo: watch out for duplications
 
-                            SendServer actionImpl = new SendServer("server", 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                            SendServer actionImpl = new SendServer("server", 0, Selector.ONE, new ArrayList<>(), 0);
                             CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                             menuView.getAPI().openMenu(p, actionImpl.getMenu());
                         }));

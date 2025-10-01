@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -70,7 +71,7 @@ public class PlaySound extends Action {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
-                    PlaySound actionImpl = new PlaySound("minecraft:ui.button.click", 1, 1, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    PlaySound actionImpl = new PlaySound("minecraft:ui.button.click", 1, 1, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -87,7 +88,7 @@ public class PlaySound extends Action {
      * @param pitch  The pitch, between 0.0f and 1.0f
      * @param volume The volume, between 0.0f and 1.0f
      */
-    public PlaySound(String sound, float volume, float pitch, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public PlaySound(String sound, float volume, float pitch, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.sound = sound;
         this.volume = volume;
@@ -100,11 +101,11 @@ public class PlaySound extends Action {
      * @param sound  The sound enum constants
      * @param pitch  The pitch, between 0.0f and 1.0f
      * @param volume The volume, between 0.0f and 1.0f
-     * @deprecated Use {@link PlaySound#PlaySound(String, float, float, int, Condition.SelectionMode, List, int)}
+     * @deprecated Use {@link PlaySound#PlaySound(String, float, float, int, Selector, List, int)}
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public PlaySound(String sound, float volume, float pitch, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+    public PlaySound(String sound, float volume, float pitch, int delay, Selector mode, List<Condition> conditionals) {
         super(delay, mode, conditionals, 0);
         this.sound = sound;
         this.volume = volume;

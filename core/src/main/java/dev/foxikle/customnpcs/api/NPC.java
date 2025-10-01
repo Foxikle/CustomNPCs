@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.LegacyAction;
 import dev.foxikle.customnpcs.api.events.NpcDeleteEvent;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
@@ -79,7 +80,7 @@ public class NPC {
         UUID uuid = UUID.randomUUID();
         Settings settings = new Settings();
         settings.setResilient(false);
-        this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), new Equipment(), settings, uuid, null, new ArrayList<>());
+        this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), new Equipment(), settings, uuid, null, new ArrayList<>(), new ArrayList<>(), Selector.ONE);
     }
 
     /**
@@ -91,22 +92,6 @@ public class NPC {
     public NPC(InternalNpc npc) {
         if (npc == null) throw new IllegalArgumentException("npc cannot be null.");
         this.npc = npc;
-    }
-
-
-    /**
-     * <p>Sets the location of the NPC
-     * </p>
-     *
-     * @param loc the new location for the NPC
-     * @return the NPC with the modified location
-     * @since 1.5.2-pre3
-     * @deprecated see {@link #setPosition(Location)} (typo ;|)
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
-    public NPC setPostion(@NotNull Location loc) {
-        return setPosition(loc);
     }
 
     /**
@@ -121,7 +106,6 @@ public class NPC {
     public NPC setPosition(@NotNull Location loc) {
         Preconditions.checkArgument(loc != null, "loc cannot be null.");
         npc.setSpawnLoc(loc);
-        npc.getSettings().setDirection(loc.getYaw());
         return this;
     }
 
@@ -182,10 +166,10 @@ public class NPC {
      * @return the NPC with the modified set of actions
      * @see Action
      * @since 1.5.2-pre3
-     * @deprecated Use  {@link #setActions(Collection)}
+     * @deprecated Use  {@link #setActions(Collection)}, to be removed in 1.9 with the removal of legacy actions.
      */
     @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.8")
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
     public NPC setLegacyActions(Collection<LegacyAction> actionImpls) {
         List<Action> actionList = new ArrayList<>();
         for (LegacyAction legacyAction : actionImpls) {
@@ -237,6 +221,11 @@ public class NPC {
 
     /**
      * Injects the npc into the player's connection. This should be handled by the plugin, but this is here for more control.
+     *
+     * <p>
+     *   This feature bypasses injection conditions! If you would like to have the plugin reevaluate if a player should
+     *   be injected, you can remove this NPC from their client with {@link NPC#withdraw(Player)}, and
+     * </p>
      *
      * @param player the player to inject
      * @see Player
@@ -389,5 +378,25 @@ public class NPC {
      */
     public void reloadSettings() {
         npc.reloadSettings();
+    }
+
+    /**
+     * The inverse operation of injecting this NPC into a player's client.
+     * <p>
+     *     This does **NOT** remove the NPC from the server, and the npc may be reinjected later.
+     * </p>
+     * @param player the player to remove the NPC from
+     */
+    public void withdraw(Player player) {
+        npc.withdraw(player);
+    }
+
+    /**
+     * Tells this NPC's InjectionManager to inject this player again, on the next injection check. This may cause the
+     * NPC to twitch and flicker.
+     * @param player the player to mark for injection. Only this player will be affected
+     */
+    public void markForInjection(Player player){
+        npc.getInjectionManager().markForInjection(player.getUniqueId());
     }
 }

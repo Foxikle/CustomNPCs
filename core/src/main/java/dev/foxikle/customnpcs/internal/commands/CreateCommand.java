@@ -22,6 +22,8 @@
 
 package dev.foxikle.customnpcs.internal.commands;
 
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
@@ -49,7 +51,7 @@ public class CreateCommand {
         final Player p = source.asPlayer();
         final UUID uuid = UUID.randomUUID();
         final CustomNPCs plugin = CustomNPCs.getInstance();
-        InternalNpc npc = plugin.createNPC(p.getWorld(), p.getLocation(), new Equipment(), new Settings(), uuid, null, new ArrayList<>());
+        InternalNpc npc = plugin.createNPC(p.getWorld(), p.getLocation(), new Equipment(), new Settings(), uuid, null, new ArrayList<>(), new ArrayList<>(), Selector.ONE);
         plugin.getEditingNPCs().put(p.getUniqueId(), npc);
         plugin.getLotus().openMenu(p, MenuUtils.NPC_MAIN);
     }

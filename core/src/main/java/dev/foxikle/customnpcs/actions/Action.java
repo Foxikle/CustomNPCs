@@ -22,7 +22,8 @@
 
 package dev.foxikle.customnpcs.actions;
 
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Utils;
@@ -51,9 +52,9 @@ public abstract class Action {
 
     private List<Condition> conditions = new ArrayList<>();
     private int delay = 0;
-    private Condition.SelectionMode mode = Condition.SelectionMode.ONE;
+    private Selector mode = Selector.ONE;
     private int cooldown = 0;
-    private Map<UUID, Instant> cooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Instant> cooldowns = new ConcurrentHashMap<>();
 
     /**
      * Default constructor
@@ -62,7 +63,7 @@ public abstract class Action {
 
     }
 
-    public Action(int delay, Condition.SelectionMode mode, List<Condition> conditions, int cooldown) {
+    public Action(int delay, Selector mode, List<Condition> conditions, int cooldown) {
         this.delay = delay;
         this.mode = mode;
         this.conditions = conditions;
@@ -71,11 +72,11 @@ public abstract class Action {
 
 
     /**
-     * Deprecated, use {@link Action#Action(int, Condition.SelectionMode, List, int)}  Action}
+     * Deprecated, use {@link Action#Action(int, Selector, List, int)}  Action}
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public Action(int delay, Condition.SelectionMode mode, List<Condition> conditions) {
+    public Action(int delay, Selector mode, List<Condition> conditions) {
         this(delay, mode, conditions, 0);
     }
 
@@ -119,7 +120,7 @@ public abstract class Action {
     protected static ParseResult parseBase(String data) {
         int cooldown = parseInt(data, "cooldown");
         int delay = parseInt(data, "delay");
-        Condition.SelectionMode mode = parseEnum(data, "mode", Condition.SelectionMode.class);
+        Selector mode = parseEnum(data, "mode", Selector.class);
         List<Condition> conditions = deserializeConditions(parseString(data, "conditions"));
         return new ParseResult(delay, mode, conditions, cooldown);
     }
@@ -270,7 +271,7 @@ public abstract class Action {
         if (conditions == null || conditions.isEmpty()) return true; // no conditions
         Set<Boolean> results = new HashSet<>(conditions.size());
         conditions.forEach(conditional -> results.add(conditional.compute(player)));
-        return (mode == Condition.SelectionMode.ALL ? !results.contains(false) : results.contains(true));
+        return (mode == Selector.ALL ? !results.contains(false) : results.contains(true));
     }
 
     private String getConditionSerialized() {
@@ -333,13 +334,13 @@ public abstract class Action {
 
     public abstract Action clone();
 
-    protected record ParseResult(int delay, Condition.SelectionMode mode, List<Condition> conditions, int cooldown) {
+    protected record ParseResult(int delay, Selector mode, List<Condition> conditions, int cooldown) {
         /**
-         * @deprecated Use {@link ParseResult#ParseResult(int, Condition.SelectionMode, List, int)}}
+         * @deprecated Use {@link ParseResult#ParseResult(int, Selector, List, int)}}
          */
         @Deprecated
         @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-        public ParseResult(int delay, Condition.SelectionMode mode, List<Condition> conditions) {
+        public ParseResult(int delay, Selector mode, List<Condition> conditions) {
             this(delay, mode, conditions, 0);
         }
     }

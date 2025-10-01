@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -75,7 +76,7 @@ public class DisplayTitle extends Action {
      *
      * @param title The raw message
      */
-    public DisplayTitle(String title, String subTitle, int fadeIn, int stay, int fadeOut, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public DisplayTitle(String title, String subTitle, int fadeIn, int stay, int fadeOut, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.title = title;
         this.subTitle = subTitle;
@@ -88,11 +89,11 @@ public class DisplayTitle extends Action {
      * Creates a new SendMessage with the specified message
      *
      * @param title The raw message
-     * @deprecated Use {@link DisplayTitle#DisplayTitle(String, String, int, int, int, int, Condition.SelectionMode, List, int)}}
+     * @deprecated Use {@link DisplayTitle#DisplayTitle(String, String, int, int, int, int, Selector, List, int)}}
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
     @Deprecated
-    public DisplayTitle(String title, String subTitle, int fadeIn, int stay, int fadeOut, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+    public DisplayTitle(String title, String subTitle, int fadeIn, int stay, int fadeOut, int delay, Selector mode, List<Condition> conditionals) {
         super(delay, mode, conditionals, 0);
         this.title = title;
         this.subTitle = subTitle;
@@ -110,13 +111,13 @@ public class DisplayTitle extends Action {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(p, Sound.UI_BUTTON_CLICK, 1, 1);
-                    DisplayTitle actionImpl = new DisplayTitle("Title", "Subtitle", 10, 10, 10, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    DisplayTitle actionImpl = new DisplayTitle("Title", "Subtitle", 10, 10, 10, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
     }
 
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+    public static <T extends Condition> T deserialize(String serialized, Class<T> clazz) {
         if (!clazz.equals(DisplayTitle.class)) {
             throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + DisplayTitle.class.getName());
         }

@@ -61,8 +61,11 @@ public class MoveCommand {
         assert finalNpc != null;
         finalNpc.teleport(p.getLocation());
         finalNpc.remove();
+        finalNpc.setSpawnLoc(p.getLocation());
         finalNpc.createNPC();
-        Bukkit.getOnlinePlayers().forEach(finalNpc::injectPlayer);
+        Bukkit.getOnlinePlayers().forEach(pl ->
+                finalNpc.getInjectionManager().markForInjection(pl.getUniqueId())
+        );
     }
 
 }

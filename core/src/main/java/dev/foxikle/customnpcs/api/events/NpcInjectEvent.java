@@ -22,9 +22,14 @@
 
 package dev.foxikle.customnpcs.api.events;
 
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import lombok.Getter;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A class representing an event called upon the injection of an NPC.
@@ -34,6 +39,22 @@ import org.bukkit.entity.Player;
 public class NpcInjectEvent extends NpcEvent {
 
     private final double distanceSquared;
+    private final Map<Condition, Boolean> conditions;
+
+    /**
+     * The constructor for the event
+     *
+     * @param player the player associated with the action
+     * @param npc    the npc involved in the event
+     * @deprecated Use the constructor with the conditions
+     */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.9.0")
+    public NpcInjectEvent(Player player, InternalNpc npc, double distanceSquared) {
+        super(player, npc, true);
+        this.distanceSquared = distanceSquared;
+        conditions = new HashMap<>();
+    }
 
     /**
      * The constructor for the event
@@ -41,9 +62,10 @@ public class NpcInjectEvent extends NpcEvent {
      * @param player the player associated with the action
      * @param npc    the npc involved in the event
      */
-    public NpcInjectEvent(Player player, InternalNpc npc, double distanceSquared) {
+    public NpcInjectEvent(Player player, InternalNpc npc, double distanceSquared, Map<Condition, Boolean> conditions) {
         super(player, npc, true);
         this.distanceSquared = distanceSquared;
+        this.conditions = conditions;
     }
 
     /**

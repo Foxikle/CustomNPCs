@@ -23,7 +23,7 @@
 package dev.foxikle.customnpcs.internal.commands.suggestion;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.FileManager;
+import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.velix.imperat.BukkitSource;
 import dev.velix.imperat.command.parameters.CommandParameter;
 import dev.velix.imperat.context.SuggestionContext;
@@ -39,7 +39,7 @@ public class NpcBrokenSuggester implements SuggestionResolver<BukkitSource> {
     @Override
     public List<String> autoComplete(SuggestionContext<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
         final CustomNPCs plugin = CustomNPCs.getInstance();
-        FileManager fileManager = plugin.getFileManager();
-        return fileManager.getBrokenNPCs().keySet().stream().map(UUID::toString).toList();
+        StorageManager storageManager = plugin.getStorageManager();
+        return storageManager.getBrokenNPCs().keySet().stream().map(UUID::toString).toList();
     }
 }

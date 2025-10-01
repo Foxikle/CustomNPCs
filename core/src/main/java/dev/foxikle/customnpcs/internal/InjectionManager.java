@@ -45,6 +45,10 @@ public class InjectionManager {
         INJECTION_DISTANCE = (int) Math.pow(plugin.getConfig().getInt("InjectionDistance"), 2);
     }
 
+    public void markForInjection(UUID player) {
+        isVisible.put(player, false);
+    }
+
     public void setup() {
         if (task != -1) shutDown();
         task = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::checkForInjections, 0, plugin.getConfig().getInt("InjectionInterval")).getTaskId();
@@ -79,9 +83,13 @@ public class InjectionManager {
             }
 
             if (distance <= INJECTION_DISTANCE && !isVisible.getOrDefault(player.getUniqueId(), false)) {
-                NpcInjectEvent injectEvent = new NpcInjectEvent(player, npc, distance);
+
+
+
+                NpcInjectEvent injectEvent = new NpcInjectEvent(player, npc, distance, npc.evaluateInjectionConditions(player));
                 Bukkit.getServer().getPluginManager().callEvent(injectEvent);
                 if (injectEvent.isCancelled()) continue;
+                if (!npc.passesInectionConditions(player)) continue;
                 npc.injectPlayer(player);
                 isVisible.put(player.getUniqueId(), true);
             }

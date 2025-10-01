@@ -13,7 +13,7 @@
 #    will be automatically generated on the next server start.
 
 # DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.
-CONFIG_VERSION: 8
+CONFIG_VERSION: 9
 
 # InjectionDistance -> How close should a player be to the NPC before the plugin attempts to inject the NPC (Due to minecraft, npcs automatically remove themselves after getting 48 blocks from the player.
 InjectionDistance: 48
@@ -46,6 +46,9 @@ NameReferenceMessages: true
 
 # DefaultInterpolationDuration -> How long should moving NPCs interpolate their Nametags moving?
 DefaultInterpolationDuration: 5
+
+# DebugMode -> Should the plugin launch in debug mode? This can be quite spammy, so only use this if you're sure!
+DebugMode: false
 
 ############################
 #        Skin API          #
@@ -240,7 +243,53 @@ Skins:
     value: ewogICJ0aW1lc3RhbXAiIDogMTY4Mzk0MDM2NjQ5MSwKICAicHJvZmlsZUlkIiA6ICJiODMyODBlODZhMzU0ZjA4OTUzMDlkMDFmMTk3OGZmOSIsCiAgInByb2ZpbGVOYW1lIiA6ICJPeGlrbGUiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvM2YwNzYwNGRmZDJiZTFmMzZhZDU5MjdhYmExZjE4ODJjYzRjM2U3ODA4MjFhMjA2M2U0YmJhMDlmZGY2NWQ2YyIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9
     signature: iw9jmhcoCch+yWx2Yjy9+Dg2y9MOq9Ef6rOCY2FywOfR6+/T/sGwJtM+HqLHYO+B9uhBqfKxYXVLHQNvT7KzfiYVnbsIUQSWyBR7NxGssbbFixC3SoxTsIg0x2nvidbi/IjeG0UL1ZTb2S7jhjnvVU/bwyTz/i5fQ3lnBbW172FySPewRfVh10pZogAflKXZ22Lz5pHxlR4Ed/2RW75sltmKd3j7H76f+cEm9arixjilX/NhH/1WVFUqb7W6xUd5zrGxVkNIp3a8Fn4DCDItauhqDSjRZQkxpDnky36iuh/sCvJWFcxO9hkdqvMClUS4wtRTO1aKSnQFCMuwAuraIQClYJztI4EReSlB2NF6whEHpsRIBo5zG4J6nynu77VV1p1gn7W4g6LvmP0YoTPqed5uOL/FPBC/etn0Ofj1t3CgnOY8HQBDvkhSgyUuQwzixrGiNxRuu7IU3lDvSYVIewKGSK2Qkkl/Ob1P7BZCJTSkNA3MWfA11MDLFm8AZU6Bau+epO2C7RDwaKO61hSpdcgpORHruzXskvOfoOQ+oSP9VDAeLSfjD8fLQNgUdd/QdZXMgBitS5izHT/L6UCEoM6Tm5DmQz2D+ysvPdPpbNoa39sXL08vm5HgReFTh73qUJQC/qoK2rOk1Igef1oaiH7R1X5MiMvetNYE97vkoXM=
 
+# +---------------------------------------+
+# |           NPC Data Storage            |
+# +---------------------------------------+
+Storage:
 
+  # +---------------------------------------+
+  # |           Storage Provider            |
+  # +---------------------------------------+
+
+  # The storage proivder determines how the plugin stores the NPC data. There are 3 options:
+  #
+  # "LOCAL" is used by default. It stores the data on the same disc the server is running on. It is a good choice if you don't want to deal with setting up a database or don't have one.
+  # "MYSQL" is a typical relational database. It's not really optimized for this kind of storage, it's a good choice if you already use a MySQL or MariaDB database.
+  # "MONGODB" is the recommended option for using remote storage. It tends to be more performant and optimized for storing BLOBs.
+  provider: "LOCAL"
+
+  # +---------------------------------------+
+  # |         MySQL Configuration           |
+  # +---------------------------------------+
+  # These settings only matter if the provider is set to "MYSQL"
+  mysql:
+
+    # hostname -> the host name, or ip address of your database server.
+    hostname: 'YOUR_HOST'
+    # port -> The port the database runs on. Don't change this unless you know what you're doing
+    port: 3306
+    # username -> The database username
+    username: 'YOUR_USERNAME'
+    # password -> The database password
+    password: 'YOUR_PASSWORD'
+    # table -> The name of the table used to store the data in. This can be used to separate your npc configurations across servers. ie: lobby, survival, etc.
+    table: 'npcs'
+    # database -> The name of the database to use
+    database: 'YOUR_DATABASE'
+
+  # +---------------------------------------+
+  # |        MongoDB Configuration          |
+  # +---------------------------------------+
+  # These settings only matter if the provider is set to "MONGODB"
+  mongodb:
+
+    # connectionString -> The connection string provided by your mongo server.
+    connectionString: 'YOUR_CONNECTION_STRING'
+    # database -> The name of the database to use
+    database: 'YOUR_DATABASE'
+    # document -> The document to use to store the data. This can be used to separate your npc configurations across servers. ie: lobby, survival, etc.
+    document: 'npcs'
 
 
 
