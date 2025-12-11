@@ -94,7 +94,7 @@ public class DeleteMenu implements Menu {
                                 return;
                             }
 
-                            Boolean openMenu = plugin.getDeltionReason().getIfPresent(player1.getUniqueId());
+                            Boolean openMenu = plugin.getDeletionReason().getIfPresent(player1.getUniqueId());
                             NpcDeleteEvent.DeletionSource source;
                             if (openMenu == null) {
                                 source = NpcDeleteEvent.DeletionSource.UNKNOWN;
@@ -131,7 +131,7 @@ public class DeleteMenu implements Menu {
                                 return;
                             }
 
-                            Boolean openMenu = plugin.getDeltionReason().getIfPresent(player1.getUniqueId());
+                            Boolean openMenu = plugin.getDeletionReason().getIfPresent(player1.getUniqueId());
 
                             if (openMenu == null) {
                                 player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);

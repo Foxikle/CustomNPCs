@@ -59,7 +59,7 @@ public class DeleteCommand {
 
         assert finalNpc != null;
         plugin.getEditingNPCs().put(p.getUniqueId(), finalNpc);
-        plugin.getDeltionReason().put(p.getUniqueId(), false);
+        plugin.getDeletionReason().put(p.getUniqueId(), false);
         plugin.getLotus().openMenu(p, MenuUtils.NPC_DELETE);
     }
 }

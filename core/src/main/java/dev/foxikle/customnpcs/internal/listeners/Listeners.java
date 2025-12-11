@@ -530,7 +530,9 @@ public class Listeners implements Listener {
         Player player = e.getPlayer();
 
         if (plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate") && player.hasPermission("customnpcs.alert")) {
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.should_update"));
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.should_update").appendNewline()
+                    .append(Msg.format("<click:open_url:https://modrinth" +
+                            ".com/plugin/customnpcs/versions><b><#1bd96a>[Modrinth]")));
         }
         recalcSleepingPercentages();
         if (player.getGameMode() == GameMode.SPECTATOR) return;

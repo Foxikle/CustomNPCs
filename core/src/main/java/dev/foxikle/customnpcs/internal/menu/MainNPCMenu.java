@@ -137,7 +137,7 @@ public class MainNPCMenu implements Menu {
         if (plugin.getNPCByID(npc.getUniqueID()) != null)
             builder.setButton(44, Button.clickable(MenuItems.deleteNpc(player), ButtonClickAction.plain((menu, event) -> {
                 Player p = (Player) event.getWhoClicked();
-                plugin.getDeltionReason().put(p.getUniqueId(), true);
+                plugin.getDeletionReason().put(p.getUniqueId(), true);
                 plugin.getLotus().openMenu(p, MenuUtils.NPC_DELETE);
                 p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             })));
