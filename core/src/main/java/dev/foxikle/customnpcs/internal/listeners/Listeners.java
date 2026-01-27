@@ -683,6 +683,7 @@ public class Listeners implements Listener {
     private void recalcSleepingPercentages() {
         Bukkit.getWorlds().forEach(world -> {
             if (world == null) return;
+            if (worldSleepingPercentages.get(world.getUID()) == null) return;
             int target = worldSleepingPercentages.get(world.getUID());
             int npcCount = plugin.getNPCs().stream().filter(npc -> npc.getWorld() == world).toList().size();
             int playercount = world.getPlayers().size();
