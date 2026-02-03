@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("me.clip:placeholderapi:2.12.1")
     compileOnly(project(":core"))
     paperweight.paperDevBundle("1.20.1-R0.1-SNAPSHOT")
 }
