@@ -53,6 +53,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
@@ -681,6 +683,7 @@ public class Listeners implements Listener {
     private void recalcSleepingPercentages() {
         Bukkit.getWorlds().forEach(world -> {
             if (world == null) return;
+            if (worldSleepingPercentages.get(world.getUID()) == null) return;
             int target = worldSleepingPercentages.get(world.getUID());
             int npcCount = plugin.getNPCs().stream().filter(npc -> npc.getWorld() == world).toList().size();
             int playercount = world.getPlayers().size();
@@ -697,6 +700,19 @@ public class Listeners implements Listener {
         if (event.getCommandSender() == null) return; // prevent stack overflows
         if (!event.getGameRule().equals(GameRule.PLAYERS_SLEEPING_PERCENTAGE)) return;
         worldSleepingPercentages.put(event.getWorld().getUID(), Integer.parseInt(event.getValue()));
+        recalcSleepingPercentages();
+    }
+
+    @EventHandler
+    public void onWorldLoad(WorldLoadEvent event) {
+        worldSleepingPercentages.put(event.getWorld().getUID(),
+                event.getWorld().getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE));
+        recalcSleepingPercentages();
+    }
+
+    @EventHandler
+    public void onWorld(WorldUnloadEvent event) {
+        worldSleepingPercentages.remove(event.getWorld().getUID());
         recalcSleepingPercentages();
     }
 
