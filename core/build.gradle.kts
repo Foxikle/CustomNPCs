@@ -36,7 +36,7 @@ repositories {
 dependencies {
     compileOnly("com.github.mqzn:Lotus:1.6.0")
     compileOnly("org.bstats:bstats-bukkit:3.1.0")
-    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("me.clip:placeholderapi:2.12.1")
     compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
     compileOnly("org.mineskin:java-client:3.0.6")
     compileOnly("org.mineskin:java-client-jsoup:3.0.6")
