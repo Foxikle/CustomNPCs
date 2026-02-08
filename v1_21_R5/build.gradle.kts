@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("me.clip:placeholderapi:2.12.1")
+    compileOnly("me.clip:placeholderapi:2.12.2")
     compileOnly(project(":core"))
 //    TODO: Remove the "rc1-" part...
     paperweight.paperDevBundle("1.21.10-R0.1-SNAPSHOT")
