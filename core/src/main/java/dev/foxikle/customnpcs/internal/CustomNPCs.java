@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -143,6 +143,10 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     public boolean papi = false;
     /**
+     * If this server has the Player expansion installed
+     */
+    public boolean papiPlayerExpansion = false;
+    /**
      * If there is a new update available
      */
     public boolean update;
@@ -232,6 +236,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         ACTION_REGISTRY.register("SendMessage", SendMessage.class, SendMessage::creationButton);
         ACTION_REGISTRY.register("SendServer", SendServer.class, SendServer::creationButton, true, false, true);
         ACTION_REGISTRY.register("Teleport", Teleport.class, Teleport::creationButton);
+        ACTION_REGISTRY.register("FollowPresetPath", FollowPresetPathAction.class,
+                FollowPresetPathAction::creationButton);
 
         try {
             this.getLogger().info("Loading NPCs!");
@@ -311,16 +317,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                     Map.entry("RunCommand", run_command)
             );
         }));
-
-        // setup papi
-        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            this.getLogger().info("Successfully hooked into PlaceholderAPI.");
-            papi = true;
-        } else {
-            papi = false;
-            this.getLogger().warning("Could not find PlaceholderAPI! PlaceholderAPI isn't required, but CustomNPCs " +
-                    "does support it.");
-        }
 
         if (!System.getProperties().containsKey("customnpcs-reload-check")) {
             getLogger().info("Loading listeners...");
