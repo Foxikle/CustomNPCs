@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2026. Foxikle
+ * Copyright (c) 2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,10 +20,23 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.internal.utils;
+package dev.foxikle.customnpcs.actions.defaultImpl;
 
-public enum WaitingType {
-    COMMAND, NAME, TARGET, TITLE, MESSAGE, FACING, SOUND,
-    SERVER, ACTIONBAR, URL, PLAYER, HOLOGRAM, SUBTITLE,
-    NUDGE, RECORDING
+import org.bukkit.Location;
+import org.bukkit.World;
+
+import java.io.Serializable;
+
+public record RecordedPathNode(long timestamp, double x, double y, double z, float yaw,
+                               float pitch) implements Serializable {
+
+    public Location toLocation(World world) {
+        return new Location(world, x, y, z, yaw, pitch);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Node{t=%d, x=%.2f, y=%.2f, z=%.2f, yaw=%.1f, pitch=%.1f}", timestamp, x, y, z, yaw,
+                pitch);
+    }
 }

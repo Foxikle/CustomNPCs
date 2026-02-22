@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,24 +62,8 @@ import static org.bukkit.Material.*;
 @Setter
 public class RunCommand extends Action {
 
-    public static Button creationButton(Player player) {
-        return Button.clickable(ItemBuilder.modern(ANVIL)
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.command"))
-                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.command.description"))
-                        .build(),
-                ButtonClickAction.plain((menuView, event) -> {
-                    Player p = (Player) event.getWhoClicked();
-                    event.setCancelled(true);
-                    p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    RunCommand actionImpl = new RunCommand("say hi", false, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
-                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
-                    menuView.getAPI().openMenu(p, actionImpl.getMenu());
-                }));
-    }
-
     private String command;
     private boolean asConsole;
-
 
     /**
      * Creates a new RunCommand with the specified command
@@ -90,11 +74,13 @@ public class RunCommand extends Action {
      * @param mode         The mode
      * @param conditionals The conditionals
      */
-    public RunCommand(String rawCommand, boolean asConsole, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public RunCommand(String rawCommand, boolean asConsole, int delay, Condition.SelectionMode mode,
+                      List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.command = rawCommand;
         this.asConsole = asConsole;
     }
+
 
     /**
      * Creates a new RunCommand with the specified command
@@ -108,10 +94,27 @@ public class RunCommand extends Action {
      */
     @Deprecated
     @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public RunCommand(String rawCommand, boolean asConsole, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
+    public RunCommand(String rawCommand, boolean asConsole, int delay, Condition.SelectionMode mode,
+                      List<Condition> conditionals) {
         super(delay, mode, conditionals, 0);
         this.command = rawCommand;
         this.asConsole = asConsole;
+    }
+
+    public static Button creationButton(Player player) {
+        return Button.clickable(ItemBuilder.modern(ANVIL)
+                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.command"))
+                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.command.description"))
+                        .build(),
+                ButtonClickAction.plain((menuView, event) -> {
+                    Player p = (Player) event.getWhoClicked();
+                    event.setCancelled(true);
+                    p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    RunCommand actionImpl = new RunCommand("say hi", false, 0, Condition.SelectionMode.ONE,
+                            new ArrayList<>(), 0);
+                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
+                    menuView.getAPI().openMenu(p, actionImpl.getMenu());
+                }));
     }
 
     public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
@@ -169,7 +172,8 @@ public class RunCommand extends Action {
 
     @Override
     public Action clone() {
-        return new RunCommand(command, asConsole, getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
+        return new RunCommand(command, asConsole, getDelay(), getMode(), new ArrayList<>(getConditions()),
+                getCooldown());
     }
 
     public class RunCommandCustomizer implements Menu {
@@ -198,7 +202,9 @@ public class RunCommand extends Action {
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
             return MenuUtils.actionBase(action, player)
-                    .setButton(player.hasPermission("customnpcs.run_command.enable_console") ? 21 : 22, setCommand(player))
+                    .setButton(4, papiTip(player))
+                    .setButton(player.hasPermission("customnpcs.run_command.enable_console") ? 21 : 22,
+                            setCommand(player))
                     .setButton(23, toggle(player))
                     .build();
         }
@@ -207,12 +213,15 @@ public class RunCommand extends Action {
             if (!player.hasPermission("customnpcs.run_command.enable_console")) return MenuItems.MENU_GLASS;
             List<Component> lore = new ArrayList<>();
             if (isAsConsole()) {
-                lore.addAll(Utils.list(Msg.lore(player.locale(), "customnpcs.menus.action.command.as_console.warning")));
+                lore.addAll(Utils.list(Msg.lore(player.locale(),
+                        "customnpcs.menus.action.command.as_console.warning")));
             }
             lore.add(Msg.translate(player.locale(), "customnpcs.items.click_to_change"));
             return Button.clickable(ItemBuilder.modern(isAsConsole() ? RED_CANDLE : GREEN_CANDLE)
                             .setLore(lore.toArray(new Component[]{}))
-                            .setDisplay(isAsConsole() ? Msg.translate(player.locale(), "customnpcs.menus.action.command.as_console.true") : Msg.translate(player.locale(), "customnpcs.menus.action.command.as_console.false"))
+                            .setDisplay(isAsConsole() ? Msg.translate(player.locale(), "customnpcs.menus.action" +
+                                    ".command.as_console.true") : Msg.translate(player.locale(), "customnpcs.menus" +
+                                    ".action.command.as_console.false"))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
@@ -242,6 +251,32 @@ public class RunCommand extends Action {
                         event.setCancelled(true);
                         player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                     }));
+        }
+
+        private Button papiTip(Player player) {
+            Component[] lore;
+            if (!CustomNPCs.getInstance().papi) {
+                lore = Msg.lore(player.locale(), "customnpcs.menus.action.command.papi_tip.no_papi");
+            } else if (!CustomNPCs.getInstance().papiPlayerExpansion) {
+                lore = Msg.lore(player.locale(), "customnpcs.menus.action.command.papi_tip.no_expansion");
+            } else {
+                lore = Msg.lore(player.locale(), "customnpcs.menus.action.command.papi_tip.all_good");
+            }
+            return Button.clickable(ItemBuilder.modern(REDSTONE_TORCH)
+                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.command.papi_tip.title"))
+                    .setLore(lore)
+                    .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
+                inventoryClickEvent.setCancelled(true);
+                if (!CustomNPCs.getInstance().papi) {
+                    player.sendMessage(Msg.translate(player.locale(),
+                            "customnpcs.menus.action.command.papi_tip.download.plugin"));
+                    return;
+                }
+                if (!CustomNPCs.getInstance().papiPlayerExpansion) {
+                    player.sendMessage(Msg.translate(player.locale(),
+                            "customnpcs.menus.action.command.papi_tip.download.expansion"));
+                }
+            }));
         }
     }
 }
