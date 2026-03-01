@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,6 @@ repositories {
 dependencies {
     compileOnly("me.clip:placeholderapi:2.12.1")
     compileOnly(project(":core"))
-//    TODO: Remove the "rc1-" part...
     paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
 }
 
@@ -50,6 +49,6 @@ tasks {
     }
 
     jar {
-        archiveClassifier = "v1_21_R5"
+        archiveClassifier = "v1_21_R6"
     }
 }
