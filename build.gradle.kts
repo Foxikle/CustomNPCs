@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,7 +51,7 @@ dependencies {
     implementation(project(":v1_20_R1", "reobf"))
 }
 
-var pluginVersion = "1.7.8"
+var pluginVersion = "1.7.9"
 
 allprojects {
     group = "dev.foxikle"
