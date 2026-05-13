@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,40 +23,29 @@
 package dev.foxikle.customnpcs.internal.translations;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.translation.GlobalTranslator;
-import net.kyori.adventure.translation.TranslationRegistry;
-import net.kyori.adventure.util.UTF8ResourceBundleControl;
+import net.kyori.adventure.translation.TranslationStore;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class Translations {
-    TranslationRegistry registry = TranslationRegistry.create(Key.key("customnpcs:localization"));
-
-
     public static final Locale VIETNAMESE = new Locale("vi");
+    public static final Locale RUSSIAN = new Locale("ru");
+    TranslationStore<Component> registry = TranslationStore.component(Key.key("customnpcs:localization"));
 
     public void setup() {
-
-
-        ResourceBundle zh = ResourceBundle.getBundle("localization.Chinese", Locale.SIMPLIFIED_CHINESE, UTF8ResourceBundleControl.get());
-        registry.registerAll(Locale.SIMPLIFIED_CHINESE, zh, true);
-
-
-        ResourceBundle ru = ResourceBundle.getBundle("localization.Russian", new Locale("ru"), UTF8ResourceBundleControl.get());
-        registry.registerAll(new Locale("ru"), ru, true);
-
-        ResourceBundle de = ResourceBundle.getBundle("localization.German", Locale.GERMAN, UTF8ResourceBundleControl.get());
-        registry.registerAll(Locale.GERMAN, de, true);
-
-        ResourceBundle en = ResourceBundle.getBundle("localization.English", Locale.US, UTF8ResourceBundleControl.get());
-        registry.registerAll(Locale.ENGLISH, en, true);
-
-        ResourceBundle vi = ResourceBundle.getBundle("localization.Vietnamese", VIETNAMESE, UTF8ResourceBundleControl.get());
-        registry.registerAll(VIETNAMESE, vi, true);
+        List.of(
+                ResourceBundle.getBundle("localization.Chinese", Locale.SIMPLIFIED_CHINESE),
+                ResourceBundle.getBundle("localization.Russian", RUSSIAN),
+                ResourceBundle.getBundle("localization.German", Locale.GERMAN),
+                ResourceBundle.getBundle("localization.English", Locale.US),
+                ResourceBundle.getBundle("localization.Vietnamese", VIETNAMESE)
+        ).forEach(b -> registry.registerAll(b.getLocale(), b.keySet(), s -> Component.translatable(b.getString(s))));
 
         registry.defaultLocale(Locale.ENGLISH);
-
         GlobalTranslator.translator().addSource(registry);
     }
 }
