@@ -42,10 +42,7 @@ import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
@@ -58,6 +55,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FollowPresetPathAction extends Action {
 
     private static final Map<UUID, List<RecordedPathNode>> recordingPaths = new ConcurrentHashMap<>();
+    private static final Map<UUID, BukkitTask> viewPaths = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> lastRecordTime = new ConcurrentHashMap<>();
     private static final Map<InternalNpc, BukkitTask> activePlaybacks = new ConcurrentHashMap<>();
     @Getter
@@ -107,6 +105,11 @@ public class FollowPresetPathAction extends Action {
         UUID uuid = player.getUniqueId();
         recordingPaths.put(uuid, new ArrayList<>());
         lastRecordTime.put(uuid, 0L);
+        viewPaths.put(uuid, Bukkit.getScheduler().runTaskTimer(CustomNPCs.getInstance(), () -> {
+            for (RecordedPathNode n : recordingPaths.get(uuid)) {
+                player.spawnParticle(Particle.END_ROD, n.toLocation(player.getWorld()), 1, 0, 0, 0, 0);
+            }
+        }, 5, 5));
         CustomNPCs.getInstance().wait(player, WaitingType.RECORDING);
         new RecordingRunnable(player, CustomNPCs.getInstance()).runTaskTimer(CustomNPCs.getInstance(), 0, 10);
     }
@@ -114,6 +117,7 @@ public class FollowPresetPathAction extends Action {
     public static List<RecordedPathNode> stopRecording(Player player) {
         UUID uuid = player.getUniqueId();
         lastRecordTime.remove(uuid);
+        viewPaths.remove(uuid).cancel();
         return recordingPaths.remove(uuid);
     }
 
