@@ -188,7 +188,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         // paper... why??
         instance = this;
 
-        if (!System.getProperties().contains("CustomNPCs-Started")) {
+        if (!Objects.equals(System.getProperty("CustomNPCs-Started"), "true")) {
             LifecycleEventManager<Plugin> manager = this.getLifecycleManager();
             manager.registerEventHandler(LifecycleEvents.COMMANDS, event -> {
                 final Commands commands = event.registrar();
