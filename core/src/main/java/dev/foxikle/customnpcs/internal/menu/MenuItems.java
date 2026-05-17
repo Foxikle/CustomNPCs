@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -112,7 +112,8 @@ public class MenuItems {
                     profile.setProperty(new ProfileProperty("textures", texture));
                     skullMeta.setPlayerProfile(profile);
                 })
-                .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.items.skin.lore", Component.text(npc.getSettings().getSkinName())))
+                .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.items.skin.lore",
+                        npc.getSettings().getSkinName()))
                 .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.items.skin.name"))
                 .build();
     }

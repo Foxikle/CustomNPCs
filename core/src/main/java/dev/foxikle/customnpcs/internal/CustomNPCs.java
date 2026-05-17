@@ -26,6 +26,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mojang.brigadier.CommandDispatcher;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.LegacyAction;
 import dev.foxikle.customnpcs.actions.conditions.ActionAdapter;
@@ -34,10 +35,7 @@ import dev.foxikle.customnpcs.actions.conditions.ConditionalTypeAdapter;
 import dev.foxikle.customnpcs.actions.defaultImpl.*;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
-import dev.foxikle.customnpcs.internal.commands.NpcCommand;
-import dev.foxikle.customnpcs.internal.commands.suggestion.NpcSuggester;
-import dev.foxikle.customnpcs.internal.commands.suggestion.SoundSuggester;
-import dev.foxikle.customnpcs.internal.commands.suggestion.WorldSuggester;
+import dev.foxikle.customnpcs.internal.commands.NpcCommandRegistrar;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.menu.*;
@@ -45,11 +43,11 @@ import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
 import dev.foxikle.customnpcs.internal.utils.AutoUpdater;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
-import dev.velix.imperat.BukkitImperat;
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.Imperat;
 import io.github.mqzen.menus.Lotus;
 import io.github.mqzen.menus.base.pagination.Pagination;
+import io.papermc.paper.command.brigadier.Commands;
+import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +61,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
@@ -108,7 +107,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             TimeUnit.MINUTES).expireAfterAccess(1, TimeUnit.MINUTES).build();
     private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6",
             "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8", "1.21.9",
-            "1.21.10", "1.21.11"};
+            "1.21.10", "1.21.11", "26.1", "26.1.1", "26.1.2"};
     private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
     /**
      * The map of what the plugin is waiting for the players to enter.
@@ -169,7 +168,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     @Getter
     private Lotus lotus;
     @Getter
-    private Imperat<BukkitSource> imperat;
+    private CommandDispatcher<org.bukkit.command.CommandSender> commandDispatcher;
 
     @Getter
     @Setter
@@ -186,8 +185,17 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     @Override
     public void onEnable() {
         // paper... why??
-        System.setProperty("org.bukkit.plugin.java.LibraryLoader.centralURL", "https://repo1.maven.org/maven2");
         instance = this;
+
+        LifecycleEventManager<Plugin> manager = this.getLifecycleManager();
+        manager.registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+            final Commands commands = event.registrar();
+            commands.register(
+                    NpcCommandRegistrar.buildNode(),
+                    "The command for anything NPC related.",
+                    List.of()
+            );
+        });
 
         if (!checkForValidVersion()) {
             printInvalidVersion();
@@ -346,23 +354,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         lotus.registerMenu(new HologramMenu());
         lotus.registerMenu(new DeleteLineMenu());
         lotus.registerMenu(new PoseEditorMenu());
-
-        // prevent reload goofery
-        if (!System.getProperties().containsKey("CUSTOMNPCS_LOADED")) {
-            getLogger().info("Loading commands!");
-
-            imperat = BukkitImperat.builder(this).applyBrigadier(false)//todo: true
-                    .namedSuggestionResolver("sound", new SoundSuggester())
-                    .namedSuggestionResolver("current_npc", new NpcSuggester())
-                    .namedSuggestionResolver("broken_npc", new NpcSuggester())
-                    .namedSuggestionResolver("worlds", new WorldSuggester())
-                    .build();
-
-            // only one command, the rest are sub commands
-            imperat.registerCommand(new NpcCommand());
-        }
-
-        System.setProperty("CUSTOMNPCS_LOADED", "true");
     }
 
     /**
@@ -402,9 +393,9 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
         // don't unregister these on reload
         if (!reloading) {
-            if (imperat != null) {
-                imperat.shutdownPlatform();
-                imperat.unregisterAllCommands();
+            if (commandDispatcher != null) {
+                // Clear the command dispatcher by getting a new instance
+                commandDispatcher = null;
             }
         }
     }
@@ -499,9 +490,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
     public String translateVersion() {
         return switch (serverVersion) {
-            case "1.20", "1.20.1" -> "v1_20_R1";
-            case "1.20.2" -> "v1_20_R2";
-            case "1.20.3", "1.20.4" -> "v1_20_R3";
             case "1.20.5", "1.20.6" -> "v1_20_R4";
             case "1.21", "1.21.1" -> "v1_21_R0";
             case "1.21.2", "1.21.3" -> "v1_21_R1";
@@ -510,6 +498,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             case "1.21.6", "1.21.7", "1.21.8" -> "v1_21_R4";
             case "1.21.9", "1.21.10" -> "v1_21_R5";
             case "1.21.11" -> "v1_21_R6";
+            case "26.1", "26.1.1", "26.1.2" -> "v26_1_R1";
             default -> "";
         };
     }
@@ -531,7 +520,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         logger.severe("+------------------------------------------------------------------------------+");
         logger.severe("|                      INVALID SERVER VERSION DETECTED                         |");
         logger.severe("|             ** PLEASE USE ONE OF THE FOLLOWING SERVER VERSIONS **            |");
-        logger.severe("|                                [1.20.x, 1.21.x]                              |");
+        logger.severe("|                           [1.20.x, 1.21.x, 26.x]                             |");
         logger.severe("|                               DETECTED: '" + serverVersion + "'                             " +
                 "|");
         logger.severe("|           Please contact @foxikle on Discord for more information.           |");
@@ -550,6 +539,19 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
     public Pagination getSkinCatalog(Player player) {
         return getMenuUtils().getSkinCatalogue(player.locale());
+    }
+
+    public static class BukkitImperat {
+        public static void handleCommandException(com.mojang.brigadier.exceptions.CommandSyntaxException e,
+                                                  org.bukkit.command.CommandSender sender) {
+            if (e.getCursor() >= 0) {
+                String input = e.getInput();
+                String pointer = " ".repeat(Math.max(0, e.getCursor())) + "^";
+                sender.sendMessage(input);
+                sender.sendMessage(pointer);
+            }
+            sender.sendMessage(e.getMessage());
+        }
     }
 
 }
