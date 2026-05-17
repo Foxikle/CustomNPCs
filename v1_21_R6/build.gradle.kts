@@ -22,7 +22,7 @@
 
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
+    id("io.papermc.paperweight.userdev") version "2.0.0-SNAPSHOT"
     id("io.freefair.lombok") version "9.2.0"
 }
 
@@ -40,12 +40,16 @@ dependencies {
 }
 
 tasks {
+    paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
+
     java {
-        toolchain.languageVersion = JavaLanguageVersion.of(21)
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
     }
 
     compileJava {
-        options.release = 21
+        options.release = 25
     }
 
     jar {
