@@ -64,16 +64,15 @@ public class FollowPresetPathAction extends Action {
     @Setter
     private List<RecordedPathNode> path;
 
-    public FollowPresetPathAction(List<RecordedPathNode> path, int delay, Condition.SelectionMode mode,
+    @Getter
+    @Setter
+    private boolean loop;
+
+    public FollowPresetPathAction(List<RecordedPathNode> path, boolean loop, int delay, Condition.SelectionMode mode,
                                   List<Condition> conditions, int cooldown) {
         super(delay, mode, conditions, cooldown);
         this.path = path;
-    }
-
-    public FollowPresetPathAction(List<RecordedPathNode> path, int delay, Condition.SelectionMode mode,
-                                  List<Condition> conditions) {
-        super(delay, mode, conditions);
-        this.path = path;
+        this.loop = loop;
     }
 
     public static Button creationButton(Player player) {
@@ -85,7 +84,7 @@ public class FollowPresetPathAction extends Action {
                     Player p = (Player) event.getWhoClicked();
                     event.setCancelled(true);
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    FollowPresetPathAction action = new FollowPresetPathAction(new ArrayList<>(), 0,
+                    FollowPresetPathAction action = new FollowPresetPathAction(new ArrayList<>(), false, 0,
                             Condition.SelectionMode.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), action);
                     menuView.getAPI().openMenu(p, action.getMenu());
@@ -93,11 +92,15 @@ public class FollowPresetPathAction extends Action {
     }
 
     public static FollowPresetPathAction deserialize(String serialized, Class<? extends Action> clazz) {
+        if (clazz != FollowPresetPathAction.class)
+            throw new IllegalArgumentException("This deserialize method only supports the FollowPresetPathAction");
         ParseResult result = Action.parseBase(serialized);
-        String pathData = Action.parseArray(serialized, "path");
+        String pathData = Action.parseString(serialized, "path");
         List<RecordedPathNode> path = CustomNPCs.getGson().fromJson(pathData, new TypeToken<List<RecordedPathNode>>() {
         }.getType());
-        return new FollowPresetPathAction(path, result.delay(), result.mode(), result.conditions(), result.cooldown());
+        boolean loop = Action.parseBoolean(pathData, "loop");
+        return new FollowPresetPathAction(path, loop, result.delay(), result.mode(), result.conditions(),
+                result.cooldown());
     }
 
     public static void startRecording(Player player) {
@@ -148,15 +151,24 @@ public class FollowPresetPathAction extends Action {
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (path == null || path.isEmpty()) return;
         if (activePlaybacks.containsKey(npc)) {
+            if (loop) return;
             activePlaybacks.get(npc).cancel();
         }
-        npc.teleport(path.get(0).toLocation(npc.getWorld()));
+        final Location returnTo = npc.getCurrentLocation();
+
+        npc.teleport(path.getFirst().toLocation(npc.getWorld()));
 
         final int[] currentIndex = {0};
-        BukkitTask refinedTask = Bukkit.getScheduler().runTaskTimer(CustomNPCs.getInstance(), () -> {
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(CustomNPCs.getInstance(), () -> {
             if (currentIndex[0] >= path.size()) {
-                BukkitTask t = activePlaybacks.remove(npc);
-                if (t != null) t.cancel();
+                if (loop) {
+                    currentIndex[0] = 0;
+                    npc.teleport(path.getFirst().toLocation(npc.getWorld()));
+                } else {
+                    BukkitTask t = activePlaybacks.remove(npc);
+                    if (t != null) t.cancel();
+                    Bukkit.getScheduler().runTaskLater(CustomNPCs.getInstance(), () -> npc.teleport(returnTo), 20L);
+                }
                 return;
             }
             Location prev;
@@ -172,13 +184,15 @@ public class FollowPresetPathAction extends Action {
             currentIndex[0]++;
         }, 0, 1);
 
-        activePlaybacks.put(npc, refinedTask);
+
+        activePlaybacks.put(npc, task);
     }
 
     @Override
     public String serialize() {
         Map<String, Object> params = new HashMap<>();
         params.put("path", CustomNPCs.getGson().toJson(path));
+        params.put("loop", loop);
         return generateSerializedString("FollowPresetPath", params).replace("},]", "}]");
     }
 
@@ -190,6 +204,7 @@ public class FollowPresetPathAction extends Action {
                         Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
                         Msg.format(""),
                         Msg.translate(player.locale(), "customnpcs.menus.action.follow_path.nodes", path.size()),
+                        Msg.translate(player.locale(), "customnpcs.menus.action.follow_path.looped", loop),
                         Msg.format(""),
                         Msg.translate(player.locale(), "customnpcs.favicons.edit"),
                         Msg.translate(player.locale(), "customnpcs.favicons.remove")
@@ -204,7 +219,7 @@ public class FollowPresetPathAction extends Action {
 
     @Override
     public Action clone() {
-        return new FollowPresetPathAction(new ArrayList<>(path), getDelay(), getMode(),
+        return new FollowPresetPathAction(new ArrayList<>(path), loop, getDelay(), getMode(),
                 new ArrayList<>(getConditions()), getCooldown());
     }
 
@@ -233,8 +248,28 @@ public class FollowPresetPathAction extends Action {
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
             return MenuUtils.actionBase(action, player)
-                    .setButton(22, button(player))
+                    .setButton(20, button(player))
+                    .setButton(24, candle(player))
                     .build();
+        }
+
+        private Button candle(Player player) {
+            return Button.clickable(ItemBuilder.modern(action.loop ? Material.GREEN_CANDLE : Material.RED_CANDLE)
+                    .setDisplay(Msg.translate(player.locale(), action.loop ? "customnpcs.menus.action.follow_path" +
+                                                                             ".loop.true" : "customnpcs.menus.action" +
+                                                                                            ".follow_path.loop.false"))
+                    .setLore(Msg.lore(player.locale(), action.loop ? "customnpcs.menus.action.follow_path.loop.true" +
+                                                                     ".description" : "customnpcs.menus.action" +
+                                                                                      ".follow_path.loop.false" +
+                                                                                      ".description"))
+                    .build(), ButtonClickAction.plain((m, e) -> {
+                        e.setCancelled(true);
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+                        action.loop = !action.loop;
+                        m.updateButton(24, button -> button.setItem(candle(player).getItem()));
+                        //todo: autostart
+                    }
+            ));
         }
 
         private Button button(Player player) {
