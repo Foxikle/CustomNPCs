@@ -183,19 +183,23 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * </p>
      */
     @Override
+    @SuppressWarnings("UnstableApiUsage")
     public void onEnable() {
         // paper... why??
         instance = this;
 
-        LifecycleEventManager<Plugin> manager = this.getLifecycleManager();
-        manager.registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-            final Commands commands = event.registrar();
-            commands.register(
-                    NpcCommandRegistrar.buildNode(),
-                    "The command for anything NPC related.",
-                    List.of()
-            );
-        });
+        if (!System.getProperties().contains("CustomNPCs-Started")) {
+            LifecycleEventManager<Plugin> manager = this.getLifecycleManager();
+            manager.registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+                final Commands commands = event.registrar();
+                commands.register(
+                        NpcCommandRegistrar.buildNode(),
+                        "The command for anything NPC related.",
+                        List.of()
+                );
+            });
+            System.setProperty("CustomNPCs-Started", "true");
+        }
 
         if (!checkForValidVersion()) {
             printInvalidVersion();
@@ -211,7 +215,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         } catch (ClassNotFoundException e) {
             getLogger().log(Level.SEVERE, "Failed to load NPC class for server version " + s + "!", e);
         } catch (Exception e) {
-            getLogger().log(Level.SEVERE, "SERVERE ERROR: ", e);
+            getLogger().log(Level.SEVERE, "SERVER ERROR: ", e);
         }
 
         INTERPOLATION_DURATION = getConfig().getInt("DefaultInterpolationDuration");
