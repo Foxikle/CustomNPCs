@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,23 +22,19 @@
 
 package dev.foxikle.customnpcs.internal.commands.suggestion;
 
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.command.parameters.CommandParameter;
-import dev.velix.imperat.context.SuggestionContext;
-import dev.velix.imperat.resolvers.SuggestionResolver;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
-import java.util.List;
+public class WorldSuggester {
 
-public class WorldSuggester implements SuggestionResolver<BukkitSource> {
-    /**
-     * @param context   the context for suggestions
-     * @param parameter the parameter of the value to complete
-     * @return the auto-completed suggestions of the current argument
-     */
-    @Override
-    public List<String> autoComplete(SuggestionContext<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
-        return Bukkit.getWorlds().stream().map(World::getName).toList();
-    }
+    public static final SuggestionProvider<CommandSourceStack> SUGGESTIONS = (context, builder) -> {
+        String input = builder.getRemaining().toLowerCase();
+        Bukkit.getWorlds().stream()
+                .map(World::getName)
+                .filter(name -> name.toLowerCase().startsWith(input))
+                .forEach(builder::suggest);
+        return builder.buildFuture();
+    };
 }

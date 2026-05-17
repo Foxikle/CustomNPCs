@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -177,7 +177,6 @@ public class MenuUtils {
         public ItemStack toItem() {
             return ItemBuilder.modern(PLAYER_HEAD).setDisplay(Msg.format("<yellow>" + name))
                     .setLore(
-                            Msg.translate(locale, "customnpcs.menus.skin_catalog.items.icon.lore", name),
                             Component.empty(),
                             Msg.translate(locale, "customnpcs.items.click_to_select")
                     ).modifyMeta(SkullMeta.class, skullMeta -> {

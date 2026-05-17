@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025. Foxikle
+ * Copyright (c) 2025-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,24 +22,21 @@
 
 package dev.foxikle.customnpcs.internal.commands.suggestion;
 
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.FileManager;
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.command.parameters.CommandParameter;
-import dev.velix.imperat.context.SuggestionContext;
-import dev.velix.imperat.resolvers.SuggestionResolver;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 
-import java.util.List;
-import java.util.UUID;
+public class NpcBrokenSuggester {
 
-public class NpcBrokenSuggester implements SuggestionResolver<BukkitSource> {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> autoComplete(SuggestionContext<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
-        final CustomNPCs plugin = CustomNPCs.getInstance();
-        FileManager fileManager = plugin.getFileManager();
-        return fileManager.getBrokenNPCs().keySet().stream().map(UUID::toString).toList();
-    }
+    public static final SuggestionProvider<CommandSourceStack> SUGGESTIONS = (context, builder) -> {
+        CustomNPCs plugin = CustomNPCs.getInstance();
+        String input = builder.getRemaining().toLowerCase();
+
+        plugin.getFileManager().getBrokenNPCs().keySet().stream()
+                .map(uuid -> uuid.toString())
+                .filter(uuid -> uuid.toLowerCase().startsWith(input))
+                .forEach(builder::suggest);
+
+        return builder.buildFuture();
+    };
 }
