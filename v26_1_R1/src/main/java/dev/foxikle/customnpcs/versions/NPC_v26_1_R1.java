@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,14 @@
 
 package dev.foxikle.customnpcs.versions;
 
+
+import com.google.common.collect.ImmutableMultimap;
+import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.JsonOps;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.api.Pose;
 import dev.foxikle.customnpcs.data.Equipment;
@@ -33,6 +38,7 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.InjectionManager;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,6 +46,7 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.json.JSONComponentSerializer;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.*;
@@ -51,18 +58,19 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_20_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_20_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftArmorStand;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftTextDisplay;
-import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.CraftServer;
+import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.entity.CraftArmorStand;
+import org.bukkit.craftbukkit.entity.CraftEntity;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.craftbukkit.entity.CraftTextDisplay;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -77,12 +85,24 @@ import java.util.*;
 /**
  * The object representing the NPC
  */
-public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
+public class NPC_v26_1_R1 extends ServerPlayer implements InternalNpc {
 
     // reflection for data accessors
-    private final EntityDataAccessor<net.minecraft.network.chat.Component> TEXT_DISPLAY_ACCESSOR;
-    @Getter
-    private final Particle spawnParticle = Particle.EXPLOSION_LARGE;
+    private static final EntityDataAccessor<net.minecraft.network.chat.Component> TEXT_DISPLAY_ACCESSOR;
+
+    static {
+        try {
+            // needs reflection because its private.
+            Field field = net.minecraft.world.entity.Display.TextDisplay.class.getDeclaredField("DATA_TEXT_ID");
+            field.setAccessible(true);
+            TEXT_DISPLAY_ACCESSOR =
+                    (EntityDataAccessor<net.minecraft.network.chat.Component>) field.get(new EntityDataAccessor<>(0,
+                            EntityDataSerializers.COMPONENT));
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Getter
     private final UUID uniqueID;
     private final CustomNPCs plugin;
@@ -98,11 +118,11 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
     @Getter
     @Setter
     private Location spawnLoc;
-    private @Nullable ArmorStand seat;
     @Getter
-    private TextDisplay clickableHologram;
+    private @Nullable TextDisplay clickableHologram;
     @Getter
     private List<TextDisplay> holograms;
+    private @Nullable ArmorStand seat;
     @Getter
     @Setter
     private Player target;
@@ -112,28 +132,24 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
     private String clickableName = "ERROR";
     private InjectionManager injectionManager;
 
-    public NPC_v1_20_R3(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uniqueID, @Nullable Player target, List<Action> actions) {
-        super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uniqueID, Utils.getNpcName(settings, uniqueID)), ClientInformation.createDefault());
+    public NPC_v26_1_R1(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings,
+                        UUID uuid, @Nullable Player target, List<Action> actions) {
+        super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uuid,
+                Utils.getNpcName(settings, uuid), new PropertyMap(ImmutableMultimap.of("textures", new Property(
+                "textures", settings.getValue(), settings.getSignature())))), ClientInformation.createDefault());
         this.spawnLoc = spawnLoc;
         this.equipment = equipment;
         this.settings = settings;
         this.world = spawnLoc.getWorld();
-        this.uniqueID = uniqueID;
+        this.uniqueID = uuid;
         this.target = target;
         this.actions = actions;
-        super.connection = new FakeListener_v1_20_R3(((CraftServer) Bukkit.getServer()).getServer(), new FakeConnection_v1_20_R3(PacketFlow.CLIENTBOUND), this);
+        super.connection = new FakeListener_v1_21_R6(((CraftServer) Bukkit.getServer()).getServer(),
+                new FakeConnection_v1_21_R6(PacketFlow.CLIENTBOUND), this);
         this.plugin = plugin;
-
-        // aM
-        try {
-            Field field = net.minecraft.world.entity.Display.TextDisplay.class.getDeclaredField("aM");
-            field.setAccessible(true);
-            TEXT_DISPLAY_ACCESSOR = (EntityDataAccessor<net.minecraft.network.chat.Component>) field.get(new EntityDataAccessor<>(0, EntityDataSerializers.COMPONENT));
-        } catch (IllegalAccessException | NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
     }
 
+    @Override
     public void setPosRot(Location location) {
         this.setPos(location.getX(), location.getY(), location.getZ());
         this.setXRot(location.getPitch());
@@ -152,25 +168,28 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
         }
 
         setupHolograms();
-        if (settings.isInteractable() && !settings.isHideClickableHologram()) {
-            if (settings.getCustomInteractableHologram() == null || settings.getCustomInteractableHologram().isEmpty()) {
-                setupClickableHologram(plugin.getConfig().getString("ClickText"));
-            } else {
-                setupClickableHologram(settings.getCustomInteractableHologram());
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (settings.isInteractable() && !settings.isHideClickableHologram()) {
+                if (settings.getCustomInteractableHologram() == null || settings.getCustomInteractableHologram().isEmpty()) {
+                    setupClickableHologram(plugin.getConfig().getString("ClickText"));
+                } else {
+                    setupClickableHologram(settings.getCustomInteractableHologram());
+                }
             }
-        }
+        });
 
         setSkin();
         setPosRot(spawnLoc);
         this.getBukkitEntity().setInvulnerable(true);
         this.getBukkitEntity().setNoDamageTicks(Integer.MAX_VALUE);
-        super.getCommandSenderWorld().addFreshEntity(this);
+        ((CraftWorld) getWorld()).getHandle().addFreshEntity(this);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HAND, equipment.getHand(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.OFF_HAND, equipment.getOffhand(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HEAD, equipment.getHead(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.CHEST, equipment.getChest(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.LEGS, equipment.getLegs(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
+        super.getBukkitEntity().addScoreboardTag("NPC");
         super.getBukkitEntity().setItemInHand(equipment.getHand());
         setPose(setupPose(settings.getPose()));
 
@@ -182,8 +201,6 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
     }
 
     public void setSkin() {
-        super.getGameProfile().getProperties().removeAll("textures");
-        super.getGameProfile().getProperties().put("textures", new Property("textures", settings.getValue(), settings.getSignature()));
         byte bitmask = (byte) (0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40);
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, bitmask);
     }
@@ -191,7 +208,9 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
     public void setupHolograms() {
         final double space = 0.28;
         double startingOffset = getPoseOffset(settings.getPose());
-        boolean displayClickable = settings.isInteractable() && !settings.isHideClickableHologram() && plugin.getConfig().getBoolean("DisplayClickText");
+        boolean displayClickable =
+                settings.isInteractable() && !settings.isHideClickableHologram() && plugin.getConfig().getBoolean(
+                        "DisplayClickText");
         if (displayClickable) {
             startingOffset += space;
         }
@@ -210,7 +229,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
                     hologram.getTransformation().getRightRotation()
             ));
             holograms.add(hologram);
-            ((CraftTextDisplay) hologram).getHandle().startRiding(this, true);
+            ((CraftTextDisplay) hologram).getHandle().startRiding(this, true, true);
         }
         this.holograms = holograms.reversed();
     }
@@ -230,7 +249,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
                 clickableHologram.getTransformation().getScale(),
                 clickableHologram.getTransformation().getRightRotation()
         ));
-        ((CraftTextDisplay) clickableHologram).getHandle().startRiding(this, true);
+        ((CraftTextDisplay) clickableHologram).getHandle().startRiding(this, true, true);
     }
 
     public Location getCurrentLocation() {
@@ -249,29 +268,46 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
     }
 
     public void injectPlayer(Player p) {
-        if (p.getWorld() != spawnLoc.getWorld()) return;
-        List<Pair<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack>> stuffs = new ArrayList<>();
-        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.MAINHAND, CraftItemStack.asNMSCopy(equipment.getHand())));
-        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.OFFHAND, CraftItemStack.asNMSCopy(equipment.getOffhand())));
-        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.HEAD, CraftItemStack.asNMSCopy(equipment.getHead())));
-        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.CHEST, CraftItemStack.asNMSCopy(equipment.getChest())));
-        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.LEGS, CraftItemStack.asNMSCopy(equipment.getLegs())));
-        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.FEET, CraftItemStack.asNMSCopy(equipment.getBoots())));
 
-        ClientboundPlayerInfoUpdatePacket playerInfoAdd = new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, this);
-        ClientboundAddEntityPacket namedEntitySpawn = new ClientboundAddEntityPacket(this);
-        ClientboundPlayerInfoRemovePacket playerInforemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
+        if (world != p.getWorld()) {
+            return;
+        }
+
+        List<Pair<net.minecraft.world.entity.EquipmentSlot, ItemStack>> stuffs = new ArrayList<>();
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.MAINHAND,
+                CraftItemStack.asNMSCopy(equipment.getHand())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.OFFHAND,
+                CraftItemStack.asNMSCopy(equipment.getOffhand())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.HEAD,
+                CraftItemStack.asNMSCopy(equipment.getHead())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.CHEST,
+                CraftItemStack.asNMSCopy(equipment.getChest())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.LEGS,
+                CraftItemStack.asNMSCopy(equipment.getLegs())));
+        stuffs.add(new Pair<>(net.minecraft.world.entity.EquipmentSlot.FEET,
+                CraftItemStack.asNMSCopy(equipment.getBoots())));
+
+        ClientboundPlayerInfoUpdatePacket playerInfoAdd =
+                new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, this);
+        ClientboundAddEntityPacket namedEntitySpawn = new ClientboundAddEntityPacket(getId(), uniqueID, spawnLoc.x(),
+                spawnLoc.y(), spawnLoc.z(),
+                getYRot(), getXRot(), net.minecraft.world.entity.EntityType.PLAYER, 0, new Vec3(0, 0, 0), getYRot());
+        ClientboundPlayerInfoRemovePacket playerInforemove =
+                new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
-        ClientboundMoveEntityPacket rotation = new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(), (byte) (getYaw() * 256 / 360), (byte) (getXRot() * 256 / 360), true);
-        ClientboundSetPassengersPacket hideName = new ClientboundSetPassengersPacket(this);
+        ClientboundMoveEntityPacket rotation =
+                new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(),
+                        (byte) (getYRot() * 256 / 360), (byte) (getXRot() * 256 / 360), true);
         setSkin();
+        ClientboundSetPassengersPacket hideName = new ClientboundSetPassengersPacket(this);
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
+
         connection.send(playerInfoAdd);
         connection.send(namedEntitySpawn);
         connection.send(equipmentPacket);
         connection.send(rotation);
         connection.send(hideName);
-        super.getEntityData().refresh(((CraftPlayer) p).getHandle());
+        connection.send(new ClientboundSetEntityDataPacket(getId(), super.getEntityData().packAll()));
 
         if (seat != null) {
             connection.send(new ClientboundSetPassengersPacket(((CraftArmorStand) seat).getHandle()));
@@ -283,12 +319,14 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
 
         Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> connection.send(playerInforemove), 30);
         if (!settings.isUpsideDown()) {
-            super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
+            super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION,
+                    (byte) (0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80));
         }
 
         // create them
         Bukkit.getScheduler().runTaskLater(plugin, () -> injectHolograms(p), 3);
         injectHolograms(p);
+
         // we only want to update them if the server is running placeholder API
         if (plugin.papi) {
             if (loops.containsKey(p.getUniqueId())) {
@@ -338,38 +376,41 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
     }
 
     private Packet<?> createMojComponent(String clickableText, TextDisplay clickableHologram) {
-        List<SynchedEntityData.DataValue<?>> meta = ((CraftTextDisplay) clickableHologram).getHandle().getEntityData().getNonDefaultValues();
-        String serialized_component = JSONComponentSerializer.json().serialize(plugin.getMiniMessage().deserialize(clickableText));
-        net.minecraft.network.chat.Component clickableComponent = net.minecraft.network.chat.Component.Serializer.fromJson(serialized_component);
+        List<SynchedEntityData.DataValue<?>> meta =
+                ((CraftTextDisplay) clickableHologram).getHandle().getEntityData().getNonDefaultValues();
+        String serialized_component = JSONComponentSerializer.json().serialize(Msg.format(clickableText));
+        net.minecraft.network.chat.Component clickableComponent = ComponentSerialization.CODEC
+                .decode(JsonOps.INSTANCE, JsonParser.parseString(serialized_component))
+                .getOrThrow()
+                .getFirst();
         meta.set(0, SynchedEntityData.DataValue.create(TEXT_DISPLAY_ACCESSOR, clickableComponent));
 
         return new ClientboundSetEntityDataPacket(clickableHologram.getEntityId(), meta);
     }
 
-    /**
-     * <p> Despawns the NPC
-     * </p>
-     */
     public void remove() {
         injectionManager.shutDown();
         loops.forEach((uuid1, integer) -> Bukkit.getScheduler().cancelTask(integer));
         loops.clear();
+        interpolation.cancel();
         List<Packet<?>> packets = new ArrayList<>();
         if (holograms != null) {
             for (TextDisplay hologram : holograms) {
                 packets.add(new ClientboundRemoveEntitiesPacket(hologram.getEntityId()));
                 hologram.remove();
             }
+            holograms.clear();
         }
+
         if (seat != null) {
             seat.remove();
         }
+
         if (clickableHologram != null) {
             packets.add(new ClientboundRemoveEntitiesPacket(clickableHologram.getEntityId()));
             clickableHologram.remove();
         }
         packets.add(new ClientboundRemoveEntitiesPacket(super.getId()));
-
         super.remove(RemovalReason.DISCARDED);
         for (Player p : Bukkit.getOnlinePlayers()) {
             ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
@@ -391,6 +432,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
 
     @Override
     public void teleport(Location loc) {
+        if (isRemoved()) return;
         teleportTo(loc.x(), loc.y(), loc.z());
         spawnLoc = loc;
     }
@@ -402,10 +444,10 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
     @Override
     public void lookAt(LookAtAnchor anchor, Entity e) {
         switch (anchor) {
-            case HEAD ->
-                    super.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftEntity) e).getHandle(), EntityAnchorArgument.Anchor.EYES);
-            case FEET ->
-                    super.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftEntity) e).getHandle(), EntityAnchorArgument.Anchor.FEET);
+            case HEAD -> super.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftEntity) e).getHandle(),
+                    EntityAnchorArgument.Anchor.EYES);
+            case FEET -> super.lookAt(EntityAnchorArgument.Anchor.EYES, ((CraftEntity) e).getHandle(),
+                    EntityAnchorArgument.Anchor.FEET);
         }
     }
 
@@ -469,6 +511,7 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.LEGS, equipment.getLegs(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.FEET, equipment.getBoots(), true);
         super.getBukkitEntity().setItemInHand(equipment.getHand());
+        lookAt(Utils.calcLocation(this));
     }
 
     @Override
@@ -485,44 +528,6 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
         lookAt(Utils.calcLocation(this));
     }
 
-    private net.minecraft.world.entity.Pose setupPose(Pose pose) {
-        return switch (pose) {
-            case SLEEPING -> net.minecraft.world.entity.Pose.SLEEPING;
-            case SWIMMING -> net.minecraft.world.entity.Pose.SWIMMING;
-            case CROUCHING -> net.minecraft.world.entity.Pose.CROUCHING;
-            case SITTING -> {
-                seat = world.spawn(new Location(world, 0, 0, 0), ArmorStand.class);
-                seat.setMarker(true);
-                seat.setVisible(false);
-                seat.teleport(spawnLoc);
-                startRiding(((CraftArmorStand) seat).getHandle(), true);
-                yield net.minecraft.world.entity.Pose.STANDING;
-            }
-            case DYING -> {
-                setHealth(0.0F); // looks like dying
-                yield net.minecraft.world.entity.Pose.DYING;
-            }
-            default -> net.minecraft.world.entity.Pose.STANDING;
-        };
-    }
-
-    public double getPoseOffset(Pose pose) {
-        return switch (pose) {
-            case STANDING -> 0.20D;
-            case SITTING -> 0.20D;
-            case CROUCHING -> 0.175D;
-            case SWIMMING -> 0.14D;
-            case DYING -> 0.05D;
-            case SLEEPING -> 0.10D;
-        };
-    }
-
-
-    @Override
-    public InternalNpc clone() {
-        return new NPC_v1_20_R3(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(), UUID.randomUUID(), target, new ArrayList<>(actions));
-    }
-
 
     @Override
     public float getYaw() {
@@ -533,5 +538,50 @@ public class NPC_v1_20_R3 extends ServerPlayer implements InternalNpc {
     public float getPitch() {
         return getXRot();
     }
-}
 
+    /**
+     * @return Paper goobery
+     */
+    @Override
+    public Particle getSpawnParticle() {
+        return Particle.EXPLOSION;
+    }
+
+    private net.minecraft.world.entity.Pose setupPose(Pose pose) {
+        return switch (pose) {
+            case SLEEPING -> net.minecraft.world.entity.Pose.SLEEPING;
+            case SWIMMING -> net.minecraft.world.entity.Pose.SWIMMING;
+            case CROUCHING -> net.minecraft.world.entity.Pose.CROUCHING;
+            case SITTING -> {
+                seat = world.spawn(new Location(world, 0, 0, 0), ArmorStand.class);
+                seat.setMarker(true);
+                seat.setVisible(false);
+                seat.teleport(spawnLoc);
+                startRiding(((CraftArmorStand) seat).getHandle(), true, true);
+                yield net.minecraft.world.entity.Pose.STANDING;
+            }
+            case DYING -> {
+                setHealth(0.0F); // it looks like dying
+                yield net.minecraft.world.entity.Pose.DYING;
+            }
+            default -> net.minecraft.world.entity.Pose.STANDING;
+        };
+    }
+
+    private double getPoseOffset(Pose pose) {
+        return switch (pose) {
+            case STANDING -> 0.20D;
+            case SITTING -> 0.20D;
+            case CROUCHING -> 0.175D;
+            case SWIMMING -> 0.14D;
+            case DYING -> 0.05D;
+            case SLEEPING -> 0.10D;
+        };
+    }
+
+    @Override
+    public InternalNpc clone() {
+        return new NPC_v26_1_R1(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(),
+                UUID.randomUUID(), target, new ArrayList<>(actions));
+    }
+}
