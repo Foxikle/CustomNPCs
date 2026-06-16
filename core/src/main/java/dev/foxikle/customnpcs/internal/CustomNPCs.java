@@ -107,7 +107,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             TimeUnit.MINUTES).expireAfterAccess(1, TimeUnit.MINUTES).build();
     private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6",
             "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8", "1.21.9",
-            "1.21.10", "1.21.11", "26.1", "26.1.1", "26.1.2"};
+            "1.21.10", "1.21.11", "26.1", "26.1.1", "26.1.2", "26.2"};
     private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
     /**
      * The map of what the plugin is waiting for the players to enter.
@@ -503,6 +503,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             case "1.21.9", "1.21.10" -> "v1_21_R5";
             case "1.21.11" -> "v1_21_R6";
             case "26.1", "26.1.1", "26.1.2" -> "v26_1_R1";
+            case "26.2" -> "v26_2_R1";
             default -> "";
         };
     }

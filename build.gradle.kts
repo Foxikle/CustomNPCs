@@ -38,6 +38,7 @@ repositories {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":v26_2_R1", configuration = "default"))
     implementation(project(":v26_1_R1", configuration = "default"))
     implementation(project(":v1_21_R6", configuration = "default"))
     implementation(project(":v1_21_R5", configuration = "default"))
@@ -49,7 +50,7 @@ dependencies {
     implementation(project(":v1_20_R4", configuration = "default"))
 }
 
-var pluginVersion = "1.7.10-pre1"
+var pluginVersion = "1.7.10-pre2"
 
 allprojects {
     group = "dev.foxikle"

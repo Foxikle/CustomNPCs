@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A fake packet listener for the NPCs
  */
-public class FakeListener_v1_21_R6 extends ServerGamePacketListenerImpl {
+public class FakeListener_v26_1_R1 extends ServerGamePacketListenerImpl {
     /**
      * <p> Creates a fake ServerGamePacketListenerImpl for NPCs
      * </p>
@@ -42,7 +42,7 @@ public class FakeListener_v1_21_R6 extends ServerGamePacketListenerImpl {
      * @param connection The connection
      * @param npc        The NPC
      */
-    public FakeListener_v1_21_R6(MinecraftServer server, Connection connection, ServerPlayer npc) {
+    public FakeListener_v26_1_R1(MinecraftServer server, Connection connection, ServerPlayer npc) {
         super(server, connection, npc, CommonListenerCookie.createInitial(npc.gameProfile, false));
     }
 

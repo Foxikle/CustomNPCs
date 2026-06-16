@@ -46,6 +46,7 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.json.JSONComponentSerializer;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
@@ -53,6 +54,7 @@ import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -85,7 +87,7 @@ import java.util.*;
 /**
  * The object representing the NPC
  */
-public class NPC_v26_1_R1 extends ServerPlayer implements InternalNpc {
+public class NPC_v26_2_R1 extends ServerPlayer implements InternalNpc {
 
     // reflection for data accessors
     private static final EntityDataAccessor<net.minecraft.network.chat.Component> TEXT_DISPLAY_ACCESSOR;
@@ -132,7 +134,7 @@ public class NPC_v26_1_R1 extends ServerPlayer implements InternalNpc {
     private String clickableName = "ERROR";
     private InjectionManager injectionManager;
 
-    public NPC_v26_1_R1(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings,
+    public NPC_v26_2_R1(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings,
                         UUID uuid, @Nullable Player target, List<Action> actions) {
         super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uuid,
                 Utils.getNpcName(settings, uuid), new PropertyMap(ImmutableMultimap.of("textures", new Property(
@@ -144,8 +146,8 @@ public class NPC_v26_1_R1 extends ServerPlayer implements InternalNpc {
         this.uniqueID = uuid;
         this.target = target;
         this.actions = actions;
-        super.connection = new FakeListener_v26_1_R1(((CraftServer) Bukkit.getServer()).getServer(),
-                new FakeConnection_v26_1_R1(PacketFlow.CLIENTBOUND), this);
+        super.connection = new FakeListener_v26_2_R1(((CraftServer) Bukkit.getServer()).getServer(),
+                new FakeConnection_v26_2_R1(PacketFlow.CLIENTBOUND), this);
         this.plugin = plugin;
     }
 
@@ -291,7 +293,8 @@ public class NPC_v26_1_R1 extends ServerPlayer implements InternalNpc {
                 new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, this);
         ClientboundAddEntityPacket namedEntitySpawn = new ClientboundAddEntityPacket(getId(), uniqueID, spawnLoc.x(),
                 spawnLoc.y(), spawnLoc.z(),
-                getYRot(), getXRot(), net.minecraft.world.entity.EntityType.PLAYER, 0, new Vec3(0, 0, 0), getYRot());
+                getYRot(), getXRot(), BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.parse("minecraft:player")), 0
+                , new Vec3(0, 0, 0), getYRot());
         ClientboundPlayerInfoRemovePacket playerInforemove =
                 new ClientboundPlayerInfoRemovePacket(Collections.singletonList(super.getUUID()));
         ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(super.getId(), stuffs);
@@ -581,7 +584,7 @@ public class NPC_v26_1_R1 extends ServerPlayer implements InternalNpc {
 
     @Override
     public InternalNpc clone() {
-        return new NPC_v26_1_R1(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(),
+        return new NPC_v26_2_R1(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(),
                 UUID.randomUUID(), target, new ArrayList<>(actions));
     }
 }

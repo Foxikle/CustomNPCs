@@ -20,28 +20,22 @@
  * SOFTWARE.
  */
 
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven("https://repo.papermc.io/repository/maven-public/")
+package dev.foxikle.customnpcs.versions;
+
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.PacketFlow;
+
+/**
+ * A fake connection for the NPCs
+ */
+public class FakeConnection_v26_2_R1 extends Connection {
+    /**
+     * <p> Creates a fake Connection for NPC
+     * </p>
+     *
+     * @param enumprotocoldirection The protocol direction
+     */
+    public FakeConnection_v26_2_R1(PacketFlow enumprotocoldirection) {
+        super(enumprotocoldirection);
     }
 }
-
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("1.0.0")
-}
-rootProject.name = "customnpcs"
-
-include("core")
-include("v1_20_R4")
-include("v1_21_R0")
-include("v1_21_R1")
-include("v1_21_R2")
-include("v1_21_R3")
-include("v1_21_R4")
-include("v1_21_R5")
-include("v1_21_R6")
-include("v26_1_R1")
-include("v26_2_R1")
-
-

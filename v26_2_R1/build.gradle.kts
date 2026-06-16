@@ -20,28 +20,37 @@
  * SOFTWARE.
  */
 
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven("https://repo.papermc.io/repository/maven-public/")
+plugins {
+    id("java")
+    id("io.freefair.lombok") version "9.5.0"
+    id("io.papermc.paperweight.userdev") version "2.0.0-SNAPSHOT"
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven("https://jitpack.io")
+    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+}
+
+dependencies {
+    compileOnly("me.clip:placeholderapi:2.12.1")
+    compileOnly(project(":core"))
+    paperweight.paperDevBundle("26.2-rc-2.build.+")
+}
+
+tasks {
+    paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
+
+    java {
+        toolchain.languageVersion = JavaLanguageVersion.of(25)
+    }
+
+    compileJava {
+        options.release = 25
+    }
+
+    jar {
+        archiveClassifier = "v26_1_R1"
     }
 }
-
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("1.0.0")
-}
-rootProject.name = "customnpcs"
-
-include("core")
-include("v1_20_R4")
-include("v1_21_R0")
-include("v1_21_R1")
-include("v1_21_R2")
-include("v1_21_R3")
-include("v1_21_R4")
-include("v1_21_R5")
-include("v1_21_R6")
-include("v26_1_R1")
-include("v26_2_R1")
-
-
