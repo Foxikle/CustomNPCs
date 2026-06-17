@@ -42,7 +42,7 @@ dependencies {
     compileOnly("org.mineskin:java-client:3.2.5")
     compileOnly("org.mineskin:java-client-jsoup:3.2.5")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
