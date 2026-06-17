@@ -35,14 +35,15 @@ repositories {
 
 dependencies {
     compileOnly("com.github.mqzn:Lotus:1.6.0")
-    compileOnly("org.bstats:bstats-bukkit:3.1.0")
-    compileOnly("me.clip:placeholderapi:2.12.1")
+    compileOnly("org.bstats:bstats-bukkit:3.2.1")
+    compileOnly("me.clip:placeholderapi:2.12.2")
     compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
     compileOnly("net.kyori:adventure-api:5.1.1")
-    compileOnly("org.mineskin:java-client:3.2.5")
     compileOnly("org.mineskin:java-client-jsoup:3.2.6")
     compileOnly("dev.velix:imperat-bukkit:1.9.7")
     compileOnly("dev.velix:imperat-core:1.9.7")
+    compileOnly("org.mineskin:java-client:3.2.6")
+
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
