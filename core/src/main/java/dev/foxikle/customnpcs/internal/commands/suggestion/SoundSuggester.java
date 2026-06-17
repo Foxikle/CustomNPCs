@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,40 +22,29 @@
 
 package dev.foxikle.customnpcs.internal.commands.suggestion;
 
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.command.parameters.CommandParameter;
-import dev.velix.imperat.context.SuggestionContext;
-import dev.velix.imperat.resolvers.SuggestionResolver;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.bukkit.Keyed;
 import org.bukkit.Registry;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unchecked")
-public class SoundSuggester implements SuggestionResolver<BukkitSource> {
+public class SoundSuggester {
 
-    private static final List<String> SUGGESTIONS = new ArrayList<>();
+    private static final List<String> CACHED_SUGGESTIONS = new ArrayList<>();
 
     static {
-        // use reflection because why not
-        try {
-            Class<?> clazz = Class.forName("org.bukkit.Registry");
-            Field registry = clazz.getField("SOUNDS");
-            registry.setAccessible(true);
-            Registry<Keyed> val = (Registry<Keyed>) registry.get(null);
-            val.forEach(registry1 -> SUGGESTIONS.add(registry1.key().toString()));
-        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+        for (Keyed keyed : Registry.SOUNDS) {
+            CACHED_SUGGESTIONS.add(keyed.key().toString());
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> autoComplete(SuggestionContext<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
-        return SUGGESTIONS;
-    }
+    public static final SuggestionProvider<CommandSourceStack> SUGGESTIONS = (context, builder) -> {
+        String input = builder.getRemaining().toLowerCase();
+        CACHED_SUGGESTIONS.stream()
+                .filter(sound -> sound.toLowerCase().startsWith(input))
+                .forEach(builder::suggest);
+        return builder.buildFuture();
+    };
 }

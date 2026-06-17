@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,39 +24,34 @@ package dev.foxikle.customnpcs.internal.translations;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.GlobalTranslator;
-import net.kyori.adventure.translation.TranslationRegistry;
-import net.kyori.adventure.util.UTF8ResourceBundleControl;
+import net.kyori.adventure.translation.TranslationStore;
 
+import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class Translations {
-    TranslationRegistry registry = TranslationRegistry.create(Key.key("customnpcs:localization"));
-
-
     public static final Locale VIETNAMESE = new Locale("vi");
+    public static final Locale RUSSIAN = new Locale("ru");
+    private static final TranslationStore<MessageFormat> STORE = TranslationStore.messageFormat(Key.key("customnpcs" +
+            ":root"));
+    private static final Map<Locale, ResourceBundle> BUNDLES = new HashMap<>();
+    private static boolean setup = false;
 
     public void setup() {
+        if (setup) return;
+        BUNDLES.put(Locale.SIMPLIFIED_CHINESE, ResourceBundle.getBundle("localization.Chinese",
+                Locale.SIMPLIFIED_CHINESE));
+        BUNDLES.put(RUSSIAN, ResourceBundle.getBundle("localization.Russian", RUSSIAN));
+        BUNDLES.put(Locale.GERMAN, ResourceBundle.getBundle("localization.German", Locale.GERMAN));
+        BUNDLES.put(Locale.US, ResourceBundle.getBundle("localization.English", Locale.US));
+        BUNDLES.put(VIETNAMESE, ResourceBundle.getBundle("localization.Vietnamese", VIETNAMESE));
 
+        BUNDLES.forEach((locale, b) -> STORE.registerAll(locale, b.keySet(), s -> new MessageFormat(b.getString(s))));
 
-        ResourceBundle zh = ResourceBundle.getBundle("localization.Chinese", Locale.SIMPLIFIED_CHINESE, UTF8ResourceBundleControl.get());
-        registry.registerAll(Locale.SIMPLIFIED_CHINESE, zh, true);
-
-
-        ResourceBundle ru = ResourceBundle.getBundle("localization.Russian", new Locale("ru"), UTF8ResourceBundleControl.get());
-        registry.registerAll(new Locale("ru"), ru, true);
-
-        ResourceBundle de = ResourceBundle.getBundle("localization.German", Locale.GERMAN, UTF8ResourceBundleControl.get());
-        registry.registerAll(Locale.GERMAN, de, true);
-
-        ResourceBundle en = ResourceBundle.getBundle("localization.English", Locale.US, UTF8ResourceBundleControl.get());
-        registry.registerAll(Locale.ENGLISH, en, true);
-
-        ResourceBundle vi = ResourceBundle.getBundle("localization.Vietnamese", VIETNAMESE, UTF8ResourceBundleControl.get());
-        registry.registerAll(VIETNAMESE, vi, true);
-
-        registry.defaultLocale(Locale.ENGLISH);
-
-        GlobalTranslator.translator().addSource(registry);
+        GlobalTranslator.translator().addSource(STORE);
+        setup = true;
     }
 }

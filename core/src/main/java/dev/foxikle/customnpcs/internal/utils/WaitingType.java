@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025. Foxikle
+ * Copyright (c) 2025-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,5 +25,5 @@ package dev.foxikle.customnpcs.internal.utils;
 public enum WaitingType {
     COMMAND, NAME, TARGET, TITLE, MESSAGE, FACING, SOUND,
     SERVER, ACTIONBAR, URL, PLAYER, HOLOGRAM, SUBTITLE,
-    NUDGE
+    NUDGE, RECORDING
 }
