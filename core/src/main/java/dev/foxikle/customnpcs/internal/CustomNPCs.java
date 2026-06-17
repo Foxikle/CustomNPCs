@@ -525,7 +525,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         logger.severe("+------------------------------------------------------------------------------+");
         logger.severe("|                      INVALID SERVER VERSION DETECTED                         |");
         logger.severe("|             ** PLEASE USE ONE OF THE FOLLOWING SERVER VERSIONS **            |");
-        logger.severe("|                           [1.20.x, 1.21.x, 26.x]                             |");
+        logger.severe("|                          [1.20.5+, 1.21.x, 26.x]                             |");
         logger.severe("|                               DETECTED: '" + serverVersion + "'                             " +
                 "|");
         logger.severe("|           Please contact @foxikle on Discord for more information.           |");
