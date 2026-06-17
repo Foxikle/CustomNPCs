@@ -134,9 +134,8 @@ public class NPC_v26_1_R1 extends ServerPlayer implements InternalNpc {
 
     public NPC_v26_1_R1(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings,
                         UUID uuid, @Nullable Player target, List<Action> actions) {
-        super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uuid,
-                Utils.getNpcName(settings, uuid), new PropertyMap(ImmutableMultimap.of("textures", new Property(
-                "textures", settings.getValue(), settings.getSignature())))), ClientInformation.createDefault());
+        super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(),
+                createGameProfile(settings, uuid), ClientInformation.createDefault());
         this.spawnLoc = spawnLoc;
         this.equipment = equipment;
         this.settings = settings;
@@ -147,6 +146,12 @@ public class NPC_v26_1_R1 extends ServerPlayer implements InternalNpc {
         super.connection = new FakeListener_v26_1_R1(((CraftServer) Bukkit.getServer()).getServer(),
                 new FakeConnection_v26_1_R1(PacketFlow.CLIENTBOUND), this);
         this.plugin = plugin;
+    }
+
+    private static GameProfile createGameProfile(Settings s, UUID uuid) {
+        return new GameProfile(uuid, Utils.getNpcName(s, uuid),
+                new PropertyMap(ImmutableMultimap.of(
+                        "textures", new Property("textures", s.getValue(), s.getSignature()))));
     }
 
     @Override
@@ -178,7 +183,7 @@ public class NPC_v26_1_R1 extends ServerPlayer implements InternalNpc {
             }
         });
 
-        setSkin();
+        setSkinFlags();
         setPosRot(spawnLoc);
         this.getBukkitEntity().setInvulnerable(true);
         this.getBukkitEntity().setNoDamageTicks(Integer.MAX_VALUE);
@@ -200,7 +205,7 @@ public class NPC_v26_1_R1 extends ServerPlayer implements InternalNpc {
         injectionManager.setup();
     }
 
-    public void setSkin() {
+    public void setSkinFlags() {
         byte bitmask = (byte) (0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40);
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, bitmask);
     }
@@ -298,7 +303,7 @@ public class NPC_v26_1_R1 extends ServerPlayer implements InternalNpc {
         ClientboundMoveEntityPacket rotation =
                 new ClientboundMoveEntityPacket.Rot(this.getBukkitEntity().getEntityId(),
                         (byte) (getYRot() * 256 / 360), (byte) (getXRot() * 256 / 360), true);
-        setSkin();
+        setSkinFlags();
         ClientboundSetPassengersPacket hideName = new ClientboundSetPassengersPacket(this);
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
 
@@ -457,7 +462,8 @@ public class NPC_v26_1_R1 extends ServerPlayer implements InternalNpc {
 
     @Override
     public void updateSkin() {
-        setSkin();
+        super.gameProfile = createGameProfile(settings, uniqueID);
+        setSkinFlags();
     }
 
     @Override
@@ -503,7 +509,7 @@ public class NPC_v26_1_R1 extends ServerPlayer implements InternalNpc {
         }
 
 
-        setSkin();
+        setSkinFlags();
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HAND, equipment.getHand(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.OFF_HAND, equipment.getOffhand(), true);
         super.getBukkitEntity().getEquipment().setItem(EquipmentSlot.HEAD, equipment.getHead(), true);
