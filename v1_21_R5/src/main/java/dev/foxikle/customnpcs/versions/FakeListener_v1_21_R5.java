@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,28 +26,33 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A fake packet listener for the NPCs
  */
-public class FakeListener_v1_20_R1 extends ServerGamePacketListenerImpl {
+public class FakeListener_v1_21_R5 extends ServerGamePacketListenerImpl {
     /**
      * <p> Creates a fake ServerGamePacketListenerImpl for NPCs
      * </p>
-     * @param server The server
+     *
+     * @param server     The server
      * @param connection The connection
-     * @param npc The NPC
+     * @param npc        The NPC
      */
-    public FakeListener_v1_20_R1(MinecraftServer server, Connection connection, ServerPlayer npc) {
-        super(server, connection, npc);
+    public FakeListener_v1_21_R5(MinecraftServer server, Connection connection, ServerPlayer npc) {
+        super(server, connection, npc, CommonListenerCookie.createInitial(npc.gameProfile, false));
     }
+
     /**
      * <p> Overrides the default ServerGamePacketListenerImpl's send packet method
      * </p>
+     *
      * @param packet The packet that won't be sent.
      */
     @Override
-    public void send(@NotNull Packet<?> packet) {}
+    public void send(@NotNull Packet<?> packet) {
+    }
 }

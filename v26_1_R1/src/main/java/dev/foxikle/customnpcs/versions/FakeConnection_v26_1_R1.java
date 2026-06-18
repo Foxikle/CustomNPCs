@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,21 +20,22 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.internal.commands;
+package dev.foxikle.customnpcs.versions;
 
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.annotations.Description;
-import dev.velix.imperat.annotations.Permission;
-import dev.velix.imperat.annotations.SubCommand;
-import dev.velix.imperat.annotations.Usage;
-import dev.velix.imperat.command.AttachmentMode;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.PacketFlow;
 
-@SubCommand(value = "help", attachment = AttachmentMode.MAIN)
-@Permission("customnpcs.commands.help")
-@Description("Displays a help message")
-public class HelpCommand {
-    @Usage
-    public void usage(BukkitSource source) {
-        source.reply(CommandUtils.getHelpComponent(CommandUtils.getLocale(source)));
+/**
+ * A fake connection for the NPCs
+ */
+public class FakeConnection_v26_1_R1 extends Connection {
+    /**
+     * <p> Creates a fake Connection for NPC
+     * </p>
+     *
+     * @param enumprotocoldirection The protocol direction
+     */
+    public FakeConnection_v26_1_R1(PacketFlow enumprotocoldirection) {
+        super(enumprotocoldirection);
     }
 }

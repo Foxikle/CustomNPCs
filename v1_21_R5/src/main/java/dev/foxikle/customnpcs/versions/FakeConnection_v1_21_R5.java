@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,32 +23,19 @@
 package dev.foxikle.customnpcs.versions;
 
 import net.minecraft.network.Connection;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.CommonListenerCookie;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.network.protocol.PacketFlow;
 
 /**
- * A fake packet listener for the NPCs
+ * A fake connection for the NPCs
  */
-public class FakeListener_v1_20_R2 extends ServerGamePacketListenerImpl {
+public class FakeConnection_v1_21_R5 extends Connection {
     /**
-     * <p> Creates a fake ServerGamePacketListenerImpl for NPCs
+     * <p> Creates a fake Connection for NPC
      * </p>
-     * @param server The server
-     * @param connection The connection
-     * @param npc The NPC
+     *
+     * @param enumprotocoldirection The protocol direction
      */
-    public FakeListener_v1_20_R2(MinecraftServer server, Connection connection, ServerPlayer npc) {
-        super(server, connection, npc, CommonListenerCookie.createInitial(npc.gameProfile));
+    public FakeConnection_v1_21_R5(PacketFlow enumprotocoldirection) {
+        super(enumprotocoldirection);
     }
-    /**
-     * <p> Overrides the default ServerGamePacketListenerImpl's send packet method
-     * </p>
-     * @param packet The packet that won't be sent.
-     */
-    @Override
-    public void send(@NotNull Packet<?> packet) {}
 }

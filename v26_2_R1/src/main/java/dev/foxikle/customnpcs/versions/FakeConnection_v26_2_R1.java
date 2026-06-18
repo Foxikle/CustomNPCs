@@ -28,14 +28,14 @@ import net.minecraft.network.protocol.PacketFlow;
 /**
  * A fake connection for the NPCs
  */
-public class FakeConnection_v1_21_R3 extends Connection {
+public class FakeConnection_v26_2_R1 extends Connection {
     /**
      * <p> Creates a fake Connection for NPC
      * </p>
      *
      * @param enumprotocoldirection The protocol direction
      */
-    public FakeConnection_v1_21_R3(PacketFlow enumprotocoldirection) {
+    public FakeConnection_v26_2_R1(PacketFlow enumprotocoldirection) {
         super(enumprotocoldirection);
     }
 }
