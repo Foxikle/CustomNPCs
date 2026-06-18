@@ -23,6 +23,8 @@
 plugins {
     id("java")
     id("io.freefair.lombok") version "9.5.0"
+    `java-library`
+    java
 }
 
 repositories {
@@ -45,7 +47,7 @@ dependencies {
     compileOnly("org.mongodb:mongodb-driver-sync:5.3.0")
     compileOnly("com.mysql:mysql-connector-j:9.1.0")
     compileOnly("com.zaxxer:HikariCP:6.2.1")
-    compileOnly("dev.minestom-united.common:codec:0.0.2")
+    compileOnlyApi("dev.minestom-united.common:codec:0.0.2")
 
 
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")
