@@ -274,14 +274,14 @@ public class StorageManager {
                 storage.setComments("provider", Utils.list("", "+---------------------------------------+", "|       " +
                                 "    Storage Provider            |", "+---------------------------------------+", "",
                         "The " +
-                                "storage proivder determines how the plugin stores the NPC data. There are 3 " +
+                                "storage provider determines how the plugin stores the NPC data. There are 3 " +
                                 "options:", "",
-                        "\"LOCAL\" is used by default. It stores the data on the same disc the server is running on. " +
+                        "\"LOCAL\" is used by default. It stores the data on the same disk the server is running on. " +
                                 "It is a good choice if you don't want to deal with setting up a database or don't " +
                                 "have one.", "\"MYSQL\" is a typical relational database. It's not really optimized " +
                                 "for this kind of storage, it's a good choice if you already use a MySQL or MariaDB " +
                                 "database.", "\"MONGODB\" is the recommended option for using remote storage. It " +
-                                "tends to be more performant and optimized for storing BLOBs."));
+                                "tends to be more performant and optimized for storing JSON."));
 
                 ConfigurationSection mysql = storage.createSection("mysql");
                 storage.setComments("mysql", Utils.list("", "+---------------------------------------+", "|         " +
@@ -321,9 +321,10 @@ public class StorageManager {
                 mongo.set("database", "YOUR_DATABASE");
                 mongo.setComments("database", Utils.list("database -> The name of the database to use"));
 
-                mongo.set("document", "npcs");
-                mongo.setComments("document", Utils.list("document -> The document to use to store the data. This can" +
-                        " be used to separate your npc configurations across servers. ie: lobby, survival, etc."));
+                mongo.set("collection", "npcs");
+                mongo.setComments("collection", Utils.list("collection -> The document collection to use to store the" +
+                        " data. This can be used to separate your npc configurations across servers. ie: lobby, " +
+                        "survival, etc."));
 
                 try {
                     yml.save(file);
@@ -381,7 +382,7 @@ public class StorageManager {
 
                     Set<String> npcs = yml.getKeys(false);
                     for (String npc : npcs) {
-                        if (npc.equals("version")) continue; // its a key
+                        if (npc.equals("version")) continue; // it's a key
                         ConfigurationSection section = yml.getConfigurationSection(npc);
 
                         assert section != null : "Section is null -- Upgrading NPC file from 1.7 to 1.8";
@@ -413,7 +414,7 @@ public class StorageManager {
 
                     Set<String> npcs = yml.getKeys(false);
                     for (String npc : npcs) {
-                        if (npc.equals("version")) continue; // its a key
+                        if (npc.equals("version")) continue; // it's a key
                         ConfigurationSection section = yml.getConfigurationSection(npc);
 
                         assert section != null : "Section is null -- Upgrading NPC file from 1.8 to 1.9";
@@ -498,7 +499,7 @@ public class StorageManager {
                 getAllNpcs().whenComplete((internalNpcs, t) -> Bukkit.getScheduler().runTask(plugin, () -> {
                     // this needs to be sync since it adds entities
                     if (t != null) {
-                        plugin.getLogger().log(Level.SEVERE, "An error occured whilst loading NPCs!", t);
+                        plugin.getLogger().log(Level.SEVERE, "An error occurred whilst loading NPCs!", t);
                         return;
                     }
 
@@ -634,7 +635,7 @@ public class StorageManager {
 
         InternalNpc npc = plugin.createNPC(world, location, new Equipment(section.getItemStack("headItem"),
                         section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack(
-                                "feetItem")
+                        "feetItem")
                         , section.getItemStack("handItem"), section.getItemStack("offhandItem")),
                 new Settings(section.getBoolean("clickable"), section.getBoolean("tunnelvision"), true,
                         section.getString("value"), section.getString("signature"), section.getString("skin"),
