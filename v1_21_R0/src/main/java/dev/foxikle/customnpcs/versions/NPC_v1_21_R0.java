@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,8 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.api.Pose;
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
@@ -118,10 +118,12 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
     @Setter
     private List<Condition> injectionConditions;
     @Setter
-    private Selector injectionSelectionMode;
+    private Selector injectionSelector;
 
 
-    public NPC_v1_21_R0(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uniqueID, @Nullable Player target, List<Action> actions, List<Condition> injectionConditions, Selector injectionSelectionMode) {
+    public NPC_v1_21_R0(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings,
+                        UUID uniqueID, @Nullable Player target, List<Action> actions,
+                        List<Condition> injectionConditions, Selector injectionSelector) {
         super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uniqueID, Utils.getNpcName(settings, uniqueID)), ClientInformation.createDefault());
         this.spawnLoc = spawnLoc;
         this.equipment = equipment;
@@ -129,11 +131,11 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
         this.world = spawnLoc.getWorld();
         this.uniqueID = uniqueID;
         this.target = target;
-        this.actions = actions;
-        super.connection = new FakeListener_v1_21_R0(((CraftServer) Bukkit.getServer()).getServer(), new FakeConnection_v1_21_R0(PacketFlow.CLIENTBOUND), this);
+        this.actions = new ArrayList<>(actions);
+        this.injectionConditions = new ArrayList<>(injectionConditions);
+        this.injectionSelector = injectionSelector;
         this.plugin = plugin;
-        this.injectionConditions = injectionConditions;
-        this.injectionSelectionMode = injectionSelectionMode;
+        super.connection = new FakeListener_v1_21_R0(((CraftServer) Bukkit.getServer()).getServer(), new FakeConnection_v1_21_R0(PacketFlow.CLIENTBOUND), this);
     }
 
     public void setPosRot(Location location) {
@@ -199,7 +201,7 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
             startingOffset += space;
         }
         List<TextDisplay> holograms = new ArrayList<>();
-        for (int i = 0; i < settings.getRawHolograms().length; i++) {
+        for (int i = 0; i < settings.getRawHolograms().size(); i++) {
             double y = startingOffset + (i * space);
             TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(spawnLoc, EntityType.TEXT_DISPLAY);
             hologram.setInvulnerable(true);
@@ -320,16 +322,16 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
 
     private void injectHolograms(Player p) {
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
-        String[] hologramText = new String[settings.getRawHolograms().length];
+        String[] hologramText = new String[settings.getRawHolograms().size()];
         String clickableText = clickableName;
         if (plugin.papi) {
-            for (int i = 0; i < settings.getRawHolograms().length; i++) {
-                hologramText[i] = PlaceholderAPI.setPlaceholders(p, settings.getRawHolograms()[i]);
+            for (int i = 0; i < settings.getRawHolograms().size(); i++) {
+                hologramText[i] = PlaceholderAPI.setPlaceholders(p, settings.getRawHolograms().get(i));
             }
             clickableText = PlaceholderAPI.setPlaceholders(p, clickableName);
         } else {
-            for (int i = 0; i < settings.getRawHolograms().length; i++) {
-                hologramText[i] = settings.getRawHolograms()[i];
+            for (int i = 0; i < settings.getRawHolograms().size(); i++) {
+                hologramText[i] = settings.getRawHolograms().get(i);
             }
         }
         List<Packet<?>> packets = new ArrayList<>();
@@ -401,9 +403,7 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
         spawnLoc = loc;
     }
 
-    public void delete() {
-        plugin.getStorageManager().remove(this.uniqueID);
-    }
+
 
     @Override
     public void lookAt(LookAtAnchor anchor, Entity e) {
@@ -525,7 +525,9 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
 
     @Override
     public InternalNpc clone() {
-        return new NPC_v1_21_R0(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(), UUID.randomUUID(), target, new ArrayList<>(actions), new ArrayList<>(injectionConditions), injectionSelectionMode);
+        return new NPC_v1_21_R0(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(),
+                UUID.randomUUID(), target, new ArrayList<>(actions), new ArrayList<>(injectionConditions),
+                injectionSelector);
     }
 
 
