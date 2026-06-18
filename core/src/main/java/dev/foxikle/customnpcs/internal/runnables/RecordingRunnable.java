@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025. Foxikle
+ * Copyright (c) 2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,30 +20,36 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.internal.commands;
+package dev.foxikle.customnpcs.internal.runnables;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.annotations.Description;
-import dev.velix.imperat.annotations.Permission;
-import dev.velix.imperat.annotations.SubCommand;
-import dev.velix.imperat.annotations.Usage;
-import dev.velix.imperat.command.AttachmentMode;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
+import net.kyori.adventure.title.Title;
+import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
-@Permission("customnpcs.edit")
-@SubCommand(value = "debug", attachment = AttachmentMode.MAIN)
-@Description("Enables debug message. (They can be very spammy)")
-public class DebugCommand {
-    @Usage
-    public void execute(BukkitSource sender) {
-        CustomNPCs plugin = CustomNPCs.getInstance();
-        if (plugin.isDebug()) {
-            sender.reply(Msg.translate(CommandUtils.getLocale(sender), "customnpcs.commands.debug.message.disable"));
-            plugin.setDebug(false);
-        } else {
-            sender.reply(Msg.translate(CommandUtils.getLocale(sender), "customnpcs.commands.debug.message.enable"));
-            plugin.setDebug(true);
+import java.time.Duration;
+
+public class RecordingRunnable extends BukkitRunnable {
+    private final Player player;
+    private final CustomNPCs plugin;
+
+    public RecordingRunnable(Player player, CustomNPCs plugin) {
+        this.player = player;
+        this.plugin = plugin;
+    }
+
+    @Override
+    public void run() {
+        if (!plugin.isWaiting(player, WaitingType.RECORDING)) {
+            this.cancel();
+            return;
         }
+        player.showTitle(Title.title(
+                Msg.translate(player.locale(), "customnpcs.data.recording.title"),
+                Msg.translate(player.locale(), "customnpcs.data.recording.subtitle"),
+                Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
+        ));
     }
 }
