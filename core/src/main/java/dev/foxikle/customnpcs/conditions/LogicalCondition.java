@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
 package dev.foxikle.customnpcs.conditions;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
@@ -33,6 +35,14 @@ import java.util.Objects;
  * The object representing two non-numeric values
  */
 public class LogicalCondition implements Condition {
+
+    public static final StructCodec<LogicalCondition> CODEC = StructCodec.struct(
+            "comparator", Codec.Enum(Comparator.class), Condition::getComparator,
+            "value", Codec.Enum(Value.class), Condition::getValue,
+            "target", Codec.STRING, LogicalCondition::getTarget,
+            LogicalCondition::new
+    );
+
     private final Type type = Type.LOGICAL;
     private Comparator comparator;
     private Value value;

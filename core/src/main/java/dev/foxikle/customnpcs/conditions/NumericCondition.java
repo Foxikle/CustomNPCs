@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +23,21 @@
 package dev.foxikle.customnpcs.conditions;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
 
 /**
  * The object representing a comparison of two numeric values
  */
 public class NumericCondition implements Condition {
+
+    public static final StructCodec<NumericCondition> CODEC = StructCodec.struct(
+            "comparator", Codec.Enum(Comparator.class), Condition::getComparator,
+            "value", Codec.Enum(Value.class), Condition::getValue,
+            "target", Codec.DOUBLE, NumericCondition::getTypedTarget,
+            NumericCondition::new
+    );
 
     private final Type type = Type.NUMERIC;
     private Comparator comparator;
@@ -167,6 +176,10 @@ public class NumericCondition implements Condition {
     @Override
     public String getTarget() {
         return String.valueOf(target);
+    }
+
+    private double getTypedTarget() {
+        return target;
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,35 +26,62 @@ import com.destroystokyo.paper.profile.ProfileProperty;
 import dev.foxikle.customnpcs.api.NPC;
 import dev.foxikle.customnpcs.api.Pose;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A class holding the data for an NPC's settings
  */
 @AllArgsConstructor
-@ConfigSerializable
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class Settings {
 
-    @Getter boolean interactable = false;
-    @Getter boolean tunnelvision = false;
-    @Getter boolean resilient = true;
+    public static final Codec<Settings> CODEC = StructCodec.struct(
+            "interactable", Codec.BOOLEAN, Settings::isInteractable,
+            "tunnelvision", Codec.BOOLEAN, Settings::isTunnelvision,
+            "resilient", Codec.BOOLEAN, Settings::isResilient,
+            "interpolationDuration", Codec.INT.optional(CustomNPCs.INTERPOLATION_DURATION),
+            Settings::getInterpolationDuration,
+            "value", Codec.STRING, Settings::getValue,
+            "signature", Codec.STRING, Settings::getSignature,
+            "holograms", Codec.STRING.list(), Settings::getRawHolograms,
+            "skinName", Codec.STRING, Settings::getSkinName,
+            "hideClickableHologram", Codec.BOOLEAN, Settings::isHideClickableHologram,
+            "customInteractionHologram", Codec.STRING.optional(""), Settings::getCustomInteractableHologram,
+            "pose", Codec.Enum(Pose.class), Settings::getPose,
+            "hologramBackground", Utils.COLOR_CODEC.optional(), Settings::getHologramBackground,
+            "hideHologrambackground", Codec.BOOLEAN, Settings::isHideBackgroundHologram,
+            "upsideDown", Codec.BOOLEAN, Settings::isUpsideDown,
+            Settings::new
+    );
+
+    @Getter
+    boolean interactable = false;
+    @Getter
+    boolean tunnelvision = false;
+    @Getter
+    boolean resilient = true;
     @Getter
     int interpolationDuration = CustomNPCs.INTERPOLATION_DURATION;
     @Getter
     String value = "";
     @Getter
     String signature = "";
-    String[] holograms = new String[]{"An Unnamed NPC"};
+    List<String> holograms = Utils.list("An Unnamed NPC");
     @Getter
     String skinName = "not set";
     @Getter
@@ -80,12 +107,15 @@ public class Settings {
      * @param value                      The value of the npc's skin
      * @param signature                  The signature of the npc's skin
      * @param skinName                   The name of the skin as it is referenced in the Menu
-     * @param holograms                  The lines of the NPC's hologram, formatted in SERIALIZED minimessage format. Index 0 corresponds to the top (first) line.
+     * @param holograms                  The lines of the NPC's hologram, formatted in SERIALIZED minimessage format.
+     *                                   Index 0 corresponds to the top (first) line.
      * @param customInteractableHologram The custom hologram
      * @param hideClickableHologram      If the NPC's Clickable hologram should be hidden
      * @param pose                       The Pose of the NPC
      */
-    public Settings(boolean interactable, boolean tunnelvision, boolean resilient, String value, String signature, String skinName, String[] holograms, String customInteractableHologram, boolean hideClickableHologram, Pose pose, boolean upsideDown) {
+    public Settings(boolean interactable, boolean tunnelvision, boolean resilient, String value, String signature,
+                    String skinName, List<String> holograms, String customInteractableHologram,
+                    boolean hideClickableHologram, Pose pose, boolean upsideDown) {
         this.interactable = interactable;
         this.tunnelvision = tunnelvision;
         this.resilient = resilient;
@@ -108,12 +138,15 @@ public class Settings {
      * @param value                      The value of the npc's skin
      * @param signature                  The signature of the npc's skin
      * @param skinName                   The name of the skin as it is referenced in the Menu
-     * @param holograms                  The lines of the NPC's hologram, formatted in SERIALIZED minimessage format. Index 0 corresponds to the top (first) line.
+     * @param holograms                  The lines of the NPC's hologram, formatted in SERIALIZED minimessage format.
+     *                                   Index 0 corresponds to the top (first) line.
      * @param customInteractableHologram The custom hologram
      * @param hideClickableHologram      If the NPC's Clickable hologram should be hidden
      * @param interpolationDuration      How long to interpolate the teleportation of the NPC and its nametags
      */
-    public Settings(boolean interactable, boolean tunnelvision, boolean resilient, String value, String signature, String skinName, String[] holograms, String customInteractableHologram, boolean hideClickableHologram, int interpolationDuration) {
+    public Settings(boolean interactable, boolean tunnelvision, boolean resilient, String value, String signature,
+                    String skinName, List<String> holograms, String customInteractableHologram,
+                    boolean hideClickableHologram, int interpolationDuration) {
         this.interactable = interactable;
         this.tunnelvision = tunnelvision;
         this.resilient = resilient;
@@ -263,93 +296,47 @@ public class Settings {
      *
      * @return the NPC's holograms, as components
      */
-    public Component[] getHolograms() {
-        Component[] components = new Component[holograms.length];
-        for (int i = 0; i < holograms.length; i++) {
-            components[i] = MiniMessage.miniMessage().deserialize(holograms[i]);
+    public List<Component> getHolograms() {
+        List<Component> components = new ArrayList<>();
+        for (String hologram : holograms) {
+            components.add(Msg.format(hologram));
         }
         return components;
     }
 
     /**
-     * Sets the NPC's holograms. These components will be serialized into strings following the MiniMessage format for storage. Index 0 corresponds to the top (first) line.
+     * Sets the NPC's holograms. These components will be serialized into strings following the MiniMessage format
+     * for storage. Index 0 corresponds to the top (first) line.
      *
      * @param holograms the collection of components
      */
     public Settings setHolograms(Component... holograms) {
-        this.holograms = new String[holograms.length];
-        for (int i = 0; i < holograms.length; i++) {
-            this.holograms[i] = MiniMessage.miniMessage().serialize(holograms[i]);
+        this.holograms = new ArrayList<>();
+        for (Component hologram : holograms) {
+            this.holograms.add(Msg.minimessage(hologram));
         }
+
         return this;
     }
 
     /**
-     * Gets the contents of NPC's holograms, in serialized MiniMessage format. Index 0 corresponds to the top (first) line.
+     * Gets the contents of NPC's holograms, in serialized MiniMessage format. Index 0 corresponds to the top (first)
+     * line.
      *
      * @return the NPC's holograms, as serialized MiniMessage strings
      */
-    public String[] getRawHolograms() {
+    public List<String> getRawHolograms() {
         return holograms;
     }
 
     /**
-     * Sets the NPC's holograms. The plugin will parse these strings into components following the MiniMessage format. Index 0 corresponds to the top (first) line.
+     * Sets the NPC's holograms. The plugin will parse these strings into components following the MiniMessage format
+     * . Index 0 corresponds to the top (first) line.
      *
      * @param holograms the collection of strings, optionally in minimessage format
      */
     public Settings setRawHolograms(String... holograms) {
-        this.holograms = holograms;
-        return this;
-    }
-
-    /**
-     * Gets the NPC's name in serialized minimessage format. Since 1.7.5 onward, this method returns EITHER: the first (top) hologram OR the default, an empty string.
-     *
-     * @return the NPC's serialized name
-     * @deprecated NPCs no longer have "names" per se, but rather a collection of name lines.
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public String getName() {
-        if (holograms.length > 0) {
-            return holograms[0];
-        }
-        return "";
-    }
-
-    /**
-     * Sets the top (first) line of the NPC's hologram
-     *
-     * @param name as a component
-     * @deprecated As of 1.7.5, NPCs no longer have "names" per se, but rather a collection of name lines. This method sets the first (top) hologram.
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public Settings setName(Component name) {
-        String serialized = MiniMessage.miniMessage().serialize(name);
-        if (holograms.length > 0) {
-            holograms[0] = serialized;
-            return this;
-        }
-        holograms = new String[]{serialized};
-        return this;
-    }
-
-    /**
-     * Sets the top (first) line of the NPC's hologram
-     *
-     * @param name as a string, serialized in minimessage format
-     * @deprecated As of 1.7.5, NPCs no longer have "names" per se, but rather a collection of name lines. This method sets the first (top) hologram.
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public Settings setName(String name) {
-        if (holograms.length > 0) {
-            holograms[0] = name;
-            return this;
-        }
-        holograms = new String[]{name};
+        this.holograms = Utils.list(holograms);
         return this;
     }
 
@@ -386,7 +373,8 @@ public class Settings {
     }
 
     @SuppressWarnings("all")
-    public Settings clone(){
-        return new Settings(interactable, tunnelvision, resilient, value, signature, skinName, holograms, customInteractableHologram, hideClickableHologram, pose, upsideDown);
+    public Settings clone() {
+        return new Settings(interactable, tunnelvision, resilient, value, signature, skinName, holograms,
+                customInteractableHologram, hideClickableHologram, pose, upsideDown);
     }
 }

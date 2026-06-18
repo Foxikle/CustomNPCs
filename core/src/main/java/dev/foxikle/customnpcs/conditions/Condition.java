@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,13 +23,18 @@
 package dev.foxikle.customnpcs.conditions;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
 
 /**
  * The interface to represent a comparison
  */
 public interface Condition {
+
+    Codec<Condition> CODEC = Codec.Enum(Type.class).unionType(Type::getCodec, Condition::getType);
 
     /**
      * Computes the condition to determine if the action should be executed
@@ -118,20 +123,24 @@ public interface Condition {
     /**
      * A list of comparator types
      */
+    @AllArgsConstructor
     enum Type {
         /**
          * Represents a comparison between a Value and a target value that can be any numeric value.
          *
          * @see Value
          */
-        NUMERIC,
+        NUMERIC(NumericCondition.CODEC),
 
         /**
          * Represents a comparison between a Value and a target value with a finite number of possibilities
          *
          * @see Value
          */
-        LOGICAL
+        LOGICAL(LogicalCondition.CODEC);
+
+        @Getter
+        private final StructCodec<? extends Condition> codec;
     }
 
     /**

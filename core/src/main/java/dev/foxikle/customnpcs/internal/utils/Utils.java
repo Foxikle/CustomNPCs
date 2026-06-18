@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +27,12 @@ import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import net.kyori.adventure.text.Component;
+import net.minestom.server.codec.Codec;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.reflect.Type;
@@ -42,6 +45,10 @@ import java.util.UUID;
  * A class holding usful methods
  */
 public class Utils {
+
+    public static final Codec<ItemStack> ITEM_CODEC = Codec.BYTE_ARRAY.transform(ItemStack::deserializeBytes,
+            ItemStack::serializeAsBytes);
+    public static final Codec<Color> COLOR_CODEC = Codec.INT.transform(Color::fromARGB, Color::asARGB);
 
     public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
 
