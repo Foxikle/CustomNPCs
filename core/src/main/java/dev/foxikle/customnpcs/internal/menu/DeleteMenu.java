@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -94,7 +94,7 @@ public class DeleteMenu implements Menu {
                                 return;
                             }
 
-                            Boolean openMenu = plugin.getDeltionReason().getIfPresent(player1.getUniqueId());
+                            Boolean openMenu = plugin.getDeletionReason().getIfPresent(player1.getUniqueId());
                             NpcDeleteEvent.DeletionSource source;
                             if (openMenu == null) {
                                 source = NpcDeleteEvent.DeletionSource.UNKNOWN;
@@ -112,7 +112,8 @@ public class DeleteMenu implements Menu {
                             npc.remove();
                             npc.delete();
                             plugin.npcs.remove(npc.getUniqueID());
-                            player1.sendMessage(Msg.translate(player.locale(), "customnpcs.delete.success", npc.getSettings().getName()));
+                            player1.sendMessage(Msg.translate(player.locale(), "customnpcs.delete.success",
+                                    npc.getSettings().getRawHolograms().getFirst()));
                             player1.closeInventory();
                             player1.playSound(player1, Sound.BLOCK_END_PORTAL_SPAWN, 1, 1);
                             npc.getCurrentLocation().getWorld().strikeLightningEffect(npc.getCurrentLocation());
@@ -131,7 +132,7 @@ public class DeleteMenu implements Menu {
                                 return;
                             }
 
-                            Boolean openMenu = plugin.getDeltionReason().getIfPresent(player1.getUniqueId());
+                            Boolean openMenu = plugin.getDeletionReason().getIfPresent(player1.getUniqueId());
 
                             if (openMenu == null) {
                                 player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);

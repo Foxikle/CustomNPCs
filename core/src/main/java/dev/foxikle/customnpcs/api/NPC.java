@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@ package dev.foxikle.customnpcs.api;
 
 import com.google.common.base.Preconditions;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.LegacyAction;
 import dev.foxikle.customnpcs.api.events.NpcDeleteEvent;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
@@ -155,27 +154,6 @@ public class NPC {
      */
     public NPC addAction(@NotNull Action action) {
         npc.addAction(action);
-        return this;
-    }
-
-    /**
-     * <p>Sets the NPC's actions to the specified Collection
-     * </p>
-     *
-     * @param actionImpls the collection of actions
-     * @return the NPC with the modified set of actions
-     * @see Action
-     * @since 1.5.2-pre3
-     * @deprecated Use  {@link #setActions(Collection)}, to be removed in 1.9 with the removal of legacy actions.
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public NPC setLegacyActions(Collection<LegacyAction> actionImpls) {
-        List<Action> actionList = new ArrayList<>();
-        for (LegacyAction legacyAction : actionImpls) {
-            actionList.add(legacyAction.toAction());
-        }
-        npc.setActions(actionList);
         return this;
     }
 

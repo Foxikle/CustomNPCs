@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -137,7 +137,7 @@ public class MainNPCMenu implements Menu {
         if (plugin.getNPCByID(npc.getUniqueID()) != null)
             builder.setButton(44, Button.clickable(MenuItems.deleteNpc(player), ButtonClickAction.plain((menu, event) -> {
                 Player p = (Player) event.getWhoClicked();
-                plugin.getDeltionReason().put(p.getUniqueId(), true);
+                plugin.getDeletionReason().put(p.getUniqueId(), true);
                 plugin.getLotus().openMenu(p, MenuUtils.NPC_DELETE);
                 p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             })));

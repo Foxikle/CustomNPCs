@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
 
-import java.text.FieldPosition;
 import java.text.MessageFormat;
 import java.util.Locale;
 
@@ -61,8 +60,7 @@ public class Msg {
             return key;
         }
 
-        StringBuffer buffer = format.format(translatedArgs, new StringBuffer(), new FieldPosition(0));
-        return buffer.toString();
+        return format.format(translatedArgs);
     }
 
     public static Component[] lore(Locale locale, String key, Object... args) {

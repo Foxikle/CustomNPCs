@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -67,7 +67,9 @@ public class InjectionManager {
 
             if (player.getWorld() != npc.getCurrentLocation().getWorld()) {
                 if (plugin.isDebug()) {
-                    plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler as they are in a different world.", player.getName(), npc.getSettings().getName()));
+                    plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler as they " +
+                            "are in a different world.", player.getName(),
+                            npc.getSettings().getRawHolograms().getFirst()));
                 }
                 isVisible.remove(player.getUniqueId());
                 continue;
@@ -76,7 +78,9 @@ public class InjectionManager {
             double distance = player.getLocation().distanceSquared(npc.getCurrentLocation());
             if (distance > INJECTION_DISTANCE) {
                 if (plugin.isDebug()) {
-                    plugin.getLogger().info(String.format("[DEBUG] Tried to inject %s with %s, but they are too far away! (Distance^2: %f )", player.getName(), npc.getSettings().getName(), distance));
+                    plugin.getLogger().info(String.format("[DEBUG] Tried to inject %s with %s, but they are too far " +
+                            "away! (Distance^2: %f )", player.getName(),
+                            npc.getSettings().getRawHolograms().getFirst(), distance));
                 }
                 isVisible.put(player.getUniqueId(), false);
                 continue;
@@ -97,7 +101,8 @@ public class InjectionManager {
 
         for (UUID uuid : toRemove) {
             if (plugin.isDebug()) {
-                plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler! (likley offline)", uuid.toString(), npc.getSettings().getName()));
+                plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler! (likley " +
+                        "offline)", uuid.toString(), npc.getSettings().getRawHolograms().getFirst()));
             }
             isVisible.remove(uuid);
         }
