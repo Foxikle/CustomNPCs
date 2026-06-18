@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +26,13 @@ import com.google.common.collect.Iterables;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import dev.velix.imperat.BukkitSource;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,9 +42,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * The class to handle the core command
- */
 @UtilityClass
 public class CommandUtils {
 
@@ -99,14 +96,13 @@ public class CommandUtils {
             return Msg.translate(p, "customnpcs.commands.manage.no_npcs");
         }
 
-
         Component message = Msg.translate(p, "customnpcs.commands.manage.header").appendNewline();
         for (InternalNpc npc : plugin.getNPCs()) {
             if (npc.getSettings().isResilient()) {
                 Component name = Msg.format("<gray>◆<reset> ")
-                        .append(plugin.getMiniMessage().deserialize(npc.getSettings().getName()).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.manage.copy_uuid")))).clickEvent(net.kyori.adventure.text.event.ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, npc.getUniqueID().toString()))
-                        .append(Msg.translate(p, "customnpcs.commands.manage.button.edit").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.manage.button.edit.hover"))).clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc edit " + npc.getUniqueID())))
-                        .append(Msg.translate(p, "customnpcs.commands.manage.button.delete").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.manage.button.delete.hover"))).clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc delete " + npc.getUniqueID())))
+                        .append(plugin.getMiniMessage().deserialize(npc.getSettings().getRawHolograms().getFirst()).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.manage.copy_uuid")))).clickEvent(ClickEvent.copyToClipboard(npc.getUniqueID().toString()))
+                        .append(Msg.translate(p, "customnpcs.commands.manage.button.edit").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.manage.button.edit.hover"))).clickEvent(ClickEvent.runCommand("/npc edit " + npc.getUniqueID())))
+                        .append(Msg.translate(p, "customnpcs.commands.manage.button.delete").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.manage.button.delete.hover"))).clickEvent(ClickEvent.suggestCommand("/npc delete " + npc.getUniqueID())))
                         .appendNewline();
                 message = message.append(name);
             }
@@ -115,47 +111,40 @@ public class CommandUtils {
         return message;
     }
 
-    public static boolean checkNpc(BukkitSource source, UUID npc) {
+    public static boolean checkNpc(CommandSender source, UUID npc) {
         Locale locale = Locale.getDefault();
-        if (!source.isConsole()) locale = source.asPlayer().locale();
+        if (source instanceof Player player) locale = player.locale();
 
         if (npc == null) {
-            source.reply(Msg.translate(locale, "customnpcs.commands.invalid_name_or_uuid"));
+            source.sendMessage(Msg.translate(locale, "customnpcs.commands.invalid_name_or_uuid"));
             return false;
         }
 
         boolean valid = CustomNPCs.getInstance().npcs.containsKey(npc);
 
-        if (!valid) source.reply(Msg.translate(locale, "customnpcs.commands.invalid_uuid"));
+        if (!valid) source.sendMessage(Msg.translate(locale, "customnpcs.commands.invalid_uuid"));
         return valid;
     }
 
-    public static UUID parseNpc(BukkitSource source, String data) {
-
+    public static UUID parseNpc(CommandSender source, String data) {
         Locale locale = Locale.getDefault();
-        if (!source.isConsole()) locale = source.asPlayer().locale();
+        if (source instanceof Player player) locale = player.locale();
 
         final CustomNPCs plugin = CustomNPCs.getInstance();
         UUID uuid;
         try {
             uuid = UUID.fromString(data);
             if (plugin.getNPCByID(uuid) == null) {
-                source.reply(Msg.translate(locale, "customnpcs.commands.invalid_uuid"));
+                source.sendMessage(Msg.translate(locale, "customnpcs.commands.invalid_uuid"));
                 return null;
             }
-//            npc = plugin.getNPCByID(uuid);
         } catch (IllegalArgumentException ignored) {
-
-            if (source.isConsole()) {
+            if (!(source instanceof Player p)) {
                 return null;
             }
-            Player p = source.asPlayer();
 
-
-            // check for names instead
-            Locale finalLocale = locale;
             Set<UUID> uuids = plugin.npcs.values().stream().map(npc -> {
-                if (plugin.getMiniMessage().stripTags(npc.getSettings().getName()).equalsIgnoreCase(data)) {
+                if (plugin.getMiniMessage().stripTags(npc.getSettings().getRawHolograms().getFirst()).equalsIgnoreCase(data)) {
                     return npc.getUniqueID();
                 }
                 return null;
@@ -163,17 +152,16 @@ public class CommandUtils {
             uuids.removeIf(Objects::isNull);
 
             if (uuids.isEmpty()) {
-                source.reply(Msg.translate(locale, "customnpcs.commands.invalid_name_or_uuid"));
+                source.sendMessage(Msg.translate(locale, "customnpcs.commands.invalid_name_or_uuid"));
                 return null;
             } else if (uuids.size() > 1) {
                 double value = Double.MAX_VALUE;
                 uuid = null;
                 for (UUID id : uuids) {
-
                     InternalNpc npc = plugin.getNPCByID(id);
                     assert npc != null : "Npc is null when parsing the closest NPC";
 
-                    if (p.getWorld() != npc.getWorld()) continue; // fix error tracing distanced across worlds
+                    if (p.getWorld() != npc.getWorld()) continue;
 
                     double ds = npc.getCurrentLocation().distanceSquared(p.getLocation());
                     if (ds < value) {
@@ -183,21 +171,18 @@ public class CommandUtils {
                 }
 
                 if (uuid == null) {
-                    // meaning the player is in a different world than the npcs with the same name
                     uuid = Iterables.getFirst(uuids, null);
-                    // get the first one
                 }
-
             } else {
                 uuid = Iterables.getFirst(uuids, null);
             }
 
             if (uuid == null) {
-                source.reply(Msg.translate(locale, "customnpcs.commands.invalid_name_or_uuid"));
+                source.sendMessage(Msg.translate(locale, "customnpcs.commands.invalid_name_or_uuid"));
                 return null;
             }
             if (plugin.getNPCByID(uuid) == null) {
-                p.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.invalid_uuid"));
+                source.sendMessage(Msg.translate(p.locale(), "customnpcs.commands.invalid_uuid"));
                 return null;
             }
             return uuid;
@@ -205,25 +190,23 @@ public class CommandUtils {
 
         InternalNpc npc = plugin.getNPCByID(uuid);
 
-
         if (npc == null) {
-            source.reply(Msg.translate(locale, "customnpcs.commands.invalid_name_or_uuid"));
+            source.sendMessage(Msg.translate(locale, "customnpcs.commands.invalid_name_or_uuid"));
             return null;
         }
 
         boolean valid = CustomNPCs.getInstance().npcs.containsKey(uuid);
 
         if (!valid) {
-            source.reply(Msg.translate(locale, "customnpcs.commands.invalid_uuid"));
+            source.sendMessage(Msg.translate(locale, "customnpcs.commands.invalid_uuid"));
             return null;
         } else {
             return uuid;
         }
     }
 
-    public static Locale getLocale(BukkitSource source) {
-        if (source.isConsole()) return Locale.getDefault();
-        return source.asPlayer().locale();
+    public static Locale getLocale(CommandSender source) {
+        if (source instanceof Player player) return player.locale();
+        return Locale.getDefault();
     }
-
 }
