@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
+import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.InjectionManager;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import org.bukkit.Location;
@@ -50,7 +51,6 @@ import java.util.UUID;
  */
 @ApiStatus.Internal
 public interface InternalNpc {
-
 
     /**
      * <p> Sets the NPC's location and rotation
@@ -76,11 +76,11 @@ public interface InternalNpc {
      * Gets which selection mode should be used when determining if this NPC should be injectioned
      * @return return the desired {@link Selector}
      */
-    Selector getInjectionSelectionMode();
+    Selector getInjectionSelector();
 
     void setInjectionConditions(List<Condition> conditions);
 
-    void setInjectionSelectionMode(Selector mode);
+    void setInjectionSelector(Selector mode);
 
     /**
      * <p> Creates the NPC and injects it into every player
@@ -220,7 +220,7 @@ public interface InternalNpc {
     void remove();
 
     /**
-     * <p> Moves the npc to the location
+     * <p> Moves the npc the DELTA provided by the vector.
      * </p>
      *
      * @param v The location to move to the npc at
@@ -231,7 +231,9 @@ public interface InternalNpc {
      * <p> Permanently deletes an NPC. Does NOT despawn it.
      * </p>
      */
-    void delete();
+    default void delete() {
+        CustomNPCs.getInstance().getStorageManager().remove(getUniqueID());
+    }
 
     /**
      * <p> Sets the actions executed when the NPC is interacted with.
@@ -352,6 +354,6 @@ public interface InternalNpc {
     default boolean passesInectionConditions(Player player) {
         Map<Condition, Boolean> map = evaluateInjectionConditions(player);
         if (map.isEmpty()) return true;
-        return (getInjectionSelectionMode() == Selector.ALL ? !map.containsValue(false) : map.containsValue(true));
+        return (getInjectionSelector() == Selector.ALL ? !map.containsValue(false) : map.containsValue(true));
     }
 }
