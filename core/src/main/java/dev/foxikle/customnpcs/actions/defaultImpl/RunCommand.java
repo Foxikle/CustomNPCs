@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,27 +43,39 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class RunCommand extends Action {
 
-    public static Button creationButton(Player player) {
+    public static final StructCodec<RunCommand> CODEC = StructCodec.struct(
+            "raw", Codec.STRING, RunCommand::getCommand,
+            "asConsole", Codec.BOOLEAN, RunCommand::isAsConsole,
+            "delay", Codec.INT, Action::getDelay,
+            "selector", Codec.Enum(Selector.class), Action::getSelector,
+            "conditions", Condition.CODEC.list(), Action::getConditions,
+            "cooldown", Codec.INT, Action::getCooldown,
+            RunCommand::new
+    );
+
+    public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(ANVIL)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.command"))
                         .setLore(Msg.lore(player.locale(), "customnpcs.favicons.command.description"))
@@ -82,49 +94,11 @@ public class RunCommand extends Action {
     private boolean asConsole;
 
 
-    /**
-     * Creates a new RunCommand with the specified command
-     *
-     * @param rawCommand   The raw command
-     * @param asConsole    If the command should be executed as a console command.
-     * @param delay        The delay
-     * @param mode         The mode
-     * @param conditionals The conditionals
-     */
-    public RunCommand(String rawCommand, boolean asConsole, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
+    public RunCommand(String rawCommand, boolean asConsole, int delay, Selector mode,
+                      List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.command = rawCommand;
         this.asConsole = asConsole;
-    }
-
-    /**
-     * Creates a new RunCommand with the specified command
-     *
-     * @param rawCommand   The raw command
-     * @param asConsole    If the command should be executed as a console command.
-     * @param delay        The delay
-     * @param mode         The mode
-     * @param conditionals The conditionals
-     * @deprecated Use {@link #RunCommand(String, boolean, int, Selector, List, int)}
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public RunCommand(String rawCommand, boolean asConsole, int delay, Selector mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals, 0);
-        this.command = rawCommand;
-        this.asConsole = asConsole;
-    }
-
-    public static <T extends Condition> T deserialize(String serialized, Class<T> clazz) {
-        if (!clazz.equals(RunCommand.class)) {
-            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RunCommand.class.getName());
-        }
-        String raw = parseString(serialized, "raw");
-        boolean asConsole = parseBoolean(serialized, "asConsole");
-        ParseResult pr = parseBase(serialized);
-
-        RunCommand command = new RunCommand(raw, asConsole, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
-        return clazz.cast(command);
     }
 
     @Override
@@ -146,14 +120,6 @@ public class RunCommand extends Action {
         return new RunCommandCustomizer(this);
     }
 
-    /**
-     * Runs the command. If {@code asConsole} is true, the command will be executed as the console,
-     * otherwise it will be executed as the player.
-     *
-     * @param npc    The NPC
-     * @param menu   The menu
-     * @param player The player
-     */
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
@@ -164,13 +130,32 @@ public class RunCommand extends Action {
     }
 
     @Override
-    public String serialize() {
-        return generateSerializedString("RunCommand", Map.of("raw", command, "asConsole", asConsole));
+    public StructCodec<? extends Action> getCodec() {
+        return CODEC;
+    }
+
+    @Override
+    public String getId() {
+        return "RunCommand";
     }
 
     @Override
     public Action clone() {
-        return new RunCommand(command, asConsole, getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
+        return new RunCommand(command, asConsole, getDelay(), getSelector(), new ArrayList<>(getConditions()),
+                getCooldown());
+    }
+
+    @Deprecated(forRemoval = true)
+    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+        if (!clazz.equals(RunCommand.class)) {
+            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RunCommand.class.getName());
+        }
+        String raw = parseString(serialized, "raw");
+        boolean asConsole = parseBoolean(serialized, "asConsole");
+        ParseResult pr = parseBase(serialized);
+
+        RunCommand command = new RunCommand(raw, asConsole, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        return clazz.cast(command);
     }
 
     public class RunCommandCustomizer implements Menu {
@@ -199,7 +184,9 @@ public class RunCommand extends Action {
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
             return MenuUtils.actionBase(action, player)
-                    .setButton(player.hasPermission("customnpcs.run_command.enable_console") ? 21 : 22, setCommand(player))
+                    .setButton(4, papiTip(player))
+                    .setButton(player.hasPermission("customnpcs.run_command.enable_console") ? 21 : 22,
+                            setCommand(player))
                     .setButton(23, toggle(player))
                     .build();
         }
@@ -208,12 +195,16 @@ public class RunCommand extends Action {
             if (!player.hasPermission("customnpcs.run_command.enable_console")) return MenuItems.MENU_GLASS;
             List<Component> lore = new ArrayList<>();
             if (isAsConsole()) {
-                lore.addAll(Utils.list(Msg.lore(player.locale(), "customnpcs.menus.action.command.as_console.warning")));
+                lore.addAll(Utils.list(Msg.lore(player.locale(),
+                        "customnpcs.menus.action.command.as_console.warning")));
             }
             lore.add(Msg.translate(player.locale(), "customnpcs.items.click_to_change"));
             return Button.clickable(ItemBuilder.modern(isAsConsole() ? RED_CANDLE : GREEN_CANDLE)
                             .setLore(lore.toArray(new Component[]{}))
-                            .setDisplay(isAsConsole() ? Msg.translate(player.locale(), "customnpcs.menus.action.command.as_console.true") : Msg.translate(player.locale(), "customnpcs.menus.action.command.as_console.false"))
+                            .setDisplay(isAsConsole() ? Msg.translate(player.locale(), "customnpcs.menus.action" +
+                                                                                       ".command.as_console.true") :
+                                    Msg.translate(player.locale(), "customnpcs.menus" +
+                                                                                                                                                    ".action.command.as_console.false"))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
@@ -243,6 +234,32 @@ public class RunCommand extends Action {
                         event.setCancelled(true);
                         player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                     }));
+        }
+
+        private Button papiTip(Player player) {
+            Component[] lore;
+            if (!CustomNPCs.getInstance().papi) {
+                lore = Msg.lore(player.locale(), "customnpcs.menus.action.command.papi_tip.no_papi");
+            } else if (!CustomNPCs.getInstance().papiPlayerExpansion) {
+                lore = Msg.lore(player.locale(), "customnpcs.menus.action.command.papi_tip.no_expansion");
+            } else {
+                lore = Msg.lore(player.locale(), "customnpcs.menus.action.command.papi_tip.all_good");
+            }
+            return Button.clickable(ItemBuilder.modern(REDSTONE_TORCH)
+                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.command.papi_tip.title"))
+                    .setLore(lore)
+                    .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
+                inventoryClickEvent.setCancelled(true);
+                if (!CustomNPCs.getInstance().papi) {
+                    player.sendMessage(Msg.translate(player.locale(),
+                            "customnpcs.menus.action.command.papi_tip.download.plugin"));
+                    return;
+                }
+                if (!CustomNPCs.getInstance().papiPlayerExpansion) {
+                    player.sendMessage(Msg.translate(player.locale(),
+                            "customnpcs.menus.action.command.papi_tip.download.expansion"));
+                }
+            }));
         }
     }
 }

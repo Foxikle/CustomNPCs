@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,25 +40,37 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class GiveXP extends Action {
 
-    public static Button creationButton(Player player) {
+    public static final StructCodec<GiveXP> CODEC = StructCodec.struct(
+            "amount", Codec.INT, GiveXP::getAmount,
+            "levels", Codec.BOOLEAN, GiveXP::isLevels,
+            "delay", Codec.INT, Action::getDelay,
+            "selector", Codec.Enum(Selector.class), Action::getSelector,
+            "conditions", Condition.CODEC.list(), Action::getConditions,
+            "cooldown", Codec.INT, Action::getCooldown,
+            GiveXP::new
+    );
+
+    public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(EXPERIENCE_BOTTLE)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.give_xp"))
                         .setLore(Msg.lore(player.locale(), "customnpcs.favicons.give_xp.description"))
@@ -87,34 +99,6 @@ public class GiveXP extends Action {
         super(delay, mode, conditionals, cooldown);
         this.levels = levels;
         this.amount = amount;
-    }
-
-    /**
-     * Creates a new SendMessage with the specified message
-     *
-     * @param levels if the xp is in levels
-     * @param amount the number
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public GiveXP(int amount, boolean levels, int delay, Selector mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals, 0);
-        this.levels = levels;
-        this.amount = amount;
-    }
-
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
-        if (!clazz.equals(GiveXP.class)) {
-            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + GiveXP.class.getName());
-        }
-
-        int amount = parseInt(serialized, "amount");
-        boolean levels = parseBoolean(serialized, "levels");
-        ParseResult pr = parseBase(serialized);
-
-        GiveXP message = new GiveXP(amount, levels, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
-
-        return clazz.cast(message);
     }
 
     @Override
@@ -151,18 +135,38 @@ public class GiveXP extends Action {
     }
 
     @Override
-    public String serialize() {
-        return generateSerializedString("GiveXP", Map.of("amount", amount, "levels", levels));
+    public Action clone() {
+        return new GiveXP(amount, levels, getDelay(), getSelector(), new ArrayList<>(getConditions()), getCooldown());
     }
 
     @Override
-    public Action clone() {
-        return new GiveXP(amount, levels, getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
+    public StructCodec<? extends Action> getCodec() {
+        return CODEC;
+    }
+
+    @Override
+    public String getId() {
+        return "GiveXP";
     }
 
     @Override
     public Menu getMenu() {
         return new GiveXPCustomizer(this);
+    }
+
+    @Deprecated(forRemoval = true)
+    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+        if (!clazz.equals(GiveXP.class)) {
+            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + GiveXP.class.getName());
+        }
+
+        int amount = parseInt(serialized, "amount");
+        boolean levels = parseBoolean(serialized, "levels");
+        ParseResult pr = parseBase(serialized);
+
+        GiveXP message = new GiveXP(amount, levels, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+
+        return clazz.cast(message);
     }
 
     public class GiveXPCustomizer implements Menu {

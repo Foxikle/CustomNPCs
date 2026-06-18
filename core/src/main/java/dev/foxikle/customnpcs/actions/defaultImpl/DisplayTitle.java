@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,27 +43,41 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class DisplayTitle extends Action {
+
+    public static final StructCodec<DisplayTitle> CODEC = StructCodec.struct(
+            "title", Codec.STRING, DisplayTitle::getTitle,
+            "subtitle", Codec.STRING, DisplayTitle::getSubTitle,
+            "fade_in", Codec.INT, DisplayTitle::getFadeIn,
+            "stay", Codec.INT, DisplayTitle::getStay,
+            "fade_out", Codec.INT, DisplayTitle::getFadeOut,
+            "delay", Codec.INT, Action::getDelay,
+            "selector", Codec.Enum(Selector.class), Action::getSelector,
+            "conditions", Condition.CODEC.list(), Action::getConditions,
+            "cooldown", Codec.INT, Action::getCooldown,
+            DisplayTitle::new
+    );
 
     private String title;
     private String subTitle;
@@ -76,8 +90,9 @@ public class DisplayTitle extends Action {
      *
      * @param title The raw message
      */
-    public DisplayTitle(String title, String subTitle, int fadeIn, int stay, int fadeOut, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public DisplayTitle(String title, String subTitle, int fadeIn, int stay, int fadeOut, int delay, Selector mode,
+                        List<Condition> conditions, int cooldown) {
+        super(delay, mode, conditions, cooldown);
         this.title = title;
         this.subTitle = subTitle;
         this.fadeIn = fadeIn;
@@ -85,24 +100,8 @@ public class DisplayTitle extends Action {
         this.fadeOut = fadeOut;
     }
 
-    /**
-     * Creates a new SendMessage with the specified message
-     *
-     * @param title The raw message
-     * @deprecated Use {@link DisplayTitle#DisplayTitle(String, String, int, int, int, int, Selector, List, int)}}
-     */
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    @Deprecated
-    public DisplayTitle(String title, String subTitle, int fadeIn, int stay, int fadeOut, int delay, Selector mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals, 0);
-        this.title = title;
-        this.subTitle = subTitle;
-        this.fadeIn = fadeIn;
-        this.stay = stay;
-        this.fadeOut = fadeOut;
-    }
 
-    public static Button creationButton(Player player) {
+    public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(OAK_SIGN)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.title"))
                         .setLore(Msg.lore(player.locale(), "customnpcs.favicons.title.description"))
@@ -115,24 +114,6 @@ public class DisplayTitle extends Action {
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
-    }
-
-    public static <T extends Condition> T deserialize(String serialized, Class<T> clazz) {
-        if (!clazz.equals(DisplayTitle.class)) {
-            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + DisplayTitle.class.getName());
-        }
-
-        String title = parseString(serialized, "title");
-        String subTitle = parseString(serialized, "subTitle");
-        int in = parseInt(serialized, "in");
-        int stay = parseInt(serialized, "stay");
-        int out = parseInt(serialized, "out");
-
-        ParseResult pr = parseBase(serialized);
-
-        DisplayTitle message = new DisplayTitle(title, subTitle, in, stay, out, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
-
-        return clazz.cast(message);
     }
 
     @Override
@@ -159,13 +140,6 @@ public class DisplayTitle extends Action {
         return new DisplayTitleCustomizer(this);
     }
 
-    /**
-     * Sends a message to the player
-     *
-     * @param npc    The NPC
-     * @param menu   The menu
-     * @param player The player
-     */
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
@@ -178,20 +152,38 @@ public class DisplayTitle extends Action {
     }
 
     @Override
-    public String serialize() {
+    public StructCodec<? extends Action> getCodec() {
+        return CODEC;
+    }
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("title", title);
-        params.put("subTitle", subTitle);
-        params.put("in", fadeIn);
-        params.put("stay", stay);
-        params.put("out", fadeOut);
-
-        return generateSerializedString("DisplayTitle", params);
+    @Override
+    public String getId() {
+        return "DisplayTitle";
     }
 
     public Action clone() {
-        return new DisplayTitle(title, subTitle, fadeIn, stay, fadeOut, getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
+        return new DisplayTitle(title, subTitle, fadeIn, stay, fadeOut, getDelay(), getSelector(),
+                new ArrayList<>(getConditions()), getCooldown());
+    }
+
+    @Deprecated(forRemoval = true)
+    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+        if (!clazz.equals(DisplayTitle.class)) {
+            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + DisplayTitle.class.getName());
+        }
+
+        String title = parseString(serialized, "title");
+        String subTitle = parseString(serialized, "subTitle");
+        int in = parseInt(serialized, "in");
+        int stay = parseInt(serialized, "stay");
+        int out = parseInt(serialized, "out");
+
+        ParseResult pr = parseBase(serialized);
+
+        DisplayTitle message = new DisplayTitle(title, subTitle, in, stay, out, pr.delay(), pr.mode(),
+                pr.conditions(), pr.cooldown());
+
+        return clazz.cast(message);
     }
 
     public static class DisplayTitleCustomizer implements Menu {
