@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -39,27 +40,44 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class GiveEffect extends Action {
+
+    public static final StructCodec<GiveEffect> CODEC = StructCodec.struct(
+            "effect", Codec.STRING, GiveEffect::getEffect,
+            "duration", Codec.INT, GiveEffect::getDuration,
+            "amplifier", Codec.INT, GiveEffect::getAmplifier,
+            "particles", Codec.BOOLEAN, GiveEffect::isParticles,
+            "delay", Codec.INT, Action::getDelay,
+            "selector", Codec.Enum(Selector.class), Action::getSelector,
+            "conditions", Condition.CODEC.list(), Action::getConditions,
+            "cooldown", Codec.INT, Action::getCooldown,
+            GiveEffect::new
+    );
 
     private static final List<Field> fields = Stream.of(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
     boolean particles;
@@ -72,7 +90,7 @@ public class GiveEffect extends Action {
      *
      * @param effect The raw message
      */
-    public GiveEffect(String effect, int duration, int amplifier, boolean particles, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public GiveEffect(String effect, int duration, int amplifier, boolean particles, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.effect = effect;
         this.duration = duration;
@@ -80,23 +98,8 @@ public class GiveEffect extends Action {
         this.particles = particles;
     }
 
-    /**
-     * Creates a new GiveEffect with the specified parameters
-     *
-     * @param effect The raw message
-     * @deprecated Use {@link #GiveEffect(String, int, int, boolean, int, Condition.SelectionMode, List, int)}
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public GiveEffect(String effect, int duration, int amplifier, boolean particles, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals, 0);
-        this.effect = effect;
-        this.duration = duration;
-        this.amplifier = amplifier;
-        this.particles = particles;
-    }
 
-    public static Button creationButton(Player player) {
+    public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(BREWING_STAND)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.give_effect"))
                         .setLore(Msg.lore(player.locale(), "customnpcs.favicons.give_effect.description"))
@@ -105,26 +108,10 @@ public class GiveEffect extends Action {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    GiveEffect actionImpl = new GiveEffect("SPEED", 100, 0, false, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    GiveEffect actionImpl = new GiveEffect("SPEED", 100, 0, false, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
-    }
-
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
-        if (!clazz.equals(GiveEffect.class)) {
-            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + GiveEffect.class.getName());
-        }
-        String effect = parseString(serialized, "effect");
-        int duration = parseInt(serialized, "duration");
-        int amplifier = parseInt(serialized, "amplifier");
-        boolean particles = parseBoolean(serialized, "particles");
-
-        ParseResult pr = parseBase(serialized);
-
-        GiveEffect message = new GiveEffect(effect, duration, amplifier, particles, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
-
-        return clazz.cast(message);
     }
 
     public ItemStack getFavicon(Player player) {
@@ -142,13 +129,6 @@ public class GiveEffect extends Action {
                 ).build();
     }
 
-    /**
-     * Sends a message to the player
-     *
-     * @param npc    The NPC
-     * @param menu   The menu
-     * @param player The player
-     */
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
@@ -159,18 +139,36 @@ public class GiveEffect extends Action {
     }
 
     @Override
-    public String serialize() {
+    public StructCodec<? extends Action> getCodec() {
+        return CODEC;
+    }
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("effect", effect);
-        params.put("duration", duration);
-        params.put("amplifier", amplifier);
-        params.put("particles", particles);
-        return generateSerializedString("GiveEffect", params);
+    @Override
+    public String getId() {
+        return "GiveEffect";
     }
 
     public Action clone() {
-        return new GiveEffect(getEffect(), getDuration(), getAmplifier(), isParticles(), getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
+        return new GiveEffect(getEffect(), getDuration(), getAmplifier(), isParticles(), getDelay(), getSelector(),
+                new ArrayList<>(getConditions()), getCooldown());
+    }
+
+    @Deprecated(forRemoval = true)
+    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+        if (!clazz.equals(GiveEffect.class)) {
+            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + GiveEffect.class.getName());
+        }
+        String effect = parseString(serialized, "effect");
+        int duration = parseInt(serialized, "duration");
+        int amplifier = parseInt(serialized, "amplifier");
+        boolean particles = parseBoolean(serialized, "particles");
+
+        ParseResult pr = parseBase(serialized);
+
+        GiveEffect message = new GiveEffect(effect, duration, amplifier, particles, pr.delay(), pr.mode(),
+                pr.conditions(), pr.cooldown());
+
+        return clazz.cast(message);
     }
 
     @Override

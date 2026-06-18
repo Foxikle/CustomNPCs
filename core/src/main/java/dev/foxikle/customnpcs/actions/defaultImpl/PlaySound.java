@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -41,27 +42,40 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static dev.foxikle.customnpcs.internal.utils.Utils.DECIMAL_FORMAT;
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class PlaySound extends Action {
 
-    public static Button creationButton(Player player) {
+    public static final StructCodec<PlaySound> CODEC = StructCodec.struct(
+            "sound", Codec.STRING, PlaySound::getSound,
+            "volume", Codec.FLOAT, PlaySound::getVolume,
+            "pitch", Codec.FLOAT, PlaySound::getPitch,
+            "delay", Codec.INT, Action::getDelay,
+            "selector", Codec.Enum(Selector.class), Action::getSelector,
+            "conditions", Condition.CODEC.list(), Action::getConditions,
+            "cooldown", Codec.INT, Action::getCooldown,
+            PlaySound::new
+    );
+
+    public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(BELL)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.sound"))
                         .setLore(Msg.lore(player.locale(), "customnpcs.favicons.sound.description"))
@@ -70,7 +84,7 @@ public class PlaySound extends Action {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
-                    PlaySound actionImpl = new PlaySound("minecraft:ui.button.click", 1, 1, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    PlaySound actionImpl = new PlaySound("minecraft:ui.button.click", 1, 1, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -80,51 +94,13 @@ public class PlaySound extends Action {
     float pitch;
     private String sound;
 
-    /**
-     * Creates a new SendMessage with the specified message
-     *
-     * @param sound  The sound enum constants
-     * @param pitch  The pitch, between 0.0f and 1.0f
-     * @param volume The volume, between 0.0f and 1.0f
-     */
-    public PlaySound(String sound, float volume, float pitch, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public PlaySound(String sound, float volume, float pitch, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.sound = sound;
         this.volume = volume;
         this.pitch = pitch;
     }
 
-    /**
-     * Creates a new SendMessage with the specified message
-     *
-     * @param sound  The sound enum constants
-     * @param pitch  The pitch, between 0.0f and 1.0f
-     * @param volume The volume, between 0.0f and 1.0f
-     * @deprecated Use {@link PlaySound#PlaySound(String, float, float, int, Condition.SelectionMode, List, int)}
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public PlaySound(String sound, float volume, float pitch, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals, 0);
-        this.sound = sound;
-        this.volume = volume;
-        this.pitch = pitch;
-    }
-
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
-        if (!clazz.equals(PlaySound.class)) {
-            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + PlaySound.class.getName());
-        }
-        String sound = parseString(serialized, "sound");
-        float volume = parseFloat(serialized, "volume");
-        float pitch = parseFloat(serialized, "pitch");
-
-        ParseResult pr = parseBase(serialized);
-
-        PlaySound message = new PlaySound(sound, volume, pitch, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
-
-        return clazz.cast(message);
-    }
 
     @Override
     public ItemStack getFavicon(Player player) {
@@ -156,18 +132,40 @@ public class PlaySound extends Action {
         activateCooldown(player.getUniqueId());
     }
 
-    @Override
-    public String serialize() {
-        return generateSerializedString("PlaySound", Map.of("sound", sound, "volume", volume, "pitch", pitch));
+    public Action clone() {
+        return new PlaySound(sound, volume, pitch, getDelay(), getSelector(), new ArrayList<>(getConditions()),
+                getCooldown());
     }
 
-    public Action clone() {
-        return new PlaySound(sound, volume, pitch, getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
+    @Override
+    public StructCodec<? extends Action> getCodec() {
+        return CODEC;
+    }
+
+    @Override
+    public String getId() {
+        return "PlaySound";
     }
 
     @Override
     public Menu getMenu() {
         return new PlaySoundCustomizer(this);
+    }
+
+    @Deprecated(forRemoval = true)
+    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+        if (!clazz.equals(PlaySound.class)) {
+            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + PlaySound.class.getName());
+        }
+        String sound = parseString(serialized, "sound");
+        float volume = parseFloat(serialized, "volume");
+        float pitch = parseFloat(serialized, "pitch");
+
+        ParseResult pr = parseBase(serialized);
+
+        PlaySound message = new PlaySound(sound, volume, pitch, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+
+        return clazz.cast(message);
     }
 
     public class PlaySoundCustomizer implements Menu {

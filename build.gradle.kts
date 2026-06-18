@@ -50,7 +50,7 @@ dependencies {
     implementation(project(":v1_20_R4", configuration = "default"))
 }
 
-var pluginVersion = "1.7.10-pre2"
+var pluginVersion = "1.8-pre2"
 
 allprojects {
     group = "dev.foxikle"
@@ -107,7 +107,7 @@ tasks {
 
     compileJava {
         options.encoding = Charsets.UTF_8.name()
-        options.release = 21
+        options.release = 25
     }
     javadoc {
         source = sourceSets["main"].allSource
@@ -126,7 +126,7 @@ tasks {
             "apiVersion" to "1.20"
         )
         inputs.properties(props)
-        filesMatching("plugin.yml") {
+        filesMatching("paper-plugin.yml") {
             expand(props)
         }
     }
@@ -158,5 +158,3 @@ tasks.register<Javadoc>("aggregatedJavadocs") {
         }
     }
 }
-
-

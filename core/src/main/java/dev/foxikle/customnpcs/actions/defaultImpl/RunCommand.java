@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -42,66 +43,39 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class RunCommand extends Action {
 
-    private String command;
-    private boolean asConsole;
+    public static final StructCodec<RunCommand> CODEC = StructCodec.struct(
+            "raw", Codec.STRING, RunCommand::getCommand,
+            "asConsole", Codec.BOOLEAN, RunCommand::isAsConsole,
+            "delay", Codec.INT, Action::getDelay,
+            "selector", Codec.Enum(Selector.class), Action::getSelector,
+            "conditions", Condition.CODEC.list(), Action::getConditions,
+            "cooldown", Codec.INT, Action::getCooldown,
+            RunCommand::new
+    );
 
-    /**
-     * Creates a new RunCommand with the specified command
-     *
-     * @param rawCommand   The raw command
-     * @param asConsole    If the command should be executed as a console command.
-     * @param delay        The delay
-     * @param mode         The mode
-     * @param conditionals The conditionals
-     */
-    public RunCommand(String rawCommand, boolean asConsole, int delay, Condition.SelectionMode mode,
-                      List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
-        this.command = rawCommand;
-        this.asConsole = asConsole;
-    }
-
-
-    /**
-     * Creates a new RunCommand with the specified command
-     *
-     * @param rawCommand   The raw command
-     * @param asConsole    If the command should be executed as a console command.
-     * @param delay        The delay
-     * @param mode         The mode
-     * @param conditionals The conditionals
-     * @deprecated Use {@link #RunCommand(String, boolean, int, Condition.SelectionMode, List, int)}
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public RunCommand(String rawCommand, boolean asConsole, int delay, Condition.SelectionMode mode,
-                      List<Condition> conditionals) {
-        super(delay, mode, conditionals, 0);
-        this.command = rawCommand;
-        this.asConsole = asConsole;
-    }
-
-    public static Button creationButton(Player player) {
+    public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(ANVIL)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.command"))
                         .setLore(Msg.lore(player.locale(), "customnpcs.favicons.command.description"))
@@ -110,23 +84,21 @@ public class RunCommand extends Action {
                     Player p = (Player) event.getWhoClicked();
                     event.setCancelled(true);
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    RunCommand actionImpl = new RunCommand("say hi", false, 0, Condition.SelectionMode.ONE,
-                            new ArrayList<>(), 0);
+                    RunCommand actionImpl = new RunCommand("say hi", false, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
     }
 
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
-        if (!clazz.equals(RunCommand.class)) {
-            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RunCommand.class.getName());
-        }
-        String raw = parseString(serialized, "raw");
-        boolean asConsole = parseBoolean(serialized, "asConsole");
-        ParseResult pr = parseBase(serialized);
+    private String command;
+    private boolean asConsole;
 
-        RunCommand command = new RunCommand(raw, asConsole, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
-        return clazz.cast(command);
+
+    public RunCommand(String rawCommand, boolean asConsole, int delay, Selector mode,
+                      List<Condition> conditionals, int cooldown) {
+        super(delay, mode, conditionals, cooldown);
+        this.command = rawCommand;
+        this.asConsole = asConsole;
     }
 
     @Override
@@ -148,14 +120,6 @@ public class RunCommand extends Action {
         return new RunCommandCustomizer(this);
     }
 
-    /**
-     * Runs the command. If {@code asConsole} is true, the command will be executed as the console,
-     * otherwise it will be executed as the player.
-     *
-     * @param npc    The NPC
-     * @param menu   The menu
-     * @param player The player
-     */
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
@@ -166,14 +130,32 @@ public class RunCommand extends Action {
     }
 
     @Override
-    public String serialize() {
-        return generateSerializedString("RunCommand", Map.of("raw", command, "asConsole", asConsole));
+    public StructCodec<? extends Action> getCodec() {
+        return CODEC;
+    }
+
+    @Override
+    public String getId() {
+        return "RunCommand";
     }
 
     @Override
     public Action clone() {
-        return new RunCommand(command, asConsole, getDelay(), getMode(), new ArrayList<>(getConditions()),
+        return new RunCommand(command, asConsole, getDelay(), getSelector(), new ArrayList<>(getConditions()),
                 getCooldown());
+    }
+
+    @Deprecated(forRemoval = true)
+    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+        if (!clazz.equals(RunCommand.class)) {
+            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RunCommand.class.getName());
+        }
+        String raw = parseString(serialized, "raw");
+        boolean asConsole = parseBoolean(serialized, "asConsole");
+        ParseResult pr = parseBase(serialized);
+
+        RunCommand command = new RunCommand(raw, asConsole, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        return clazz.cast(command);
     }
 
     public class RunCommandCustomizer implements Menu {
@@ -220,8 +202,9 @@ public class RunCommand extends Action {
             return Button.clickable(ItemBuilder.modern(isAsConsole() ? RED_CANDLE : GREEN_CANDLE)
                             .setLore(lore.toArray(new Component[]{}))
                             .setDisplay(isAsConsole() ? Msg.translate(player.locale(), "customnpcs.menus.action" +
-                                    ".command.as_console.true") : Msg.translate(player.locale(), "customnpcs.menus" +
-                                    ".action.command.as_console.false"))
+                                                                                       ".command.as_console.true") :
+                                    Msg.translate(player.locale(), "customnpcs.menus" +
+                                                                                                                                                    ".action.command.as_console.false"))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);

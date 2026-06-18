@@ -23,6 +23,8 @@
 plugins {
     id("java")
     id("io.freefair.lombok") version "9.5.0"
+    `java-library`
+    java
 }
 
 repositories {
@@ -39,10 +41,14 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.12.2")
     compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
     compileOnly("net.kyori:adventure-api:5.1.1")
+    compileOnly("net.kyori:adventure-nbt:5.1.1")
     compileOnly("org.mineskin:java-client-jsoup:3.2.6")
-    compileOnly("dev.velix:imperat-bukkit:1.9.7")
-    compileOnly("dev.velix:imperat-core:1.9.7")
     compileOnly("org.mineskin:java-client:3.2.6")
+    compileOnly("org.mongodb:mongodb-driver-sync:5.3.0")
+    compileOnly("com.mysql:mysql-connector-j:9.1.0")
+    compileOnly("com.zaxxer:HikariCP:6.2.1")
+    compileOnlyApi("dev.minestom-united.common:codec:0.0.2")
+
 
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -112,7 +118,7 @@ tasks.compileJava {
 tasks {
     java {
         toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
+            languageVersion.set(JavaLanguageVersion.of(25))
         }
     }
 
@@ -130,7 +136,7 @@ tasks {
     }
 
     compileJava {
-        options.release = 21
+        options.release = 25
     }
 
     jar {

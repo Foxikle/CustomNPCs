@@ -27,6 +27,8 @@ import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.api.Pose;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
@@ -76,6 +78,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Stream;
 
+@Getter
 public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
 
     // reflection for data accessors
@@ -92,39 +95,35 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
         }
     }
 
-    @Getter
     private final Particle spawnParticle = Particle.EXPLOSION;
-    @Getter
     private final UUID uniqueID;
     private final CustomNPCs plugin;
-    @Getter
     private final World world;
     private final Map<UUID, Integer> loops = new HashMap<>();
-    @Getter
     @Setter
     private Settings settings;
-    @Getter
     @Setter
     private Equipment equipment;
-    @Getter
     @Setter
     private Location spawnLoc;
     private @Nullable ArmorStand seat;
-    @Getter
     private TextDisplay clickableHologram;
-    @Getter
     private List<TextDisplay> holograms;
-    @Getter
     @Setter
     private Player target;
-    @Getter
     @Setter
-
     private List<Action> actions;
     private String clickableName = "ERROR";
     private InjectionManager injectionManager;
+    @Setter
+    private List<Condition> injectionConditions;
+    @Setter
+    private Selector injectionSelector;
 
-    public NPC_v1_21_R0(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings, UUID uniqueID, @Nullable Player target, List<Action> actions) {
+
+    public NPC_v1_21_R0(CustomNPCs plugin, World world, Location spawnLoc, Equipment equipment, Settings settings,
+                        UUID uniqueID, @Nullable Player target, List<Action> actions,
+                        List<Condition> injectionConditions, Selector injectionSelector) {
         super(((CraftServer) Bukkit.getServer()).getServer(), ((CraftWorld) world).getHandle(), new GameProfile(uniqueID, Utils.getNpcName(settings, uniqueID)), ClientInformation.createDefault());
         this.spawnLoc = spawnLoc;
         this.equipment = equipment;
@@ -132,9 +131,11 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
         this.world = spawnLoc.getWorld();
         this.uniqueID = uniqueID;
         this.target = target;
-        this.actions = actions;
-        super.connection = new FakeListener_v1_21_R0(((CraftServer) Bukkit.getServer()).getServer(), new FakeConnection_v1_21_R0(PacketFlow.CLIENTBOUND), this);
+        this.actions = new ArrayList<>(actions);
+        this.injectionConditions = new ArrayList<>(injectionConditions);
+        this.injectionSelector = injectionSelector;
         this.plugin = plugin;
+        super.connection = new FakeListener_v1_21_R0(((CraftServer) Bukkit.getServer()).getServer(), new FakeConnection_v1_21_R0(PacketFlow.CLIENTBOUND), this);
     }
 
     public void setPosRot(Location location) {
@@ -178,7 +179,7 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
         super.getBukkitEntity().setItemInHand(equipment.getHand());
         setPose(setupPose(settings.getPose()));
 
-        if (settings.isResilient()) plugin.getFileManager().addNPC(this);
+        if (settings.isResilient()) plugin.getStorageManager().addNPC(this);
         plugin.addNPC(this, holograms);
 
         injectionManager = new InjectionManager(plugin, this);
@@ -200,7 +201,7 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
             startingOffset += space;
         }
         List<TextDisplay> holograms = new ArrayList<>();
-        for (int i = 0; i < settings.getRawHolograms().length; i++) {
+        for (int i = 0; i < settings.getRawHolograms().size(); i++) {
             double y = startingOffset + (i * space);
             TextDisplay hologram = (TextDisplay) spawnLoc.getWorld().spawnEntity(spawnLoc, EntityType.TEXT_DISPLAY);
             hologram.setInvulnerable(true);
@@ -321,16 +322,16 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
 
     private void injectHolograms(Player p) {
         ServerGamePacketListenerImpl connection = ((CraftPlayer) p).getHandle().connection;
-        String[] hologramText = new String[settings.getRawHolograms().length];
+        String[] hologramText = new String[settings.getRawHolograms().size()];
         String clickableText = clickableName;
         if (plugin.papi) {
-            for (int i = 0; i < settings.getRawHolograms().length; i++) {
-                hologramText[i] = PlaceholderAPI.setPlaceholders(p, settings.getRawHolograms()[i]);
+            for (int i = 0; i < settings.getRawHolograms().size(); i++) {
+                hologramText[i] = PlaceholderAPI.setPlaceholders(p, settings.getRawHolograms().get(i));
             }
             clickableText = PlaceholderAPI.setPlaceholders(p, clickableName);
         } else {
-            for (int i = 0; i < settings.getRawHolograms().length; i++) {
-                hologramText[i] = settings.getRawHolograms()[i];
+            for (int i = 0; i < settings.getRawHolograms().size(); i++) {
+                hologramText[i] = settings.getRawHolograms().get(i);
             }
         }
         List<Packet<?>> packets = new ArrayList<>();
@@ -402,9 +403,7 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
         spawnLoc = loc;
     }
 
-    public void delete() {
-        plugin.getFileManager().remove(this.uniqueID);
-    }
+
 
     @Override
     public void lookAt(LookAtAnchor anchor, Entity e) {
@@ -526,7 +525,9 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
 
     @Override
     public InternalNpc clone() {
-        return new NPC_v1_21_R0(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(), UUID.randomUUID(), target, new ArrayList<>(actions));
+        return new NPC_v1_21_R0(plugin, world, spawnLoc.clone(), equipment.clone(), settings.clone(),
+                UUID.randomUUID(), target, new ArrayList<>(actions), new ArrayList<>(injectionConditions),
+                injectionSelector);
     }
 
 
@@ -538,6 +539,31 @@ public class NPC_v1_21_R0 extends ServerPlayer implements InternalNpc {
     @Override
     public float getPitch() {
         return getXRot();
+    }
+
+    @Override
+    public void withdraw(Player player) {
+        loops.remove(player.getUniqueId());
+        List<Packet<?>> packets = new ArrayList<>();
+
+        if (holograms != null) {
+            for (TextDisplay hologram : holograms) {
+                packets.add(new ClientboundRemoveEntitiesPacket(hologram.getEntityId()));
+            }
+        }
+
+        if (clickableHologram != null) {
+            packets.add(new ClientboundRemoveEntitiesPacket(clickableHologram.getEntityId()));
+        }
+        packets.add(new ClientboundRemoveEntitiesPacket(super.getId()));
+
+        ServerGamePacketListenerImpl connection = ((CraftPlayer) player).getHandle().connection;
+
+
+        packets.forEach(connection::send);
+        if (plugin.isEnabled()) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> packets.forEach(connection::send), 1);
+        }
     }
 }
 

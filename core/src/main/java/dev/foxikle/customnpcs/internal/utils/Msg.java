@@ -30,7 +30,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
 
-import java.text.FieldPosition;
 import java.text.MessageFormat;
 import java.util.Locale;
 
@@ -61,8 +60,7 @@ public class Msg {
             return key;
         }
 
-        StringBuffer buffer = format.format(translatedArgs, new StringBuffer(), new FieldPosition(0));
-        return buffer.toString();
+        return format.format(translatedArgs);
     }
 
     public static Component[] lore(Locale locale, String key, Object... args) {

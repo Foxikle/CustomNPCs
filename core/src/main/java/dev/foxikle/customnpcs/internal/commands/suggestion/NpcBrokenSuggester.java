@@ -26,14 +26,16 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 
+import java.util.UUID;
+
 public class NpcBrokenSuggester {
 
     public static final SuggestionProvider<CommandSourceStack> SUGGESTIONS = (context, builder) -> {
         CustomNPCs plugin = CustomNPCs.getInstance();
         String input = builder.getRemaining().toLowerCase();
 
-        plugin.getFileManager().getBrokenNPCs().keySet().stream()
-                .map(uuid -> uuid.toString())
+        plugin.getStorageManager().getBrokenNPCs().keySet().stream()
+                .map(UUID::toString)
                 .filter(uuid -> uuid.toLowerCase().startsWith(input))
                 .forEach(builder::suggest);
 

@@ -28,17 +28,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.CommandDispatcher;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.LegacyAction;
-import dev.foxikle.customnpcs.actions.conditions.ActionAdapter;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
-import dev.foxikle.customnpcs.actions.conditions.ConditionalTypeAdapter;
 import dev.foxikle.customnpcs.actions.defaultImpl.*;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.ConditionalTypeAdapter;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.commands.NpcCommandRegistrar;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.menu.*;
+import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
 import dev.foxikle.customnpcs.internal.utils.AutoUpdater;
@@ -82,6 +82,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
     public static final ActionRegistry ACTION_REGISTRY = new ActionRegistry();
     public static int INTERPOLATION_DURATION;
+
     /**
      * Singleton for the NPCBuilder
      */
@@ -157,7 +158,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public MiniMessage miniMessage = MiniMessage.miniMessage();
     Listeners listeners;
     @Getter
-    private FileManager fileManager;
+    private StorageManager storageManager;
     /**
      * Singleton for menu utilities
      */
@@ -210,7 +211,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         String s = translateVersion();
 
         try {
-            getLogger().info("Loading class: " + String.format(NPC_CLASS, s));
+            getLogger().info("Loading NPC class: " + String.format(NPC_CLASS, s));
             getClassLoader().loadClass(String.format(NPC_CLASS, s));
         } catch (ClassNotFoundException e) {
             getLogger().log(Level.SEVERE, "Failed to load NPC class for server version " + s + "!", e);
@@ -225,39 +226,28 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
         gson = new GsonBuilder()
                 .registerTypeAdapter(Condition.class, new ConditionalTypeAdapter())
-                .registerTypeAdapter(LegacyAction.class, new ActionAdapter())
                 .create();
-        this.fileManager = new FileManager(this);
+        this.storageManager = new StorageManager(this);
         this.mu = new MenuUtils(this);
         this.updater = new AutoUpdater(this);
         update = updater.checkForUpdates();
 
-        if (!fileManager.createFiles()) {
-            throw new RuntimeException("Failed to create files");
-        }
-
         getLogger().info("Loading action registry...");
-        ACTION_REGISTRY.register("ActionBar", ActionBar.class, ActionBar::creationButton);
-        ACTION_REGISTRY.register("DisplayTitle", DisplayTitle.class, DisplayTitle::creationButton);
-        ACTION_REGISTRY.register("GiveEffect", GiveEffect.class, GiveEffect::creationButton);
-        ACTION_REGISTRY.register("GiveXP", GiveXP.class, GiveXP::creationButton);
-        ACTION_REGISTRY.register("PlaySound", PlaySound.class, PlaySound::creationButton);
-        ACTION_REGISTRY.register("RemoveEffect", RemoveEffect.class, RemoveEffect::creationButton);
-        ACTION_REGISTRY.register("RemoveXP", RemoveXP.class, RemoveXP::creationButton);
-        ACTION_REGISTRY.register("RunCommand", RunCommand.class, RunCommand::creationButton);
-        ACTION_REGISTRY.register("SendMessage", SendMessage.class, SendMessage::creationButton);
-        ACTION_REGISTRY.register("SendServer", SendServer.class, SendServer::creationButton, true, false, true);
-        ACTION_REGISTRY.register("Teleport", Teleport.class, Teleport::creationButton);
-        ACTION_REGISTRY.register("FollowPresetPath", FollowPresetPathAction.class,
-                FollowPresetPathAction::creationButton);
+        ACTION_REGISTRY.register(new ActionBar());
+        ACTION_REGISTRY.register(new DisplayTitle());
+        ACTION_REGISTRY.register(new GiveEffect());
+        ACTION_REGISTRY.register(new GiveXP());
+        ACTION_REGISTRY.register(new PlaySound());
+        ACTION_REGISTRY.register(new RemoveEffect());
+        ACTION_REGISTRY.register(new RemoveXP());
+        ACTION_REGISTRY.register(new RunCommand());
+        ACTION_REGISTRY.register(new SendMessage());
+        ACTION_REGISTRY.register(new SendServer());
+        ACTION_REGISTRY.register(new Teleport());
+        ACTION_REGISTRY.register(new FollowPresetPath());
 
-        try {
-            this.getLogger().info("Loading NPCs!");
-            for (UUID uuid : fileManager.getValidNPCs()) {
-                fileManager.loadNPC(uuid);
-            }
-        } catch (Exception e) {
-            getLogger().log(Level.SEVERE, "Failed to load NPC:", e);
+        if (!storageManager.setup()) {
+            throw new RuntimeException("Failed to start storage manager");
         }
 
         //generate skin menus for the supported locales
@@ -402,6 +392,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                 commandDispatcher = null;
             }
         }
+        ACTION_REGISTRY.clear();
     }
 
     /**
@@ -463,31 +454,33 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * Creates an npc
      *
-     * @param world       the world
-     * @param location    the location to spawn it
-     * @param equipment   the equipment object representing the NPC's items
-     * @param settings    the settings object representing the NPC's settings
-     * @param uuid        the NPC's UUID
-     * @param target      the NPC's target to follow
-     * @param actionImpls the NPC's actions
+     * @param world     the world
+     * @param location  the location to spawn it
+     * @param equipment the equipment object representing the NPC's items
+     * @param settings  the settings object representing the NPC's settings
+     * @param uuid      the NPC's UUID
+     * @param target    the NPC's target to follow
+     * @param actions   the NPC's actions
      * @return the created NPC
      * @throws RuntimeException If the reflective creation of the NPC object fails
      */
     public InternalNpc createNPC(World world, Location location, Equipment equipment, Settings settings, UUID uuid,
-                                 @Nullable Player target, List<Action> actionImpls) {
+                                 @Nullable Player target, List<Action> actions, List<Condition> conditions,
+                                 Selector injectionMode) {
         try {
             Class<?> clazz = Class.forName(String.format(NPC_CLASS, translateVersion()));
             return (InternalNpc) clazz
                     .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class,
-                            UUID.class, Player.class, List.class)
-                    .newInstance(this, world, location, equipment, settings, uuid, target, actionImpls);
+                            UUID.class, Player.class, List.class, List.class, Selector.class)
+                    .newInstance(this, world, location, equipment, settings, uuid, target, actions, conditions,
+                            injectionMode);
         } catch (ReflectiveOperationException e) {
             getLogger().log(Level.SEVERE, ("An error occurred whilst creating the NPC '{name}! This is most likely a " +
-                    "configuration issue.").replace("{name}", settings.getName()), e);
+                    "configuration issue.").replace("{name}", settings.getRawHolograms().getFirst()), e);
             throw new RuntimeException(e);
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "An error occurred whilst creating the NPC '{name}!".replace("{name}",
-                    settings.getName()), e);
+                    settings.getRawHolograms().getFirst()), e);
             throw new RuntimeException(e);
         }
     }

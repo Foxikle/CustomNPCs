@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2026. Foxikle
+ * Copyright (c) 2024. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,37 +20,37 @@
  * SOFTWARE.
  */
 
-plugins {
-    id("java")
-    id("io.freefair.lombok") version "9.5.0"
-    id("io.papermc.paperweight.userdev") version "2.0.0-SNAPSHOT"
-}
+package dev.foxikle.customnpcs.internal.storage;
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven("https://jitpack.io")
-    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
-}
+import dev.foxikle.customnpcs.internal.CustomNPCs;
+import org.jetbrains.annotations.ApiStatus;
 
-dependencies {
-    compileOnly("me.clip:placeholderapi:2.12.2")
-    compileOnly(project(":core"))
-    paperweight.paperDevBundle("1.20.6-R0.1-SNAPSHOT")
-}
+import java.util.concurrent.CompletableFuture;
 
-tasks {
-    paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
+@ApiStatus.Internal
+public interface StorageProvider {
+    /**
+     * Initializes the storage provider. This could be connecting to a database, creating files, etc.
+     */
+    CompletableFuture<Void> init(CustomNPCs plugin);
 
-    java {
-        toolchain.languageVersion = JavaLanguageVersion.of(25)
-    }
+    /**
+     * Saves the given byte array to the storage provider. It should overwrite the data.
+     *
+     * @param json The json array to save
+     * @return if the save was successful
+     */
+    CompletableFuture<Boolean> save(String json);
 
-    compileJava {
-        options.release = 25
-    }
+    /**
+     * Loads the saved byte array from the storage provider
+     *
+     * @return The array of json NPC data, or the loaded data.
+     */
+    CompletableFuture<String> load();
 
-    jar {
-        archiveClassifier = "v1_20_R4"
-    }
+    /**
+     * Shuts down the storage provider. This could close buffers, connections, etc.
+     */
+    void shutdown();
 }

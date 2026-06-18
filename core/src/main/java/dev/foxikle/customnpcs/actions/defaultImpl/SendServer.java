@@ -25,7 +25,8 @@ package dev.foxikle.customnpcs.actions.defaultImpl;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
@@ -42,52 +43,45 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.bukkit.Material.GRASS_BLOCK;
 import static org.bukkit.Material.OAK_HANGING_SIGN;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class SendServer extends Action {
+
+    public static final StructCodec<SendServer> CODEC = StructCodec.struct(
+            "server", Codec.STRING, SendServer::getServer,
+            "delay", Codec.INT, Action::getDelay,
+            "selector", Codec.Enum(Selector.class), Action::getSelector,
+            "conditions", Condition.CODEC.list(), Action::getConditions,
+            "cooldown", Codec.INT, Action::getCooldown,
+            SendServer::new
+    );
 
     private String server;
 
-    /**
-     * Creates a new SendMessage with the specified message
-     *
-     * @param server The raw message
-     */
-    public SendServer(String server, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+
+    public SendServer(String server, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.server = server;
     }
 
-    /**
-     * Creates a new SendMessage with the specified message
-     *
-     * @param server The raw message
-     * @deprecated Use {@link SendServer#SendServer(String, int, Condition.SelectionMode, List, int)}
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public SendServer(String server, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals, 0);
-        this.server = server;
-    }
-
-    public static Button creationButton(Player player) {
+    public Button creationButton(Player player) {
         return
                 Button.clickable(ItemBuilder.modern(GRASS_BLOCK)
                                 .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.server"))
@@ -99,31 +93,13 @@ public class SendServer extends Action {
                             p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                             //todo: watch out for duplications
 
-                            SendServer actionImpl = new SendServer("server", 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                            SendServer actionImpl = new SendServer("server", 0, Selector.ONE, new ArrayList<>(), 0);
                             CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                             menuView.getAPI().openMenu(p, actionImpl.getMenu());
                         }));
     }
 
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
-        if (!clazz.equals(SendServer.class)) {
-            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + SendServer.class.getName());
-        }
-        String server = parseString(serialized, "server");
-        ParseResult pr = parseBase(serialized);
 
-        SendServer message = new SendServer(server, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
-
-        return clazz.cast(message);
-    }
-
-    /**
-     * Sends a message to the player
-     *
-     * @param npc    The NPC
-     * @param menu   The menu
-     * @param player The player
-     */
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
@@ -136,12 +112,6 @@ public class SendServer extends Action {
         activateCooldown(player.getUniqueId());
     }
 
-    @Override
-    public String serialize() {
-        Map<String, Object> params = new HashMap<>();
-        params.put("server", server);
-        return generateSerializedString("SendServer", params);
-    }
 
     @Override
     public ItemStack getFavicon(Player player) {
@@ -162,8 +132,31 @@ public class SendServer extends Action {
     }
 
     @Override
+    public StructCodec<? extends Action> getCodec() {
+        return CODEC;
+    }
+
+    @Override
+    public String getId() {
+        return "SendServer";
+    }
+
+    @Override
     public Action clone() {
-        return new SendServer(server, getDelay(), getMode(), getConditions(), getCooldown());
+        return new SendServer(server, getDelay(), getSelector(), getConditions(), getCooldown());
+    }
+
+    @Deprecated(forRemoval = true)
+    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+        if (!clazz.equals(SendServer.class)) {
+            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + SendServer.class.getName());
+        }
+        String server = parseString(serialized, "server");
+        ParseResult pr = parseBase(serialized);
+
+        SendServer message = new SendServer(server, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+
+        return clazz.cast(message);
     }
 
     public class SendServerCustomizer implements Menu {
