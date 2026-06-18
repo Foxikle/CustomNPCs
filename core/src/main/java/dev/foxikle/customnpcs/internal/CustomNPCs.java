@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,19 +26,15 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mojang.brigadier.CommandDispatcher;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.LegacyAction;
-import dev.foxikle.customnpcs.actions.ActionAdapter;
+import dev.foxikle.customnpcs.actions.defaultImpl.*;
 import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.ConditionalTypeAdapter;
-import dev.foxikle.customnpcs.actions.defaultImpl.*;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
-import dev.foxikle.customnpcs.internal.commands.NpcCommand;
-import dev.foxikle.customnpcs.internal.commands.suggestion.NpcSuggester;
-import dev.foxikle.customnpcs.internal.commands.suggestion.SoundSuggester;
-import dev.foxikle.customnpcs.internal.commands.suggestion.WorldSuggester;
+import dev.foxikle.customnpcs.internal.commands.NpcCommandRegistrar;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.menu.*;
@@ -47,12 +43,11 @@ import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
 import dev.foxikle.customnpcs.internal.utils.AutoUpdater;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
-import dev.foxikle.customnpcs.internal.utils.configurate.*;
-import dev.velix.imperat.BukkitImperat;
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.Imperat;
 import io.github.mqzen.menus.Lotus;
 import io.github.mqzen.menus.base.pagination.Pagination;
+import io.papermc.paper.command.brigadier.Commands;
+import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -61,19 +56,15 @@ import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.HandlerList;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
-import org.spongepowered.configurate.gson.GsonConfigurationLoader;
-import org.spongepowered.configurate.loader.ConfigurationLoader;
-import org.spongepowered.configurate.objectmapping.ObjectMapper;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -91,19 +82,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
     public static final ActionRegistry ACTION_REGISTRY = new ActionRegistry();
     public static int INTERPOLATION_DURATION;
-    public static final GsonConfigurationLoader.Builder CONFIGURATE = GsonConfigurationLoader.builder()
-            .indent(0)
-            .defaultOptions(opts -> opts
-                    .shouldCopyDefaults(true)
-                    .serializers(builder -> {
-                        builder.registerAnnotatedObjects(ObjectMapper.factory());
-                        builder.register(Action.class, new ActionSerializer());
-                        builder.register(Condition.class, new ConditionSerializer());
-                        builder.register(Location.class, new LocationSerializer());
-                        builder.register(ItemStack.class, new ItemstackSerializer());
-                        builder.register(Color.class, new ColorSerializer());
-                    })
-            );
+
     /**
      * Singleton for the NPCBuilder
      */
@@ -119,13 +98,17 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * This may contain NPCs that do not yet exist, as they are in the process of creation.
      */
     @Getter
-    private final Cache<UUID, InternalNpc> editingNPCs = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).expireAfterAccess(10, TimeUnit.MINUTES).build();
+    private final Cache<UUID, InternalNpc> editingNPCs = CacheBuilder.newBuilder().expireAfterWrite(10,
+            TimeUnit.MINUTES).expireAfterAccess(10, TimeUnit.MINUTES).build();
     /**
      * Used to close the deletion menu if it was opened by the command. true = open the menu
      */
     @Getter
-    private final Cache<UUID, Boolean> deltionReason = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).expireAfterAccess(1, TimeUnit.MINUTES).build();
-    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8"};
+    private final Cache<UUID, Boolean> deletionReason = CacheBuilder.newBuilder().expireAfterWrite(1,
+            TimeUnit.MINUTES).expireAfterAccess(1, TimeUnit.MINUTES).build();
+    private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6",
+            "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8", "1.21.9",
+            "1.21.10", "1.21.11", "26.1", "26.1.1", "26.1.2", "26.2"};
     private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
     /**
      * The map of what the plugin is waiting for the players to enter.
@@ -160,6 +143,10 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     public boolean papi = false;
     /**
+     * If this server has the Player expansion installed
+     */
+    public boolean papiPlayerExpansion = false;
+    /**
      * If there is a new update available
      */
     public boolean update;
@@ -182,7 +169,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     @Getter
     private Lotus lotus;
     @Getter
-    private Imperat<BukkitSource> imperat;
+    private CommandDispatcher<org.bukkit.command.CommandSender> commandDispatcher;
 
     @Getter
     @Setter
@@ -197,10 +184,23 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * </p>
      */
     @Override
+    @SuppressWarnings("UnstableApiUsage")
     public void onEnable() {
         // paper... why??
-        System.setProperty("org.bukkit.plugin.java.LibraryLoader.centralURL", "https://repo1.maven.org/maven2");
         instance = this;
+
+        if (!Objects.equals(System.getProperty("CustomNPCs-Started"), "true")) {
+            LifecycleEventManager<Plugin> manager = this.getLifecycleManager();
+            manager.registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+                final Commands commands = event.registrar();
+                commands.register(
+                        NpcCommandRegistrar.buildNode(),
+                        "The command for anything NPC related.",
+                        List.of()
+                );
+            });
+            System.setProperty("CustomNPCs-Started", "true");
+        }
 
         if (!checkForValidVersion()) {
             printInvalidVersion();
@@ -216,7 +216,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         } catch (ClassNotFoundException e) {
             getLogger().log(Level.SEVERE, "Failed to load NPC class for server version " + s + "!", e);
         } catch (Exception e) {
-            getLogger().log(Level.SEVERE, "SERVERE ERROR: ", e);
+            getLogger().log(Level.SEVERE, "SERVER ERROR: ", e);
         }
 
         INTERPOLATION_DURATION = getConfig().getInt("DefaultInterpolationDuration");
@@ -226,7 +226,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
         gson = new GsonBuilder()
                 .registerTypeAdapter(Condition.class, new ConditionalTypeAdapter())
-                .registerTypeAdapter(LegacyAction.class, new ActionAdapter())
                 .create();
         this.storageManager = new StorageManager(this);
         this.mu = new MenuUtils(this);
@@ -234,17 +233,18 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         update = updater.checkForUpdates();
 
         getLogger().info("Loading action registry...");
-        ACTION_REGISTRY.register("ActionBar", ActionBar.class, ActionBar::creationButton);
-        ACTION_REGISTRY.register("DisplayTitle", DisplayTitle.class, DisplayTitle::creationButton);
-        ACTION_REGISTRY.register("GiveEffect", GiveEffect.class, GiveEffect::creationButton);
-        ACTION_REGISTRY.register("GiveXP", GiveXP.class, GiveXP::creationButton);
-        ACTION_REGISTRY.register("PlaySound", PlaySound.class, PlaySound::creationButton);
-        ACTION_REGISTRY.register("RemoveEffect", RemoveEffect.class, RemoveEffect::creationButton);
-        ACTION_REGISTRY.register("RemoveXP", RemoveXP.class, RemoveXP::creationButton);
-        ACTION_REGISTRY.register("RunCommand", RunCommand.class, RunCommand::creationButton);
-        ACTION_REGISTRY.register("SendMessage", SendMessage.class, SendMessage::creationButton);
-        ACTION_REGISTRY.register("SendServer", SendServer.class, SendServer::creationButton, true, false, true);
-        ACTION_REGISTRY.register("Teleport", Teleport.class, Teleport::creationButton);
+        ACTION_REGISTRY.register(new ActionBar());
+        ACTION_REGISTRY.register(new DisplayTitle());
+        ACTION_REGISTRY.register(new GiveEffect());
+        ACTION_REGISTRY.register(new GiveXP());
+        ACTION_REGISTRY.register(new PlaySound());
+        ACTION_REGISTRY.register(new RemoveEffect());
+        ACTION_REGISTRY.register(new RemoveXP());
+        ACTION_REGISTRY.register(new RunCommand());
+        ACTION_REGISTRY.register(new SendMessage());
+        ACTION_REGISTRY.register(new SendServer());
+        ACTION_REGISTRY.register(new Teleport());
+        ACTION_REGISTRY.register(new FollowPresetPath());
 
         if (!storageManager.setup()) {
             throw new RuntimeException("Failed to start storage manager");
@@ -262,11 +262,16 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         Metrics metrics = new Metrics(this, 18898);
 
         metrics.addCustomChart(new SimplePie("use_papi", () -> String.valueOf(papi)));
-        metrics.addCustomChart(new SimplePie("look_interval", () -> String.valueOf(getConfig().getInt("LookInterval"))));
-        metrics.addCustomChart(new SimplePie("injection_interval", () -> String.valueOf(getConfig().getInt("InjectionInterval"))));
-        metrics.addCustomChart(new SimplePie("injection_distance", () -> String.valueOf(getConfig().getInt("InjectionDistance"))));
-        metrics.addCustomChart(new SimplePie("hologram_interval", () -> String.valueOf(getConfig().getInt("HologramUpdateInterval"))));
-        metrics.addCustomChart(new SimplePie("update_alerts", () -> String.valueOf(getConfig().getBoolean("AlertOnUpdate"))));
+        metrics.addCustomChart(new SimplePie("look_interval",
+                () -> String.valueOf(getConfig().getInt("LookInterval"))));
+        metrics.addCustomChart(new SimplePie("injection_interval", () -> String.valueOf(getConfig().getInt(
+                "InjectionInterval"))));
+        metrics.addCustomChart(new SimplePie("injection_distance", () -> String.valueOf(getConfig().getInt(
+                "InjectionDistance"))));
+        metrics.addCustomChart(new SimplePie("hologram_interval", () -> String.valueOf(getConfig().getInt(
+                "HologramUpdateInterval"))));
+        metrics.addCustomChart(new SimplePie("update_alerts", () -> String.valueOf(getConfig().getBoolean(
+                "AlertOnUpdate"))));
         metrics.addCustomChart(new SimplePie("npc_count", () -> String.valueOf(npcs.size())));
 
         // only supports default actions
@@ -315,15 +320,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             );
         }));
 
-        // setup papi
-        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            this.getLogger().info("Successfully hooked into PlaceholderAPI.");
-            papi = true;
-        } else {
-            papi = false;
-            this.getLogger().warning("Could not find PlaceholderAPI! PlaceholderAPI isn't required, but CustomNPCs does support it.");
-        }
-
         if (!System.getProperties().containsKey("customnpcs-reload-check")) {
             getLogger().info("Loading listeners...");
             listeners = new Listeners(this);
@@ -352,23 +348,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         lotus.registerMenu(new HologramMenu());
         lotus.registerMenu(new DeleteLineMenu());
         lotus.registerMenu(new PoseEditorMenu());
-
-        // prevent reload goofery
-        if (!System.getProperties().containsKey("CUSTOMNPCS_LOADED")) {
-            getLogger().info("Loading commands!");
-
-            imperat = BukkitImperat.builder(this).applyBrigadier(true)
-                    .namedSuggestionResolver("sound", new SoundSuggester())
-                    .namedSuggestionResolver("current_npc", new NpcSuggester())
-                    .namedSuggestionResolver("broken_npc", new NpcSuggester())
-                    .namedSuggestionResolver("worlds", new WorldSuggester())
-                    .build();
-
-            // only one command, the rest are sub commands
-            imperat.registerCommand(new NpcCommand());
-        }
-
-        System.setProperty("CUSTOMNPCS_LOADED", "true");
     }
 
     /**
@@ -408,11 +387,12 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
         // don't unregister these on reload
         if (!reloading) {
-            if (imperat != null) {
-                imperat.shutdownPlatform();
-                imperat.unregisterAllCommands();
+            if (commandDispatcher != null) {
+                // Clear the command dispatcher by getting a new instance
+                commandDispatcher = null;
             }
         }
+        ACTION_REGISTRY.clear();
     }
 
     /**
@@ -463,7 +443,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     }
 
     /**
-     * <p> Doesn't do anything since this plugin is not expecting to receive any plugin messages. It exists sole to be able to send a player to a bungeecord server.
+     * <p> Doesn't do anything since this plugin is not expecting to receive any plugin messages. It exists sole to
+     * be able to send a player to a bungeecord server.
      * </p>
      */
     @Override
@@ -473,42 +454,49 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * Creates an npc
      *
-     * @param world       the world
-     * @param location    the location to spawn it
-     * @param equipment   the equipment object representing the NPC's items
-     * @param settings    the settings object representing the NPC's settings
-     * @param uuid        the NPC's UUID
-     * @param target      the NPC's target to follow
-     * @param actions the NPC's actions
+     * @param world     the world
+     * @param location  the location to spawn it
+     * @param equipment the equipment object representing the NPC's items
+     * @param settings  the settings object representing the NPC's settings
+     * @param uuid      the NPC's UUID
+     * @param target    the NPC's target to follow
+     * @param actions   the NPC's actions
      * @return the created NPC
      * @throws RuntimeException If the reflective creation of the NPC object fails
      */
-    public InternalNpc createNPC(World world, Location location, Equipment equipment, Settings settings, UUID uuid, @Nullable Player target, List<Action> actions, List<Condition> conditions, Selector injectionMode) {
+    public InternalNpc createNPC(World world, Location location, Equipment equipment, Settings settings, UUID uuid,
+                                 @Nullable Player target, List<Action> actions, List<Condition> conditions,
+                                 Selector injectionMode) {
         try {
             Class<?> clazz = Class.forName(String.format(NPC_CLASS, translateVersion()));
             return (InternalNpc) clazz
-                    .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class, UUID.class, Player.class, List.class, List.class, Selector.class)
-                    .newInstance(this, world, location, equipment, settings, uuid, target, actions, conditions, injectionMode);
+                    .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class,
+                            UUID.class, Player.class, List.class, List.class, Selector.class)
+                    .newInstance(this, world, location, equipment, settings, uuid, target, actions, conditions,
+                            injectionMode);
         } catch (ReflectiveOperationException e) {
-            getLogger().log(Level.SEVERE, "An error occurred whilst creating the NPC '{name}! This is most likely a configuration issue.".replace("{name}", settings.getName()), e);
+            getLogger().log(Level.SEVERE, ("An error occurred whilst creating the NPC '{name}! This is most likely a " +
+                    "configuration issue.").replace("{name}", settings.getRawHolograms().getFirst()), e);
             throw new RuntimeException(e);
         } catch (Exception e) {
-            getLogger().log(Level.SEVERE, "An error occurred whilst creating the NPC '{name}!".replace("{name}", settings.getName()), e);
+            getLogger().log(Level.SEVERE, "An error occurred whilst creating the NPC '{name}!".replace("{name}",
+                    settings.getRawHolograms().getFirst()), e);
             throw new RuntimeException(e);
         }
     }
 
     public String translateVersion() {
         return switch (serverVersion) {
-            case "1.20", "1.20.1" -> "v1_20_R1";
-            case "1.20.2" -> "v1_20_R2";
-            case "1.20.3", "1.20.4" -> "v1_20_R3";
             case "1.20.5", "1.20.6" -> "v1_20_R4";
             case "1.21", "1.21.1" -> "v1_21_R0";
             case "1.21.2", "1.21.3" -> "v1_21_R1";
             case "1.21.4" -> "v1_21_R2";
             case "1.21.5" -> "v1_21_R3";
             case "1.21.6", "1.21.7", "1.21.8" -> "v1_21_R4";
+            case "1.21.9", "1.21.10" -> "v1_21_R5";
+            case "1.21.11" -> "v1_21_R6";
+            case "26.1", "26.1.1", "26.1.2" -> "v26_1_R1";
+            case "26.2" -> "v26_2_R1";
             default -> "";
         };
     }
@@ -530,8 +518,9 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         logger.severe("+------------------------------------------------------------------------------+");
         logger.severe("|                      INVALID SERVER VERSION DETECTED                         |");
         logger.severe("|             ** PLEASE USE ONE OF THE FOLLOWING SERVER VERSIONS **            |");
-        logger.severe("|                                [1.20.x, 1.21.x]                              |");
-        logger.severe("|                               DETECTED: '" + serverVersion + "'                             |");
+        logger.severe("|                          [1.20.5+, 1.21.x, 26.x]                             |");
+        logger.severe("|                               DETECTED: '" + serverVersion + "'                             " +
+                "|");
         logger.severe("|           Please contact @foxikle on Discord for more information.           |");
         logger.severe("+------------------------------------------------------------------------------+");
         logger.severe("");
@@ -548,6 +537,19 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
     public Pagination getSkinCatalog(Player player) {
         return getMenuUtils().getSkinCatalogue(player.locale());
+    }
+
+    public static class BukkitImperat {
+        public static void handleCommandException(com.mojang.brigadier.exceptions.CommandSyntaxException e,
+                                                  org.bukkit.command.CommandSender sender) {
+            if (e.getCursor() >= 0) {
+                String input = e.getInput();
+                String pointer = " ".repeat(Math.max(0, e.getCursor())) + "^";
+                sender.sendMessage(input);
+                sender.sendMessage(pointer);
+            }
+            sender.sendMessage(e.getMessage());
+        }
     }
 
 }
