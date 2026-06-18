@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,21 +22,21 @@
 
 package dev.foxikle.customnpcs.internal.commands.suggestion;
 
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.command.parameters.CommandParameter;
-import dev.velix.imperat.context.SuggestionContext;
-import dev.velix.imperat.resolvers.SuggestionResolver;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 
-import java.util.List;
+public class NpcSuggester {
 
-public class NpcSuggester implements SuggestionResolver<BukkitSource> {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> autoComplete(SuggestionContext<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
-        final CustomNPCs plugin = CustomNPCs.getInstance();
-        return plugin.npcs.values().stream().map(npc -> plugin.getMiniMessage().stripTags(npc.getSettings().getName())).toList();
-    }
+    public static final SuggestionProvider<CommandSourceStack> SUGGESTIONS = (context, builder) -> {
+        CustomNPCs plugin = CustomNPCs.getInstance();
+        String input = builder.getRemaining().toLowerCase();
+
+        plugin.npcs.values().stream()
+                .map(npc -> plugin.getMiniMessage().stripTags(npc.getSettings().getRawHolograms().getFirst()))
+                .filter(name -> name.toLowerCase().startsWith(input))
+                .forEach(builder::suggest);
+
+        return builder.buildFuture();
+    };
 }
