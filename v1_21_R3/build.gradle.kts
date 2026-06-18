@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,8 @@
 
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.18"
-    id("io.freefair.lombok") version "8.14"
+    id("io.papermc.paperweight.userdev") version "2.0.0-SNAPSHOT"
+    id("io.freefair.lombok") version "9.5.0"
 }
 
 repositories {
@@ -34,18 +34,20 @@ repositories {
 }
 
 dependencies {
-    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("me.clip:placeholderapi:2.12.2")
     compileOnly(project(":core"))
     paperweight.paperDevBundle("1.21.5-R0.1-SNAPSHOT")
 }
 
 tasks {
+    paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
+
     java {
-        toolchain.languageVersion = JavaLanguageVersion.of(21)
+        toolchain.languageVersion = JavaLanguageVersion.of(25)
     }
 
     compileJava {
-        options.release = 21
+        options.release = 25
     }
 
     jar {

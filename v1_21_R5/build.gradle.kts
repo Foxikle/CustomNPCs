@@ -22,8 +22,8 @@
 
 plugins {
     id("java")
-    id("io.freefair.lombok") version "9.5.0"
     id("io.papermc.paperweight.userdev") version "2.0.0-SNAPSHOT"
+    id("io.freefair.lombok") version "9.5.0"
 }
 
 repositories {
@@ -36,7 +36,8 @@ repositories {
 dependencies {
     compileOnly("me.clip:placeholderapi:2.12.2")
     compileOnly(project(":core"))
-    paperweight.paperDevBundle("1.20.6-R0.1-SNAPSHOT")
+//    TODO: Remove the "rc1-" part...
+    paperweight.paperDevBundle("1.21.10-R0.1-SNAPSHOT")
 }
 
 tasks {
@@ -51,6 +52,6 @@ tasks {
     }
 
     jar {
-        archiveClassifier = "v1_20_R4"
+        archiveClassifier = "v1_21_R5"
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,9 +23,9 @@
 plugins {
     `java-library`
     `maven-publish`
-    id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("xyz.jpenilla.run-paper") version "3.0.2"
     id("io.github.goooler.shadow") version "8.1.8"
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.18" apply false
+    id("io.papermc.paperweight.userdev") version "2.0.0-SNAPSHOT" apply false
 }
 
 repositories {
@@ -38,15 +38,16 @@ repositories {
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":v1_21_R4"))
-    implementation(project(":v1_21_R3"))
-    implementation(project(":v1_21_R2"))
-    implementation(project(":v1_21_R1"))
-    implementation(project(":v1_21_R0"))
-    implementation(project(":v1_20_R4"))
-    implementation(project(":v1_20_R3", "reobf"))
-    implementation(project(":v1_20_R2", "reobf"))
-    implementation(project(":v1_20_R1", "reobf"))
+    implementation(project(":v26_2_R1", configuration = "default"))
+    implementation(project(":v26_1_R1", configuration = "default"))
+    implementation(project(":v1_21_R6", configuration = "default"))
+    implementation(project(":v1_21_R5", configuration = "default"))
+    implementation(project(":v1_21_R4", configuration = "default"))
+    implementation(project(":v1_21_R3", configuration = "default"))
+    implementation(project(":v1_21_R2", configuration = "default"))
+    implementation(project(":v1_21_R1", configuration = "default"))
+    implementation(project(":v1_21_R0", configuration = "default"))
+    implementation(project(":v1_20_R4", configuration = "default"))
 }
 
 var pluginVersion = "1.8-pre2"
@@ -57,7 +58,7 @@ allprojects {
     description = "CustomNPCs"
 }
 
-java.sourceCompatibility = JavaVersion.VERSION_21
+java.sourceCompatibility = JavaVersion.VERSION_25
 
 val javadocJar = tasks.register<Jar>("javadocJar") {
     archiveClassifier.set("javadoc")
@@ -93,6 +94,7 @@ publishing {
 }
 
 tasks {
+
     assemble {
         dependsOn(shadowJar)
     }
@@ -101,9 +103,11 @@ tasks {
         dependsOn(shadowJar)
     }
 
+
+
     compileJava {
         options.encoding = Charsets.UTF_8.name()
-        options.release = 21
+        options.release = 25
     }
     javadoc {
         source = sourceSets["main"].allSource
