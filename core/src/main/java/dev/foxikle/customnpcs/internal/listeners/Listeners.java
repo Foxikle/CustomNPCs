@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,8 @@
 
 package dev.foxikle.customnpcs.internal.listeners;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.actions.defaultImpl.*;
 import dev.foxikle.customnpcs.api.events.NpcInteractEvent;
@@ -41,6 +41,7 @@ import io.github.mqzen.menus.base.MenuView;
 import io.papermc.paper.event.world.WorldGameRuleChangeEvent;
 import lombok.Getter;
 import lombok.Setter;
+import me.clip.placeholderapi.PlaceholderAPIPlugin;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.ConsoleCommandSender;
@@ -53,7 +54,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.event.server.ServerLoadEvent;
+import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 import org.mineskin.data.CodeAndMessage;
@@ -62,7 +67,6 @@ import org.mineskin.exception.MineSkinRequestException;
 import org.mineskin.request.GenerateRequest;
 import org.mineskin.response.MineSkinResponse;
 
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
@@ -112,15 +116,18 @@ public class Listeners implements Listener {
     }
 
     public void start() {
-        Bukkit.getWorlds().forEach(world -> worldSleepingPercentages.put(world.getUID(), world.getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE)));
+        Bukkit.getWorlds().forEach(world -> worldSleepingPercentages.put(world.getUID(),
+                world.getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE)));
         service = Executors.newSingleThreadScheduledExecutor();
-        service.scheduleAtFixedRate(() -> Bukkit.getOnlinePlayers().forEach(this::actionPlayerMovement), 1000, plugin.getConfig().getInt("LookInterval") * 50L, TimeUnit.MILLISECONDS);
+        service.scheduleAtFixedRate(() -> Bukkit.getOnlinePlayers().forEach(this::actionPlayerMovement), 1000,
+                plugin.getConfig().getInt("LookInterval") * 50L, TimeUnit.MILLISECONDS);
     }
 
 
     public void stop() {
         service.shutdown();
-        Bukkit.getWorlds().forEach(world -> world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, worldSleepingPercentages.get(world.getUID())));
+        Bukkit.getWorlds().forEach(world -> world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE,
+                worldSleepingPercentages.get(world.getUID())));
         CompletableFuture.runAsync(() -> {
             try {
                 if (!service.awaitTermination(2, TimeUnit.SECONDS)) {
@@ -150,7 +157,8 @@ public class Listeners implements Listener {
         }
     }
 
-    private void processPlayerMovement(final Player player, final InternalNpc npc, final World world, final World npcWorld, final Location location, final UUID uuid) {
+    private void processPlayerMovement(final Player player, final InternalNpc npc, final World world,
+                                       final World npcWorld, final Location location, final UUID uuid) {
         if (player.getGameMode() == GameMode.SPECTATOR) return; // we don't care about spectators
         final Location npcLocation = npc.getCurrentLocation();
         MovementData oldMovementData; // difference in order of initialization in if/else statement
@@ -231,6 +239,12 @@ public class Listeners implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerMove(PlayerMoveEvent e) {
+        Player player = e.getPlayer();
+        actionPlayerMovement(player);
+    }
+
     /**
      * The handler for text input
      *
@@ -242,8 +256,33 @@ public class Listeners implements Listener {
     public void onChat(AsyncPlayerChatEvent e) {
         Player player = e.getPlayer();
         String message = e.getMessage();
-        boolean cancel = message.equalsIgnoreCase("quit") || message.equalsIgnoreCase("exit") || message.equalsIgnoreCase("stop") || message.equalsIgnoreCase("cancel");
-        if (plugin.isWaiting(player, WaitingType.COMMAND)) {
+        boolean cancel = message.equalsIgnoreCase("quit") || message.equalsIgnoreCase("exit")
+                || message.equalsIgnoreCase("stop") || message.equalsIgnoreCase("cancel");
+
+        if (plugin.isWaiting(player, WaitingType.RECORDING)) {
+            if (!message.equalsIgnoreCase("done")) return;
+            e.setCancelled(true);
+
+            Action actionImpl = plugin.editingActions.get(player.getUniqueId());
+            if (!(actionImpl instanceof FollowPresetPath follow)) {
+                plugin.getLogger().warning("Expected action to be an instance of 'FollowPresetPathAction', got " + actionImpl.getClass().getSimpleName());
+                return;
+            }
+
+            plugin.waiting.remove(player.getUniqueId());
+
+            if (cancel) {
+                SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, follow.getMenu()));
+                return;
+            }
+
+            List<RecordedPathNode> path = FollowPresetPath.stopRecording(player);
+            follow.setPath(path);
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.recording",
+                    String.valueOf(path.size())));
+            SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, follow.getMenu()));
+            return;
+        } else if (plugin.isWaiting(player, WaitingType.COMMAND)) {
             Action actionImpl = plugin.editingActions.get(player.getUniqueId());
             if (!(actionImpl instanceof RunCommand runCommand)) {
                 plugin.getLogger().warning("Expected action to be an instance of 'RunCommand', got " + actionImpl.getClass().getSimpleName());
@@ -277,10 +316,7 @@ public class Listeners implements Listener {
 
             plugin.waiting.remove(player.getUniqueId());
             int index = HologramMenu.editingIndicies.get(player.getUniqueId());
-            if (npc.getSettings().getRawHolograms().length <= index) { // an addition
-                npc.getSettings().setRawHolograms(Arrays.copyOf(npc.getSettings().getRawHolograms(), index + 1)); // extend it by 1
-            }
-            npc.getSettings().getRawHolograms()[index] = message;
+            npc.getSettings().getRawHolograms().set(index, message);
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.name", index + 1, Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_HOLOGRAMS));
         } else if (plugin.isWaiting(player, WaitingType.TARGET)) {
@@ -338,7 +374,8 @@ public class Listeners implements Listener {
 
             setTitle.setSubTitle(message);
 
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.subtitle", Msg.format(message)));
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.subtitle",
+                    Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.MESSAGE)) {
             Action actionImpl = plugin.editingActions.get(player.getUniqueId());
@@ -354,7 +391,8 @@ public class Listeners implements Listener {
             plugin.waiting.remove(player.getUniqueId());
             sendMessage.setRawMessage(message);
 
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.message", Msg.format(message)));
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.message",
+                    Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.SERVER)) {
             Action actionImpl = plugin.editingActions.get(player.getUniqueId());
@@ -371,7 +409,8 @@ public class Listeners implements Listener {
 
             runServer.setServer(message);
 
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.server", Msg.format(message)));
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.server",
+                    Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.ACTIONBAR)) {
             Action actionImpl = plugin.editingActions.get(player.getUniqueId());
@@ -386,7 +425,8 @@ public class Listeners implements Listener {
             }
             plugin.waiting.remove(player.getUniqueId());
             actionBar.setRawMessage(message);
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.actionbar", Msg.format(message)));
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.actionbar",
+                    Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.PLAYER)) {
             if (cancel) {
@@ -402,27 +442,28 @@ public class Listeners implements Listener {
                 return;
             }
 
+
             // this runs on an async thread, so there isn't any need to do this async :)
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.fetching.player", message));
             String name = e.getMessage();
-            try {
-                URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + name);
-                InputStreamReader reader = new InputStreamReader(url.openStream());
-                String uuid = new JsonParser().parse(reader).getAsJsonObject().get("id").getAsString();
-                reader.close();
 
-                URL url2 = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false");
-                reader = new InputStreamReader(url2.openStream());
-
-                JsonObject property = new JsonParser().parse(reader).getAsJsonObject().get("properties").getAsJsonArray().get(0).getAsJsonObject();
-                String value = property.get("value").getAsString();
-                String signature = property.get("signature").getAsString();
-                npc.getSettings().setSkinData(signature, value, Msg.translatedString(player.locale(), "customnpcs.skins.imported_by.player_name", Msg.format(name)));
-            } catch (Exception ignored) {
-                player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.player_does_not_exist", name));
+            PlayerProfile profile = Bukkit.createProfile(name);
+            if (!profile.complete()) {
+                player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.player_does_not_exist",
+                        name));
                 e.setCancelled(true);
                 return;
             }
+            profile.complete();
+
+
+            for (ProfileProperty property : profile.getProperties()) {
+                if (!property.getName().equals("textures")) continue;
+                npc.getSettings().setSkinData(property.getSignature(), property.getValue(),
+                        Msg.translatedString(player.locale(), "customnpcs" +
+                                ".skins.imported_by.player_name", Msg.format(name)));
+            }
+
             plugin.waiting.remove(player.getUniqueId());
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.success.player_name", name));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_SKIN));
@@ -447,7 +488,9 @@ public class Listeners implements Listener {
                         .name("URL Generated Skin")
                         .visibility(Visibility.UNLISTED);
                 SkinUtils.fetch(request).thenAccept(skin -> {
-                            npc.getSettings().setSkinData(skin.texture().data().signature(), skin.texture().data().value(), Msg.translatedString(player.locale(), "customnpcs.skins.imported_by.url"));
+                            npc.getSettings().setSkinData(skin.texture().data().signature(),
+                                    skin.texture().data().value(), Msg.translatedString(player.locale(), "customnpcs" +
+                                            ".skins.imported_by.url"));
                             plugin.waiting.remove(player.getUniqueId());
                             player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.success.url", message));
                             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_SKIN));
@@ -464,17 +507,22 @@ public class Listeners implements Listener {
                                 Optional<CodeAndMessage> detailsOptional = response.getErrorOrMessage();
                                 Throwable finalThrowable = throwable;
                                 detailsOptional.ifPresent(details -> {
-                                    plugin.getLogger().log(Level.SEVERE, details.code() + " : " + details, finalThrowable);
+                                    plugin.getLogger().log(Level.SEVERE, details.code() + " : " + details,
+                                            finalThrowable);
                                     System.out.println(details.code() + ": " + details.message());
                                 });
                             }
 
-                            if (throwable.getMessage().equalsIgnoreCase("java.lang.RuntimeException: org.mineskin.data.MineskinException: Failed to find image from url")) {
-                                player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.no_image_data"));
+                            if (throwable.getMessage().equalsIgnoreCase("java.lang.RuntimeException: org.mineskin" +
+                                    ".data.MineskinException: Failed to find image from url")) {
+                                player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors" +
+                                        ".no_image_data"));
                                 return null;
                             }
-                            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.unknown_url_error"));
-                            plugin.getLogger().log(Level.SEVERE, "An error occurred whilst parsing this skin from a url.", throwable);
+                            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors" +
+                                    ".unknown_url_error"));
+                            plugin.getLogger().log(Level.SEVERE, "An error occurred whilst parsing this skin from a " +
+                                    "url.", throwable);
                             return null;
                         });
             } catch (Exception ex) {
@@ -494,7 +542,8 @@ public class Listeners implements Listener {
             }
             plugin.waiting.remove(player.getUniqueId());
             e.setCancelled(true);
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.clickable_hologram", Msg.format(message)));
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.clickable_hologram",
+                    Msg.format(message)));
             npc.getSettings().setCustomInteractableHologram(message);
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_EXTRA_SETTINGS));
         } else if (plugin.isWaiting(player, WaitingType.FACING)) {
@@ -528,8 +577,11 @@ public class Listeners implements Listener {
     public void onPlayerLogin(PlayerJoinEvent e) {
         Player player = e.getPlayer();
 
-        if (plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate") && player.hasPermission("customnpcs.alert")) {
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.should_update"));
+        if (plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate") && player.hasPermission("customnpcs" +
+                ".alert")) {
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.should_update").appendNewline()
+                    .append(Msg.format("<click:open_url:https://modrinth" +
+                            ".com/plugin/customnpcs/versions><b><#1bd96a>[Modrinth]")));
         }
         recalcSleepingPercentages();
         if (player.getGameMode() == GameMode.SPECTATOR) return;
@@ -678,6 +730,7 @@ public class Listeners implements Listener {
     private void recalcSleepingPercentages() {
         Bukkit.getWorlds().forEach(world -> {
             if (world == null) return;
+            if (worldSleepingPercentages.get(world.getUID()) == null) return;
             int target = worldSleepingPercentages.get(world.getUID());
             int npcCount = plugin.getNPCs().stream().filter(npc -> npc.getWorld() == world).toList().size();
             int playercount = world.getPlayers().size();
@@ -685,7 +738,8 @@ public class Listeners implements Listener {
                 world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, target);
                 return;
             }
-            world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, (int) (((playercount - npcCount) / (double) playercount) * target));
+            world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE,
+                    (int) (((playercount - npcCount) / (double) playercount) * target));
         });
     }
 
@@ -694,6 +748,19 @@ public class Listeners implements Listener {
         if (event.getCommandSender() == null) return; // prevent stack overflows
         if (!event.getGameRule().equals(GameRule.PLAYERS_SLEEPING_PERCENTAGE)) return;
         worldSleepingPercentages.put(event.getWorld().getUID(), Integer.parseInt(event.getValue()));
+        recalcSleepingPercentages();
+    }
+
+    @EventHandler
+    public void onWorldLoad(WorldLoadEvent event) {
+        worldSleepingPercentages.put(event.getWorld().getUID(),
+                event.getWorld().getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE));
+        recalcSleepingPercentages();
+    }
+
+    @EventHandler
+    public void onWorld(WorldUnloadEvent event) {
+        worldSleepingPercentages.remove(event.getWorld().getUID());
         recalcSleepingPercentages();
     }
 
@@ -749,6 +816,25 @@ public class Listeners implements Listener {
             plugin.getNPCByID(npc.getUniqueID()).createNPC();
             plugin.getLotus().openMenu(player, MenuUtils.NPC_MAIN);
         }
+    }
+
+    @EventHandler
+    public void serverLoadEvent(ServerLoadEvent event) {
+        SCHEDULER.runTaskLater(plugin, () -> {
+            // setup papi, which happens after the server load event is fired.
+            Plugin placeholderAPI = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+            if (placeholderAPI != null) {
+                PlaceholderAPIPlugin papiPlugin = (PlaceholderAPIPlugin) placeholderAPI;
+                plugin.papiPlayerExpansion = papiPlugin.getLocalExpansionManager().getExpansion("Player") != null;
+
+                plugin.getLogger().info("Successfully hooked into PlaceholderAPI.");
+                plugin.papi = true;
+            } else {
+                plugin.papi = false;
+                plugin.getLogger().warning("Could not find PlaceholderAPI! PlaceholderAPI isn't required, but " +
+                        "CustomNPCs does support it.");
+            }
+        }, 30);
     }
 
     @Getter
