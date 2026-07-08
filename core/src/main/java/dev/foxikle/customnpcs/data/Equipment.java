@@ -23,9 +23,9 @@
 package dev.foxikle.customnpcs.data;
 
 import dev.foxikle.customnpcs.internal.utils.Utils;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
 import org.bukkit.inventory.EntityEquipment;
@@ -37,9 +37,13 @@ import org.jetbrains.annotations.Nullable;
  */
 @Getter
 @Setter
+@ToString
 @SuppressWarnings("UnusedReturnValue")
-@AllArgsConstructor
 public class Equipment {
+
+    public static final Equipment DEFAULT = new Equipment(
+            null, null, null, null, null, null
+    );
 
     public static final Codec<Equipment> CODEC = StructCodec.struct(
             "head", Utils.ITEM_CODEC.optional(), Equipment::getHead,
@@ -64,11 +68,18 @@ public class Equipment {
     @Nullable
     private ItemStack offhand = null;
 
-    /**
-     * A constructor to create an equipment object with air as all items
-     */
-    public Equipment() {
-        // default constructor
+    public Equipment(@Nullable ItemStack head,
+                     @Nullable ItemStack chest,
+                     @Nullable ItemStack legs,
+                     @Nullable ItemStack boots,
+                     @Nullable ItemStack hand,
+                     @Nullable ItemStack offhand) {
+        this.head = head != null && !head.isEmpty() ? head.clone() : null;
+        this.chest = chest != null && !chest.isEmpty() ? chest.clone() : null;
+        this.legs = legs != null && !legs.isEmpty() ? legs.clone() : null;
+        this.boots = boots != null && !boots.isEmpty() ? boots.clone() : null;
+        this.hand = hand != null && !hand.isEmpty() ? hand.clone() : null;
+        this.offhand = offhand != null && !offhand.isEmpty() ? offhand.clone() : null;
     }
 
     /**
@@ -89,12 +100,12 @@ public class Equipment {
     @SuppressWarnings("all")
     public Equipment clone() {
         return new Equipment(
-                head != null ? head.clone() : null,
-                chest != null ? chest.clone() : null,
-                legs != null ? legs.clone() : null,
-                boots != null ? boots.clone() : null,
-                hand != null ? hand.clone() : null,
-                offhand != null ? offhand.clone() : null
+                head != null && !head.isEmpty() ? head.clone() : null,
+                chest != null && !chest.isEmpty() ? chest.clone() : null,
+                legs != null && !legs.isEmpty() ? legs.clone() : null,
+                boots != null && !boots.isEmpty() ? boots.clone() : null,
+                hand != null && !hand.isEmpty() ? hand.clone() : null,
+                offhand != null && !offhand.isEmpty() ? offhand.clone() : null
         );
     }
 
@@ -162,5 +173,94 @@ public class Equipment {
     public Equipment setHand(@Nullable ItemStack itemStack) {
         hand = itemStack;
         return this;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private final Equipment equipment = DEFAULT;
+
+        /**
+         * Sets the items on the NPC's head
+         *
+         * @param itemStack the item to use
+         * @return this, for chaining
+         */
+        public Builder head(@Nullable ItemStack itemStack) {
+            equipment.setHead(itemStack);
+            return this;
+        }
+
+        /**
+         * Sets the items on the NPC's chest
+         *
+         * @param itemStack the item to use
+         * @return this, for chaining
+         */
+        public Builder chest(@Nullable ItemStack itemStack) {
+            equipment.setChest(itemStack);
+            return this;
+        }
+
+        /**
+         * Sets the items on the NPC's legs
+         *
+         * @param itemStack the item to use
+         * @return this, for chaining
+         */
+        public Builder legs(@Nullable ItemStack itemStack) {
+            equipment.setLegs(itemStack);
+            return this;
+        }
+
+        /**
+         * Sets the items on the NPC's feet
+         *
+         * @param itemStack the item to use
+         * @return this, for chaining
+         */
+        public Builder boots(@Nullable ItemStack itemStack) {
+            equipment.setBoots(itemStack);
+            return this;
+        }
+
+        /**
+         * Sets the items on the NPC's offhand
+         *
+         * @param itemStack the item to use
+         * @return this, for chaining
+         */
+        public Builder offhand(@Nullable ItemStack itemStack) {
+            equipment.setOffhand(itemStack);
+            return this;
+        }
+
+        /**
+         * Sets the items on the NPC's main hand
+         *
+         * @param itemStack the item to use
+         * @return this, for chaining
+         */
+        public Builder hand(@Nullable ItemStack itemStack) {
+            equipment.setHand(itemStack);
+            return this;
+        }
+
+        /**
+         * Imports the relevant items from an EntityEquipment Object
+         *
+         * @param e The entity equipment to pull items from.
+         */
+        public Builder importFromEntityEquipment(EntityEquipment e) {
+            equipment.importFromEntityEquipment(e);
+            return this;
+        }
+
+        public Equipment build() {
+            return equipment;
+        }
     }
 }
