@@ -46,6 +46,7 @@ dependencies {
     compileOnly("org.mineskin:java-client:3.2.6")
     compileOnly("org.mongodb:mongodb-driver-sync:5.3.0")
     compileOnly("com.mysql:mysql-connector-j:9.1.0")
+    compileOnly("org.apache.logging.log4j:log4j-core:2.24.3")
     compileOnly("com.zaxxer:HikariCP:6.2.1")
     compileOnlyApi("dev.minestom-united.common:codec:0.0.2")
 
@@ -69,11 +70,17 @@ val generateClassloader = tasks.register("generateClassloader") {
         outputDir.mkdirs()
         classloaderFile.createNewFile()
 
-        val deps = configurations.getByName("compileOnly")
-            .dependencies
+        val deps = sequenceOf(
+            configurations.getByName("compileOnly"),
+            configurations.getByName("compileOnlyApi")
+        )
+            .flatMap { it.dependencies.asSequence() }
             .filterIsInstance<ModuleDependency>()
-            .filter { it.group != "io.papermc.paper" && it.group != "me.clip" }
+            .filter { it.group != "io.papermc.paper" && it.group != "me.clip" && it.group != "org.apache.logging" }
             .map { "${it.group}:${it.name}:${it.version}" }
+            .distinct()
+            .toList()
+
 
         classloaderFile.writeText(
             """

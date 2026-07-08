@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025. Foxikle
+ * Copyright (c) 2025-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,8 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.bson.Document;
-import org.bson.types.Binary;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -51,22 +51,25 @@ public class MongoStorage implements StorageProvider {
     @Override
     public CompletableFuture<Void> init(CustomNPCs plugin) {
 
-        return CompletableFuture.supplyAsync(() -> {
-            ServerApi serverApi = ServerApi.builder()
-                    .version(ServerApiVersion.V1)
-                    .build();
-            settings = MongoClientSettings.builder()
-                    .applyConnectionString(new ConnectionString(Objects.requireNonNull(plugin.getConfig().getString("storage.mongo.connectionString"))))
-                    .serverApi(serverApi)
-                    .applyToLoggerSettings(builder -> {
-                        builder.maxDocumentLength(1);
-                    })
-                    .build();
-            database = Objects.requireNonNull(plugin.getConfig().getString("storage.mongo.database"));
-            document = Objects.requireNonNull(plugin.getConfig().getString("storage.mongo.document"));
-            plugin.getLogger().info("Successfully set up MongoDB storage!");
-            return null;
-        });
+        // suppress the extraordinary amount of spam mongodb spits out
+        Configurator.setLevel("org.mongodb.driver", "ERROR");
+
+        ServerApi serverApi = ServerApi.builder()
+                .version(ServerApiVersion.V1)
+                .build();
+        settings = MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(Objects.requireNonNull(plugin.getConfig().getString(
+                        "storage.mongo.connectionString"))))
+                .serverApi(serverApi)
+                .applyToLoggerSettings(builder -> builder.maxDocumentLength(0))
+                .build();
+        database = Objects.requireNonNull(plugin.getConfig().getString("storage.mongo.database"), "Invalid " +
+                "configuration! The MongoDB database must be set!");
+        document = Objects.requireNonNull(plugin.getConfig().getString("storage.mongo.collection"), "Invalid " +
+                "configuration! The MongoDB document must be set!");
+        plugin.getLogger().info("Successfully set up MongoDB storage!");
+
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
@@ -84,7 +87,8 @@ public class MongoStorage implements StorageProvider {
 
                 Document doc = new Document("_id", document).append("data", data);
                 // replace it if it exists :)
-                db.getCollection("customnpcs").replaceOne(Filters.eq("_id", document), doc, new ReplaceOptions().upsert(true));
+                db.getCollection("customnpcs").replaceOne(Filters.eq("_id", document), doc,
+                        new ReplaceOptions().upsert(true));
                 return true;
 
             } catch (Exception e) {
