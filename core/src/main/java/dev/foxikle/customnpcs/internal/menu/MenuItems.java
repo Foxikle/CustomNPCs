@@ -74,7 +74,11 @@ public class MenuItems {
         Component lines = Component.empty();
 
         for (int i = 0; i < npc.getSettings().getHolograms().length; i++) {
+            String raw = npc.getSettings().getRawHolograms()[i];
             Component holo = npc.getSettings().getHolograms()[i];
+            if (raw.isEmpty()) {
+                holo = Msg.translate(player.locale(), "customnpcs.messages.empty_string");
+            }
             lines = lines.append(Msg.format("   <dark_gray>" + (i + 1) + ". ").append(holo)).append(Component.newline());
         }
 
@@ -614,11 +618,21 @@ public class MenuItems {
                         // RIGHT is down
 
                         if (event.getClick() == ClickType.DROP) {
+                            if (npc.getSettings().getRawHolograms().length == 1) {
+                                player.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.holograms" +
+                                        ".min_one"));
+                                return;
+                            }
                             HologramMenu.editingIndicies.put(p.getUniqueId(), finalI);
                             plugin.getLotus().openMenu(p, MenuUtils.NPC_DELETE_LINE);
                             return;
                         }
                         if (event.getClick() == ClickType.CONTROL_DROP) {
+                            if (npc.getSettings().getRawHolograms().length == 1) {
+                                player.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.holograms" +
+                                        ".min_one"));
+                                return;
+                            }
                             mutable.remove(finalI);
                             player.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1F, 1F);
                             npc.getSettings().setRawHolograms(mutable.toArray(new String[0]));
