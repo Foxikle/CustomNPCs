@@ -44,6 +44,9 @@ DisableCollisions: true
 # NameReferenceMessages -> Should the plugin send you a message with the NPC's current name whilst attempting to change it?
 NameReferenceMessages: true
 
+# EditTip -> Should the plugin remind players with the customnpcs.manage.edit permission they can open the edit menu by sneak-clicking an npc? Players can still disable this for themselves.
+EditTip: true
+
 # DefaultInterpolationDuration -> How long should moving NPCs interpolate their Nametags moving?
 DefaultInterpolationDuration: 5
 
@@ -264,7 +267,6 @@ Storage:
   # +---------------------------------------+
   # These settings only matter if the provider is set to "MYSQL"
   mysql:
-
     # hostname -> the host name, or ip address of your database server.
     hostname: 'YOUR_HOST'
     # port -> The port the database runs on. Don't change this unless you know what you're doing
@@ -283,13 +285,12 @@ Storage:
   # +---------------------------------------+
   # These settings only matter if the provider is set to "MONGODB"
   mongodb:
-
     # connectionString -> The connection string provided by your mongo server.
     connectionString: 'YOUR_CONNECTION_STRING'
     # database -> The name of the database to use
     database: 'YOUR_DATABASE'
-    # collection -> The document collection to use to store the data. This can be used to separate your npc configurations across servers. ie: lobby, survival, etc.
-    collection: 'npcs'
+    # document -> The document name to use to store the data. This can be used to separate your npc configurations across servers. ie: lobby, survival, etc.
+    document: 'npcs'
 
 
 
