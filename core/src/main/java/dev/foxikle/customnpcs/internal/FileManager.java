@@ -30,6 +30,7 @@ import dev.foxikle.customnpcs.api.Pose;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.utils.BrokenReason;
 import dev.foxikle.customnpcs.internal.utils.SkinUtils;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import lombok.Getter;
@@ -59,14 +60,17 @@ public class FileManager {
     /**
      * The config file version
      */
-    public static final int CONFIG_FILE_VERSION = 6;
+    public static final int CONFIG_FILE_VERSION = 9;
     /**
      * The file version of the npcs.yml file
      */
     public static final double NPC_FILE_VERSION = 1.9;
+    private static final String INVALID_WORLD = "INVALID_WORLD         ";
+    private static final String EMPTY_LINES = "EMPTY_LINES           ";
+    private static final String UNKNOWN = "UNKNOWN               ";
     public static File PARENT_DIRECTORY = new File("plugins/CustomNPCs/");
     @Getter
-    private final Map<UUID, String> brokenNPCs = new HashMap<>();
+    private final Map<BrokenReason, Map<UUID, String>> brokenNPCs = new HashMap<>();
     @Getter
     private final List<UUID> validNPCs = new ArrayList<>();
     private final CustomNPCs plugin;
@@ -79,6 +83,8 @@ public class FileManager {
      */
     public FileManager(CustomNPCs plugin) {
         this.plugin = plugin;
+        brokenNPCs.put(BrokenReason.EMPTY_LINES, new HashMap<>());
+        brokenNPCs.put(BrokenReason.INVALID_WORLD, new HashMap<>());
     }
 
     /**
@@ -103,7 +109,8 @@ public class FileManager {
             if (!yml.contains("Skins")) {
                 BackupResult br = createBackup(file);
                 if (br.success) {
-                    plugin.getLogger().warning("The config is irreparably damaged! Resetting config. Your old config was saved to the file \"" + br.filePath.toString() + "\"");
+                    plugin.getLogger().warning("The config is irreparably damaged! Resetting config. Your old config " +
+                            "was saved to the file \"" + br.filePath.toString() + "\"");
                     plugin.saveResource("config.yml", true);
                 }
             }
@@ -114,18 +121,24 @@ public class FileManager {
                 if (!br.success()) {
                     throw new RuntimeException("Failed to create a backup of the config file before updating it!");
                 } else {
-                    plugin.getLogger().info("Created backup of config.yml before updating it! A copy of your existing config was saved to " + br.filePath().toString());
+                    plugin.getLogger().info("Created backup of config.yml before updating it! A copy of your existing" +
+                            " config was saved to " + br.filePath().toString());
                 }
             }
 
             if (version == 0) { // doesn't exist?
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 1));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
+                        "-> %d).", version, 1));
                 yml.set("CONFIG_VERSION", 1);
-                yml.setComments("CONFIG_VERSION", List.of(" DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.", ""));
+                yml.setComments("CONFIG_VERSION", List.of(" DO NOT, under ANY circumstances modify the " +
+                        "'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.", ""));
                 yml.set("ClickText", "&e&lCLICK");
-                yml.setComments("ClickText", List.of("ClickText -> The hologram displayed above the NPC if it is interactable", " NOTE: Due to Minecraft limitations, this cannot be more than 16 characters INCLUDING color and format codes.", " (But not the &)", ""));
+                yml.setComments("ClickText", List.of("ClickText -> The hologram displayed above the NPC if it is " +
+                        "interactable", " NOTE: Due to Minecraft limitations, this cannot be more than 16 characters " +
+                        "INCLUDING color and format codes.", " (But not the &)", ""));
                 yml.set("DisplayClickText", true);
-                yml.setComments("DisplayClickText", List.of(" DisplayClickText -> Should the plugin display a hologram above the NPC's head if it is interactable?", ""));
+                yml.setComments("DisplayClickText", List.of(" DisplayClickText -> Should the plugin display a " +
+                        "hologram above the NPC's head if it is interactable?", ""));
                 try {
                     yml.save(file);
                 } catch (IOException e) {
@@ -133,7 +146,8 @@ public class FileManager {
                 }
             }
             if (version < 2) { // prior to 1.4-pre2
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 2));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
+                        "-> %d).", version, 2));
                 yml.set("CONFIG_VERSION", 2);
                 yml.set("AlertOnUpdate", true);
                 try {
@@ -143,9 +157,11 @@ public class FileManager {
                 }
             }
             if (version < 3) { // prior to 1.5.2-pre1
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 3));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
+                        "-> %d).", version, 3));
                 yml.set("CONFIG_VERSION", 3);
-                yml.set("ClickText", plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(yml.getString("ClickText")))));
+                yml.set("ClickText",
+                        plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(yml.getString("ClickText")))));
                 try {
                     yml.save(file);
                 } catch (IOException e) {
@@ -153,7 +169,8 @@ public class FileManager {
                 }
             }
             if (version < 4) { //prior to 1.6-pre2
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 4));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
+                        "-> %d).", version, 4));
                 yml.set("CONFIG_VERSION", 4);
                 yml.set("DisableCollisions", true);
                 try {
@@ -163,7 +180,8 @@ public class FileManager {
                 }
             }
             if (version < 5) {
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 5));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
+                        "-> %d).", version, 5));
                 yml.set("CONFIG_VERSION", 5);
                 yml.set("NameReferenceMessages", true);
                 try {
@@ -173,7 +191,8 @@ public class FileManager {
                 }
             }
             if (version < 6) {
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 6));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
+                        "-> %d).", version, 6));
                 yml.set("CONFIG_VERSION", 6);
                 yml.set("InjectionDistance", 48);
                 yml.set("InjectionInterval", 10);
@@ -186,10 +205,12 @@ public class FileManager {
                 }
             }
             if (version < 7) {
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 7));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
+                        "-> %d).", version, 7));
                 yml.set("CONFIG_VERSION", 7);
                 yml.set("DefaultInterpolationDuration", 5);
-                yml.setComments("DefaultInterpolationDuration", List.of("DefaultInterpolationDuration -> How long should moving NPCs interpolate their Nametags moving?"));
+                yml.setComments("DefaultInterpolationDuration", List.of("DefaultInterpolationDuration -> How long " +
+                        "should moving NPCs interpolate their Nametags moving?"));
                 try {
                     yml.save(file);
                 } catch (IOException e) {
@@ -198,21 +219,26 @@ public class FileManager {
             }
 
             if (version < 8) {
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 8));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
+                        "-> %d).", version, 8));
                 yml.set("CONFIG_VERSION", 8);
                 ConfigurationSection section = yml.createSection("MineSkin");
                 yml.setComments("MineSkin", List.of(
                         " ############################",
                         " #        Skin API          #",
                         " ############################",
-                        "This plugin uses Mineskin.org's free skin api to generate skins from urls and player names. CustomNPCs comes with an api",
-                        "key embedded, but the same key is used by every other person using the plugin, so it will likely be reaching the rate limit",
-                        "nearly constantly. To combat this, you can use your own API key. You can get one here: https://account.mineskin.org/keys/"
+                        "This plugin uses Mineskin.org's free skin api to generate skins from urls and player names. " +
+                                "CustomNPCs comes with an api",
+                        "key embedded, but the same key is used by every other person using the plugin, so it will " +
+                                "likely be reaching the rate limit",
+                        "nearly constantly. To combat this, you can use your own API key. You can get one here: " +
+                                "https://account.mineskin.org/keys/"
                 ));
                 section.set("ApiKey", "");
                 section.setInlineComments("ApiKey", List.of("Put your api key here, if desired"));
                 section.set("ApiUrl", "");
-                section.setInlineComments("ApiUrl", List.of("Alternatively you can specify a proxied host to use instead: https://docs.mineskin.org/docs/guides/api-best-practises#use-a-proxy-server"));
+                section.setInlineComments("ApiUrl", List.of("Alternatively you can specify a proxied host to use " +
+                        "instead: https://docs.mineskin.org/docs/guides/api-best-practises#use-a-proxy-server"));
                 try {
                     yml.save(file);
                 } catch (IOException e) {
@@ -220,6 +246,15 @@ public class FileManager {
                 }
             }
             SkinUtils.setup(yml.getString("MineSkin.ApiKey"), yml.getString("MineSkin.ApiUrl"));
+
+            if (version < 9) {
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
+                        "-> %d).", version, 9));
+                yml.set("CONFIG_VERSION", 9);
+                yml.set("EditTip", true);
+                yml.setComments("EditTip", List.of("EditTip -> Should the plugin remind players with the customnpcs" +
+                        ".manage.edit permission they can open the edit menu by sneak-clicking an npc?"));
+            }
         }
 
         // npcs
@@ -254,7 +289,8 @@ public class FileManager {
                         String sub = split.get(0);
                         split.remove(0);
                         int delay = 0;
-                        LegacyAction actionImpl = new LegacyAction(ActionType.valueOf(sub), split, delay, Condition.SelectionMode.ONE, new ArrayList<>());
+                        LegacyAction actionImpl = new LegacyAction(ActionType.valueOf(sub), split, delay,
+                                Condition.SelectionMode.ONE, new ArrayList<>());
                         convertedActions.add(actionImpl.toJson());
                     }
                     s.set("actions", convertedActions);
@@ -263,7 +299,8 @@ public class FileManager {
                 try {
                     yml.save(file);
                 } catch (IOException e) {
-                    plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after saving a list of converted actions. Please report the following stacktrace to Foxikle.", e);
+                    plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after saving a " +
+                            "list of converted actions. Please report the following stacktrace to Foxikle.", e);
                 }
             }
 
@@ -297,7 +334,8 @@ public class FileManager {
                     try {
                         yml.save(file);
                     } catch (IOException e) {
-                        plugin.getLogger().severe("An error occurred whilst saving the converted actions. Please report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
+                        plugin.getLogger().severe("An error occurred whilst saving the converted actions. Please " +
+                                "report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
                     }
                 }
             }
@@ -322,7 +360,8 @@ public class FileManager {
                     try {
                         yml.save(file);
                     } catch (IOException e) {
-                        plugin.getLogger().severe("An error occurred whilst saving the tunelvision status to the config. Please report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
+                        plugin.getLogger().severe("An error occurred whilst saving the tunelvision status to the " +
+                                "config. Please report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
                     }
                 }
             }
@@ -347,7 +386,8 @@ public class FileManager {
                     try {
                         yml.save(file);
                     } catch (IOException e) {
-                        plugin.getLogger().severe("An error occurred whilst saving the tunelvision status to the config. Please report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
+                        plugin.getLogger().severe("An error occurred whilst saving the tunelvision status to the " +
+                                "config. Please report the following stacktrace to Foxikle. \n" + Arrays.toString(e.getStackTrace()));
                     }
                 }
             }
@@ -373,11 +413,13 @@ public class FileManager {
                     for (String actionStr : actionStrs) {
                         LegacyAction a = LegacyAction.of(actionStr);
                         if (a == null) {
-                            plugin.getLogger().warning("Found an invalid action in the config. Please report the following action string to Foxikle. \n" + actionStr);
+                            plugin.getLogger().warning("Found an invalid action in the config. Please report the " +
+                                    "following action string to Foxikle. \n" + actionStr);
                             continue;
                         }
                         if (a.getActionType() == ActionType.TOGGLE_FOLLOWING) {
-                            plugin.getLogger().warning("Found an action of the type `TOGGLE_FOLLOWING`. This action has been removed in 1.7.");
+                            plugin.getLogger().warning("Found an action of the type `TOGGLE_FOLLOWING`. This action " +
+                                    "has been removed in 1.7.");
                             continue;
                         }
 
@@ -486,12 +528,12 @@ public class FileManager {
                 if (err || !exists) {
                     found = true;
                     String rawName = plugin.getMiniMessage().stripTags(section.getStringList("lines").get(0));
-                    brokenNPCs.put(UUID.fromString(npc), rawName);
+                    brokenNPCs.get(BrokenReason.INVALID_WORLD).put(UUID.fromString(npc), rawName);
                 } else {
                     validNPCs.add(UUID.fromString(npc));
                 }
             }
-            if (found) printInvalidConfig();
+            if (found) printInvalidConfig(INVALID_WORLD);
         }
 
 
@@ -536,7 +578,8 @@ public class FileManager {
         try {
             yml.save(file);
         } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after creating a new section. Please report the following stacktrace to Foxikle.", e);
+            plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after creating a new " +
+                    "section. Please report the following stacktrace to Foxikle.", e);
         }
     }
 
@@ -559,29 +602,37 @@ public class FileManager {
                 Bukkit.getLogger().info("Converting legacy commands to Actions.");
                 String command = section.getString("command");
                 assert command != null;
-                LegacyAction actionImpl = new LegacyAction(ActionType.RUN_COMMAND, Utils.list(command.split(" ")), 0, Condition.SelectionMode.ONE, new ArrayList<>());
+                LegacyAction actionImpl = new LegacyAction(ActionType.RUN_COMMAND, Utils.list(command.split(" ")), 0,
+                        Condition.SelectionMode.ONE, new ArrayList<>());
                 actionImpls.add(actionImpl);
                 section.set("actions", actionImpls);
                 section.set("command", null);
                 try {
                     yml.save(file);
                 } catch (IOException e) {
-                    plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after converting legacy commands to actions. Please report the following stacktrace to Foxikle.", e);
+                    plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after converting" +
+                            " legacy commands to actions. Please report the following stacktrace to Foxikle.", e);
                 }
             }
         }
         List<String> rawLines = section.getStringList("lines");
+        if (rawLines.isEmpty()) {
+            printInvalidConfig(EMPTY_LINES);
+            brokenNPCs.get(BrokenReason.EMPTY_LINES).put(uuid, uuid.toString());
+            return;
+        }
         for (int i = 0; i < rawLines.size(); i++) {
             String line = rawLines.get(i);
             if (line.contains("§")) {
-                rawLines.set(i, plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(line))));
-
+                rawLines.set(i,
+                        plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(line))));
             }
 
             try {
                 yml.save(file);
             } catch (IOException e) {
-                plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after converting legacy names to minimessage. Please report the following stacktrace to Foxikle.", e);
+                plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after converting " +
+                        "legacy names to minimessage. Please report the following stacktrace to Foxikle.", e);
             }
         }
 
@@ -590,8 +641,8 @@ public class FileManager {
         try {
             world = Bukkit.getWorld(Objects.requireNonNull(section.getString("world")));
         } catch (IllegalArgumentException ex) {
-            printInvalidConfig();
-            brokenNPCs.put(uuid, rawName);
+            printInvalidConfig("INVALID_WORLD         ");
+            brokenNPCs.get(BrokenReason.INVALID_WORLD).put(UUID.fromString(rawName), rawName);
             return;
         }
 
@@ -599,26 +650,18 @@ public class FileManager {
         try {
             location = section.getLocation("location");
         } catch (Exception ex) {
-            brokenNPCs.put(uuid, rawName);
-            printInvalidConfig();
+            brokenNPCs.get(BrokenReason.INVALID_WORLD).put(UUID.fromString(rawName), rawName);
+            printInvalidConfig(INVALID_WORLD);
             return;
         }
 
-        if (world == null) {
-            printInvalidConfig();
-            brokenNPCs.put(uuid, rawName);
+        if (world == null || location == null) {
+            printInvalidConfig(INVALID_WORLD);
+            brokenNPCs.get(BrokenReason.INVALID_WORLD).put(UUID.fromString(rawName), rawName);
             return;
         }
-
-        if (location == null) {
-            printInvalidConfig();
-            brokenNPCs.put(uuid, rawName);
-            return;
-        }
-
 
         // use the actions freshly converted
-
         actions = new ArrayList<>();
         for (String s : section.getStringList("actions")) {
             actions.add(Action.parse(s));
@@ -651,7 +694,8 @@ public class FileManager {
         if (npc != null) {
             npc.createNPC();
         } else {
-            plugin.getLogger().severe("The NPC '{name}' could not be created!".replace("{name}", Objects.requireNonNull(section.getStringList("lines").get(0))));
+            plugin.getLogger().severe("The NPC '{name}' could not be created!".replace("{name}",
+                    Objects.requireNonNull(section.getStringList("lines").get(0))));
         }
     }
 
@@ -689,7 +733,7 @@ public class FileManager {
         try {
             yml = YamlConfiguration.loadConfiguration(file);
         } catch (Exception ex) {
-            printInvalidConfig();
+            printInvalidConfig(UNKNOWN);
             return new HashSet<>();
         }
         Set<UUID> uuids = new HashSet<>();
@@ -713,30 +757,36 @@ public class FileManager {
         try {
             yml.save(file);
         } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after removing an npc. Please report the following stacktrace to Foxikle.", e);
+            plugin.getLogger().log(Level.SEVERE, "An error occurred saving the npcs.yml file after removing an npc. " +
+                    "Please report the following stacktrace to Foxikle.", e);
         }
     }
 
     private BackupResult createBackup(File file) {
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
-        File f = new File(PARENT_DIRECTORY, new Date().toString().replace(" ", "_").replace(":", "_") + "_backup_of_" + file.getName() + Instant.now().hashCode());
+        File f = new File(PARENT_DIRECTORY,
+                new Date().toString().replace(" ", "_").replace(":", "_") + "_backup_of_" + file.getName() + Instant.now().hashCode());
         try {
             if (f.createNewFile()) {
                 yml.save(f);
             } else {
-                throw new RuntimeException("A duplicate file of file '" + f.getName() + "' exists! This means the plugin attempted to back up the file '" + file.getName() + "' multiple times within this millisecond! This is a serious issue that should be reported to @foxikle on discord!");
+                throw new RuntimeException("A duplicate file of file '" + f.getName() + "' exists! This means the " +
+                        "plugin attempted to back up the file '" + file.getName() + "' multiple times within this " +
+                        "millisecond! This is a serious issue that should be reported to @foxikle on discord!");
             }
         } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "An error occurred whilst creating a backup of the file '" + file.getName() + "'", e);
+            plugin.getLogger().log(Level.SEVERE,
+                    "An error occurred whilst creating a backup of the file '" + file.getName() + "'", e);
             return new BackupResult(null, false);
         }
         return new BackupResult(f.toPath(), true);
     }
 
-    private void printInvalidConfig() {
+    // reason should be 22 characters long for formatting
+    private void printInvalidConfig(String reason) {
         plugin.getLogger().severe("");
         plugin.getLogger().severe("+------------------------------------------------------------------------------+");
-        plugin.getLogger().severe("|                 NPC with an invalid configuration detected!                  |");
+        plugin.getLogger().log(Level.SEVERE, "|            NPC with an invalid configuration detected: {0}|", reason);
         plugin.getLogger().severe("|                 ** THIS IS NOT AN ERROR WITH CUSTOMNPCS **                   |");
         plugin.getLogger().severe("|         This is most likely a configuration error as a result of             |");
         plugin.getLogger().severe("|                       modifying the `npcs.yml` file.                         |");
