@@ -85,6 +85,9 @@ public class CommandUtils {
                 .append(Msg.translate(p, "customnpcs.commands.help.movedata.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.movedata.aliases"))))
                 .append(Msg.translate(p, "customnpcs.commands.help.movedata.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.movedata.hover"))))
                 .appendNewline()
+                .append(Msg.translate(p, "customnpcs.commands.help.disabletip.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.disabletip.aliases"))))
+                .append(Msg.translate(p, "customnpcs.commands.help.disabletip.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.disabletip.hover"))))
+                .appendNewline()
                 .append(Component.text("                                                                                 ", NamedTextColor.DARK_GREEN, TextDecoration.STRIKETHROUGH));
         return component;
     }

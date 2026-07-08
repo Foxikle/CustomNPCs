@@ -31,8 +31,10 @@ import net.minestom.server.codec.Codec;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.reflect.Type;
@@ -45,6 +47,9 @@ import java.util.UUID;
  * A class holding usful methods
  */
 public class Utils {
+
+    public static final NamespacedKey HIDE_EDIT_TIP = NamespacedKey.fromString("customnpcs:no_edit_tip");
+    public static final NamespacedKey HIDE_NAME_REFERENCE = NamespacedKey.fromString("customnpcs:no_name_reference");
 
     public static final Codec<ItemStack> ITEM_CODEC = Codec.BYTE_ARRAY.transform(ItemStack::deserializeBytes,
             ItemStack::serializeAsBytes);
@@ -157,6 +162,18 @@ public class Utils {
         loc.add(x, y, z);
 
         return loc;
+    }
+
+    public static boolean shouldSendEditTip(Player player) {
+        Boolean val = player.getPersistentDataContainer().get(HIDE_EDIT_TIP, PersistentDataType.BOOLEAN);
+        if (val == null) return true;
+        return !val;
+    }
+
+    public static boolean shouldSendNameReference(Player player) {
+        Boolean val = player.getPersistentDataContainer().get(HIDE_NAME_REFERENCE, PersistentDataType.BOOLEAN);
+        if (val == null) return false;
+        return val;
     }
 
     /**
