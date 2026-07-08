@@ -64,6 +64,7 @@ permissions:
       - customnpcs.commands.movehere
       - customnpcs.commands.wiki
       - customnpcs.commands.fix_config
+      - customnpcs.commands.disabletip
   customnpcs.commands.manage:
     description: A permission required to manage npcs with the /npc manage command.
     default: op
@@ -104,6 +105,9 @@ permissions:
     default: op
   customnpcs.commands.fix_config:
     description: A permission required to use the /npc fixconfig command
+    default: op
+  customnpcs.commands.disabletip:
+    description: A permission required to use the /npc disabletip command
     default: op
   customnpcs.alert:
     description: A permission to alert if there is a new update available.
