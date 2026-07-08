@@ -316,8 +316,18 @@ public class Listeners implements Listener {
 
             plugin.waiting.remove(player.getUniqueId());
             int index = HologramMenu.editingIndicies.get(player.getUniqueId());
-            npc.getSettings().getRawHolograms().set(index, message);
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.name", index + 1, Msg.format(message)));
+            String finalMessage = message;
+            if (message.equalsIgnoreCase("%empty%")) {
+                finalMessage = "";
+            }
+
+            if (npc.getSettings().getRawHolograms().size() <= index) {
+                npc.getSettings().getRawHolograms().add(finalMessage);
+            } else {
+                npc.getSettings().getRawHolograms().set(index, finalMessage);
+            }
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.name", index + 1,
+                    Msg.format(finalMessage)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_HOLOGRAMS));
         } else if (plugin.isWaiting(player, WaitingType.TARGET)) {
             Condition condition = plugin.editingConditionals.get(player.getUniqueId());

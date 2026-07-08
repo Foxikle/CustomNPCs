@@ -95,9 +95,8 @@ public class DeleteLineMenu implements Menu {
                                 p.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
                                 return;
                             }
-                            mutable.remove(index);
                             player.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1F, 1F);
-                            npc.getSettings().setRawHolograms(mutable.toArray(new String[0]));
+                            npc.getSettings().getRawHolograms().remove(index);
                             plugin.getLotus().openMenu(p, MenuUtils.NPC_HOLOGRAMS);
                         }))).setButton(15, Button.clickable(
                         ItemBuilder.modern(Material.LIME_STAINED_GLASS_PANE)
