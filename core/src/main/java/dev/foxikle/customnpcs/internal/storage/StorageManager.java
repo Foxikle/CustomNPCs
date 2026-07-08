@@ -30,8 +30,10 @@ import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.utils.BrokenReason;
 import dev.foxikle.customnpcs.internal.utils.SkinUtils;
 import dev.foxikle.customnpcs.internal.utils.Utils;
+import dev.foxikle.customnpcs.internal.utils.exceptions.EmptyLinesException;
 import dev.foxikle.customnpcs.internal.utils.exceptions.IllegalWorldException;
 import dev.foxikle.customnpcs.internal.utils.exceptions.UntrackedNpcException;
 import lombok.Getter;
@@ -55,7 +57,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 /**
  * The class that deals with all file related things
@@ -72,7 +73,7 @@ public class StorageManager {
     /**
      * The config file version
      */
-    public static final int CONFIG_FILE_VERSION = 9;
+    public static final int CONFIG_FILE_VERSION = 10;
     /**
      * The file version of the npcs.yml file
      */
@@ -80,12 +81,11 @@ public class StorageManager {
     @ApiStatus.ScheduledForRemoval(inVersion = "1.10")
     public static final double NPC_FILE_VERSION = 1.6;
     public static File PARENT_DIRECTORY = new File("plugins/CustomNPCs/");
-    @Getter
-    private final Map<UUID, StorableNPC> brokenNPCs = new HashMap<>();
+    private final Map<BrokenReason, Map<UUID, StorableNPC>> brokenNPCs = new HashMap<>();
     @Getter
     private final List<UUID> validNPCs = new ArrayList<>();
     private final CustomNPCs plugin;
-    private final List<StorableNPC> trackedNpcs = new ArrayList<>();
+    private final Map<UUID, StorableNPC> trackedNpcs = new HashMap<>();
 
     private boolean justMigrated = false;
     @Getter
@@ -99,6 +99,9 @@ public class StorageManager {
      */
     public StorageManager(CustomNPCs plugin) {
         this.plugin = plugin;
+        brokenNPCs.put(BrokenReason.EMPTY_LINES, new HashMap<>());
+        brokenNPCs.put(BrokenReason.INVALID_WORLD, new HashMap<>());
+        brokenNPCs.put(BrokenReason.UNKNOWN, new HashMap<>());
     }
 
     /**
@@ -127,7 +130,7 @@ public class StorageManager {
             }
             int version = yml.getInt("CONFIG_VERSION");
 
-            if (version < 9) {
+            if (version < CONFIG_FILE_VERSION) {
                 BackupResult br = createBackup(file);
                 if (!br.success()) {
                     throw new RuntimeException("Failed to create a backup of the config file before updating it!");
@@ -255,17 +258,25 @@ public class StorageManager {
                     throw new RuntimeException(e);
                 }
             }
-            SkinUtils.setup(yml.getString("MineSkin.ApiKey"), yml.getString("MineSkin.ApiUrl"));
 
             if (version < 9) {
                 plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
                         "-> %d).", version, 9));
+                yml.set("CONFIG_VERSION", 9);
+                yml.set("EditTip", true);
+                yml.setComments("EditTip", List.of("EditTip -> Should the plugin remind players with the customnpcs" +
+                        ".manage.edit permission they can open the edit menu by sneak-clicking an npc?"));
+            }
+
+            if (version < 10) {
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
+                        "-> %d).", version, 10));
 
                 yml.set("DebugMode", false);
                 yml.setComments("DebugMode", List.of("DebugMode -> Should the plugin launch in debug mode? This can " +
                         "be quite spammy, so only use this if you're sure!"));
 
-                yml.set("CONFIG_VERSION", 9);
+                yml.set("CONFIG_VERSION", 10);
                 ConfigurationSection storage = yml.createSection("storage");
                 yml.setComments("storage", Utils.list("", "+---------------------------------------+", "|           " +
                         "NPC Data Storage            |", "+---------------------------------------+"));
@@ -321,11 +332,12 @@ public class StorageManager {
                 mongo.set("database", "YOUR_DATABASE");
                 mongo.setComments("database", Utils.list("database -> The name of the database to use"));
 
-                mongo.set("collection", "npcs");
-                mongo.setComments("collection", Utils.list("collection -> The document collection to use to store the" +
+                mongo.set("document", "npcs");
+                mongo.setComments("document", Utils.list("document -> The document name to use to store the" +
                         " data. This can be used to separate your npc configurations across servers. ie: lobby, " +
                         "survival, etc."));
 
+                SkinUtils.setup(yml.getString("MineSkin.ApiKey"), yml.getString("MineSkin.ApiUrl"));
                 try {
                     yml.save(file);
                 } catch (IOException e) {
@@ -461,12 +473,13 @@ public class StorageManager {
             // migrate data to the new storage provider!
             plugin.getLogger().warning(" <!>  --  Migrating NPCs to dataformat 2!  --  <!>");
 
-            List<StorableNPC> migrated = new ArrayList<>();
+
             for (String key : yml.getKeys(false)) {
                 if (key.equals("version")) continue; // version tracking
-                migrated.add(migrateNPC(UUID.fromString(key)));
+                StorableNPC npc = migrateNPC(UUID.fromString(key));
+                trackedNpcs.put(npc.getUniqueID(), npc);
             }
-            trackedNpcs.addAll(migrated);
+
             createBackup(file); // create a backup just in case
             if (!file.delete()) {
                 plugin.getLogger().warning("Couldn't delete old NPC file!");
@@ -518,7 +531,7 @@ public class StorageManager {
                     plugin.getLogger().info("Successfully loaded " + successfullyLoaded + " NPCs, failed to load " + (trackedNpcs.size() - successfullyLoaded.get()) + " NPCs in " + (System.currentTimeMillis() - start) + "ms.");
                 }));
             } else {
-                trackedNpcs.forEach(npc -> {
+                trackedNpcs.forEach((id, npc) -> {
                     if (loadStorable(npc)) {
                         successfullyLoaded.incrementAndGet();
                     } else {
@@ -542,16 +555,22 @@ public class StorageManager {
             } else {
                 plugin.getLogger().warning("Failed to load NPC " + npc.getUniqueID() + "!");
             }
+        } catch (EmptyLinesException e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " due to an invalid " +
+                    "world. This can be fixed via /npc fixconfig lines.");
+            brokenNPCs.get(BrokenReason.EMPTY_LINES).put(npc.getUniqueID(), npc);
         } catch (IllegalWorldException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " due to an invalid " +
-                    "world.");
+                    "world. This can be fixed via /npc fixconfig world");
+            brokenNPCs.get(BrokenReason.INVALID_WORLD).put(npc.getUniqueID(), npc);
         } catch (UntrackedNpcException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " as it was not tracked.");
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " due to an unknown " +
                     "error.", e);
+            brokenNPCs.get(BrokenReason.UNKNOWN).put(npc.getUniqueID(), npc);
         }
-        brokenNPCs.put(npc.getUniqueID(), npc);
+
         if (plugin.isDebug()) {
             plugin.getLogger().info("[DEBUG] Loading NPC " + npc.getUniqueID() + " took " + (System.currentTimeMillis() - start) + "ms.");
         }
@@ -565,7 +584,7 @@ public class StorageManager {
      * @param npc The NPC to store
      */
     public void addNPC(InternalNpc npc) {
-        trackedNpcs.add(new StorableNPC(npc));
+        trackedNpcs.put(npc.getUniqueID(), new StorableNPC(npc));
         saveNpcs();
     }
 
@@ -577,23 +596,28 @@ public class StorageManager {
      * @return if the load was successful
      */
     public boolean loadNPC(UUID uuid) {
-        if (trackedNpcs.stream().noneMatch(npc -> npc.getUniqueID().equals(uuid))) {
-            throw new IllegalArgumentException("NPC does not exist! Track it first!");
+        if (!trackedNpcs.containsKey(uuid)) {
+            throw new UntrackedNpcException("The NPC " + uuid + " does not exist. Track it first!");
         }
-        StorableNPC stored = trackedNpcs.stream().filter(n -> n.getUniqueID().equals(uuid)).findFirst().orElse(null);
+        StorableNPC stored = trackedNpcs.get(uuid);
         if (stored == null) throw new IllegalArgumentException("NPC does not exist!"); // should never be thrown
+
+        if (stored.getSettings().getRawHolograms() == null || stored.getSettings().getRawHolograms().isEmpty()) {
+            throw new EmptyLinesException("NPCs must have at least one hologram line.");
+        }
 
         InternalNpc npc = stored.toPluginObject();
         if (npc.getWorld() == null) {
-            printInvalidConfig();
-            brokenNPCs.put(uuid, stored);
-            return false;
+            throw new IllegalWorldException("NPC " + uuid + "'s world is null");
         }
         // has to be on a sync thread
         Bukkit.getScheduler().runTask(plugin, npc::createNPC);
         return true;
     }
 
+    /**
+     * Used when migrating to data format 2 (1.7.x to 1.8)
+     */
     public StorableNPC migrateNPC(UUID uuid) {
         File file = new File("plugins/CustomNPCs/npcs.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
@@ -633,15 +657,22 @@ public class StorageManager {
             actions.add(Action.parse(s));
         }
 
-        InternalNpc npc = plugin.createNPC(world, location, new Equipment(section.getItemStack("headItem"),
-                        section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack(
-                        "feetItem")
-                        , section.getItemStack("handItem"), section.getItemStack("offhandItem")),
-                new Settings(section.getBoolean("clickable"), section.getBoolean("tunnelvision"), true,
-                        section.getString("value"), section.getString("signature"), section.getString("skin"),
-                        section.getStringList("lines"), section.getString("customHologram"),
-                        section.getBoolean("hideInteractableHologram"), parsePose(section.getString("pose")),
-                        section.getBoolean("upsideDown")), uuid, null, actions, new ArrayList<>(), Selector.ONE);
+        Equipment equipment = new Equipment(section.getItemStack("headItem"),
+                section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack(
+                "feetItem")
+                , section.getItemStack("handItem"), section.getItemStack("offhandItem"));
+
+        Settings settings = new Settings(
+                section.getBoolean("clickable"),
+                section.getBoolean("tunnelvision"),
+                true,
+                section.getString("value"), section.getString("signature"), section.getString("skin"),
+                section.getStringList("lines"), section.getString("customHologram"),
+                section.getBoolean("hideInteractableHologram"), parsePose(section.getString("pose")),
+                section.getBoolean("upsideDown"));
+
+        InternalNpc npc = plugin.createNPC(world, location, equipment,
+                settings, uuid, null, actions, new ArrayList<>(), Selector.ONE);
 
         return new StorableNPC(npc);
     }
@@ -664,7 +695,7 @@ public class StorageManager {
      * @return the set of stored NPC uuids.
      */
     public Set<UUID> getNPCIds() {
-        return trackedNpcs.stream().map(npc -> npc.getUniqueID()).collect(Collectors.toSet());
+        return trackedNpcs.keySet();
     }
 
     /**
@@ -674,8 +705,9 @@ public class StorageManager {
      * @param uuid The NPC uuid to remove
      */
     public void remove(UUID uuid) {
-        if (!trackedNpcs.removeIf(s -> s.getUniqueID().equals(uuid)))
+        if (trackedNpcs.remove(uuid) == null) {
             throw new IllegalArgumentException("NPC does not exist!");
+        }
         saveNpcs();
     }
 
@@ -712,7 +744,8 @@ public class StorageManager {
 
     public CompletableFuture<Boolean> saveNpcs() {
         try {
-            String json = NPCS_CODEC.encode(Transcoder.JSON, trackedNpcs).orElseThrow().toString();
+            String json =
+                    NPCS_CODEC.encode(Transcoder.JSON, new ArrayList<>(trackedNpcs.values())).orElseThrow().toString();
             return storage.save(json);
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to write NPC data to json!", e);
@@ -721,8 +754,7 @@ public class StorageManager {
     }
 
     public void track(StorableNPC stored) {
-        trackedNpcs.removeIf(storableNPC -> storableNPC.getUniqueID().equals(stored.getUniqueID()));
-        trackedNpcs.add(stored);
+        trackedNpcs.put(stored.getUniqueID(), stored);
     }
 
     /**
@@ -746,6 +778,11 @@ public class StorageManager {
             }
         });
         return future;
+    }
+
+    @NotNull
+    public Map<UUID, StorableNPC> getBrokenNPCs(BrokenReason reason) {
+        return brokenNPCs.get(reason);
     }
 
     public void resetTracked() {

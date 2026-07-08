@@ -41,6 +41,7 @@ import java.util.UUID;
 
 @Data
 @AllArgsConstructor
+@ToString
 public class StorableNPC {
 
     public static final Codec<StorableNPC> CODEC = StructCodec.struct(
