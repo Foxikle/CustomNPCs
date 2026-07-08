@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025. Foxikle
+ * Copyright (c) 2025-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,9 @@ import java.util.logging.Level;
 public class MysqlStorage implements StorageProvider {
 
     private HikariConfig config = new HikariConfig();
+    private HikariDataSource dataSource;
     private String tableName;
+    private CustomNPCs plugin;
 
     /**
      * Initializes the storage provider. This could be connecting to a database, creating files, etc.
@@ -46,6 +48,7 @@ public class MysqlStorage implements StorageProvider {
     @Override
     @SuppressWarnings("SqlSourceToSinkFlow")
     public CompletableFuture<Void> init(CustomNPCs plugin) {
+        this.plugin = plugin;
         config = new HikariConfig();
         config.setJdbcUrl("jdbc:mysql://" + plugin.getConfig().getString("storage.mysql.hostname") + ":" + plugin.getConfig().getString("storage.mysql.port") + "/" + plugin.getConfig().getString("storage.mysql.database"));
         config.setUsername(plugin.getConfig().getString("storage.mysql.username"));
@@ -56,21 +59,20 @@ public class MysqlStorage implements StorageProvider {
         config.setConnectionTimeout(3000);
         config.setDriverClassName("com.mysql.cj.jdbc.Driver");
 
+        dataSource = new HikariDataSource(config);
+
         tableName = getSafeTableName(plugin.getConfig().getString("storage.mysql.table"));
 
         return CompletableFuture.supplyAsync(() -> {
-            try (HikariDataSource dataSource = new HikariDataSource(config)) {
-                try (Connection connection = dataSource.getConnection()) {
-                    PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS npc_data (id VARCHAR(255) PRIMARY KEY, data LONGTEXT)");
-                    statement.executeUpdate();
-                } catch (Exception e) {
-                    plugin.getLogger().log(Level.SEVERE, "Failed to create table", e);
-                    throw new RuntimeException(e);
-                }
+            try (Connection connection = dataSource.getConnection()) {
+                PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS npc_data (id " +
+                        "VARCHAR(255) PRIMARY KEY, data LONGTEXT)");
+                statement.executeUpdate();
             } catch (Exception e) {
-                plugin.getLogger().log(Level.SEVERE, "Failed to create database connection", e);
+                plugin.getLogger().log(Level.SEVERE, "Failed to create table", e);
                 throw new RuntimeException(e);
             }
+
             plugin.getLogger().info("Successfully set up MySQL storage!");
             return null;
         });
@@ -85,14 +87,18 @@ public class MysqlStorage implements StorageProvider {
     @Override
     public CompletableFuture<Boolean> save(String data) {
         return CompletableFuture.supplyAsync(() -> {
-            try (HikariDataSource dataSource = new HikariDataSource(config)) {
+            try {
                 try (Connection connection = dataSource.getConnection()) {
 
                     // Prepare the SQL INSERT statement
-                    String sql = "INSERT INTO npc_data (id, data) VALUES (?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)";
+                    String sql = "INSERT INTO npc_data (id, data) VALUES (?, ?) ON DUPLICATE KEY UPDATE data = VALUES" +
+                            "(data)";
                     try (PreparedStatement statement = connection.prepareStatement(sql)) {
                         statement.setString(1, tableName);  // Set the id parameter
                         statement.setString(2, data); // Set the data (MEDIUMBLOB)
+                        if (plugin.isDebug()) {
+                            plugin.getLogger().info("[DEBUG] Storing data in MySQL: " + data);
+                        }
 
                         // Execute the insert query
                         statement.executeUpdate();
@@ -113,7 +119,7 @@ public class MysqlStorage implements StorageProvider {
     @Override
     public CompletableFuture<String> load() {
         return CompletableFuture.supplyAsync(() -> {
-            try (HikariDataSource dataSource = new HikariDataSource(config)) {
+            try {
                 try (Connection connection = dataSource.getConnection()) {
 
                     // Prepare the SQL statement
@@ -127,6 +133,10 @@ public class MysqlStorage implements StorageProvider {
                         while (rs.next()) {
                             // should only run once, as primary keys are unique.
                             data = rs.getString("data");
+                        }
+
+                        if (plugin.isDebug()) {
+                            plugin.getLogger().info("[DEBUG] Loaded data from MySQL: " + data);
                         }
                         return data;
                     }
@@ -147,7 +157,8 @@ public class MysqlStorage implements StorageProvider {
 
     private String getSafeTableName(String tableName) {
         if (tableName == null || !tableName.matches("^[a-zA-Z0-9_]+$")) {
-            throw new IllegalArgumentException("Invalid table name: " + tableName + ". Only alphanumeric and underscores are allowed.");
+            throw new IllegalArgumentException("Invalid table name: " + tableName + ". Only alphanumeric and " +
+                    "underscores are allowed.");
         }
         return tableName;
     }
