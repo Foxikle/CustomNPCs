@@ -35,7 +35,9 @@ import dev.foxikle.customnpcs.internal.commands.suggestion.SoundSuggester;
 import dev.foxikle.customnpcs.internal.commands.suggestion.WorldSuggester;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import dev.foxikle.customnpcs.internal.utils.BrokenReason;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
@@ -46,13 +48,16 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import static com.mojang.brigadier.arguments.StringArgumentType.greedyString;
 import static com.mojang.brigadier.arguments.StringArgumentType.word;
@@ -70,6 +75,7 @@ public class NpcCommandRegistrar {
     private static final String PERMISSION_HELP = "customnpcs.commands.help";
     private static final String PERMISSION_RELOAD = "customnpcs.commands.reload";
     private static final String PERMISSION_WIKI = "customnpcs.command.wiki";
+    private static final String PERMISSION_DISABLE_TIP = "customnpcs.command.disabletip";
     private static final String PERMISSION_DEBUG = "customnpcs.edit";
     private static final String PERMISSION_FIXCONFIG = "customnpcs.commands.fix_config";
     private static final String PERMISSION_SETSOUND = "customnpcs.edit";
@@ -100,6 +106,7 @@ public class NpcCommandRegistrar {
         registerDebugCommand(npcNode);
         registerFixConfigCommand(npcNode);
         registerSetsoundCommand(npcNode);
+        registerTipCommand(npcNode);
 
         return npcNode;
     }
@@ -137,37 +144,42 @@ public class NpcCommandRegistrar {
                 .requires(sender -> sender.getSender().hasPermission(PERMISSION_EDIT))
                 .then(RequiredArgumentBuilder.<CommandSourceStack, String>argument("npc", greedyString())
                         .suggests(NpcSuggester.SUGGESTIONS)
-                        .executes(context -> {
-                            CommandSender sender = context.getSource().getSender();
-                            String npcArg = StringArgumentType.getString(context, "npc");
-                            if (!(sender instanceof Player player)) {
-                                sender.sendMessage(Msg.format("You can't do this :P"));
-                                return 0;
-                            }
-                            UUID uuid = CommandUtils.parseNpc(player, npcArg);
-                            if (uuid == null) {
-                                return 0;
-                            }
-                            CustomNPCs plugin = CustomNPCs.getInstance();
-                            InternalNpc finalNpc = plugin.getNPCByID(uuid);
-                            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                                InternalNpc newNpc = plugin.createNPC(
-                                        player.getWorld(),
-                                        finalNpc.getSpawnLoc(),
-                                        finalNpc.getEquipment(),
-                                        finalNpc.getSettings(),
-                                        finalNpc.getUniqueID(),
-                                        null,
-                                        finalNpc.getActions()
-                                );
-                                plugin.getEditingNPCs().put(player.getUniqueId(), newNpc);
-                                plugin.getLotus().openMenu(player, MenuUtils.NPC_MAIN);
-                            }, 1);
-                            return 1;
-                        })
+                        .executes(NpcCommandRegistrar::executeEditCommand)
                         .build())
                 .build();
         npcNode.addChild(editNode);
+    }
+
+    private static int executeEditCommand(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        String npcArg = StringArgumentType.getString(ctx, "npc");
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Msg.format("You can't do this :P"));
+            return 0;
+        }
+        UUID uuid = CommandUtils.parseNpc(player, npcArg);
+        if (uuid == null) {
+            return 0;
+        }
+        CustomNPCs plugin = CustomNPCs.getInstance();
+        if (plugin.getConfig().getBoolean("EditTip") && Utils.shouldSendEditTip(player)) {
+            player.sendMessage(Msg.translate(player.locale(), "customnpcs.commands.manage.button.edit.tip"));
+        }
+        InternalNpc finalNpc = plugin.getNPCByID(uuid);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            InternalNpc newNpc = plugin.createNPC(
+                    player.getWorld(),
+                    finalNpc.getSpawnLoc(),
+                    finalNpc.getEquipment(),
+                    finalNpc.getSettings(),
+                    finalNpc.getUniqueID(),
+                    null,
+                    finalNpc.getActions()
+            );
+            plugin.getEditingNPCs().put(player.getUniqueId(), newNpc);
+            plugin.getLotus().openMenu(player, MenuUtils.NPC_MAIN);
+        }, 1);
+        return 1;
     }
 
     private static void registerDeleteCommand(LiteralCommandNode<CommandSourceStack> npcNode) {
@@ -374,6 +386,46 @@ public class NpcCommandRegistrar {
         npcNode.addChild(wikiNode);
     }
 
+    private static void registerTipCommand(LiteralCommandNode<CommandSourceStack> npcNode) {
+        LiteralCommandNode<CommandSourceStack> wikiNode = LiteralArgumentBuilder.<CommandSourceStack>literal(
+                        "disabletip")
+                .requires(sender -> sender.getSender().hasPermission(PERMISSION_DISABLE_TIP))
+                .then(RequiredArgumentBuilder.<CommandSourceStack, String>argument("tip", word())
+                        .suggests((context, builder) -> {
+                            String input = builder.getRemaining().toLowerCase();
+
+                            Stream.of("edit", "name_reference")
+                                    .filter(s -> s.toLowerCase().startsWith(input))
+                                    .forEach(builder::suggest);
+                            return builder.buildFuture();
+                        })
+                        .executes(context -> {
+                            CommandSender sender = context.getSource().getSender();
+                            if (!(sender instanceof Player player)) return 1;
+                            Locale locale = getLocale(sender);
+                            String arg = StringArgumentType.getString(context, "tip");
+                            switch (arg) {
+                                case "edit" -> {
+                                    player.sendMessage(Msg.translate(locale, "customnpcs.commands.disabletip.edit"));
+                                    player.getPersistentDataContainer().set(Utils.HIDE_EDIT_TIP,
+                                            PersistentDataType.BOOLEAN, true);
+                                }
+                                case "name_reference" -> {
+                                    player.sendMessage(Msg.translate(locale, "customnpcs.commands.disabletip" +
+                                            ".name_reference"));
+                                    player.getPersistentDataContainer().set(Utils.HIDE_NAME_REFERENCE,
+                                            PersistentDataType.BOOLEAN, true);
+                                }
+                                default ->
+                                        player.sendMessage(Msg.translate(locale, "customnpcs.commands.disabletip" +
+                                                ".unknown_tip", arg));
+                            }
+                            return 1;
+                        }))
+                .build();
+        npcNode.addChild(wikiNode);
+    }
+
     private static void registerDebugCommand(LiteralCommandNode<CommandSourceStack> npcNode) {
         LiteralCommandNode<CommandSourceStack> debugNode = LiteralArgumentBuilder.<CommandSourceStack>literal("debug")
                 .requires(sender -> sender.getSender().hasPermission(PERMISSION_DEBUG))
@@ -406,23 +458,30 @@ public class NpcCommandRegistrar {
                     return 0;
                 })
                 .then(LiteralArgumentBuilder.<CommandSourceStack>literal("world")
-                        .executes(ctx -> executeFixConfig(ctx))
+                        .executes(NpcCommandRegistrar::executeFixWorldConfigs)
                         .then(RequiredArgumentBuilder.<CommandSourceStack, String>argument("world", word())
                                 .suggests(WorldSuggester.SUGGESTIONS)
-                                .executes(ctx -> executeFixConfig(ctx))
+                                .executes(NpcCommandRegistrar::executeFixWorldConfigs)
                                 .then(RequiredArgumentBuilder.<CommandSourceStack, String>argument("strategy", word())
                                         .suggests((ctx, builder) -> {
                                             builder.suggest("NONE");
                                             builder.suggest("SAFE_LOCATION");
                                             return builder.buildFuture();
                                         })
-                                        .executes(ctx -> executeFixConfig(ctx))
+                                        .executes(NpcCommandRegistrar::executeFixWorldConfigs)
                                         .then(RequiredArgumentBuilder.<CommandSourceStack, String>argument("target",
                                                         greedyString())
-                                                .suggests(NpcBrokenSuggester.SUGGESTIONS)
-                                                .executes(ctx -> executeFixConfig(ctx))
+                                                .suggests(NpcBrokenSuggester.WORLD)
+                                                .executes(NpcCommandRegistrar::executeFixWorldConfigs)
                                         )
                                 )
+                        )
+                )
+                .then(LiteralArgumentBuilder.<CommandSourceStack>literal("lines")
+                        .executes(NpcCommandRegistrar::executeFixLineConfigs)
+                        .then(RequiredArgumentBuilder.<CommandSourceStack, String>argument("target", greedyString())
+                                .suggests(NpcBrokenSuggester.LINES)
+                                .executes(NpcCommandRegistrar::executeFixLineConfigs)
                         )
                 )
                 .build();
@@ -475,7 +534,7 @@ public class NpcCommandRegistrar {
         npcNode.addChild(setsoundNode);
     }
 
-    private static int executeFixConfig(CommandContext<CommandSourceStack> context) {
+    private static int executeFixWorldConfigs(CommandContext<CommandSourceStack> context) {
         CommandSender sender = context.getSource().getSender();
         CustomNPCs plugin = CustomNPCs.getInstance();
         FileManager fileManager = plugin.getFileManager();
@@ -526,7 +585,7 @@ public class NpcCommandRegistrar {
         AtomicInteger nonExistentNpcs = new AtomicInteger(0);
 
         if (targetArg.isEmpty() || targetArg.equalsIgnoreCase("all")) {
-            for (UUID uuid : fileManager.getBrokenNPCs().keySet()) {
+            for (UUID uuid : fileManager.getBrokenNPCs().get(BrokenReason.INVALID_WORLD).keySet()) {
                 YamlConfiguration yml = fileManager.getNpcYaml();
                 ConfigurationSection parent = yml.getConfigurationSection(uuid.toString());
                 if (parent == null) {
@@ -576,7 +635,8 @@ public class NpcCommandRegistrar {
             }
         } else {
             UUID uuid = null;
-            for (Map.Entry<UUID, String> entry : fileManager.getBrokenNPCs().entrySet()) {
+            for (Map.Entry<UUID, String> entry :
+                    fileManager.getBrokenNPCs().get(BrokenReason.INVALID_WORLD).entrySet()) {
                 if (entry.getValue().equals(targetArg)) {
                     uuid = entry.getKey();
                     break;
@@ -630,6 +690,67 @@ public class NpcCommandRegistrar {
             }
 
             parent.set("location", loc);
+            totalFixed.incrementAndGet();
+            fileManager.saveNpcFile(yml);
+        }
+
+        sender.sendMessage(Msg.translate(locale, "customnpcs.commands.fix_config.report",
+                totalFixed.get(), movedbyStrategy.get(), failedToFix.get(), nonExistentNpcs.get()));
+        return 1;
+    }
+
+    private static int executeFixLineConfigs(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = context.getSource().getSender();
+        CustomNPCs plugin = CustomNPCs.getInstance();
+        FileManager fileManager = plugin.getFileManager();
+        Locale locale = getLocale(sender);
+
+        String targetArg = "";
+
+        try {
+            targetArg = StringArgumentType.getString(context, "target");
+        } catch (Exception ignored) {
+        }
+
+
+        AtomicInteger totalFixed = new AtomicInteger(0);
+        AtomicInteger movedbyStrategy = new AtomicInteger(0);
+        AtomicInteger failedToFix = new AtomicInteger(0);
+        AtomicInteger nonExistentNpcs = new AtomicInteger(0);
+
+        if (targetArg.isEmpty() || targetArg.equalsIgnoreCase("all")) {
+            for (UUID uuid : fileManager.getBrokenNPCs().get(BrokenReason.EMPTY_LINES).keySet()) {
+                YamlConfiguration yml = fileManager.getNpcYaml();
+                ConfigurationSection parent = yml.getConfigurationSection(uuid.toString());
+                if (parent == null) {
+                    nonExistentNpcs.incrementAndGet();
+                    continue;
+                }
+
+                parent.set("lines", List.of("FIXME"));
+                totalFixed.incrementAndGet();
+                fileManager.saveNpcFile(yml);
+            }
+        } else {
+            UUID uuid = null;
+            try {
+                uuid = UUID.fromString(targetArg);
+            } catch (IllegalArgumentException ignored) {
+            }
+
+
+            if (uuid == null) {
+                sender.sendMessage(Msg.translate(locale, "customnpcs.commands.invalid_name_or_uuid"));
+                return 0;
+            }
+
+            YamlConfiguration yml = fileManager.getNpcYaml();
+            ConfigurationSection parent = yml.getConfigurationSection(uuid.toString());
+            if (parent == null) {
+                return 0;
+            }
+
+            parent.set("lines", List.of("FIXME"));
             totalFixed.incrementAndGet();
             fileManager.saveNpcFile(yml);
         }
