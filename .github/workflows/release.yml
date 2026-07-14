@@ -24,7 +24,7 @@ jobs:
           java-version: 25
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Publish
         if: github.repository == 'Foxikle/CustomNPCs' && (github.event_name == 'release' || github.actor == 'Foxikle')
