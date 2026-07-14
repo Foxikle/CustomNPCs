@@ -41,7 +41,7 @@ import dev.foxikle.customnpcs.internal.menu.*;
 import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
-import dev.foxikle.customnpcs.internal.utils.AutoUpdater;
+import dev.foxikle.customnpcs.internal.utils.UpdateChecker;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.Lotus;
 import io.github.mqzen.menus.base.pagination.Pagination;
@@ -164,7 +164,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     private MenuUtils mu;
     @Getter
-    private AutoUpdater updater;
+    private UpdateChecker updater;
 
     @Getter
     private Lotus lotus;
@@ -229,8 +229,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                 .create();
         this.storageManager = new StorageManager(this);
         this.mu = new MenuUtils(this);
-        this.updater = new AutoUpdater(this);
-        update = updater.checkForUpdates();
+        this.updater = new UpdateChecker(this);
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, updater::checkForUpdates, 1L, 72000L); // once per hour
 
         getLogger().info("Loading action registry...");
         ACTION_REGISTRY.register(new ActionBar());
