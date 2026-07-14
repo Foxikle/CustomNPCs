@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
@@ -40,52 +41,47 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.bukkit.Material.OAK_HANGING_SIGN;
 import static org.bukkit.Material.PAPER;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class SendMessage extends Action {
+
+    public static final StructCodec<SendMessage> CODEC = StructCodec.struct(
+            "raw", Codec.STRING, SendMessage::getRawMessage,
+            "delay", Codec.INT, Action::getDelay,
+            "selector", Codec.Enum(Selector.class), Action::getSelector,
+            "conditions", Condition.CODEC.list(), Action::getConditions,
+            "cooldown", Codec.INT, Action::getCooldown,
+            SendMessage::new
+    );
 
     private String rawMessage;
 
-    /**
-     * Creates a new SendMessage with the specified message
-     *
-     * @param rawMessage The raw message
-     */
-    public SendMessage(String rawMessage, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+
+    public SendMessage(String rawMessage, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.rawMessage = rawMessage;
     }
 
-    /**
-     * Creates a new SendMessage with the specified message
-     *
-     * @param rawMessage The raw message
-     * @deprecated Use {@link SendMessage#SendMessage(String, int, Condition.SelectionMode, List, int)}
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public SendMessage(String rawMessage, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals);
-        this.rawMessage = rawMessage;
-    }
 
-    public static Button creationButton(Player player) {
+    public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(PAPER)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.message"))
                         .setLore(Msg.lore(player.locale(), "customnpcs.favicons.message.description"))
@@ -95,21 +91,10 @@ public class SendMessage extends Action {
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    SendMessage actionImpl = new SendMessage("", 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    SendMessage actionImpl = new SendMessage("", 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
-    }
-
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
-        if (!clazz.equals(SendMessage.class)) {
-            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + SendMessage.class.getName());
-        }
-        String rawMessage = parseString(serialized, "raw");
-        ParseResult pr = parseBase(serialized);
-        SendMessage message = new SendMessage(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
-
-        return clazz.cast(message);
     }
 
     @Override
@@ -130,13 +115,6 @@ public class SendMessage extends Action {
         return new SendMessageCustomizer(this);
     }
 
-    /**
-     * Sends a message to the player
-     *
-     * @param npc    The NPC
-     * @param menu   The menu
-     * @param player The player
-     */
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
@@ -150,13 +128,29 @@ public class SendMessage extends Action {
     }
 
     @Override
-    public String serialize() {
-        return generateSerializedString("SendMessage", Map.of("raw", rawMessage));
+    public StructCodec<? extends Action> getCodec() {
+        return CODEC;
+    }
+
+    @Override
+    public String getId() {
+        return "SendMessage";
     }
 
     @Override
     public Action clone() {
-        return new SendMessage(rawMessage, getDelay(), getMode(), getConditions(), getCooldown());
+        return new SendMessage(rawMessage, getDelay(), getSelector(), getConditions(), getCooldown());
+    }
+
+    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+        if (!clazz.equals(SendMessage.class)) {
+            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + SendMessage.class.getName());
+        }
+        String rawMessage = parseString(serialized, "raw");
+        ParseResult pr = parseBase(serialized);
+        SendMessage message = new SendMessage(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+
+        return clazz.cast(message);
     }
 
     public class SendMessageCustomizer implements Menu {

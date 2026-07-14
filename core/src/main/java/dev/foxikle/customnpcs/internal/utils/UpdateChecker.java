@@ -37,7 +37,7 @@ import java.util.Scanner;
 /**
  * A class to handle notifying the user if an update is available.
  */
-public class AutoUpdater {
+public class UpdateChecker {
 
     private final CustomNPCs plugin;
     @Getter
@@ -48,7 +48,7 @@ public class AutoUpdater {
      * @param plugin the main plugin instance
      */
 
-    public AutoUpdater(CustomNPCs plugin) {
+    public UpdateChecker(CustomNPCs plugin) {
         this.plugin = plugin;
     }
 

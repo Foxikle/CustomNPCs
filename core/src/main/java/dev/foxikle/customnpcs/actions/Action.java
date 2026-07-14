@@ -22,17 +22,21 @@
 
 package dev.foxikle.customnpcs.actions;
 
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import io.github.mqzen.menus.base.Menu;
+import io.github.mqzen.menus.misc.button.Button;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,167 +49,34 @@ import java.util.regex.Pattern;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public abstract class Action {
 
+    @Deprecated(forRemoval = true)
     private static final Pattern SPLITTER = Pattern.compile("^([A-z])*(?=(\\{.*}))");
 
-    private List<Condition> conditions = new ArrayList<>();
-    private int delay = 0;
-    private Condition.SelectionMode mode = Condition.SelectionMode.ONE;
-    private int cooldown = 0;
-    private Map<UUID, Instant> cooldowns = new ConcurrentHashMap<>();
 
-    /**
-     * Default constructor
-     */
-    public Action() {
+    public static final Codec<Action> CODEC = Codec.STRING.unionType("id", s -> {
+        Class<? extends Action> clazz = CustomNPCs.ACTION_REGISTRY.getActionClass(s);
+        if (clazz == null) throw new IllegalArgumentException("Invalid action type: " + s);
+        try {
+            return clazz.newInstance().getCodec();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException("Failed to parse action: ", e);
+        }
+    }, Action::getId);
 
-    }
+    private List<Condition> conditions;
+    private int delay;
+    private Selector selector;
+    private int cooldown;
+    private final Map<UUID, Instant> cooldowns = new ConcurrentHashMap<>();
 
-    public Action(int delay, Condition.SelectionMode mode, List<Condition> conditions, int cooldown) {
+    public Action(int delay, Selector selector, List<Condition> conditions, int cooldown) {
         this.delay = delay;
-        this.mode = mode;
+        this.selector = selector;
         this.conditions = conditions;
         this.cooldown = cooldown;
-    }
-
-
-    /**
-     * Deprecated, use {@link Action#Action(int, Condition.SelectionMode, List, int)}  Action}
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public Action(int delay, Condition.SelectionMode mode, List<Condition> conditions) {
-        this(delay, mode, conditions, 0);
-    }
-
-    protected static List<Condition> deserializeConditions(String json) {
-        String data = parseArray(json, "conditions").replace("},]", "}]");
-        return CustomNPCs.getGson().fromJson(data, Utils.CONDITIONS_LIST);
-    }
-
-    /**
-     * @throws NoSuchMethodException if your custom Action classes don't implement a `deserialize` method.
-     */
-    @SneakyThrows
-    @Nullable
-    public static Action parse(@NotNull String s) {
-        Matcher matcher = SPLITTER.matcher(s);
-
-        if (matcher.find()) {
-            String type = matcher.group();
-
-            Class<? extends Action> clazz = CustomNPCs.ACTION_REGISTRY.getActionClass(type);
-            if (clazz == null) {
-                CustomNPCs.getInstance().getLogger().severe("Unknown action class " + type);
-                return null; // class doesn't exist in the registry
-            }
-
-            Class<?>[] parameterTypes = new Class<?>[]{String.class, Class.class};
-            Method method = clazz.getMethod("deserialize", parameterTypes);
-            Object result = method.invoke(null, s, clazz);
-            return (Action) result;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Parses the base data required for every action. (SelectionMode, delay, and conditions)
-     *
-     * @param data The serialized action string
-     * @return The parsed "base" data, required for every action.
-     */
-    protected static ParseResult parseBase(String data) {
-        int cooldown = parseInt(data, "cooldown");
-        int delay = parseInt(data, "delay");
-        Condition.SelectionMode mode = parseEnum(data, "mode", Condition.SelectionMode.class);
-        List<Condition> conditions = deserializeConditions(parseString(data, "conditions"));
-        return new ParseResult(delay, mode, conditions, cooldown);
-    }
-
-    /**
-     * Parses an enum constant from the serialized action string
-     *
-     * @param data the raw, serialized data
-     * @param key  The key supplied during the serialization
-     * @param type the type of the Enum to parse
-     * @param <T>  the enum type
-     * @return The parsed enum constant, by name
-     */
-    protected static <T extends Enum<T>> T parseEnum(String data, String key, Class<T> type) {
-        String constantName = data.replaceAll(".*" + key + "=([A-Z_]+).*", "$1");
-        return Enum.valueOf(type, constantName);
-    }
-
-    /**
-     * Parses an integer from the serialized action String
-     *
-     * @param data The serialized action string
-     * @param key  the key to search for, ie `delay`
-     * @return The parsed integer. 0, if the key is not found.
-     */
-    protected static int parseInt(String data, String key) {
-        try {
-            return Integer.parseInt(data.replaceAll(".*" + key + "=(\\d+).*", "$1"));
-        } catch (NumberFormatException ignored) {
-            return 0;
-        }
-    }
-
-    /**
-     * Parses a String from the serialized action String
-     *
-     * @param data The serialized action string
-     * @param key  the key to search for, ie `raw`
-     * @return The parsed string.
-     */
-    protected static String parseString(String data, String key) {
-        return data.replaceAll(".*" + key + "=`(.*?)`.*", "$1");
-    }
-
-    /**
-     * Parses a String from the serialized action String
-     *
-     * @param data The serialized action string
-     * @param key  the key to search for, ie `raw`
-     * @return The parsed string.
-     */
-    protected static String parseArray(String data, String key) {
-        return data.replaceAll(".*" + key + "=(\\[.*?]).*", "$1");
-    }
-
-    /**
-     * Parses a boolean from the serialized action String
-     *
-     * @param data The serialized action string
-     * @param key  the key to search for, ie `asConsole`
-     * @return The parsed boolean.
-     */
-    protected static boolean parseBoolean(String data, String key) {
-        return Boolean.parseBoolean(data.replaceAll(".*" + key + "=(true|false).*", "$1"));
-    }
-
-    /**
-     * Parses a float from the serialized action String
-     *
-     * @param data The serialized action string
-     * @param key  the key to search for, ie `yaw`
-     * @return The parsed float.
-     */
-    protected static float parseFloat(String data, String key) {
-        return Float.parseFloat(data.replaceAll(".*" + key + "=(-?\\d+\\.\\d+).*", "$1"));
-    }
-
-    /**
-     * Parses a double from the serialized action String
-     *
-     * @param data The serialized action string
-     * @param key  the key to search for, ie `x`
-     * @return The parsed double.
-     */
-    protected static double parseDouble(String data, String key) {
-        return Double.parseDouble(data.replaceAll(".*" + key + "=(-?\\d+\\.\\d+).*", "$1"));
     }
 
     public boolean isOnCooldown(UUID uuid) {
@@ -245,17 +116,14 @@ public abstract class Action {
      */
     public abstract void perform(InternalNpc npc, Menu menu, Player player);
 
+
     /**
-     * Serializes the action to a string
+     * The item used as an icon in the NPC's action menu
+     *
+     * @param player the player who will see them
+     * @return the ItemStack to use
      */
-    public abstract String serialize();
-
     public abstract ItemStack getFavicon(Player player);
-
-    @Override
-    public String toString() {
-        return serialize();
-    }
 
     public abstract Menu getMenu();
 
@@ -270,77 +138,189 @@ public abstract class Action {
         if (conditions == null || conditions.isEmpty()) return true; // no conditions
         Set<Boolean> results = new HashSet<>(conditions.size());
         conditions.forEach(conditional -> results.add(conditional.compute(player)));
-        return (mode == Condition.SelectionMode.ALL ? !results.contains(false) : results.contains(true));
+        return (selector == Selector.ALL ? !results.contains(false) : results.contains(true));
     }
 
-    private String getConditionSerialized() {
-        return CustomNPCs.getGson().toJson(conditions, Utils.CONDITIONS_LIST);
-    }
 
     /**
-     * Generates the serialized string for storing Actions.
+     * Provides a codec for the union type serializer.
+     * You should include these elements in your implementation:
+     * <pre>
+     *     {@code
+     *             "delay", Codec.INT, Action::getDelay,
+     *             "selector", Codec.Enum(Selector.class), Action::getSelector,
+     *             "conditions", Condition.CODEC.list(), Action::getConditions,
+     *             "cooldown", Codec.INT, Action::getCooldown,
+     *     }
+     * </pre>
      * <p>
-     * This correctly serializes `int`, `double`, `float`, `boolean`, {@link String}, {@link Enum<>}
+     * As a consequence of this, your action must have a public, no-args constructor for the codec to be accesible.
+     * </p>
      *
-     * @param id     The id of the action ID{params...}
-     * @param params The parameters of the action. **DON'T INCLUDE THE DELAY, CONDITIONS, OR SELECTION MODE**
-     * @return The serialized strings
+     * @return the codec delegated to your action
+     * @see <a href="https://mudstom.pages.dev/docs/feature/serialization/codecs">Codec Documentation</a>
      */
-    protected String generateSerializedString(String id, Map<String, Object> params) {
-        Map<String, Object> base = new HashMap<>(); // get around Map.of() immutability
-        base.put("delay", delay);
-        base.put("mode", mode);
-        base.put("conditions", getConditionSerialized());
-        base.put("cooldown", cooldown);
+    public abstract StructCodec<? extends Action> getCodec();
 
-        StringBuilder builder = new StringBuilder(id);
-        builder.append("{");
+    public abstract String getId();
 
-        for (Map.Entry<String, Object> entry : params.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-
-            builder.append(key).append("=");
-            if (value instanceof String) {
-                builder.append("`").append(value).append("`");
-            } else {
-                builder.append(value);
-            }
-            builder.append(", ");
-        }
-
-        for (Map.Entry<String, Object> entry : base.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-
-            builder.append(key).append("=");
-            if (value instanceof String) {
-                builder.append("`").append(value).append("`");
-            } else {
-                builder.append(value);
-            }
-            builder.append(", ");
-        }
-
-        builder.deleteCharAt(builder.length() - 1); // delete the last comma
-        builder.deleteCharAt(builder.length() - 1); // delete the last comma
-
-
-        builder.append("}");
-
-        return builder.toString();
-    }
+    public abstract Button creationButton(Player player);
 
     public abstract Action clone();
 
-    protected record ParseResult(int delay, Condition.SelectionMode mode, List<Condition> conditions, int cooldown) {
-        /**
-         * @deprecated Use {@link ParseResult#ParseResult(int, Condition.SelectionMode, List, int)}}
-         */
-        @Deprecated
-        @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-        public ParseResult(int delay, Condition.SelectionMode mode, List<Condition> conditions) {
-            this(delay, mode, conditions, 0);
+    public boolean canEdit() {
+        return true;
+    }
+
+    public boolean canDelay() {
+        return true;
+    }
+
+    public boolean canDuplicate() {
+        return true;
+    }
+
+    /**
+     * @throws NoSuchMethodException if your custom Action classes don't implement a `deserialize` method.
+     */
+    @SneakyThrows
+    @Nullable
+    @Deprecated(forRemoval = true)
+    public static Action parse(@NotNull String s) {
+        Matcher matcher = SPLITTER.matcher(s);
+
+        if (matcher.find()) {
+            String type = matcher.group();
+
+            Class<? extends Action> clazz = CustomNPCs.ACTION_REGISTRY.getActionClass(type);
+            if (clazz == null) {
+                CustomNPCs.getInstance().getLogger().severe("Unknown action class " + type);
+                return null; // class doesn't exist in the registry
+            }
+
+            Class<?>[] parameterTypes = new Class<?>[]{String.class, Class.class};
+            Method method = clazz.getMethod("deserialize", parameterTypes);
+            Object result = method.invoke(null, s, clazz);
+            return (Action) result;
+        } else {
+            return null;
         }
+    }
+
+    @Deprecated(forRemoval = true)
+    protected static List<Condition> deserializeConditions(String json) {
+        String data = parseArray(json, "conditions").replace("},]", "}]");
+        return CustomNPCs.getGson().fromJson(data, Utils.CONDITIONS_LIST);
+    }
+
+    /**
+     * Parses the base data required for every action. (SelectionMode, delay, and conditions)
+     *
+     * @param data The serialized action string
+     * @return The parsed "base" data, required for every action.
+     */
+    @Deprecated(forRemoval = true)
+    protected static ParseResult parseBase(String data) {
+        int cooldown = parseInt(data, "cooldown");
+        int delay = parseInt(data, "delay");
+        Selector mode = parseEnum(data, "mode", Selector.class);
+        List<Condition> conditions = deserializeConditions(parseString(data, "conditions"));
+        return new ParseResult(delay, mode, conditions, cooldown);
+    }
+
+    /**
+     * Parses an enum constant from the serialized action string
+     *
+     * @param data the raw, serialized data
+     * @param key  The key supplied during the serialization
+     * @param type the type of the Enum to parse
+     * @param <T>  the enum type
+     * @return The parsed enum constant, by name
+     */
+    @Deprecated(forRemoval = true)
+    protected static <T extends Enum<T>> T parseEnum(String data, String key, Class<T> type) {
+        String constantName = data.replaceAll(".*" + key + "=([A-Z_]+).*", "$1");
+        return Enum.valueOf(type, constantName);
+    }
+
+    /**
+     * Parses an integer from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `delay`
+     * @return The parsed integer. 0, if the key is not found.
+     */
+    @Deprecated(forRemoval = true)
+    protected static int parseInt(String data, String key) {
+        try {
+            return Integer.parseInt(data.replaceAll(".*" + key + "=(\\d+).*", "$1"));
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
+    }
+
+    /**
+     * Parses a String from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `raw`
+     * @return The parsed string.
+     */
+    @Deprecated(forRemoval = true)
+    protected static String parseString(String data, String key) {
+        return data.replaceAll(".*" + key + "=`(.*?)`.*", "$1");
+    }
+
+    /**
+     * Parses a String from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `raw`
+     * @return The parsed string.
+     */
+    @Deprecated(forRemoval = true)
+    protected static String parseArray(String data, String key) {
+        return data.replaceAll(".*" + key + "=(\\[.*?]).*", "$1");
+    }
+
+    /**
+     * Parses a boolean from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `asConsole`
+     * @return The parsed boolean.
+     */
+    @Deprecated(forRemoval = true)
+    protected static boolean parseBoolean(String data, String key) {
+        return Boolean.parseBoolean(data.replaceAll(".*" + key + "=(true|false).*", "$1"));
+    }
+
+    /**
+     * Parses a float from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `yaw`
+     * @return The parsed float.
+     */
+    @Deprecated(forRemoval = true)
+    protected static float parseFloat(String data, String key) {
+        return Float.parseFloat(data.replaceAll(".*" + key + "=(-?\\d+\\.\\d+).*", "$1"));
+    }
+
+    /**
+     * Parses a double from the serialized action String
+     *
+     * @param data The serialized action string
+     * @param key  the key to search for, ie `x`
+     * @return The parsed double.
+     */
+    @Deprecated(forRemoval = true)
+    protected static double parseDouble(String data, String key) {
+        return Double.parseDouble(data.replaceAll(".*" + key + "=(-?\\d+\\.\\d+).*", "$1"));
+    }
+
+    @Deprecated
+    protected record ParseResult(int delay, Selector mode, List<Condition> conditions, int cooldown) {
+
     }
 }

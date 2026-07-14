@@ -25,7 +25,6 @@ package dev.foxikle.customnpcs.internal.menu;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import dev.foxikle.customnpcs.internal.utils.Utils;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -41,6 +40,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DeleteLineMenu implements Menu {
@@ -65,7 +65,7 @@ public class DeleteLineMenu implements Menu {
         InternalNpc npcFor = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
         int index = HologramMenu.editingIndicies.getOrDefault(player.getUniqueId(), -1);
 
-        if (npcFor == null || index < 0 || npcFor.getSettings().getHolograms().length <= index) {
+        if (npcFor == null || index < 0 || npcFor.getSettings().getHolograms().size() <= index) {
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
             player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1, 1);
             return Content.empty(capacity);
@@ -75,7 +75,8 @@ public class DeleteLineMenu implements Menu {
                 .setButton(11, Button.clickable(
                         ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
                                 .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.hologram.delete.confirm"))
-                                .setLore(Msg.lore(player.locale(), "customnpcs.menus.hologram.delete.confirm.lore", npcFor.getSettings().getHolograms()[index]))
+                                .setLore(Msg.lore(player.locale(), "customnpcs.menus.hologram.delete.confirm.lore",
+                                        npcFor.getSettings().getHolograms().get(index)))
                                 .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
 
                             Player p = (Player) inventoryClickEvent.getWhoClicked();
@@ -88,16 +89,14 @@ public class DeleteLineMenu implements Menu {
                                 return;
                             }
 
-                            String[] raw = npc.getSettings().getRawHolograms();
-                            List<String> mutable = Utils.list(raw);
-                            if (index >= raw.length) {
+                            List<String> mutable = new ArrayList<>(npc.getSettings().getRawHolograms());
+                            if (index >= mutable.size()) {
                                 p.playSound(p, Sound.ENTITY_VILLAGER_NO, 1, 1);
                                 p.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
                                 return;
                             }
-                            mutable.remove(index);
                             player.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1F, 1F);
-                            npc.getSettings().setRawHolograms(mutable.toArray(new String[0]));
+                            npc.getSettings().getRawHolograms().remove(index);
                             plugin.getLotus().openMenu(p, MenuUtils.NPC_HOLOGRAMS);
                         }))).setButton(15, Button.clickable(
                         ItemBuilder.modern(Material.LIME_STAINED_GLASS_PANE)

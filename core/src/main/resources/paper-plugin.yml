@@ -4,12 +4,17 @@ main: dev.foxikle.customnpcs.internal.CustomNPCs
 api-version: '1.20'
 prefix: CustomNPCs
 authors: [ Foxikle ]
-#website: https://foxikle.dev/plugins
+website: https://modrinth.com/plugin/CustomNPCs
 description: A simple NPC plugin.
 loader: dev.foxikle.customnpcs.internal.utils.GeneratedClassloader
 has-open-classloader: true
+CustomNPCs:
+  source: modrinth
+  modrinth-project-id: "ptXUpAzg"
+  channels: "release"
 contributors:
   - FlameyosFlow
+  - Webhead1104
 dependencies:
   server:
     Multiverse-Core:
@@ -44,6 +49,7 @@ permissions:
       - customnpcs.run_command.enable_console
       - customnpcs.commands.wiki
       - customnpcs.commands.fix_config
+      - customnpcs.commands.movedata
   customnpcs.commands.*:
     description: A wildcard permission for all command permissions
     default: op
@@ -105,6 +111,9 @@ permissions:
     default: op
   customnpcs.alert:
     description: A permission to alert if there is a new update available.
+    default: op
+  customnpcs.commands.movedata:
+    description: A permission required to use the /npc movedata command
     default: op
 
   # This permission is only a child of the customnpcs.* permission.

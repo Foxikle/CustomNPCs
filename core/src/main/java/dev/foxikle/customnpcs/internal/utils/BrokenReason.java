@@ -24,5 +24,6 @@ package dev.foxikle.customnpcs.internal.utils;
 
 public enum BrokenReason {
     INVALID_WORLD,
-    EMPTY_LINES
+    EMPTY_LINES,
+    UNKNOWN
 }

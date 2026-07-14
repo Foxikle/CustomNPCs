@@ -112,7 +112,8 @@ public class DeleteMenu implements Menu {
                             npc.remove();
                             npc.delete();
                             plugin.npcs.remove(npc.getUniqueID());
-                            player1.sendMessage(Msg.translate(player.locale(), "customnpcs.delete.success", npc.getSettings().getName()));
+                            player1.sendMessage(Msg.translate(player.locale(), "customnpcs.delete.success",
+                                    npc.getSettings().getRawHolograms().getFirst()));
                             player1.closeInventory();
                             player1.playSound(player1, Sound.BLOCK_END_PORTAL_SPAWN, 1, 1);
                             npc.getCurrentLocation().getWorld().strikeLightningEffect(npc.getCurrentLocation());

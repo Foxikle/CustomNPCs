@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
@@ -38,21 +39,22 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -61,35 +63,28 @@ import static org.bukkit.Material.POTION;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class RemoveEffect extends Action {
+
+    public static final StructCodec<RemoveEffect> CODEC = StructCodec.struct(
+            "effect", Codec.STRING, RemoveEffect::getEffect,
+            "delay", Codec.INT, Action::getDelay,
+            "selector", Codec.Enum(Selector.class), Action::getSelector,
+            "conditions", Condition.CODEC.list(), Action::getConditions,
+            "cooldown", Codec.INT, Action::getCooldown,
+            RemoveEffect::new
+    );
 
     private static final List<Field> fields = Stream.of(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
     private String effect;
 
-    /**
-     * Creates a new GiveEffect with the specified parameters
-     *
-     * @param effect The raw message
-     */
-    public RemoveEffect(String effect, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+    public RemoveEffect(String effect, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.effect = effect;
     }
 
-    /**
-     * Creates a new GiveEffect with the specified parameters
-     *
-     * @param effect The raw message
-     * @deprecated Use {@link #RemoveEffect(String, int, Condition.SelectionMode, List, int)}
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public RemoveEffect(String effect, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals, 0);
-        this.effect = effect;
-    }
 
-    public static Button creationButton(Player player) {
+    public Button creationButton(Player player) {
 
         return Button.clickable(ItemBuilder.modern(MILK_BUCKET)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.remove_effect"))
@@ -99,21 +94,10 @@ public class RemoveEffect extends Action {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    RemoveEffect actionImpl = new RemoveEffect("SPEED", 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    RemoveEffect actionImpl = new RemoveEffect("SPEED", 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(player.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
-    }
-
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
-        if (!clazz.equals(RemoveEffect.class)) {
-            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RemoveEffect.class.getName());
-        }
-        String effect = parseString(serialized, "effect");
-        ParseResult pr = parseBase(serialized);
-        RemoveEffect message = new RemoveEffect(effect, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
-
-        return clazz.cast(message);
     }
 
     @Override
@@ -151,13 +135,30 @@ public class RemoveEffect extends Action {
     }
 
     @Override
-    public String serialize() {
-        return generateSerializedString("RemoveEffect", Map.of("effect", effect));
+    public StructCodec<? extends Action> getCodec() {
+        return CODEC;
+    }
+
+    @Override
+    public String getId() {
+        return "RemoveEffect";
     }
 
     @Override
     public Action clone() {
-        return new RemoveEffect(effect, getDelay(), getMode(), new ArrayList<>(getConditions()), getCooldown());
+        return new RemoveEffect(effect, getDelay(), getSelector(), new ArrayList<>(getConditions()), getCooldown());
+    }
+
+    @Deprecated(forRemoval = true)
+    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+        if (!clazz.equals(RemoveEffect.class)) {
+            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RemoveEffect.class.getName());
+        }
+        String effect = parseString(serialized, "effect");
+        ParseResult pr = parseBase(serialized);
+        RemoveEffect message = new RemoveEffect(effect, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+
+        return clazz.cast(message);
     }
 
     public class RemoveEffectCustomizer implements Menu {

@@ -23,7 +23,8 @@
 package dev.foxikle.customnpcs.actions.defaultImpl;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
@@ -39,44 +40,47 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class Teleport extends Action {
+
+    public static final StructCodec<Teleport> CODEC = StructCodec.struct(
+            "x", Codec.DOUBLE, Teleport::getX,
+            "y", Codec.DOUBLE, Teleport::getY,
+            "z", Codec.DOUBLE, Teleport::getZ,
+            "pitch", Codec.FLOAT, Teleport::getPitch,
+            "yaw", Codec.FLOAT, Teleport::getYaw,
+            "delay", Codec.INT, Action::getDelay,
+            "selector", Codec.Enum(Selector.class), Action::getSelector,
+            "conditions", Condition.CODEC.list(), Action::getConditions,
+            "cooldown", Codec.INT, Action::getCooldown,
+            Teleport::new
+    );
 
     private double x;
     private double y;
     private double z;
     private float pitch;
     private float yaw;
-    /**
-     * Creates a new SendMessage with the specified message
-     *
-     * @param x            The x coordinate
-     * @param y            The y coordinate
-     * @param z            The z coordinate
-     * @param pitch        The pitch of the player
-     * @param yaw          The yaw of the player
-     * @param conditionals The conditionals
-     * @param delay        The delay
-     * @param mode         The selection mode of the action's conditions
-     */
-    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Condition.SelectionMode mode, List<Condition> conditionals, int cooldown) {
+
+    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
         super(delay, mode, conditionals, cooldown);
         this.x = x;
         this.y = y;
@@ -85,31 +89,7 @@ public class Teleport extends Action {
         this.yaw = yaw;
     }
 
-    /**
-     * Creates a new SendMessage with the specified message
-     *
-     * @param x            The x coordinate
-     * @param y            The y coordinate
-     * @param z            The z coordinate
-     * @param pitch        The pitch of the player
-     * @param yaw          The yaw of the player
-     * @param conditionals The conditionals
-     * @param delay        The delay
-     * @param mode         The selection mode of the action's conditions
-     * @deprecated Use {@link Teleport#Teleport(double, double, double, float, float, int, Condition.SelectionMode, List, int)}
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.9")
-    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Condition.SelectionMode mode, List<Condition> conditionals) {
-        super(delay, mode, conditionals, 0);
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.pitch = pitch;
-        this.yaw = yaw;
-    }
-
-    public static Button creationButton(Player player) {
+    public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(ENDER_PEARL)
                         .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.teleport"))
                         .setLore(Msg.lore(player.locale(), "customnpcs.favicons.teleport.description"))
@@ -119,26 +99,10 @@ public class Teleport extends Action {
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Condition.SelectionMode.ONE, new ArrayList<>(), 0);
+                    Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Selector.ONE, new ArrayList<>(), 0);
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
-    }
-
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
-        if (!clazz.equals(Teleport.class)) {
-            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + Teleport.class.getName());
-        }
-
-        double x = parseDouble(serialized, "x");
-        double y = parseDouble(serialized, "y");
-        double z = parseDouble(serialized, "z");
-        float pitch = parseFloat(serialized, "pitch");
-        float yaw = parseFloat(serialized, "yaw");
-        ParseResult pr = parseBase(serialized);
-
-        Teleport message = new Teleport(x, y, z, pitch, yaw, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
-        return clazz.cast(message);
     }
 
     @Override
@@ -163,13 +127,7 @@ public class Teleport extends Action {
         return new TeleportCustomizer(this);
     }
 
-    /**
-     * Sends a message to the player
-     *
-     * @param npc    The NPC
-     * @param menu   The menu
-     * @param player The player
-     */
+
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
@@ -177,20 +135,38 @@ public class Teleport extends Action {
         activateCooldown(player.getUniqueId());
     }
 
-    @Override
-    public String serialize() {
-        Map<String, Object> params = new HashMap<>();
-        params.put("x", x);
-        params.put("y", y);
-        params.put("z", z);
-        params.put("yaw", yaw);
-        params.put("pitch", pitch);
-        return generateSerializedString("Teleport", params);
-    }
 
     @Override
     public Action clone() {
-        return new Teleport(getX(), getY(), getZ(), getPitch(), getYaw(), getDelay(), getMode(), getConditions(), getCooldown());
+        return new Teleport(getX(), getY(), getZ(), getPitch(), getYaw(), getDelay(), getSelector(), getConditions(),
+                getCooldown());
+    }
+
+    @Override
+    public StructCodec<? extends Action> getCodec() {
+        return CODEC;
+    }
+
+    @Override
+    public String getId() {
+        return "Teleport";
+    }
+
+    @Deprecated(forRemoval = true)
+    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+        if (!clazz.equals(Teleport.class)) {
+            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + Teleport.class.getName());
+        }
+
+        double x = parseDouble(serialized, "x");
+        double y = parseDouble(serialized, "y");
+        double z = parseDouble(serialized, "z");
+        float pitch = parseFloat(serialized, "pitch");
+        float yaw = parseFloat(serialized, "yaw");
+        ParseResult pr = parseBase(serialized);
+
+        Teleport message = new Teleport(x, y, z, pitch, yaw, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        return clazz.cast(message);
     }
 
     public static class TeleportCustomizer implements Menu {

@@ -45,6 +45,10 @@ public class InjectionManager {
         INJECTION_DISTANCE = (int) Math.pow(plugin.getConfig().getInt("InjectionDistance"), 2);
     }
 
+    public void markForInjection(UUID player) {
+        isVisible.put(player, false);
+    }
+
     public void setup() {
         if (task != -1) shutDown();
         task = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::checkForInjections, 0, plugin.getConfig().getInt("InjectionInterval")).getTaskId();
@@ -63,7 +67,9 @@ public class InjectionManager {
 
             if (player.getWorld() != npc.getCurrentLocation().getWorld()) {
                 if (plugin.isDebug()) {
-                    plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler as they are in a different world.", player.getName(), npc.getSettings().getName()));
+                    plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler as they " +
+                            "are in a different world.", player.getName(),
+                            npc.getSettings().getRawHolograms().getFirst()));
                 }
                 isVisible.remove(player.getUniqueId());
                 continue;
@@ -72,16 +78,22 @@ public class InjectionManager {
             double distance = player.getLocation().distanceSquared(npc.getCurrentLocation());
             if (distance > INJECTION_DISTANCE) {
                 if (plugin.isDebug()) {
-                    plugin.getLogger().info(String.format("[DEBUG] Tried to inject %s with %s, but they are too far away! (Distance^2: %f )", player.getName(), npc.getSettings().getName(), distance));
+                    plugin.getLogger().info(String.format("[DEBUG] Tried to inject %s with %s, but they are too far " +
+                            "away! (Distance^2: %f )", player.getName(),
+                            npc.getSettings().getRawHolograms().getFirst(), distance));
                 }
                 isVisible.put(player.getUniqueId(), false);
                 continue;
             }
 
             if (distance <= INJECTION_DISTANCE && !isVisible.getOrDefault(player.getUniqueId(), false)) {
-                NpcInjectEvent injectEvent = new NpcInjectEvent(player, npc, distance);
+
+
+
+                NpcInjectEvent injectEvent = new NpcInjectEvent(player, npc, distance, npc.evaluateInjectionConditions(player));
                 Bukkit.getServer().getPluginManager().callEvent(injectEvent);
                 if (injectEvent.isCancelled()) continue;
+                if (!npc.passesInectionConditions(player)) continue;
                 npc.injectPlayer(player);
                 isVisible.put(player.getUniqueId(), true);
             }
@@ -89,7 +101,8 @@ public class InjectionManager {
 
         for (UUID uuid : toRemove) {
             if (plugin.isDebug()) {
-                plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler! (likley offline)", uuid.toString(), npc.getSettings().getName()));
+                plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler! (likley " +
+                        "offline)", uuid.toString(), npc.getSettings().getRawHolograms().getFirst()));
             }
             isVisible.remove(uuid);
         }

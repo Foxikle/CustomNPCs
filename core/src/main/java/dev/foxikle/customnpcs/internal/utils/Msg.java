@@ -30,7 +30,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
 
-import java.text.FieldPosition;
 import java.text.MessageFormat;
 import java.util.Locale;
 
@@ -47,7 +46,7 @@ public class Msg {
         Object[] translatedArgs = new Object[args.length];
         for (int i = 0; i < args.length; i++) {
             if (args[i] instanceof ComponentLike like) {
-                translatedArgs[i] = minimessage(like.asComponent());
+                translatedArgs[i] = toMini(like.asComponent());
             } else if (args[i] instanceof String string) {
                 translatedArgs[i] = string;
             } else {
@@ -61,8 +60,7 @@ public class Msg {
             return key;
         }
 
-        StringBuffer buffer = format.format(translatedArgs, new StringBuffer(), new FieldPosition(0));
-        return buffer.toString();
+        return format.format(translatedArgs);
     }
 
     public static Component[] lore(Locale locale, String key, Object... args) {
@@ -81,7 +79,7 @@ public class Msg {
                 .colorIfAbsent(NamedTextColor.WHITE);
     }
 
-    public static String minimessage(Component component) {
+    public static String toMini(Component component) {
         return CustomNPCs.getInstance().getMiniMessage().serialize(component);
     }
 

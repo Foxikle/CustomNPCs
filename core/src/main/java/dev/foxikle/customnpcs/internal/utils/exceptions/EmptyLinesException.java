@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2026. Foxikle
+ * Copyright (c) 2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,37 +20,10 @@
  * SOFTWARE.
  */
 
-plugins {
-    id("java")
-    id("io.freefair.lombok") version "9.5.0"
-    id("io.papermc.paperweight.userdev") version "2.0.0-SNAPSHOT"
-}
+package dev.foxikle.customnpcs.internal.utils.exceptions;
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven("https://jitpack.io")
-    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
-}
-
-dependencies {
-    compileOnly("me.clip:placeholderapi:2.12.2")
-    compileOnly(project(":core"))
-    paperweight.paperDevBundle("1.20.6-R0.1-SNAPSHOT")
-}
-
-tasks {
-    paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
-
-    java {
-        toolchain.languageVersion = JavaLanguageVersion.of(25)
-    }
-
-    compileJava {
-        options.release = 25
-    }
-
-    jar {
-        archiveClassifier = "v1_20_R4"
+public class EmptyLinesException extends NpcConfigurationException {
+    public EmptyLinesException(String message) {
+        super(message);
     }
 }

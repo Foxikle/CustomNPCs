@@ -82,6 +82,9 @@ public class CommandUtils {
                 .append(Msg.translate(p, "customnpcs.commands.help.debug.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.debug.aliases"))))
                 .append(Msg.translate(p, "customnpcs.commands.help.debug.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.debug.hover"))))
                 .appendNewline()
+                .append(Msg.translate(p, "customnpcs.commands.help.movedata.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.movedata.aliases"))))
+                .append(Msg.translate(p, "customnpcs.commands.help.movedata.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.movedata.hover"))))
+                .appendNewline()
                 .append(Msg.translate(p, "customnpcs.commands.help.disabletip.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.disabletip.aliases"))))
                 .append(Msg.translate(p, "customnpcs.commands.help.disabletip.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.help.disabletip.hover"))))
                 .appendNewline()
@@ -100,7 +103,7 @@ public class CommandUtils {
         for (InternalNpc npc : plugin.getNPCs()) {
             if (npc.getSettings().isResilient()) {
                 Component name = Msg.format("<gray>◆<reset> ")
-                        .append(plugin.getMiniMessage().deserialize(npc.getSettings().getName()).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.manage.copy_uuid")))).clickEvent(ClickEvent.copyToClipboard(npc.getUniqueID().toString()))
+                        .append(plugin.getMiniMessage().deserialize(npc.getSettings().getRawHolograms().getFirst()).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.manage.copy_uuid")))).clickEvent(ClickEvent.copyToClipboard(npc.getUniqueID().toString()))
                         .append(Msg.translate(p, "customnpcs.commands.manage.button.edit").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.manage.button.edit.hover"))).clickEvent(ClickEvent.runCommand("/npc edit " + npc.getUniqueID())))
                         .append(Msg.translate(p, "customnpcs.commands.manage.button.delete").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "customnpcs.commands.manage.button.delete.hover"))).clickEvent(ClickEvent.suggestCommand("/npc delete " + npc.getUniqueID())))
                         .appendNewline();
@@ -143,9 +146,8 @@ public class CommandUtils {
                 return null;
             }
 
-            Locale finalLocale = locale;
             Set<UUID> uuids = plugin.npcs.values().stream().map(npc -> {
-                if (plugin.getMiniMessage().stripTags(npc.getSettings().getName()).equalsIgnoreCase(data)) {
+                if (plugin.getMiniMessage().stripTags(npc.getSettings().getRawHolograms().getFirst()).equalsIgnoreCase(data)) {
                     return npc.getUniqueID();
                 }
                 return null;

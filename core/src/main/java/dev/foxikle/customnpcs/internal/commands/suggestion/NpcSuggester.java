@@ -33,7 +33,7 @@ public class NpcSuggester {
         String input = builder.getRemaining().toLowerCase();
 
         plugin.npcs.values().stream()
-                .map(npc -> plugin.getMiniMessage().stripTags(npc.getSettings().getName()))
+                .map(npc -> plugin.getMiniMessage().stripTags(npc.getSettings().getRawHolograms().getFirst()))
                 .filter(name -> name.toLowerCase().startsWith(input))
                 .forEach(builder::suggest);
 

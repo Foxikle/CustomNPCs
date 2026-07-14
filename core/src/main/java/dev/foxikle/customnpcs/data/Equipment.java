@@ -22,51 +22,64 @@
 
 package dev.foxikle.customnpcs.data;
 
-import dev.foxikle.customnpcs.internal.utils.Msg;
-import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import lombok.Getter;
-import org.bukkit.Material;
+import lombok.Setter;
+import lombok.ToString;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The class representing the NPC's items
  */
 @Getter
+@Setter
+@ToString
 @SuppressWarnings("UnusedReturnValue")
 public class Equipment {
-    private ItemStack head = new ItemStack(Material.AIR);
-    private ItemStack chest = new ItemStack(Material.AIR);
-    private ItemStack legs = new ItemStack(Material.AIR);
-    private ItemStack boots = new ItemStack(Material.AIR);
-    private ItemStack hand = new ItemStack(Material.AIR);
-    private ItemStack offhand = new ItemStack(Material.AIR);
 
+    public static final Equipment DEFAULT = new Equipment(
+            null, null, null, null, null, null
+    );
 
-    /**
-     * The constructor to create the equipment object
-     *
-     * @param head    The item on the NPC's head
-     * @param chest   The item on the NPC's chest
-     * @param legs    The item on the NPC's legs
-     * @param boots   The item on the NPC's feet
-     * @param hand    The item in the NPC's hand
-     * @param offhand The item in the NPC's offhand
-     */
-    public Equipment(ItemStack head, ItemStack chest, ItemStack legs, ItemStack boots, ItemStack hand, ItemStack offhand) {
-        this.head = head == null ? ItemBuilder.modern(Material.BEDROCK).setDisplay(Msg.format("<RED><B>ERROR!")).build() : head;
-        this.chest = chest == null ? ItemBuilder.modern(Material.BEDROCK).setDisplay(Msg.format("<RED><B>ERROR!")).build() : chest;
-        this.legs = legs == null ? ItemBuilder.modern(Material.BEDROCK).setDisplay(Msg.format("<RED><B>ERROR!")).build() : legs;
-        this.boots = boots == null ? ItemBuilder.modern(Material.BEDROCK).setDisplay(Msg.format("<RED><B>ERROR!")).build() : boots;
-        this.hand = hand == null ? ItemBuilder.modern(Material.BEDROCK).setDisplay(Msg.format("<RED><B>ERROR!")).build() : hand;
-        this.offhand = offhand == null ? ItemBuilder.modern(Material.BEDROCK).setDisplay(Msg.format("<RED><B>ERROR!")).build() : offhand;
-    }
+    public static final Codec<Equipment> CODEC = StructCodec.struct(
+            "head", Utils.ITEM_CODEC.optional(), Equipment::getHead,
+            "chest", Utils.ITEM_CODEC.optional(), Equipment::getChest,
+            "legs", Utils.ITEM_CODEC.optional(), Equipment::getLegs,
+            "boots", Utils.ITEM_CODEC.optional(), Equipment::getBoots,
+            "hand", Utils.ITEM_CODEC.optional(), Equipment::getHand,
+            "offhand", Utils.ITEM_CODEC.optional(), Equipment::getOffhand,
+            Equipment::new
+    );
 
-    /**
-     * A constructor to create an equipment object with air as all items
-     */
-    public Equipment() {
-        // default constructor
+    @Nullable
+    private ItemStack head = null;
+    @Nullable
+    private ItemStack chest = null;
+    @Nullable
+    private ItemStack legs = null;
+    @Nullable
+    private ItemStack boots = null;
+    @Nullable
+    private ItemStack hand = null;
+    @Nullable
+    private ItemStack offhand = null;
+
+    public Equipment(@Nullable ItemStack head,
+                     @Nullable ItemStack chest,
+                     @Nullable ItemStack legs,
+                     @Nullable ItemStack boots,
+                     @Nullable ItemStack hand,
+                     @Nullable ItemStack offhand) {
+        this.head = head != null && !head.isEmpty() ? head.clone() : null;
+        this.chest = chest != null && !chest.isEmpty() ? chest.clone() : null;
+        this.legs = legs != null && !legs.isEmpty() ? legs.clone() : null;
+        this.boots = boots != null && !boots.isEmpty() ? boots.clone() : null;
+        this.hand = hand != null && !hand.isEmpty() ? hand.clone() : null;
+        this.offhand = offhand != null && !offhand.isEmpty() ? offhand.clone() : null;
     }
 
     /**
@@ -75,18 +88,25 @@ public class Equipment {
      * @param e The entity equipment to pull items from.
      */
     public Equipment importFromEntityEquipment(EntityEquipment e) {
-        this.head = e.getHelmet() != null ? e.getHelmet().clone() : new ItemStack(Material.AIR);
-        this.chest = e.getChestplate() != null ? e.getChestplate().clone() : new ItemStack(Material.AIR);
-        this.legs = e.getLeggings() != null ? e.getLeggings().clone() : new ItemStack(Material.AIR);
-        this.boots = e.getBoots() != null ? e.getBoots().clone() : new ItemStack(Material.AIR);
-        this.hand = e.getItemInMainHand().clone();
-        this.offhand = e.getItemInOffHand().clone();
+        this.head = e.getHelmet() == null || e.getHelmet().isEmpty() ? null : e.getHelmet().clone();
+        this.chest = e.getChestplate() == null || e.getChestplate().isEmpty() ? null : e.getChestplate().clone();
+        this.legs = e.getLeggings() == null || e.getLeggings().isEmpty() ? null : e.getLeggings().clone();
+        this.boots = e.getBoots() == null || e.getBoots().isEmpty() ? null : e.getBoots().clone();
+        this.hand = e.getItemInMainHand().isEmpty() ? null : e.getItemInMainHand().clone();
+        this.offhand = e.getItemInOffHand().isEmpty() ? null : e.getItemInOffHand().clone();
         return this;
     }
 
     @SuppressWarnings("all")
     public Equipment clone() {
-        return new Equipment(head.clone(), chest.clone(), legs.clone(), boots.clone(), hand.clone(), offhand.clone());
+        return new Equipment(
+                head != null && !head.isEmpty() ? head.clone() : null,
+                chest != null && !chest.isEmpty() ? chest.clone() : null,
+                legs != null && !legs.isEmpty() ? legs.clone() : null,
+                boots != null && !boots.isEmpty() ? boots.clone() : null,
+                hand != null && !hand.isEmpty() ? hand.clone() : null,
+                offhand != null && !offhand.isEmpty() ? offhand.clone() : null
+        );
     }
 
     /**
@@ -95,7 +115,7 @@ public class Equipment {
      * @param itemStack the item to use
      * @return this, for chaining
      */
-    public Equipment setHead(ItemStack itemStack) {
+    public Equipment setHead(@Nullable ItemStack itemStack) {
         head = itemStack;
         return this;
     }
@@ -106,7 +126,7 @@ public class Equipment {
      * @param itemStack the item to use
      * @return this, for chaining
      */
-    public Equipment setChest(ItemStack itemStack) {
+    public Equipment setChest(@Nullable ItemStack itemStack) {
         chest = itemStack;
         return this;
     }
@@ -117,7 +137,7 @@ public class Equipment {
      * @param itemStack the item to use
      * @return this, for chaining
      */
-    public Equipment setLegs(ItemStack itemStack) {
+    public Equipment setLegs(@Nullable ItemStack itemStack) {
         legs = itemStack;
         return this;
     }
@@ -128,7 +148,7 @@ public class Equipment {
      * @param itemStack the item to use
      * @return this, for chaining
      */
-    public Equipment setBoots(ItemStack itemStack) {
+    public Equipment setBoots(@Nullable ItemStack itemStack) {
         boots = itemStack;
         return this;
     }
@@ -139,7 +159,7 @@ public class Equipment {
      * @param itemStack the item to use
      * @return this, for chaining
      */
-    public Equipment setOffhand(ItemStack itemStack) {
+    public Equipment setOffhand(@Nullable ItemStack itemStack) {
         offhand = itemStack;
         return this;
     }
@@ -150,8 +170,97 @@ public class Equipment {
      * @param itemStack the item to use
      * @return this, for chaining
      */
-    public Equipment setHand(ItemStack itemStack) {
+    public Equipment setHand(@Nullable ItemStack itemStack) {
         hand = itemStack;
         return this;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private final Equipment equipment = DEFAULT;
+
+        /**
+         * Sets the items on the NPC's head
+         *
+         * @param itemStack the item to use
+         * @return this, for chaining
+         */
+        public Builder head(@Nullable ItemStack itemStack) {
+            equipment.setHead(itemStack);
+            return this;
+        }
+
+        /**
+         * Sets the items on the NPC's chest
+         *
+         * @param itemStack the item to use
+         * @return this, for chaining
+         */
+        public Builder chest(@Nullable ItemStack itemStack) {
+            equipment.setChest(itemStack);
+            return this;
+        }
+
+        /**
+         * Sets the items on the NPC's legs
+         *
+         * @param itemStack the item to use
+         * @return this, for chaining
+         */
+        public Builder legs(@Nullable ItemStack itemStack) {
+            equipment.setLegs(itemStack);
+            return this;
+        }
+
+        /**
+         * Sets the items on the NPC's feet
+         *
+         * @param itemStack the item to use
+         * @return this, for chaining
+         */
+        public Builder boots(@Nullable ItemStack itemStack) {
+            equipment.setBoots(itemStack);
+            return this;
+        }
+
+        /**
+         * Sets the items on the NPC's offhand
+         *
+         * @param itemStack the item to use
+         * @return this, for chaining
+         */
+        public Builder offhand(@Nullable ItemStack itemStack) {
+            equipment.setOffhand(itemStack);
+            return this;
+        }
+
+        /**
+         * Sets the items on the NPC's main hand
+         *
+         * @param itemStack the item to use
+         * @return this, for chaining
+         */
+        public Builder hand(@Nullable ItemStack itemStack) {
+            equipment.setHand(itemStack);
+            return this;
+        }
+
+        /**
+         * Imports the relevant items from an EntityEquipment Object
+         *
+         * @param e The entity equipment to pull items from.
+         */
+        public Builder importFromEntityEquipment(EntityEquipment e) {
+            equipment.importFromEntityEquipment(e);
+            return this;
+        }
+
+        public Equipment build() {
+            return equipment;
+        }
     }
 }

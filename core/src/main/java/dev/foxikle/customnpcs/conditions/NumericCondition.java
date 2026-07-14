@@ -20,15 +20,24 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.conditions;
+package dev.foxikle.customnpcs.conditions;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
 
 /**
  * The object representing a comparison of two numeric values
  */
 public class NumericCondition implements Condition {
+
+    public static final StructCodec<NumericCondition> CODEC = StructCodec.struct(
+            "comparator", Codec.Enum(Comparator.class), Condition::getComparator,
+            "value", Codec.Enum(Value.class), Condition::getValue,
+            "target", Codec.DOUBLE, NumericCondition::getTypedTarget,
+            NumericCondition::new
+    );
 
     private final Type type = Type.NUMERIC;
     private Comparator comparator;
@@ -40,7 +49,7 @@ public class NumericCondition implements Condition {
      * @param value      the value to compare
      * @param target     the target to compare to
      * @see Condition.Value
-     * @see Condition.Comparator
+     * @see Comparator
      */
     public NumericCondition(Comparator comparator, Value value, double target) {
         this.comparator = comparator;
@@ -120,7 +129,7 @@ public class NumericCondition implements Condition {
      * Sets the comparator of this condition
      *
      * @param comparator the comparator to compare the value and target value
-     * @see Condition.Comparator
+     * @see Comparator
      */
     @Override
     public void setComparator(Comparator comparator) {
@@ -167,6 +176,10 @@ public class NumericCondition implements Condition {
     @Override
     public String getTarget() {
         return String.valueOf(target);
+    }
+
+    private double getTypedTarget() {
+        return target;
     }
 
     /**

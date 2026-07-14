@@ -43,11 +43,11 @@ tasks {
     paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
     java {
-        toolchain.languageVersion = JavaLanguageVersion.of(21)
+        toolchain.languageVersion = JavaLanguageVersion.of(25)
     }
 
     compileJava {
-        options.release = 21
+        options.release = 25
     }
 
     jar {

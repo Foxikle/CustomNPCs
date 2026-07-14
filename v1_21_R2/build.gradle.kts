@@ -44,11 +44,11 @@ tasks {
 
 
     java {
-        toolchain.languageVersion = JavaLanguageVersion.of(21)
+        toolchain.languageVersion = JavaLanguageVersion.of(25)
     }
 
     compileJava {
-        options.release = 21
+        options.release = 25
     }
 
     jar {

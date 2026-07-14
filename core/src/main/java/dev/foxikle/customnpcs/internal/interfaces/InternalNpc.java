@@ -23,8 +23,12 @@
 package dev.foxikle.customnpcs.internal.interfaces;
 
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
+import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.InjectionManager;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -37,7 +41,9 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -46,7 +52,6 @@ import java.util.UUID;
 @ApiStatus.Internal
 public interface InternalNpc {
 
-
     /**
      * <p> Sets the NPC's location and rotation
      * </p>
@@ -54,6 +59,28 @@ public interface InternalNpc {
      * @param location The location to set the NPC
      */
     void setPosRot(Location location);
+
+    /**
+     * Gets the list of conditions checked upon injection checks
+     * @return
+     */
+    List<Condition> getInjectionConditions();
+
+    /**
+     * Gets this NPC's InjectionManager to handle marking players for reinjection
+     * @return
+     */
+    InjectionManager getInjectionManager();
+
+    /**
+     * Gets which selection mode should be used when determining if this NPC should be injectioned
+     * @return return the desired {@link Selector}
+     */
+    Selector getInjectionSelector();
+
+    void setInjectionConditions(List<Condition> conditions);
+
+    void setInjectionSelector(Selector mode);
 
     /**
      * <p> Creates the NPC and injects it into every player
@@ -193,7 +220,7 @@ public interface InternalNpc {
     void remove();
 
     /**
-     * <p> Moves the npc to the location
+     * <p> Moves the npc the DELTA provided by the vector.
      * </p>
      *
      * @param v The location to move to the npc at
@@ -204,7 +231,9 @@ public interface InternalNpc {
      * <p> Permanently deletes an NPC. Does NOT despawn it.
      * </p>
      */
-    void delete();
+    default void delete() {
+        CustomNPCs.getInstance().getStorageManager().remove(getUniqueID());
+    }
 
     /**
      * <p> Sets the actions executed when the NPC is interacted with.
@@ -307,4 +336,24 @@ public interface InternalNpc {
     InternalNpc clone();
 
     void teleport(Location loc);
+
+    /**
+     * Remove this NPC from this player.
+     * @param player the player to withdraw
+     */
+    void withdraw(Player player);
+
+    default Map<Condition, Boolean> evaluateInjectionConditions(Player player){
+        Map<Condition, Boolean> map = new HashMap<>();
+        for (Condition c : getInjectionConditions()) {
+            map.put(c, c.compute(player));
+        }
+        return map;
+    }
+
+    default boolean passesInectionConditions(Player player) {
+        Map<Condition, Boolean> map = evaluateInjectionConditions(player);
+        if (map.isEmpty()) return true;
+        return (getInjectionSelector() == Selector.ALL ? !map.containsValue(false) : map.containsValue(true));
+    }
 }

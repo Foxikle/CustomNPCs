@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2026. Foxikle
+ * Copyright (c) 2025. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,10 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.internal.utils;
+package dev.foxikle.customnpcs.internal.utils.exceptions;
 
-@FunctionalInterface
-public interface ParameterizedSupplier<T, U> {
-    T get(U parameter);
+public class NpcConfigurationException extends RuntimeException {
+    public NpcConfigurationException(String message) {
+        super(message);
+    }
 }

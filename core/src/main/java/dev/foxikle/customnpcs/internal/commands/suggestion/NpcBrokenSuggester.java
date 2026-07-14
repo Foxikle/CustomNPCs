@@ -27,17 +27,16 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.utils.BrokenReason;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 
-import java.util.HashMap;
 import java.util.UUID;
 
 @SuppressWarnings("UnstableApiUsage")
 public class NpcBrokenSuggester {
 
-    public static final SuggestionProvider<CommandSourceStack> WORLD = (context, builder) -> {
+    public static final SuggestionProvider<CommandSourceStack> WORLD = (_, builder) -> {
         CustomNPCs plugin = CustomNPCs.getInstance();
         String input = builder.getRemaining().toLowerCase();
 
-        plugin.getFileManager().getBrokenNPCs().getOrDefault(BrokenReason.INVALID_WORLD, new HashMap<>())
+        plugin.getStorageManager().getBrokenNPCs(BrokenReason.INVALID_WORLD)
                 .keySet().stream()
                 .map(UUID::toString)
                 .filter(uuid -> uuid.toLowerCase().startsWith(input))
@@ -46,11 +45,11 @@ public class NpcBrokenSuggester {
         return builder.buildFuture();
     };
 
-    public static final SuggestionProvider<CommandSourceStack> LINES = (context, builder) -> {
+    public static final SuggestionProvider<CommandSourceStack> LINES = (_, builder) -> {
         CustomNPCs plugin = CustomNPCs.getInstance();
         String input = builder.getRemaining().toLowerCase();
 
-        plugin.getFileManager().getBrokenNPCs().getOrDefault(BrokenReason.EMPTY_LINES, new HashMap<>())
+        plugin.getStorageManager().getBrokenNPCs(BrokenReason.EMPTY_LINES)
                 .keySet().stream()
                 .map(UUID::toString)
                 .filter(uuid -> uuid.toLowerCase().startsWith(input))

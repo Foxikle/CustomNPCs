@@ -25,9 +25,9 @@ package dev.foxikle.customnpcs.internal.listeners;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
 import dev.foxikle.customnpcs.actions.defaultImpl.*;
 import dev.foxikle.customnpcs.api.events.NpcInteractEvent;
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
@@ -242,10 +242,6 @@ public class Listeners implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent e) {
         Player player = e.getPlayer();
-        if (plugin.isWaiting(player, WaitingType.RECORDING)) {
-            FollowPresetPathAction.recordMovement(player, e.getTo());
-            return;
-        }
         actionPlayerMovement(player);
     }
 
@@ -268,7 +264,7 @@ public class Listeners implements Listener {
             e.setCancelled(true);
 
             Action actionImpl = plugin.editingActions.get(player.getUniqueId());
-            if (!(actionImpl instanceof FollowPresetPathAction follow)) {
+            if (!(actionImpl instanceof FollowPresetPath follow)) {
                 plugin.getLogger().warning("Expected action to be an instance of 'FollowPresetPathAction', got " + actionImpl.getClass().getSimpleName());
                 return;
             }
@@ -280,7 +276,7 @@ public class Listeners implements Listener {
                 return;
             }
 
-            List<RecordedPathNode> path = FollowPresetPathAction.stopRecording(player);
+            List<RecordedPathNode> path = FollowPresetPath.stopRecording(player);
             follow.setPath(path);
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.recording",
                     String.valueOf(path.size())));
@@ -320,27 +316,28 @@ public class Listeners implements Listener {
 
             plugin.waiting.remove(player.getUniqueId());
             int index = HologramMenu.editingIndicies.get(player.getUniqueId());
-            if (npc.getSettings().getRawHolograms().length <= index) { // an addition
-                npc.getSettings().setRawHolograms(Arrays.copyOf(npc.getSettings().getRawHolograms(), index + 1)); //
-                // extend it by 1
-            }
             String finalMessage = message;
             if (message.equalsIgnoreCase("%empty%")) {
                 finalMessage = "";
             }
-            npc.getSettings().getRawHolograms()[index] = finalMessage;
+
+            if (npc.getSettings().getRawHolograms().size() <= index) {
+                npc.getSettings().getRawHolograms().add(finalMessage);
+            } else {
+                npc.getSettings().getRawHolograms().set(index, finalMessage);
+            }
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.name", index + 1,
                     Msg.format(finalMessage)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_HOLOGRAMS));
         } else if (plugin.isWaiting(player, WaitingType.TARGET)) {
-            Condition conditional = plugin.editingConditionals.get(player.getUniqueId());
+            Condition condition = plugin.editingConditionals.get(player.getUniqueId());
             if (cancel) {
                 plugin.waiting.remove(player.getUniqueId());
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_CONDITION_CUSTOMIZER));
                 e.setCancelled(true);
                 return;
             }
-            if (conditional.getType() == Condition.Type.NUMERIC) {
+            if (condition.getType() == Condition.Type.NUMERIC) {
                 try {
                     Double.parseDouble(message);
                 } catch (NumberFormatException ignored) {
@@ -349,8 +346,8 @@ public class Listeners implements Listener {
                 }
             }
             plugin.waiting.remove(player.getUniqueId());
-            conditional.setTargetValue(message);
-            plugin.editingConditionals.put(player.getUniqueId(), conditional);
+            condition.setTargetValue(message);
+            plugin.editingConditionals.put(player.getUniqueId(), condition);
             player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.conditions.set.target", message));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_CONDITION_CUSTOMIZER));
         } else if (plugin.isWaiting(player, WaitingType.TITLE)) {
@@ -569,7 +566,6 @@ public class Listeners implements Listener {
                 return;
             }
             if (message.equalsIgnoreCase("confirm")) {
-                npc.getSettings().setDirection(player.getLocation().getYaw());
                 npc.getSpawnLoc().setPitch(player.getLocation().getPitch());
                 npc.getSpawnLoc().setYaw(player.getLocation().getYaw());
                 player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.facing_direction"));
@@ -673,7 +669,7 @@ public class Listeners implements Listener {
 
             double distanceSquared = location.distanceSquared(spawnLocation);
             if (distanceSquared <= FIFTY_BLOCKS) {
-                SCHEDULER.runTaskLater(plugin, () -> npc.injectPlayer(player), 5);
+                SCHEDULER.runTaskLater(plugin, () -> npc.getInjectionManager().markForInjection(player.getUniqueId()), 5);
             }
 
             if (distanceSquared <= FIVE_BLOCKS && !npc.getSettings().isTunnelvision()) {

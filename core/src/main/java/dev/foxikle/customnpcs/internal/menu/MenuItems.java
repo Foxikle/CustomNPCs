@@ -25,9 +25,8 @@ package dev.foxikle.customnpcs.internal.menu;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.conditions.Condition;
-import dev.foxikle.customnpcs.actions.conditions.LogicalCondition;
-import dev.foxikle.customnpcs.actions.conditions.NumericCondition;
+import dev.foxikle.customnpcs.conditions.*;
+import dev.foxikle.customnpcs.conditions.Comparator;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
@@ -50,11 +49,9 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 
 import static org.bukkit.Material.*;
@@ -73,9 +70,9 @@ public class MenuItems {
 
         Component lines = Component.empty();
 
-        for (int i = 0; i < npc.getSettings().getHolograms().length; i++) {
-            String raw = npc.getSettings().getRawHolograms()[i];
-            Component holo = npc.getSettings().getHolograms()[i];
+        for (int i = 0; i < npc.getSettings().getHolograms().size(); i++) {
+            String raw = npc.getSettings().getRawHolograms().get(i);
+            Component holo = npc.getSettings().getHolograms().get(i);
             if (raw.isEmpty()) {
                 holo = Msg.translate(player.locale(), "customnpcs.messages.empty_string");
             }
@@ -88,6 +85,73 @@ public class MenuItems {
                 .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.items.name.name"))
                 .setLore(lore)
                 .build(), new OpenButtonAction(MenuUtils.NPC_HOLOGRAMS));
+    }
+
+    public static Button rotation(InternalNpc npc, Player player) {
+        double dir = npc.getSpawnLoc().getYaw();
+
+        List<Component> lore = new ArrayList<>();
+        Map<Integer, Integer> highlightIndexMap = Map.of(180, 0, -135, 1, -90, 2, -45, 3, 0, 4, 45, 5, 90, 6, 135, 7);
+        Component clickToChange = Msg.translate(player.locale(), "customnpcs.items.click_to_change");
+        List<Component> directions = List.of(Msg.translate(player.locale(), "customnpcs.directions.north"), Msg.translate(player.locale(), "customnpcs.directions.north_east"), Msg.translate(player.locale(), "customnpcs.directions.east"), Msg.translate(player.locale(), "customnpcs.directions.south_east"), Msg.translate(player.locale(), "customnpcs.directions.south"), Msg.translate(player.locale(), "customnpcs.directions.south_west"), Msg.translate(player.locale(), "customnpcs.directions.west"), Msg.translate(player.locale(), "customnpcs.directions.north_west"), Msg.translate(player.locale(), "customnpcs.directions.player"));
+        int highlightIndex = highlightIndexMap.getOrDefault((int) dir, 8);
+        lore.add(Component.empty());
+
+        for (int i = 0; i < directions.size(); ++i) {
+            Component direction = directions.get(i);
+            if (i == highlightIndex) {
+                direction = direction.color(NamedTextColor.DARK_AQUA);
+                direction = Utils.mm("<dark_aqua>▸ ").append(direction);
+            }
+
+            lore.add(direction);
+        }
+
+        lore.add(Component.empty());
+        lore.add(clickToChange);
+
+        ItemStack item = ItemBuilder.modern(COMPASS)
+                .setLore(lore)
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.facing_direction.name"))
+                .build();
+
+        return Button.clickable(item, ButtonClickAction.plain((menuView, event) -> {
+            event.setCancelled(true);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+
+            double newDir = 0.0D;
+            if (event.isLeftClick()) {
+                if (dir % 45.0D != 0.0D) {
+                    newDir = 180.0D;
+                } else {
+                    newDir = (dir + 225.0D) % 360.0D - 180.0D;
+                    if (dir == 135.0D) {
+                        newDir = p.getLocation().getYaw();
+                    }
+                }
+            } else if (event.isRightClick()) {
+                if (dir % 45.0D != 0.0D) {
+                    newDir = 135.0D;
+                } else {
+                    newDir = (dir - 225.0D) % 360.0D + 180.0D;
+                    if (dir == 180.0D) {
+                        newDir = p.getLocation().getYaw();
+                    }
+                }
+            }
+
+            npc.getSpawnLoc().setYaw((float) newDir);
+            menuView.replaceButton(10, rotation(npc, p));
+        }));
+    }
+
+    public static ItemStack changeName(InternalNpc npc, Player player) {
+        return ItemBuilder.modern(Material.NAME_TAG)
+                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.items.name.name"))
+                .setLore(Msg.translate(player.locale(), "customnpcs.menus.main.items.name.current_name",
+                        plugin.getMiniMessage().deserialize(npc.getSettings().getRawHolograms().getFirst())))
+                .build();
     }
 
     public static Button resilient(InternalNpc npc, Player player) {
@@ -173,13 +237,26 @@ public class MenuItems {
         Equipment equip = npc.getEquipment();
         return ItemBuilder.modern(Material.ARMOR_STAND)
                 .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.name"))
-                .setLore(Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.main_hand", equip.getHand().getType().name().toLowerCase()),
-                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.off_hand", equip.getOffhand().getType().name().toLowerCase()),
-                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.helmet", equip.getHead().getType().name().toLowerCase()),
-                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.chestplate", equip.getChest().getType().name().toLowerCase()),
-                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.leggings", equip.getLegs().getType().name().toLowerCase()),
-                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.boots", equip.getBoots().getType().name().toLowerCase())
+                .setLore(Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.main_hand",
+                                equipmentName(player.locale(), equip.getHand())),
+                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.off_hand",
+                                equipmentName(player.locale(), equip.getOffhand())),
+                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.helmet",
+                                equipmentName(player.locale(), equip.getHead())),
+                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.chestplate",
+                                equipmentName(player.locale(), equip.getChest())),
+                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.leggings",
+                                equipmentName(player.locale(), equip.getLegs())),
+                        Msg.translate(player.locale(), "customnpcs.menus.main.items.equipment.boots",
+                                equipmentName(player.locale(), equip.getBoots()))
                 ).build();
+    }
+
+    private static Component equipmentName(Locale locale, @Nullable ItemStack item) {
+        if (item == null) {
+            return Msg.translate(locale, "customnpcs.menus.main.items.equipment.empty");
+        }
+        return Component.translatable(item.translationKey());
     }
 
     public static Button tunnelVision(InternalNpc npc, Player player) {
@@ -264,7 +341,7 @@ public class MenuItems {
 
     public static Button chestplateSlot(InternalNpc npc, Player player) {
         ItemStack cp = npc.getEquipment().getChest();
-        if (cp.getType().isAir()) {
+        if (cp == null || cp.getType().isAir()) {
 
             return Button.clickable(ItemBuilder.modern(Material.LIME_STAINED_GLASS_PANE)
                             .addFlags(ItemFlag.values())
@@ -274,7 +351,7 @@ public class MenuItems {
                     ButtonClickAction.plain((menuView, event) -> {
                         Player p = (Player) event.getWhoClicked();
                         event.setCancelled(true);
-                        if (event.getCursor().getType().name().contains("CHESTPLATE") || event.getCursor().getType() == Material.ELYTRA) {
+                        if (event.getCursor().getType().name().contains("CHESTPLATE")) {
                             npc.getEquipment().setChest(event.getCursor().clone());
                             event.getCursor().setAmount(0);
                             p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
@@ -303,7 +380,7 @@ public class MenuItems {
                             p.sendMessage(Msg.translate(p.locale(), "customnpcs.menus.equipment.chestplate.reset"));
                             menuView.replaceButton(22, chestplateSlot(npc, p));
                             return;
-                        } else if (event.getCursor().getType().name().contains("CHESTPLATE") || event.getCursor().getType() == Material.ELYTRA) {
+                        } else if (event.getCursor().getType().name().contains("CHESTPLATE")) {
                             npc.getEquipment().setChest(event.getCursor().clone());
                             event.getCursor().setAmount(0);
                             p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
@@ -321,7 +398,7 @@ public class MenuItems {
 
     public static Button leggingsSlot(InternalNpc npc, Player player) {
         ItemStack legs = npc.getEquipment().getLegs();
-        if (legs.getType().isAir()) {
+        if (legs == null || legs.getType().isAir()) {
             return Button.clickable(ItemBuilder.modern(Material.LIME_STAINED_GLASS_PANE)
                             .addFlags(ItemFlag.values())
                             .setLore(Msg.lore(player.locale(), "customnpcs.menus.equipment.legs.change"))
@@ -374,7 +451,7 @@ public class MenuItems {
 
     public static Button bootsSlot(InternalNpc npc, Player player) {
         ItemStack boots = npc.getEquipment().getBoots();
-        if (boots.getType().isAir()) {
+        if (boots == null || boots.getType().isAir()) {
             return Button.clickable(ItemBuilder.modern(LIME_STAINED_GLASS_PANE)
                             .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.equipment.boots.empty"))
                             .addFlags(ItemFlag.values())
@@ -427,7 +504,7 @@ public class MenuItems {
 
     public static Button handSlot(InternalNpc npc, Player player) {
         ItemStack hand = npc.getEquipment().getHand();
-        if (hand.getType().isAir()) {
+        if (hand == null || hand.getType().isAir()) {
             return Button.clickable(ItemBuilder.modern(YELLOW_STAINED_GLASS_PANE)
                             .addFlags(ItemFlag.values())
                             .setLore(Msg.lore(player.locale(), "customnpcs.menus.equipment.hand.change"))
@@ -473,7 +550,7 @@ public class MenuItems {
 
     public static Button offhandSlot(InternalNpc npc, Player player) {
         ItemStack offhand = npc.getEquipment().getOffhand();
-        if (offhand.getType().isAir()) {
+        if (offhand == null || offhand.getType().isAir()) {
             return Button.clickable(ItemBuilder.modern(YELLOW_STAINED_GLASS_PANE)
                             .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.equipment.offhand.empty"))
                             .setLore(Msg.lore(player.locale(), "customnpcs.menus.equipment.offhand.change"))
@@ -516,14 +593,14 @@ public class MenuItems {
         }
     }
 
-    public static Button toMain(Player player) {
-        return Button.clickable(ItemBuilder.modern(BARRIER).setDisplay(Msg.translate(player.locale(), "customnpcs.items.go_back")).build(),
-                new OpenButtonAction(MenuUtils.NPC_MAIN));
-    }
-
     public static Button toPose(Player player) {
         return Button.clickable(ItemBuilder.modern(SNIFFER_EGG).setDisplay(Msg.translate(player.locale(), "customnpcs.pose.pose_editor")).build(),
                 new OpenButtonAction(MenuUtils.NPC_POSE));
+    }
+
+    public static Button toMain(Player player) {
+        return Button.clickable(ItemBuilder.modern(BARRIER).setDisplay(Msg.translate(player.locale(), "customnpcs.items.go_back")).build(),
+                new OpenButtonAction(MenuUtils.NPC_MAIN));
     }
 
     public static Button toAction(Player player) {
@@ -563,7 +640,7 @@ public class MenuItems {
                     npc.removeAction(action);
                     menuView.getAPI().openMenu(p, MenuUtils.NPC_ACTIONS);
                 } else if (event.isLeftClick()) {
-                    if (CustomNPCs.ACTION_REGISTRY.canEdit(action.getClass())) {
+                    if (action.canEdit()) {
                         p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1F, 1F);
                         plugin.editingActions.put(p.getUniqueId(), action.clone());
                         plugin.originalEditingActions.put(p.getUniqueId(), action);
@@ -588,16 +665,16 @@ public class MenuItems {
     public static List<Button> currentLines(InternalNpc npc, Player player) {
         List<Button> buttons = new ArrayList<>();
 
-        String[] raw = npc.getSettings().getRawHolograms();
-        List<String> mutable = Utils.list(raw);
-        for (int i = 0; i < raw.length; i++) {
-            String line = raw[i];
+        List<String> raw = npc.getSettings().getRawHolograms();
+        List<String> mutable = new ArrayList<>(raw);
+        for (int i = 0; i < raw.size(); i++) {
+            String line = raw.get(i);
             List<Component> lore = Utils.list(
                     Msg.format(line), Component.empty(),
                     Msg.translate(player.locale(), "customnpcs.menus.holograms.edit"),
                     Msg.translate(player.locale(), "customnpcs.menus.holograms.delete")
             );
-            boolean canMoveDown = i < raw.length - 1;
+            boolean canMoveDown = i < raw.size() - 1;
             boolean canMoveUp = i > 0;
 
             if (canMoveDown) lore.add(Msg.translate(player.locale(), "customnpcs.menus.holograms.move_down"));
@@ -618,7 +695,7 @@ public class MenuItems {
                         // RIGHT is down
 
                         if (event.getClick() == ClickType.DROP) {
-                            if (npc.getSettings().getRawHolograms().length == 1) {
+                            if (npc.getSettings().getRawHolograms().size() == 1) {
                                 player.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.holograms" +
                                         ".min_one"));
                                 return;
@@ -628,14 +705,15 @@ public class MenuItems {
                             return;
                         }
                         if (event.getClick() == ClickType.CONTROL_DROP) {
-                            if (npc.getSettings().getRawHolograms().length == 1) {
+                            if (npc.getSettings().getRawHolograms().size() == 1) {
                                 player.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.holograms" +
                                         ".min_one"));
                                 return;
                             }
                             mutable.remove(finalI);
                             player.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1F, 1F);
-                            npc.getSettings().setRawHolograms(mutable.toArray(new String[0]));
+                            npc.getSettings().getRawHolograms().remove(finalI);
+                            npc.getSettings().setHolograms(mutable);
                             plugin.getLotus().openMenu(p, MenuUtils.NPC_HOLOGRAMS);
                             return;
                         }
@@ -665,7 +743,7 @@ public class MenuItems {
                             }
 
                             Collections.swap(mutable, finalI, finalI - 1);
-                            npc.getSettings().setRawHolograms(mutable.toArray(new String[0]));
+                            npc.getSettings().setHolograms(mutable);
                             plugin.getLotus().openMenu(p, MenuUtils.NPC_HOLOGRAMS);
                             p.playSound(p.getLocation(), Sound.BLOCK_PISTON_EXTEND, .7F, .9F);
                             return;
@@ -678,7 +756,7 @@ public class MenuItems {
                         }
 
                         Collections.swap(mutable, finalI, finalI + 1);
-                        npc.getSettings().setRawHolograms(mutable.toArray(new String[0]));
+                        npc.getSettings().setHolograms(mutable);
                         plugin.getLotus().openMenu(p, MenuUtils.NPC_HOLOGRAMS);
                         p.playSound(p.getLocation(), Sound.BLOCK_PISTON_CONTRACT, .7F, .9F);
                     })));
@@ -694,7 +772,7 @@ public class MenuItems {
                     plugin.wait(p, WaitingType.NAME);
 
                     p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-                    HologramMenu.editingIndicies.put(p.getUniqueId(), raw.length);
+                    HologramMenu.editingIndicies.put(p.getUniqueId(), raw.size());
                     new NameRunnable(p, plugin).runTaskTimer(plugin, 1, 15);
                     p.closeInventory();
                 })
@@ -729,7 +807,7 @@ public class MenuItems {
                     } else if (event.isRightClick()) {
                         action.setDelay(Math.max(0, action.getDelay() - 5));
                     }
-                    menuView.updateButton(1, button -> button.setItem(delayDisplay(action, p).getItem()));
+                    menuView.updateButton(4, button -> button.setItem(delayDisplay(action, p).getItem()));
                 }));
     }
 
@@ -749,7 +827,7 @@ public class MenuItems {
                     }
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-                    menuView.updateButton(1, button -> button.setItem(delayDisplay(action, p).getItem()));
+                    menuView.updateButton(4, button -> button.setItem(delayDisplay(action, p).getItem()));
                 }));
     }
 
@@ -851,7 +929,7 @@ public class MenuItems {
     public static Button comparatorSwitcher(Condition condition, Player player) {
 
         List<Component> lore = new ArrayList<>();
-        for (Condition.Comparator c : Condition.Comparator.values()) {
+        for (Comparator c : Comparator.values()) {
             if (condition.getType() == Condition.Type.NUMERIC || (condition.getType() == Condition.Type.LOGICAL && c.isStrictlyLogical())) {
                 if (condition.getComparator() != c)
                     lore.add(Msg.translate(player.locale(), c.getKey()).color(NamedTextColor.GREEN));
@@ -868,8 +946,8 @@ public class MenuItems {
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
             event.setCancelled(true);
-            List<Condition.Comparator> comparators = new ArrayList<>();
-            for (Condition.Comparator value : Condition.Comparator.values()) {
+            List<Comparator> comparators = new ArrayList<>();
+            for (Comparator value : Comparator.values()) {
                 if (condition.getType() == Condition.Type.LOGICAL && !value.isStrictlyLogical()) {
                     continue;
                 }
@@ -978,7 +1056,7 @@ public class MenuItems {
             p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             event.setCancelled(true);
             npc.getSettings().setHideClickableHologram(!hideClickableTag);
-            menuView.replaceButton(11, interactableHologram(npc, p));
+            menuView.replaceButton(12, interactableHologram(npc, p));
         }));
     }
 
@@ -1030,7 +1108,6 @@ public class MenuItems {
             Player p = (Player) event.getWhoClicked();
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             p.closeInventory();
-
             plugin.wait(p, WaitingType.PLAYER);
             new PlayerNameRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
             event.setCancelled(true);
@@ -1066,7 +1143,6 @@ public class MenuItems {
             Player p = (Player) event.getWhoClicked();
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             p.closeInventory();
-
             plugin.wait(p, WaitingType.URL);
             new UrlRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
             event.setCancelled(true);
@@ -1122,7 +1198,7 @@ public class MenuItems {
     }
 
     public static Button toggleConditionMode(Action action, Player player) {
-        boolean isAll = action.getMode() == Condition.SelectionMode.ALL;
+        boolean isAll = action.getSelector() == Selector.ALL;
         ItemStack i = ItemBuilder.modern(isAll ? GREEN_CANDLE : RED_CANDLE)
                 .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.conditions.mode.toggle"))
                 .setLore(isAll ? Msg.translate(player.locale(), "customnpcs.menus.conditions.mode.all") : Msg.translate(player.locale(), "customnpcs.menus.conditions.mode.one"))
@@ -1132,7 +1208,7 @@ public class MenuItems {
             Player p = (Player) event.getWhoClicked();
             p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             event.setCancelled(true);
-            action.setMode(isAll ? Condition.SelectionMode.ONE : Condition.SelectionMode.ALL);
+            action.setSelector(isAll ? Selector.ONE : Selector.ALL);
             menuView.replaceButton(35, toggleConditionMode(action, p));
         }));
     }
@@ -1173,7 +1249,7 @@ public class MenuItems {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            Condition conditional = new NumericCondition(Condition.Comparator.EQUAL_TO, Condition.Value.EXP_LEVELS, 0.0);
+            Condition conditional = new NumericCondition(Comparator.EQUAL_TO, Condition.Value.EXP_LEVELS, 0.0);
             plugin.originalEditingConditionals.remove(p.getUniqueId());
             plugin.editingConditionals.put(p.getUniqueId(), conditional);
             menuView.getAPI().openMenu(p, MenuUtils.NPC_CONDITION_CUSTOMIZER);
@@ -1190,7 +1266,7 @@ public class MenuItems {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            Condition conditional = new LogicalCondition(Condition.Comparator.EQUAL_TO, Condition.Value.GAMEMODE, "CREATIVE");
+            Condition conditional = new LogicalCondition(Comparator.EQUAL_TO, Condition.Value.GAMEMODE, "CREATIVE");
             plugin.originalEditingConditionals.remove(p.getUniqueId());
             plugin.editingConditionals.put(p.getUniqueId(), conditional);
             menuView.getAPI().openMenu(p, MenuUtils.NPC_CONDITION_CUSTOMIZER);
