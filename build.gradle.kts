@@ -22,6 +22,7 @@
 
 plugins {
     `java-library`
+    id("com.vanniktech.maven.publish") version "0.37.0"
     `maven-publish`
     id("xyz.jpenilla.run-paper") version "3.0.2"
     id("io.github.goooler.shadow") version "8.1.8"
@@ -70,27 +71,38 @@ val sourcesJar = tasks.register<Jar>("sourcesJar") {
     from(sourceSets.main.get().allJava)
 }
 
-publishing {
-    repositories {
-        maven {
-            name = "FoxiklePublicRepository"
-            url = uri("https://repo.foxikle.dev/public")
-            credentials(PasswordCredentials::class)
-            authentication {
-                create<BasicAuthentication>("basic")
+mavenPublishing {
+    coordinates("dev.foxikle", "customnpcs", version as String?)
+
+    pom {
+        name.set("CustomNPCs")
+        description.set("The API for a powerful, configurable NPC plugin for Paper servers.")
+        inceptionYear.set("2023")
+        url.set("https://github.com/Foxikle/CustomNPCs/")
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://raw.githubusercontent.com/Foxikle/CustomNPCs/refs/heads/master/LICENSE")
+                distribution.set("https://raw.githubusercontent.com/Foxikle/CustomNPCs/refs/heads/master/LICENSE")
             }
         }
-    }
-    publications {
-        create<MavenPublication>("main") {
-            groupId = project.group.toString()
-            artifactId = project.name
-            version = project.version.toString()
-            artifact(tasks["shadowJar"])
-            artifact(javadocJar)
-            artifact(sourcesJar)
+        developers {
+            developer {
+                id.set("foxikle")
+                email.set("foxikle@cytonic.net")
+                name.set("Foxikle")
+                url.set("https://foxikle.dev")
+            }
+        }
+        scm {
+            url.set("https://github.com/Foxikle/CustomNPCs")
+            connection.set("scm:git:git://github.com/Foxikle/CustomNPCs.git")
+            developerConnection.set("scm:git:ssh://git@github.com/Foxikle/CustomNPCs.git")
         }
     }
+
+    publishToMavenCentral()
+    signAllPublications()
 }
 
 tasks {
@@ -103,11 +115,9 @@ tasks {
         dependsOn(shadowJar)
     }
 
-
-
     compileJava {
         options.encoding = Charsets.UTF_8.name()
-        options.release = 21
+        options.release = 25
     }
     javadoc {
         source = sourceSets["main"].allSource
@@ -126,13 +136,13 @@ tasks {
             "apiVersion" to "1.20"
         )
         inputs.properties(props)
-        filesMatching("plugin.yml") {
+        filesMatching("paper-plugin.yml") {
             expand(props)
         }
     }
 
     shadowJar {
-        archiveClassifier.set("")
+        archiveClassifier.set("all")
         // This is used to place the file into a test server's plugin directory.
         destinationDirectory.set(
             file(
@@ -158,5 +168,3 @@ tasks.register<Javadoc>("aggregatedJavadocs") {
         }
     }
 }
-
-
