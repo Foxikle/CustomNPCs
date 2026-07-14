@@ -41,7 +41,7 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.12.2")
     compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
     compileOnly("net.kyori:adventure-api:5.1.1")
-    compileOnly("net.kyori:adventure-nbt:5.1.1")
+    compileOnly("net.kyori:adventure-nbt:5.2.0")
     compileOnly("org.mineskin:java-client-jsoup:3.2.6")
     compileOnly("org.mineskin:java-client:3.2.6")
     compileOnly("org.mongodb:mongodb-driver-sync:5.3.0")
