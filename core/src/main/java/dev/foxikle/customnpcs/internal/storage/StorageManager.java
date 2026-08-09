@@ -113,7 +113,6 @@ public class StorageManager {
     public boolean setup() {
         if (!new File(PARENT_DIRECTORY, "config.yml").exists()) {
             plugin.saveResource("config.yml", false);
-            return true;
         }
         // config
         {
@@ -470,6 +469,7 @@ public class StorageManager {
                     } else validNPCs.add(uuid);
                 }
             }
+
             // migrate data to the new storage provider!
             plugin.getLogger().warning(" <!>  --  Migrating NPCs to dataformat 2!  --  <!>");
 

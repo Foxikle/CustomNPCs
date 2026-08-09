@@ -13,7 +13,7 @@
 #    will be automatically generated on the next server start.
 
 # DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.
-CONFIG_VERSION: 9
+CONFIG_VERSION: 10
 
 # InjectionDistance -> How close should a player be to the NPC before the plugin attempts to inject the NPC (Due to minecraft, npcs automatically remove themselves after getting 48 blocks from the player).
 InjectionDistance: 48
