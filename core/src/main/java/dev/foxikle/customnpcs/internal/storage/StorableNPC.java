@@ -92,8 +92,8 @@ public class StorableNPC {
                 "x", Codec.DOUBLE, StorableLocation::x,
                 "y", Codec.DOUBLE, StorableLocation::y,
                 "z", Codec.DOUBLE, StorableLocation::z,
-                "pitch", Codec.FLOAT, StorableLocation::pitch,
                 "yaw", Codec.FLOAT, StorableLocation::yaw,
+                "pitch", Codec.FLOAT, StorableLocation::pitch,
                 "world", Codec.STRING, StorableLocation::world,
                 StorableLocation::new
         );
