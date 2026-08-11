@@ -116,6 +116,7 @@ public class Equipment {
      * @return this, for chaining
      */
     public Equipment setHead(@Nullable ItemStack itemStack) {
+        if (itemStack != null && itemStack.isEmpty()) itemStack = null;
         head = itemStack;
         return this;
     }
@@ -127,6 +128,7 @@ public class Equipment {
      * @return this, for chaining
      */
     public Equipment setChest(@Nullable ItemStack itemStack) {
+        if (itemStack != null && itemStack.isEmpty()) itemStack = null;
         chest = itemStack;
         return this;
     }
@@ -138,6 +140,7 @@ public class Equipment {
      * @return this, for chaining
      */
     public Equipment setLegs(@Nullable ItemStack itemStack) {
+        if (itemStack != null && itemStack.isEmpty()) itemStack = null;
         legs = itemStack;
         return this;
     }
@@ -149,6 +152,7 @@ public class Equipment {
      * @return this, for chaining
      */
     public Equipment setBoots(@Nullable ItemStack itemStack) {
+        if (itemStack != null && itemStack.isEmpty()) itemStack = null;
         boots = itemStack;
         return this;
     }
@@ -160,6 +164,7 @@ public class Equipment {
      * @return this, for chaining
      */
     public Equipment setOffhand(@Nullable ItemStack itemStack) {
+        if (itemStack != null && itemStack.isEmpty()) itemStack = null;
         offhand = itemStack;
         return this;
     }
@@ -171,6 +176,7 @@ public class Equipment {
      * @return this, for chaining
      */
     public Equipment setHand(@Nullable ItemStack itemStack) {
+        if (itemStack != null && itemStack.isEmpty()) itemStack = null;
         hand = itemStack;
         return this;
     }
