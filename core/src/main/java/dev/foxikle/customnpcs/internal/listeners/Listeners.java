@@ -511,6 +511,7 @@ public class Listeners implements Listener {
                                 throwable = completionException.getCause();
                             }
 
+                            throwable.printStackTrace(System.err);
                             if (throwable instanceof MineSkinRequestException requestException) {
                                 // get error details
                                 MineSkinResponse<?> response = requestException.getResponse();
@@ -536,6 +537,7 @@ public class Listeners implements Listener {
                             return null;
                         });
             } catch (Exception ex) {
+                ex.printStackTrace(System.err);
                 player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.invalid_url"));
             }
         } else if (plugin.isWaiting(player, WaitingType.HOLOGRAM)) {

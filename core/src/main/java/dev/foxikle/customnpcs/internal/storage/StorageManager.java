@@ -336,7 +336,6 @@ public class StorageManager {
                         " data. This can be used to separate your npc configurations across servers. ie: lobby, " +
                         "survival, etc."));
 
-                SkinUtils.setup(yml.getString("MineSkin.ApiKey"), yml.getString("MineSkin.ApiUrl"));
                 try {
                     yml.save(file);
                 } catch (IOException e) {
@@ -350,6 +349,8 @@ public class StorageManager {
             if (Arrays.stream(VALID_PROVIDERS).noneMatch(s -> s.equalsIgnoreCase(yml.getString("storage.provider")))) {
                 throw new IllegalArgumentException("Invalid config provider " + yml.getString("storage.provider"));
             }
+
+            SkinUtils.setup(yml.getString("MineSkin.ApiKey"), yml.getString("MineSkin.ApiUrl"));
             plugin.getLogger().info("Successfully loaded " + yml.getString("storage.provider") + " storage provider.");
         }
 

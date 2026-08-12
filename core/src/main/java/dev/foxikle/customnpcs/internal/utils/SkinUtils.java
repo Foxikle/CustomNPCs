@@ -39,9 +39,9 @@ public class SkinUtils {
 
         ClientBuilder builder = MineSkinClient.builder().requestHandler(JsoupRequestHandler::new);
         if ((key == null || key.isEmpty()) && (url == null || url.isEmpty())) {
-            builder.userAgent("Default-CustomNPCS/v1.7.4").baseUrl("https://mineskin.foxikle.dev");
+            builder.userAgent("Default-CustomNPCS/v1.8.2").baseUrl("https://mineskin.foxikle.dev");
         } else if (url == null || url.isEmpty()) {
-            builder.userAgent("UserKey-CustomNPCS/v1.7.4").apiKey(key);
+            builder.userAgent("UserKey-CustomNPCS/v1.8.2").apiKey(key);
         } else { // we don't care if a key is used, if they supply their own proxy
             if (url.endsWith("/")) url = url.substring(0, url.length() - 1); // trim trailing slash off
             builder.userAgent("UserProxy-CustomNPCs/v1.7.4").baseUrl(url);
