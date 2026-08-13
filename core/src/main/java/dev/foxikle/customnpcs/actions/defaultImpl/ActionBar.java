@@ -41,7 +41,6 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.minestom.server.codec.Codec;
@@ -53,13 +52,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.bukkit.Material.IRON_INGOT;
 import static org.bukkit.Material.PAPER;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public class ActionBar extends Action {
 
     public static final StructCodec<ActionBar> CODEC = StructCodec.struct(
@@ -68,6 +67,7 @@ public class ActionBar extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             ActionBar::new
     );
 
@@ -78,8 +78,9 @@ public class ActionBar extends Action {
      *
      * @param rawMessage The raw message
      */
-    public ActionBar(String rawMessage, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public ActionBar(String rawMessage, int delay, Selector mode, List<Condition> conditionals, int cooldown,
+                     UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.rawMessage = rawMessage;
     }
 
@@ -91,7 +92,7 @@ public class ActionBar extends Action {
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
-                    ActionBar actionImpl = new ActionBar("", 0, Selector.ONE, new ArrayList<>(), 0);
+                    ActionBar actionImpl = new ActionBar("", 0, Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -144,7 +145,8 @@ public class ActionBar extends Action {
 
     @Override
     public Action clone() {
-        return new ActionBar(rawMessage, getDelay(), getSelector(), new ArrayList<>(getConditions()), getCooldown());
+        return new ActionBar(rawMessage, getDelay(), getSelector(), new ArrayList<>(getConditions()), getCooldown(),
+                getUuid());
     }
 
     @Deprecated(forRemoval = true)
@@ -155,7 +157,8 @@ public class ActionBar extends Action {
         String rawMessage = parseString(serialized, "raw");
         ParseResult pr = parseBase(serialized);
 
-        ActionBar message = new ActionBar(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        ActionBar message = new ActionBar(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
+                UUID.randomUUID());
 
         return clazz.cast(message);
     }

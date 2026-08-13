@@ -43,7 +43,6 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
@@ -52,16 +51,17 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.bukkit.Material.GRASS_BLOCK;
 import static org.bukkit.Material.OAK_HANGING_SIGN;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public class SendServer extends Action {
 
     public static final StructCodec<SendServer> CODEC = StructCodec.struct(
@@ -70,14 +70,16 @@ public class SendServer extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             SendServer::new
     );
 
     private String server;
 
 
-    public SendServer(String server, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public SendServer(String server, int delay, Selector mode, List<Condition> conditionals, int cooldown,
+                      @Nullable UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.server = server;
     }
 
@@ -93,7 +95,8 @@ public class SendServer extends Action {
                             p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                             //todo: watch out for duplications
 
-                            SendServer actionImpl = new SendServer("server", 0, Selector.ONE, new ArrayList<>(), 0);
+                            SendServer actionImpl = new SendServer("server", 0, Selector.ONE, new ArrayList<>(), 0,
+                                    UUID.randomUUID());
                             CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                             menuView.getAPI().openMenu(p, actionImpl.getMenu());
                         }));
@@ -143,7 +146,7 @@ public class SendServer extends Action {
 
     @Override
     public Action clone() {
-        return new SendServer(server, getDelay(), getSelector(), getConditions(), getCooldown());
+        return new SendServer(server, getDelay(), getSelector(), getConditions(), getCooldown(), getUuid());
     }
 
     @Deprecated(forRemoval = true)
@@ -154,7 +157,8 @@ public class SendServer extends Action {
         String server = parseString(serialized, "server");
         ParseResult pr = parseBase(serialized);
 
-        SendServer message = new SendServer(server, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        SendServer message = new SendServer(server, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
+                UUID.randomUUID());
 
         return clazz.cast(message);
     }

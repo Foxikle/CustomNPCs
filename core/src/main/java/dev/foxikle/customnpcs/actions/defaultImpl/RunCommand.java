@@ -43,7 +43,6 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
@@ -54,15 +53,16 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public class RunCommand extends Action {
 
     public static final StructCodec<RunCommand> CODEC = StructCodec.struct(
@@ -72,6 +72,7 @@ public class RunCommand extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             RunCommand::new
     );
 
@@ -84,7 +85,8 @@ public class RunCommand extends Action {
                     Player p = (Player) event.getWhoClicked();
                     event.setCancelled(true);
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    RunCommand actionImpl = new RunCommand("say hi", false, 0, Selector.ONE, new ArrayList<>(), 0);
+                    RunCommand actionImpl = new RunCommand("say hi", false, 0, Selector.ONE, new ArrayList<>(), 0,
+                            UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -95,8 +97,8 @@ public class RunCommand extends Action {
 
 
     public RunCommand(String rawCommand, boolean asConsole, int delay, Selector mode,
-                      List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+                      List<Condition> conditionals, int cooldown, @Nullable UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.command = rawCommand;
         this.asConsole = asConsole;
     }
@@ -142,7 +144,7 @@ public class RunCommand extends Action {
     @Override
     public Action clone() {
         return new RunCommand(command, asConsole, getDelay(), getSelector(), new ArrayList<>(getConditions()),
-                getCooldown());
+                getCooldown(), getUuid());
     }
 
     @Deprecated(forRemoval = true)
@@ -154,7 +156,8 @@ public class RunCommand extends Action {
         boolean asConsole = parseBoolean(serialized, "asConsole");
         ParseResult pr = parseBase(serialized);
 
-        RunCommand command = new RunCommand(raw, asConsole, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        RunCommand command = new RunCommand(raw, asConsole, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
+                UUID.randomUUID());
         return clazz.cast(command);
     }
 

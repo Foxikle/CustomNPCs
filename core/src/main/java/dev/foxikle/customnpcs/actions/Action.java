@@ -30,7 +30,6 @@ import dev.foxikle.customnpcs.internal.utils.Utils;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.button.Button;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import net.minestom.server.codec.Codec;
@@ -49,7 +48,6 @@ import java.util.regex.Pattern;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public abstract class Action {
 
     @Deprecated(forRemoval = true)
@@ -66,24 +64,27 @@ public abstract class Action {
         }
     }, Action::getId);
 
+    private final UUID uuid;
     private List<Condition> conditions;
     private int delay;
     private Selector selector;
     private int cooldown;
     private final Map<UUID, Instant> cooldowns = new ConcurrentHashMap<>();
 
-    public Action(int delay, Selector selector, List<Condition> conditions, int cooldown) {
+    public Action(int delay, Selector selector, List<Condition> conditions, int cooldown, @Nullable UUID uuid) {
+        if (uuid == null) uuid = UUID.randomUUID();
+        this.uuid = uuid;
         this.delay = delay;
         this.selector = selector;
         this.conditions = conditions;
         this.cooldown = cooldown;
     }
 
-    public boolean isOnCooldown(UUID uuid) {
-        if (!cooldowns.containsKey(uuid)) return false;
-        Instant i = cooldowns.get(uuid);
+    public boolean isOnCooldown(UUID player) {
+        if (!cooldowns.containsKey(player)) return false;
+        Instant i = cooldowns.get(player);
         if (i.isBefore(Instant.now())) {
-            cooldowns.remove(uuid);
+            cooldowns.remove(player);
             return false;
         }
         return true;

@@ -39,7 +39,6 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
@@ -50,12 +49,14 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.bukkit.Material.MILK_BUCKET;
@@ -63,7 +64,6 @@ import static org.bukkit.Material.POTION;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public class RemoveEffect extends Action {
 
     public static final StructCodec<RemoveEffect> CODEC = StructCodec.struct(
@@ -72,14 +72,16 @@ public class RemoveEffect extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             RemoveEffect::new
     );
 
     private static final List<Field> fields = Stream.of(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
     private String effect;
 
-    public RemoveEffect(String effect, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public RemoveEffect(String effect, int delay, Selector mode, List<Condition> conditionals, int cooldown,
+                        @Nullable UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.effect = effect;
     }
 
@@ -94,7 +96,8 @@ public class RemoveEffect extends Action {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    RemoveEffect actionImpl = new RemoveEffect("SPEED", 0, Selector.ONE, new ArrayList<>(), 0);
+                    RemoveEffect actionImpl = new RemoveEffect("SPEED", 0, Selector.ONE, new ArrayList<>(), 0,
+                            UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(player.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -146,7 +149,8 @@ public class RemoveEffect extends Action {
 
     @Override
     public Action clone() {
-        return new RemoveEffect(effect, getDelay(), getSelector(), new ArrayList<>(getConditions()), getCooldown());
+        return new RemoveEffect(effect, getDelay(), getSelector(), new ArrayList<>(getConditions()), getCooldown(),
+                getUuid());
     }
 
     @Deprecated(forRemoval = true)
@@ -156,7 +160,8 @@ public class RemoveEffect extends Action {
         }
         String effect = parseString(serialized, "effect");
         ParseResult pr = parseBase(serialized);
-        RemoveEffect message = new RemoveEffect(effect, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        RemoveEffect message = new RemoveEffect(effect, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
+                UUID.randomUUID());
 
         return clazz.cast(message);
     }

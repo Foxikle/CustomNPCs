@@ -40,7 +40,6 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
@@ -49,15 +48,16 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public class GiveXP extends Action {
 
     public static final StructCodec<GiveXP> CODEC = StructCodec.struct(
@@ -67,6 +67,7 @@ public class GiveXP extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             GiveXP::new
     );
 
@@ -80,7 +81,7 @@ public class GiveXP extends Action {
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    GiveXP actionImpl = new GiveXP(1, true, 0, Selector.ONE, new ArrayList<>(), 0);
+                    GiveXP actionImpl = new GiveXP(1, true, 0, Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -95,8 +96,9 @@ public class GiveXP extends Action {
      * @param levels if the xp is in levels
      * @param amount the number
      */
-    public GiveXP(int amount, boolean levels, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public GiveXP(int amount, boolean levels, int delay, Selector mode, List<Condition> conditionals, int cooldown,
+                  @Nullable UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.levels = levels;
         this.amount = amount;
     }
@@ -136,7 +138,8 @@ public class GiveXP extends Action {
 
     @Override
     public Action clone() {
-        return new GiveXP(amount, levels, getDelay(), getSelector(), new ArrayList<>(getConditions()), getCooldown());
+        return new GiveXP(amount, levels, getDelay(), getSelector(), new ArrayList<>(getConditions()), getCooldown(),
+                getUuid());
     }
 
     @Override
@@ -164,7 +167,8 @@ public class GiveXP extends Action {
         boolean levels = parseBoolean(serialized, "levels");
         ParseResult pr = parseBase(serialized);
 
-        GiveXP message = new GiveXP(amount, levels, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        GiveXP message = new GiveXP(amount, levels, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
+                UUID.randomUUID());
 
         return clazz.cast(message);
     }
