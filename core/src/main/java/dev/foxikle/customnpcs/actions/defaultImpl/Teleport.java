@@ -40,7 +40,6 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
@@ -50,15 +49,16 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public class Teleport extends Action {
 
     public static final StructCodec<Teleport> CODEC = StructCodec.struct(
@@ -71,6 +71,7 @@ public class Teleport extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             Teleport::new
     );
 
@@ -80,8 +81,9 @@ public class Teleport extends Action {
     private float pitch;
     private float yaw;
 
-    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Selector mode,
+                    List<Condition> conditionals, int cooldown, @Nullable UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.x = x;
         this.y = y;
         this.z = z;
@@ -99,7 +101,8 @@ public class Teleport extends Action {
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Selector.ONE, new ArrayList<>(), 0);
+                    Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Selector.ONE, new ArrayList<>(), 0,
+                            UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -139,7 +142,7 @@ public class Teleport extends Action {
     @Override
     public Action clone() {
         return new Teleport(getX(), getY(), getZ(), getPitch(), getYaw(), getDelay(), getSelector(), getConditions(),
-                getCooldown());
+                getCooldown(), getUuid());
     }
 
     @Override
@@ -165,7 +168,8 @@ public class Teleport extends Action {
         float yaw = parseFloat(serialized, "yaw");
         ParseResult pr = parseBase(serialized);
 
-        Teleport message = new Teleport(x, y, z, pitch, yaw, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        Teleport message = new Teleport(x, y, z, pitch, yaw, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
+                UUID.randomUUID());
         return clazz.cast(message);
     }
 

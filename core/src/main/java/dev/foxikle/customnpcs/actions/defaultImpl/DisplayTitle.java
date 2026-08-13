@@ -43,7 +43,6 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
@@ -54,16 +53,17 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public class DisplayTitle extends Action {
 
     public static final StructCodec<DisplayTitle> CODEC = StructCodec.struct(
@@ -76,6 +76,7 @@ public class DisplayTitle extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             DisplayTitle::new
     );
 
@@ -91,8 +92,8 @@ public class DisplayTitle extends Action {
      * @param title The raw message
      */
     public DisplayTitle(String title, String subTitle, int fadeIn, int stay, int fadeOut, int delay, Selector mode,
-                        List<Condition> conditions, int cooldown) {
-        super(delay, mode, conditions, cooldown);
+                        List<Condition> conditions, int cooldown, @Nullable UUID uuid) {
+        super(delay, mode, conditions, cooldown, uuid);
         this.title = title;
         this.subTitle = subTitle;
         this.fadeIn = fadeIn;
@@ -110,7 +111,8 @@ public class DisplayTitle extends Action {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(p, Sound.UI_BUTTON_CLICK, 1, 1);
-                    DisplayTitle actionImpl = new DisplayTitle("Title", "Subtitle", 10, 10, 10, 0, Selector.ONE, new ArrayList<>(), 0);
+                    DisplayTitle actionImpl = new DisplayTitle("Title", "Subtitle", 10, 10, 10, 0, Selector.ONE,
+                            new ArrayList<>(), 0, UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -163,7 +165,7 @@ public class DisplayTitle extends Action {
 
     public Action clone() {
         return new DisplayTitle(title, subTitle, fadeIn, stay, fadeOut, getDelay(), getSelector(),
-                new ArrayList<>(getConditions()), getCooldown());
+                new ArrayList<>(getConditions()), getCooldown(), getUuid());
     }
 
     @Deprecated(forRemoval = true)
@@ -181,7 +183,7 @@ public class DisplayTitle extends Action {
         ParseResult pr = parseBase(serialized);
 
         DisplayTitle message = new DisplayTitle(title, subTitle, in, stay, out, pr.delay(), pr.mode(),
-                pr.conditions(), pr.cooldown());
+                pr.conditions(), pr.cooldown(), UUID.randomUUID());
 
         return clazz.cast(message);
     }

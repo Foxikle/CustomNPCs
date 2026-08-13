@@ -41,7 +41,6 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -51,16 +50,17 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.bukkit.Material.OAK_HANGING_SIGN;
 import static org.bukkit.Material.PAPER;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public class SendMessage extends Action {
 
     public static final StructCodec<SendMessage> CODEC = StructCodec.struct(
@@ -69,14 +69,16 @@ public class SendMessage extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             SendMessage::new
     );
 
     private String rawMessage;
 
 
-    public SendMessage(String rawMessage, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public SendMessage(String rawMessage, int delay, Selector mode, List<Condition> conditionals, int cooldown,
+                       @Nullable UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.rawMessage = rawMessage;
     }
 
@@ -91,7 +93,8 @@ public class SendMessage extends Action {
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    SendMessage actionImpl = new SendMessage("", 0, Selector.ONE, new ArrayList<>(), 0);
+                    SendMessage actionImpl = new SendMessage("", 0, Selector.ONE, new ArrayList<>(), 0,
+                            UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -139,7 +142,7 @@ public class SendMessage extends Action {
 
     @Override
     public Action clone() {
-        return new SendMessage(rawMessage, getDelay(), getSelector(), getConditions(), getCooldown());
+        return new SendMessage(rawMessage, getDelay(), getSelector(), getConditions(), getCooldown(), getUuid());
     }
 
     public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
@@ -148,7 +151,8 @@ public class SendMessage extends Action {
         }
         String rawMessage = parseString(serialized, "raw");
         ParseResult pr = parseBase(serialized);
-        SendMessage message = new SendMessage(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        SendMessage message = new SendMessage(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
+                UUID.randomUUID());
 
         return clazz.cast(message);
     }

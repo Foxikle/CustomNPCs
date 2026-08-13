@@ -42,7 +42,6 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
@@ -51,6 +50,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +58,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@NoArgsConstructor
 public class FollowPresetPath extends Action {
 
     public static final StructCodec<FollowPresetPath> CODEC = StructCodec.struct(
@@ -68,6 +67,7 @@ public class FollowPresetPath extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             FollowPresetPath::new
     );
 
@@ -85,8 +85,8 @@ public class FollowPresetPath extends Action {
     private boolean loop;
 
     public FollowPresetPath(List<RecordedPathNode> path, boolean loop, int delay, Selector mode,
-                            List<Condition> conditions, int cooldown) {
-        super(delay, mode, conditions, cooldown);
+                            List<Condition> conditions, int cooldown, @Nullable UUID uuid) {
+        super(delay, mode, conditions, cooldown, uuid);
         this.path = path;
         this.loop = loop;
     }
@@ -146,7 +146,7 @@ public class FollowPresetPath extends Action {
         }.getType());
         boolean loop = parseBoolean(pathData, "loop");
         return new FollowPresetPath(path, loop, result.delay(), result.mode(), result.conditions(),
-                result.cooldown());
+                result.cooldown(), UUID.randomUUID());
     }
 
     public Button creationButton(Player player) {
@@ -159,7 +159,7 @@ public class FollowPresetPath extends Action {
                     event.setCancelled(true);
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                     FollowPresetPath action = new FollowPresetPath(new ArrayList<>(), false, 0,
-                            Selector.ONE, new ArrayList<>(), 0);
+                            Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), action);
                     menuView.getAPI().openMenu(p, action.getMenu());
                 }));
@@ -226,7 +226,7 @@ public class FollowPresetPath extends Action {
     @Override
     public Action clone() {
         return new FollowPresetPath(new ArrayList<>(path), loop, getDelay(), getSelector(),
-                new ArrayList<>(getConditions()), getCooldown());
+                new ArrayList<>(getConditions()), getCooldown(), getUuid());
     }
 
     @Override

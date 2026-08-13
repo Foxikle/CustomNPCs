@@ -40,7 +40,6 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
@@ -52,19 +51,20 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public class GiveEffect extends Action {
 
     public static final StructCodec<GiveEffect> CODEC = StructCodec.struct(
@@ -76,10 +76,12 @@ public class GiveEffect extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             GiveEffect::new
     );
 
-    private static final List<Field> fields = Stream.of(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
+    private static final List<Field> fields =
+            Stream.of(PotionEffectType.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && Modifier.isPublic(f.getModifiers())).toList();
     boolean particles;
     private String effect;
     private int duration;
@@ -90,14 +92,32 @@ public class GiveEffect extends Action {
      *
      * @param effect The raw message
      */
-    public GiveEffect(String effect, int duration, int amplifier, boolean particles, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public GiveEffect(String effect, int duration, int amplifier, boolean particles, int delay, Selector mode,
+                      List<Condition> conditionals, int cooldown, @Nullable UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.effect = effect;
         this.duration = duration;
         this.amplifier = amplifier;
         this.particles = particles;
     }
 
+    @Deprecated(forRemoval = true)
+    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+        if (!clazz.equals(GiveEffect.class)) {
+            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + GiveEffect.class.getName());
+        }
+        String effect = parseString(serialized, "effect");
+        int duration = parseInt(serialized, "duration");
+        int amplifier = parseInt(serialized, "amplifier");
+        boolean particles = parseBoolean(serialized, "particles");
+
+        ParseResult pr = parseBase(serialized);
+
+        GiveEffect message = new GiveEffect(effect, duration, amplifier, particles, pr.delay(), pr.mode(),
+                pr.conditions(), pr.cooldown(), UUID.randomUUID());
+
+        return clazz.cast(message);
+    }
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(BREWING_STAND)
@@ -108,14 +128,16 @@ public class GiveEffect extends Action {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    GiveEffect actionImpl = new GiveEffect("SPEED", 100, 0, false, 0, Selector.ONE, new ArrayList<>(), 0);
+                    GiveEffect actionImpl = new GiveEffect("SPEED", 100, 0, false, 0, Selector.ONE, new ArrayList<>()
+                            , 0, UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
     }
 
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(BREWING_STAND).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.give_effect"))
+        return ItemBuilder.modern(BREWING_STAND).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons" +
+                        ".give_effect"))
                 .setLore(
                         Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
                         Msg.format(""),
@@ -133,8 +155,10 @@ public class GiveEffect extends Action {
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
         if (PotionEffectType.getByName(effect) == null)
-            throw new NullPointerException("Effect " + effect + " does not exist? Please tell @foxikle on discord how you managed this.");
-        player.addPotionEffect(new PotionEffect(Objects.requireNonNull(PotionEffectType.getByName(effect)), duration, amplifier, true, !particles));
+            throw new NullPointerException("Effect " + effect + " does not exist? Please tell @foxikle on discord how" +
+                    " you managed this.");
+        player.addPotionEffect(new PotionEffect(Objects.requireNonNull(PotionEffectType.getByName(effect)), duration,
+                amplifier, true, !particles));
         activateCooldown(player.getUniqueId());
     }
 
@@ -150,25 +174,7 @@ public class GiveEffect extends Action {
 
     public Action clone() {
         return new GiveEffect(getEffect(), getDuration(), getAmplifier(), isParticles(), getDelay(), getSelector(),
-                new ArrayList<>(getConditions()), getCooldown());
-    }
-
-    @Deprecated(forRemoval = true)
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
-        if (!clazz.equals(GiveEffect.class)) {
-            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + GiveEffect.class.getName());
-        }
-        String effect = parseString(serialized, "effect");
-        int duration = parseInt(serialized, "duration");
-        int amplifier = parseInt(serialized, "amplifier");
-        boolean particles = parseBoolean(serialized, "particles");
-
-        ParseResult pr = parseBase(serialized);
-
-        GiveEffect message = new GiveEffect(effect, duration, amplifier, particles, pr.delay(), pr.mode(),
-                pr.conditions(), pr.cooldown());
-
-        return clazz.cast(message);
+                new ArrayList<>(getConditions()), getCooldown(), getUuid());
     }
 
     @Override
@@ -200,12 +206,15 @@ public class GiveEffect extends Action {
 
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
-            Component[] incLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.increment.description");
-            Component[] decLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.decrement.description");
+            Component[] incLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.increment" +
+                    ".description");
+            Component[] decLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.decrement" +
+                    ".description");
             Component[] displayLore = Msg.lore(player.locale(), "customnpcs.menus.action.title.display.lore");
             return MenuUtils.actionBase(action, player)
                     .setButton(10, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.duration.increase"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                                            ".duration.increase"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -218,17 +227,20 @@ public class GiveEffect extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setDuration(action.getDuration() + 5);
                                 }
-                                menuView.updateButton(19, button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.duration", action.getDuration()), displayLore)));
+                                menuView.updateButton(19,
+                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.duration", action.getDuration()), displayLore)));
                             }))
                     ).setButton(12, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.amplifier.increase"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                                            ".amplifier.increase"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 if (action.getAmplifier() == 255) {
-                                    player.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.amplifier_over_255"));
+                                    player.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action" +
+                                            ".give_effect.amplifier_over_255"));
                                     return;
                                 }
                                 if (event.isShiftClick()) {
@@ -238,12 +250,16 @@ public class GiveEffect extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setAmplifier(Math.min(255, action.getAmplifier() + 5));
                                 }
-                                menuView.updateButton(21, button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.amplifier", action.getAmplifier()), displayLore)));
+                                menuView.updateButton(21,
+                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.amplifier", action.getAmplifier()), displayLore)));
                             }))
-                    ).setButton(19, Button.empty(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.duration", action.getDuration()), displayLore))
-                    ).setButton(21, Button.empty(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.amplifier", action.getAmplifier()), displayLore))
+                    ).setButton(19, Button.empty(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs" +
+                            ".menus.action.give_effect.duration", action.getDuration()), displayLore))
+                    ).setButton(21, Button.empty(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs" +
+                            ".menus.action.give_effect.amplifier", action.getAmplifier()), displayLore))
                     ).setButton(28, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.duration.decrease"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                                            ".duration.decrease"))
                                     .setLore(decLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -251,7 +267,8 @@ public class GiveEffect extends Action {
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 Player p = (Player) event.getWhoClicked();
                                 if (action.getDuration() == 1) {
-                                    p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.duration_under_1"));
+                                    p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                                            ".duration_under_1"));
                                     return;
                                 }
                                 if (event.isShiftClick()) {
@@ -261,10 +278,12 @@ public class GiveEffect extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setDuration(Math.max(1, action.getDuration() - 5));
                                 }
-                                menuView.updateButton(19, button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.duration", action.getDuration()), displayLore)));
+                                menuView.updateButton(19,
+                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.duration", action.getDuration()), displayLore)));
                             }))
                     ).setButton(30, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.amplifier.decrease"))
+                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                                            ".amplifier.decrease"))
                                     .setLore(decLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -272,7 +291,8 @@ public class GiveEffect extends Action {
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 Player p = (Player) event.getWhoClicked();
                                 if (action.getAmplifier() == 0) {
-                                    p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.amplifier_under_0"));
+                                    p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                                            ".amplifier_under_0"));
                                     return;
                                 }
                                 if (event.isShiftClick()) {
@@ -282,7 +302,8 @@ public class GiveEffect extends Action {
                                 } else if (event.isRightClick()) {
                                     action.setAmplifier(Math.max(0, action.getAmplifier() - 5));
                                 }
-                                menuView.updateButton(21, button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.amplifier", action.getAmplifier()), displayLore)));
+                                menuView.updateButton(21,
+                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.amplifier", action.getAmplifier()), displayLore)));
                             }))
                     ).setButton(23, generateParticles(player))
                     .setButton(25, generateToggleEffect(player))
@@ -291,7 +312,8 @@ public class GiveEffect extends Action {
 
         private Button generateParticles(Player player) {
             return Button.clickable(ItemBuilder.modern(action.particles ? GREEN_CANDLE : RED_CANDLE)
-                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.particles", action.particles))
+                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                                    ".particles", action.particles))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
