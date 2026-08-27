@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2026. Foxikle
+ * Copyright (c) 2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,79 +22,61 @@
 
 package dev.foxikle.customnpcs.conditions;
 
-import dev.foxikle.customnpcs.internal.CustomNPCs;
 import lombok.Getter;
 import lombok.Setter;
 import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
 
+import java.util.regex.Pattern;
+
 @Getter
 @Setter
-public class NumericCondition implements Condition {
+public class TextCondition implements Condition {
 
-    public static final StructCodec<NumericCondition> CODEC = StructCodec.struct(
+    public static final StructCodec<TextCondition> CODEC = StructCodec.struct(
             "comparator", Codec.Enum(Comparator.class), Condition::getComparator,
             "value", Codec.Enum(Value.class), Condition::getValue,
-            "target", Codec.DOUBLE, NumericCondition::getTypedTarget,
-            NumericCondition::new
+            "target", Codec.STRING, TextCondition::getTarget,
+            "inverted", Codec.BOOLEAN.optional(false), TextCondition::isInverted,
+            TextCondition::new
     );
 
-    private final Type type = Type.NUMERIC;
+    private final Type type = Type.TEXT;
     private Comparator comparator;
     private Value value;
-    private double target;
+    private String target;
+    private boolean inverted;
 
-
-    public NumericCondition(Comparator comparator, Value value, double target) {
+    public TextCondition(Comparator comparator, Value value, String target, boolean inverted) {
         this.comparator = comparator;
         this.value = value;
         this.target = target;
+        this.inverted = inverted;
     }
 
     @Override
     public boolean compute(Player player) {
-        double value = switch (this.value) {
-            case X_COORD -> player.getLocation().x();
-            case Y_COORD -> player.getLocation().y();
-            case Z_COORD -> player.getLocation().z();
-            case EXP_LEVELS -> player.getLevel();
-            case EXP_POINTS -> player.getExp();
-            default -> 0;
+        String value = switch (this.value) {
+            case GAMEMODE -> player.getGameMode().name();
+            default -> "";
         };
-        return switch (comparator) {
-            case EQUAL_TO -> value == target;
-            case NOT_EQUAL_TO -> value != target;
-            case LESS_THAN -> value < target;
-            case LESS_THAN_OR_EQUAL_TO -> value <= target;
-            case GREATER_THAN -> value > target;
-            case GREATER_THAN_OR_EQUAL_TO -> value >= target;
+        boolean computed = switch (comparator) {
+            case EQUAL_TO -> value.equals(target);
+            case REGEX_EQUAL -> Pattern.matches(target, value);
+            case EQUAL_IGNORE_CASE -> value.equalsIgnoreCase(target);
+            case CONTAINS -> value.contains(target);
+            case STARTS_WITH -> value.startsWith(target);
+            case ENDS_WITH -> value.endsWith(target);
             default -> false;
         };
-    }
-
-    public static NumericCondition of(String data) {
-        return CustomNPCs.getGson().fromJson(data, NumericCondition.class);
-    }
-
-
-    @Override
-    public void setTarget(String targetValue) {
-        this.target = Double.parseDouble(targetValue);
-    }
-
-
-    @Override
-    public String getTarget() {
-        return String.valueOf(target);
-    }
-
-    private double getTypedTarget() {
-        return target;
+        if (inverted) return !computed;
+        return computed;
     }
 
     @Override
     public Condition clone() {
-            return new NumericCondition(comparator, value, target);
+        return new TextCondition(comparator, value, target, inverted);
     }
+
 }

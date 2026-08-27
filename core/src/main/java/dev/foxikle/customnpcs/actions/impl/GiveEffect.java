@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.defaultImpl;
+package dev.foxikle.customnpcs.actions.impl;
 
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.conditions.Condition;
@@ -40,6 +40,7 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
@@ -50,6 +51,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,6 +67,7 @@ import static org.bukkit.Material.*;
 
 @Getter
 @Setter
+@NoArgsConstructor(onConstructor_ = {@ApiStatus.Internal})
 public class GiveEffect extends Action {
 
     public static final StructCodec<GiveEffect> CODEC = StructCodec.struct(
@@ -121,8 +124,8 @@ public class GiveEffect extends Action {
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(BREWING_STAND)
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.give_effect"))
-                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.give_effect.description"))
+                        .setDisplay(Msg.translate(player.locale(), "favicons.give_effect"))
+                        .setLore(Msg.lore(player.locale(), "favicons.give_effect.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
@@ -136,18 +139,18 @@ public class GiveEffect extends Action {
     }
 
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(BREWING_STAND).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons" +
+        return ItemBuilder.modern(BREWING_STAND).setDisplay(Msg.translate(player.locale(), "favicons" +
                         ".give_effect"))
                 .setLore(
-                        Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.favicons.give_effect.effect", effect),
-                        Msg.translate(player.locale(), "customnpcs.favicons.give_effect.duration", duration),
-                        Msg.translate(player.locale(), "customnpcs.favicons.give_effect.amplifier", amplifier),
-                        Msg.translate(player.locale(), "customnpcs.favicons.give_effect.particles", particles),
+                        Msg.translate(player.locale(), "favicons.give_effect.effect", effect),
+                        Msg.translate(player.locale(), "favicons.give_effect.duration", duration),
+                        Msg.translate(player.locale(), "favicons.give_effect.amplifier", amplifier),
+                        Msg.translate(player.locale(), "favicons.give_effect.particles", particles),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
-                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "favicons.edit"),
+                        Msg.translate(player.locale(), "favicons.remove")
                 ).build();
     }
 
@@ -196,7 +199,7 @@ public class GiveEffect extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
         }
 
         @Override
@@ -206,14 +209,14 @@ public class GiveEffect extends Action {
 
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
-            Component[] incLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.increment" +
+            Component[] incLore = Msg.lore(player.locale(), "menus.action_customizer.delay.increment" +
                     ".description");
-            Component[] decLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.decrement" +
+            Component[] decLore = Msg.lore(player.locale(), "menus.action_customizer.delay.decrement" +
                     ".description");
-            Component[] displayLore = Msg.lore(player.locale(), "customnpcs.menus.action.title.display.lore");
+            Component[] displayLore = Msg.lore(player.locale(), "menus.action.title.display.lore");
             return MenuUtils.actionBase(action, player)
                     .setButton(10, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                                    .setDisplay(Msg.translate(player.locale(), "menus.action.give_effect" +
                                             ".duration.increase"))
                                     .setLore(incLore)
                                     .build(),
@@ -228,10 +231,10 @@ public class GiveEffect extends Action {
                                     action.setDuration(action.getDuration() + 5);
                                 }
                                 menuView.updateButton(19,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.duration", action.getDuration()), displayLore)));
+                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.give_effect.duration", action.getDuration()), displayLore)));
                             }))
                     ).setButton(12, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                                    .setDisplay(Msg.translate(player.locale(), "menus.action.give_effect" +
                                             ".amplifier.increase"))
                                     .setLore(incLore)
                                     .build(),
@@ -239,7 +242,7 @@ public class GiveEffect extends Action {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 if (action.getAmplifier() == 255) {
-                                    player.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action" +
+                                    player.sendMessage(Msg.translate(player.locale(), "menus.action" +
                                             ".give_effect.amplifier_over_255"));
                                     return;
                                 }
@@ -251,14 +254,14 @@ public class GiveEffect extends Action {
                                     action.setAmplifier(Math.min(255, action.getAmplifier() + 5));
                                 }
                                 menuView.updateButton(21,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.amplifier", action.getAmplifier()), displayLore)));
+                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.give_effect.amplifier", action.getAmplifier()), displayLore)));
                             }))
                     ).setButton(19, Button.empty(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs" +
                             ".menus.action.give_effect.duration", action.getDuration()), displayLore))
                     ).setButton(21, Button.empty(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs" +
                             ".menus.action.give_effect.amplifier", action.getAmplifier()), displayLore))
                     ).setButton(28, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                                    .setDisplay(Msg.translate(player.locale(), "menus.action.give_effect" +
                                             ".duration.decrease"))
                                     .setLore(decLore)
                                     .build(),
@@ -267,7 +270,7 @@ public class GiveEffect extends Action {
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 Player p = (Player) event.getWhoClicked();
                                 if (action.getDuration() == 1) {
-                                    p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                                    p.sendMessage(Msg.translate(player.locale(), "menus.action.give_effect" +
                                             ".duration_under_1"));
                                     return;
                                 }
@@ -279,10 +282,10 @@ public class GiveEffect extends Action {
                                     action.setDuration(Math.max(1, action.getDuration() - 5));
                                 }
                                 menuView.updateButton(19,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.duration", action.getDuration()), displayLore)));
+                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.give_effect.duration", action.getDuration()), displayLore)));
                             }))
                     ).setButton(30, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                                    .setDisplay(Msg.translate(player.locale(), "menus.action.give_effect" +
                                             ".amplifier.decrease"))
                                     .setLore(decLore)
                                     .build(),
@@ -291,7 +294,7 @@ public class GiveEffect extends Action {
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 Player p = (Player) event.getWhoClicked();
                                 if (action.getAmplifier() == 0) {
-                                    p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                                    p.sendMessage(Msg.translate(player.locale(), "menus.action.give_effect" +
                                             ".amplifier_under_0"));
                                     return;
                                 }
@@ -303,7 +306,7 @@ public class GiveEffect extends Action {
                                     action.setAmplifier(Math.max(0, action.getAmplifier() - 5));
                                 }
                                 menuView.updateButton(21,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.amplifier", action.getAmplifier()), displayLore)));
+                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.give_effect.amplifier", action.getAmplifier()), displayLore)));
                             }))
                     ).setButton(23, generateParticles(player))
                     .setButton(25, generateToggleEffect(player))
@@ -312,7 +315,7 @@ public class GiveEffect extends Action {
 
         private Button generateParticles(Player player) {
             return Button.clickable(ItemBuilder.modern(action.particles ? GREEN_CANDLE : RED_CANDLE)
-                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect" +
+                            .setDisplay(Msg.translate(player.locale(), "menus.action.give_effect" +
                                     ".particles", action.particles))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
@@ -331,7 +334,7 @@ public class GiveEffect extends Action {
                 else lore.add(Msg.format("<dark_aqua>▸ " + field.getName()));
             });
             return Button.clickable(ItemBuilder.modern(POTION)
-                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_effect.effect"))
+                            .setDisplay(Msg.translate(player.locale(), "menus.action.give_effect.effect"))
                             .addFlags(ItemFlag.values())
                             .setLore(lore.toArray(new Component[]{}))
                             .build(),

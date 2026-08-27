@@ -25,7 +25,7 @@ package dev.foxikle.customnpcs.internal.listeners;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.defaultImpl.*;
+import dev.foxikle.customnpcs.actions.impl.*;
 import dev.foxikle.customnpcs.api.events.NpcInteractEvent;
 import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
@@ -278,7 +278,7 @@ public class Listeners implements Listener {
 
             List<RecordedPathNode> path = FollowPresetPath.stopRecording(player);
             follow.setPath(path);
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.recording",
+            player.sendMessage(Msg.translate(player.locale(), "actionImpls.set.recording",
                     String.valueOf(path.size())));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, follow.getMenu()));
             return;
@@ -297,13 +297,13 @@ public class Listeners implements Listener {
             plugin.waiting.remove(player.getUniqueId());
             runCommand.setCommand(message);
 
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.command", message));
+            player.sendMessage(Msg.translate(player.locale(), "actionImpls.set.command", message));
 
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.NAME)) {
             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
             if (npc == null) {
-                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                 return;
             }
 
@@ -326,7 +326,7 @@ public class Listeners implements Listener {
             } else {
                 npc.getSettings().getRawHolograms().set(index, finalMessage);
             }
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.name", index + 1,
+            player.sendMessage(Msg.translate(player.locale(), "set.name", index + 1,
                     Msg.format(finalMessage)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_HOLOGRAMS));
         } else if (plugin.isWaiting(player, WaitingType.TARGET)) {
@@ -341,14 +341,14 @@ public class Listeners implements Listener {
                 try {
                     Double.parseDouble(message);
                 } catch (NumberFormatException ignored) {
-                    player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.parse_number", message));
+                    player.sendMessage(Msg.translate(player.locale(), "error.parse_number", message));
                     return;
                 }
             }
             plugin.waiting.remove(player.getUniqueId());
-            condition.setTargetValue(message);
+            condition.setTarget(message);
             plugin.editingConditionals.put(player.getUniqueId(), condition);
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.conditions.set.target", message));
+            player.sendMessage(Msg.translate(player.locale(), "actionImpls.conditions.set.target", message));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_CONDITION_CUSTOMIZER));
         } else if (plugin.isWaiting(player, WaitingType.TITLE)) {
             Action actionImpl = plugin.editingActions.get(player.getUniqueId());
@@ -366,7 +366,7 @@ public class Listeners implements Listener {
 
             setTitle.setTitle(message);
 
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.title", Msg.format(message)));
+            player.sendMessage(Msg.translate(player.locale(), "actionImpls.set.title", Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.SUBTITLE)) {
             Action actionImpl = plugin.editingActions.get(player.getUniqueId());
@@ -384,7 +384,7 @@ public class Listeners implements Listener {
 
             setTitle.setSubTitle(message);
 
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.subtitle",
+            player.sendMessage(Msg.translate(player.locale(), "actionImpls.set.subtitle",
                     Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.MESSAGE)) {
@@ -401,7 +401,7 @@ public class Listeners implements Listener {
             plugin.waiting.remove(player.getUniqueId());
             sendMessage.setRawMessage(message);
 
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.message",
+            player.sendMessage(Msg.translate(player.locale(), "actionImpls.set.message",
                     Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.SERVER)) {
@@ -419,7 +419,7 @@ public class Listeners implements Listener {
 
             runServer.setServer(message);
 
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.server",
+            player.sendMessage(Msg.translate(player.locale(), "actionImpls.set.server",
                     Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.ACTIONBAR)) {
@@ -435,7 +435,7 @@ public class Listeners implements Listener {
             }
             plugin.waiting.remove(player.getUniqueId());
             actionBar.setRawMessage(message);
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.actionImpls.set.actionbar",
+            player.sendMessage(Msg.translate(player.locale(), "actionImpls.set.actionbar",
                     Msg.format(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, actionImpl.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.PLAYER)) {
@@ -448,18 +448,18 @@ public class Listeners implements Listener {
 
             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
             if (npc == null) {
-                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                 return;
             }
 
 
             // this runs on an async thread, so there isn't any need to do this async :)
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.fetching.player", message));
+            player.sendMessage(Msg.translate(player.locale(), "skins.fetching.player", message));
             String name = e.getMessage();
 
             PlayerProfile profile = Bukkit.createProfile(name);
             if (!profile.complete()) {
-                player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.player_does_not_exist",
+                player.sendMessage(Msg.translate(player.locale(), "skins.errors.player_does_not_exist",
                         name));
                 e.setCancelled(true);
                 return;
@@ -475,7 +475,7 @@ public class Listeners implements Listener {
             }
 
             plugin.waiting.remove(player.getUniqueId());
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.success.player_name", name));
+            player.sendMessage(Msg.translate(player.locale(), "skins.success.player_name", name));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_SKIN));
         } else if (plugin.isWaiting(player, WaitingType.URL)) {
             if (cancel) {
@@ -486,11 +486,11 @@ public class Listeners implements Listener {
             }
             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
             if (npc == null) {
-                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                 return;
             }
             e.setCancelled(true);
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.fetching.url"));
+            player.sendMessage(Msg.translate(player.locale(), "skins.fetching.url"));
             try {
                 URL url = new URL(message);
 
@@ -502,7 +502,7 @@ public class Listeners implements Listener {
                                     skin.texture().data().value(), Msg.translatedString(player.locale(), "customnpcs" +
                                             ".skins.imported_by.url"));
                             plugin.waiting.remove(player.getUniqueId());
-                            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.success.url", message));
+                            player.sendMessage(Msg.translate(player.locale(), "skins.success.url", message));
                             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_SKIN));
                         })
                         .exceptionally(throwable -> {
@@ -526,11 +526,11 @@ public class Listeners implements Listener {
 
                             if (throwable.getMessage().equalsIgnoreCase("java.lang.RuntimeException: org.mineskin" +
                                     ".data.MineskinException: Failed to find image from url")) {
-                                player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors" +
+                                player.sendMessage(Msg.translate(player.locale(), "skins.errors" +
                                         ".no_image_data"));
                                 return null;
                             }
-                            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors" +
+                            player.sendMessage(Msg.translate(player.locale(), "skins.errors" +
                                     ".unknown_url_error"));
                             plugin.getLogger().log(Level.SEVERE, "An error occurred whilst parsing this skin from a " +
                                     "url.", throwable);
@@ -538,7 +538,7 @@ public class Listeners implements Listener {
                         });
             } catch (Exception ex) {
                 ex.printStackTrace(System.err);
-                player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.errors.invalid_url"));
+                player.sendMessage(Msg.translate(player.locale(), "skins.errors.invalid_url"));
             }
         } else if (plugin.isWaiting(player, WaitingType.HOLOGRAM)) {
             if (cancel) {
@@ -549,12 +549,12 @@ public class Listeners implements Listener {
             }
             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
             if (npc == null) {
-                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                 return;
             }
             plugin.waiting.remove(player.getUniqueId());
             e.setCancelled(true);
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.clickable_hologram",
+            player.sendMessage(Msg.translate(player.locale(), "set.clickable_hologram",
                     Msg.format(message)));
             npc.getSettings().setCustomInteractableHologram(message);
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_EXTRA_SETTINGS));
@@ -564,13 +564,13 @@ public class Listeners implements Listener {
             if (cancel) return;
             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
             if (npc == null) {
-                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                 return;
             }
             if (message.equalsIgnoreCase("confirm")) {
                 npc.getSpawnLoc().setPitch(player.getLocation().getPitch());
                 npc.getSpawnLoc().setYaw(player.getLocation().getYaw());
-                player.sendMessage(Msg.translate(player.locale(), "customnpcs.set.facing_direction"));
+                player.sendMessage(Msg.translate(player.locale(), "set.facing_direction"));
                 player.playSound(player, Sound.BLOCK_AMETHYST_BLOCK_BREAK, 1, 1);
                 SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_MAIN));
             }
@@ -591,7 +591,7 @@ public class Listeners implements Listener {
 
         if (plugin.update && plugin.getConfig().getBoolean("AlertOnUpdate") && player.hasPermission("customnpcs" +
                 ".alert")) {
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.should_update").appendNewline()
+            player.sendMessage(Msg.translate(player.locale(), "should_update").appendNewline()
                     .append(Msg.format("<click:open_url:https://modrinth" +
                             ".com/plugin/customnpcs/versions><b><#1bd96a>[Modrinth]")));
         }
@@ -782,7 +782,7 @@ public class Listeners implements Listener {
         if (!plugin.isWaiting(player, WaitingType.NUDGE)) return;
 
         if (plugin.getEditingNPCs().getIfPresent(player.getUniqueId()) == null) {
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+            player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
             plugin.waiting.remove(player.getUniqueId());
             return;
         }
@@ -812,7 +812,7 @@ public class Listeners implements Listener {
             event.setCancelled(true);
             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
             if (npc == null) {
-                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                 return;
             }
 

@@ -36,6 +36,7 @@ import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,6 +79,11 @@ public abstract class Action {
         this.selector = selector;
         this.conditions = conditions;
         this.cooldown = cooldown;
+    }
+
+    @ApiStatus.Internal // only used by action registry
+    public Action() {
+        this.uuid = null;
     }
 
     public boolean isOnCooldown(UUID player) {

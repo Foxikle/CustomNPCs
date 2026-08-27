@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.defaultImpl;
+package dev.foxikle.customnpcs.actions.impl;
 
 import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;

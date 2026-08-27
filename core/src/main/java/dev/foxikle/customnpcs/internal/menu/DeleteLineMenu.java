@@ -51,7 +51,7 @@ public class DeleteLineMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.hologram.delete.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.hologram.delete.title"));
     }
 
     @Override
@@ -66,7 +66,7 @@ public class DeleteLineMenu implements Menu {
         int index = HologramMenu.editingIndicies.getOrDefault(player.getUniqueId(), -1);
 
         if (npcFor == null || index < 0 || npcFor.getSettings().getHolograms().size() <= index) {
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+            player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
             player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1, 1);
             return Content.empty(capacity);
         }
@@ -74,8 +74,8 @@ public class DeleteLineMenu implements Menu {
         return Content.builder(capacity).apply(content -> content.fill(MenuItems.MENU_GLASS))
                 .setButton(11, Button.clickable(
                         ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.hologram.delete.confirm"))
-                                .setLore(Msg.lore(player.locale(), "customnpcs.menus.hologram.delete.confirm.lore",
+                                .setDisplay(Msg.translate(player.locale(), "menus.hologram.delete.confirm"))
+                                .setLore(Msg.lore(player.locale(), "menus.hologram.delete.confirm.lore",
                                         npcFor.getSettings().getHolograms().get(index)))
                                 .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
 
@@ -84,7 +84,7 @@ public class DeleteLineMenu implements Menu {
 
                             if (npc == null) {
                                 p.closeInventory();
-                                p.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                                p.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                                 p.playSound(p, Sound.ENTITY_VILLAGER_NO, 1, 1);
                                 return;
                             }
@@ -92,7 +92,7 @@ public class DeleteLineMenu implements Menu {
                             List<String> mutable = new ArrayList<>(npc.getSettings().getRawHolograms());
                             if (index >= mutable.size()) {
                                 p.playSound(p, Sound.ENTITY_VILLAGER_NO, 1, 1);
-                                p.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                                p.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                                 return;
                             }
                             player.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1F, 1F);
@@ -100,8 +100,8 @@ public class DeleteLineMenu implements Menu {
                             plugin.getLotus().openMenu(p, MenuUtils.NPC_HOLOGRAMS);
                         }))).setButton(15, Button.clickable(
                         ItemBuilder.modern(Material.LIME_STAINED_GLASS_PANE)
-                                .setDisplay(Msg.translate(player.locale(), "customnpcs.items.go_back"))
-                                .setLore(Msg.translate(player.locale(), "customnpcs.menus.hologram.delete.to_safety"))
+                                .setDisplay(Msg.translate(player.locale(), "items.go_back"))
+                                .setLore(Msg.translate(player.locale(), "menus.hologram.delete.to_safety"))
                                 .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
                             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                             Player p = (Player) inventoryClickEvent.getWhoClicked();
@@ -109,7 +109,7 @@ public class DeleteLineMenu implements Menu {
 
                             if (npc == null) {
                                 player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
-                                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                                player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                                 return;
                             }
 

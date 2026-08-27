@@ -33,7 +33,7 @@ import java.io.IOException;
 /**
  * The object allowing Gson to parse conditional objects
  */
-public class ConditionalTypeAdapter extends TypeAdapter<Condition> {
+public class ConditionTypeAdapter extends TypeAdapter<Condition> {
 
     /**
      *
@@ -84,7 +84,12 @@ public class ConditionalTypeAdapter extends TypeAdapter<Condition> {
             if(type == Type.NUMERIC) {
                 conditional = new NumericCondition(comparator, value, Double.parseDouble(targetValue));
             } else if (type == Type.LOGICAL) {
-                conditional = new LogicalCondition(comparator, value, targetValue);
+                // special case: gamemode is a text condition now!
+                if (value == Value.GAMEMODE) {
+                    conditional = new TextCondition(comparator, value, targetValue, false);
+                } else {
+                    conditional = new BooleanCondition(comparator, value, targetValue);
+                }
             }
         }
 

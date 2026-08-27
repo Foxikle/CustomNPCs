@@ -60,7 +60,7 @@ public class PoseEditorMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.pose.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.pose.title"));
     }
 
     @Override
@@ -77,8 +77,8 @@ public class PoseEditorMenu implements Menu {
             return Content.builder(capacity)
                     .setButton(22, Button.clickable(
                             ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.error.no_npc"))
-                                    .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.error.no_npc.lore"))
+                                    .setDisplay(Msg.translate(player.locale(), "menus.main.error.no_npc"))
+                                    .setLore(Msg.lore(player.locale(), "menus.main.error.no_npc.lore"))
                                     .build(),
                             new CloseMenuAction()
                     ))
@@ -87,14 +87,14 @@ public class PoseEditorMenu implements Menu {
 
         Button nudgeButton = Button.clickable(
                 ItemBuilder.modern(Material.RECOVERY_COMPASS)
-                        .setLore(Msg.lore(player.locale(), "customnpcs.menus.pose.nudge.lore"))
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.pose.nudge"))
+                        .setLore(Msg.lore(player.locale(), "menus.pose.nudge.lore"))
+                        .setDisplay(Msg.translate(player.locale(), "menus.pose.nudge"))
                         .build(),
                 ButtonClickAction.plain((menu, event) -> {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired "));
+                        player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired "));
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                         return;
                     }
@@ -115,8 +115,8 @@ public class PoseEditorMenu implements Menu {
 
         Button standing = Button.clickable(
                 ItemBuilder.modern(Material.ARMOR_STAND)
-                        .setLore(Msg.lore(player.locale(), "customnpcs.menus.pose.standing.lore"))
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.pose.standing"))
+                        .setLore(Msg.lore(player.locale(), "menus.pose.standing.lore"))
+                        .setDisplay(Msg.translate(player.locale(), "menus.pose.standing"))
                         .enchant(Enchantment.MENDING, npc.getSettings().getPose() == Pose.STANDING ? 1 : 0)
                         .addFlags(ItemFlag.values())
                         .build(),
@@ -124,12 +124,12 @@ public class PoseEditorMenu implements Menu {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                        player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                         return;
                     }
                     if (clickedNpc.getSettings().getPose() == Pose.STANDING) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.pose.already", "standing"));
+                        player.sendMessage(Msg.translate(player.locale(), "pose.already", "standing"));
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                         return;
                     }
@@ -141,8 +141,8 @@ public class PoseEditorMenu implements Menu {
 
         Button sitting = Button.clickable(
                 ItemBuilder.modern(Material.OAK_STAIRS)
-                        .setLore(Msg.lore(player.locale(), "customnpcs.menus.pose.sitting.lore"))
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.pose.sitting"))
+                        .setLore(Msg.lore(player.locale(), "menus.pose.sitting.lore"))
+                        .setDisplay(Msg.translate(player.locale(), "menus.pose.sitting"))
                         .enchant(Enchantment.MENDING, npc.getSettings().getPose() == Pose.SITTING ? 1 : 0)
                         .addFlags(ItemFlag.values())
                         .build(),
@@ -150,12 +150,12 @@ public class PoseEditorMenu implements Menu {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired "));
+                        player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired "));
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                         return;
                     }
                     if (clickedNpc.getSettings().getPose() == Pose.SITTING) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.pose.already", "sitting"));
+                        player.sendMessage(Msg.translate(player.locale(), "pose.already", "sitting"));
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                         return;
                     }
@@ -167,20 +167,20 @@ public class PoseEditorMenu implements Menu {
 
         Button swimming = Button.clickable(
                 ItemBuilder.modern(Material.WATER_BUCKET)
-                        .setLore(Msg.lore(player.locale(), "customnpcs.menus.pose.swimming.lore"))
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.pose.swimming"))
+                        .setLore(Msg.lore(player.locale(), "menus.pose.swimming.lore"))
+                        .setDisplay(Msg.translate(player.locale(), "menus.pose.swimming"))
                         .enchant(Enchantment.MENDING, npc.getSettings().getPose() == Pose.SWIMMING ? 1 : 0)
                         .build(),
                 ButtonClickAction.plain((menu, event) -> {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired "));
+                        player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired "));
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                         return;
                     }
                     if (clickedNpc.getSettings().getPose() == Pose.SWIMMING) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.pose.already", "swimming"));
+                        player.sendMessage(Msg.translate(player.locale(), "pose.already", "swimming"));
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                         return;
                     }
@@ -192,8 +192,8 @@ public class PoseEditorMenu implements Menu {
 
         Button crouching = Button.clickable(
                 ItemBuilder.modern(Material.SMOOTH_QUARTZ_SLAB)
-                        .setLore(Msg.lore(player.locale(), "customnpcs.menus.pose.crouching.lore"))
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.pose.crouching"))
+                        .setLore(Msg.lore(player.locale(), "menus.pose.crouching.lore"))
+                        .setDisplay(Msg.translate(player.locale(), "menus.pose.crouching"))
                         .enchant(Enchantment.MENDING, npc.getSettings().getPose() == Pose.CROUCHING ? 1 : 0)
                         .addFlags(ItemFlag.values())
                         .build(),
@@ -201,12 +201,12 @@ public class PoseEditorMenu implements Menu {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired "));
+                        player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired "));
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                         return;
                     }
                     if (clickedNpc.getSettings().getPose() == Pose.CROUCHING) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.pose.already", "crouching"));
+                        player.sendMessage(Msg.translate(player.locale(), "pose.already", "crouching"));
                         return;
                     }
                     clickedNpc.getSettings().setPose(Pose.CROUCHING);
@@ -217,8 +217,8 @@ public class PoseEditorMenu implements Menu {
 
         Button sleeping = Button.clickable(
                 ItemBuilder.modern(Material.RED_BED)
-                        .setLore(Msg.lore(player.locale(), "customnpcs.menus.pose.sleeping.lore"))
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.pose.sleeping"))
+                        .setLore(Msg.lore(player.locale(), "menus.pose.sleeping.lore"))
+                        .setDisplay(Msg.translate(player.locale(), "menus.pose.sleeping"))
                         .enchant(Enchantment.MENDING, npc.getSettings().getPose() == Pose.SLEEPING ? 1 : 0)
                         .addFlags(ItemFlag.values())
                         .build(),
@@ -226,12 +226,12 @@ public class PoseEditorMenu implements Menu {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired "));
+                        player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired "));
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                         return;
                     }
                     if (clickedNpc.getSettings().getPose() == Pose.SLEEPING) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.pose.already", "sleeping"));
+                        player.sendMessage(Msg.translate(player.locale(), "pose.already", "sleeping"));
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                         return;
                     }
@@ -243,8 +243,8 @@ public class PoseEditorMenu implements Menu {
 
         Button dying = Button.clickable(
                 ItemBuilder.modern(Material.LAVA_BUCKET)
-                        .setLore(Msg.lore(player.locale(), "customnpcs.menus.pose.dying.lore"))
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.pose.dying"))
+                        .setLore(Msg.lore(player.locale(), "menus.pose.dying.lore"))
+                        .setDisplay(Msg.translate(player.locale(), "menus.pose.dying"))
                         .enchant(Enchantment.MENDING, npc.getSettings().getPose() == Pose.DYING ? 1 : 0)
                         .addFlags(ItemFlag.values())
                         .build(),
@@ -252,12 +252,12 @@ public class PoseEditorMenu implements Menu {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired "));
+                        player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired "));
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                         return;
                     }
                     if (clickedNpc.getSettings().getPose() == Pose.DYING) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.pose.already", "dying"));
+                        player.sendMessage(Msg.translate(player.locale(), "pose.already", "dying"));
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                         return;
                     }

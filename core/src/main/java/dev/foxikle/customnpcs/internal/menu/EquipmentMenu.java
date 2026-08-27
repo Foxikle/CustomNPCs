@@ -50,7 +50,7 @@ public class EquipmentMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.equipment.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.equipment.title"));
     }
 
     @Override
@@ -74,8 +74,8 @@ public class EquipmentMenu implements Menu {
             return Content.builder(capacity)
                     .setButton(22, Button.clickable(
                             ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.error.no_npc"))
-                                    .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.error.no_npc.lore"))
+                                    .setDisplay(Msg.translate(player.locale(), "menus.main.error.no_npc"))
+                                    .setLore(Msg.lore(player.locale(), "menus.main.error.no_npc.lore"))
                                     .build(),
                             new CloseMenuAction()
                     ))

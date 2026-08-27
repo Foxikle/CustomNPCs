@@ -40,7 +40,7 @@ public class NewConditionMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.conditions.new"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.conditions.new"));
     }
 
     @Override

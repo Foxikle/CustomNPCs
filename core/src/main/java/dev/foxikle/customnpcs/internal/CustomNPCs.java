@@ -28,9 +28,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.CommandDispatcher;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.defaultImpl.*;
+import dev.foxikle.customnpcs.actions.impl.*;
 import dev.foxikle.customnpcs.conditions.Condition;
-import dev.foxikle.customnpcs.conditions.ConditionalTypeAdapter;
+import dev.foxikle.customnpcs.conditions.ConditionTypeAdapter;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
@@ -225,7 +225,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         new Translations().setup();
 
         gson = new GsonBuilder()
-                .registerTypeAdapter(Condition.class, new ConditionalTypeAdapter())
+                .registerTypeAdapter(Condition.class, new ConditionTypeAdapter())
                 .create();
         this.storageManager = new StorageManager(this);
         this.mu = new MenuUtils(this);

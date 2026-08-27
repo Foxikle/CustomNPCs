@@ -53,14 +53,14 @@ public class SkinCatalog extends Page {
     @Override
     public ItemStack nextPageItem(Player player) {
         return ItemBuilder.modern(Material.ARROW)
-                .setDisplay(Msg.translate(player.locale(), "customnpcs.items.next_page"))
+                .setDisplay(Msg.translate(player.locale(), "items.next_page"))
                 .build();
     }
 
     @Override
     public ItemStack previousPageItem(Player player) {
         return ItemBuilder.modern(Material.ARROW)
-                .setDisplay(Msg.translate(player.locale(), "customnpcs.items.prev_page"))
+                .setDisplay(Msg.translate(player.locale(), "items.prev_page"))
                 .build();
     }
 
@@ -85,7 +85,7 @@ public class SkinCatalog extends Page {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.skin_catalog.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.skin_catalog.title"));
     }
 
     @Override

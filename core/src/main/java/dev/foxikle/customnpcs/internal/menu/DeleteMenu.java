@@ -57,7 +57,7 @@ public class DeleteMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.delete.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.delete.title"));
     }
 
     @Override
@@ -70,8 +70,9 @@ public class DeleteMenu implements Menu {
         return Content.builder(capacity).apply(content -> content.fill(MenuItems.MENU_GLASS))
                 .setButton(11, Button.clickable(
                         ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.delete.items.confirm.name"))
-                                .setLore(Component.empty(), Msg.translate(player.locale(), "customnpcs.menus.delete.items.confirm.lore"))
+                                .setDisplay(Msg.translate(player.locale(), "menus.delete.items.confirm.name"))
+                                .setLore(Component.empty(), Msg.translate(player.locale(), "menus.delete.items" +
+                                        ".confirm.lore"))
                                 .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
                             CustomNPCs plugin = CustomNPCs.getInstance();
                             Player player1 = (Player) inventoryClickEvent.getWhoClicked();
@@ -79,7 +80,7 @@ public class DeleteMenu implements Menu {
 
                             if (dontUse == null) {
                                 player1.closeInventory();
-                                player1.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                                player1.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                                 player1.playSound(player1, Sound.ENTITY_VILLAGER_NO, 1, 1);
                                 return;
                             }
@@ -90,7 +91,7 @@ public class DeleteMenu implements Menu {
                             if (npc == null) {
                                 player1.closeInventory();
                                 player1.playSound(player1, Sound.ENTITY_VILLAGER_NO, 1, 1);
-                                player1.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                                player1.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                                 return;
                             }
 
@@ -105,22 +106,22 @@ public class DeleteMenu implements Menu {
                             NpcDeleteEvent event = new NpcDeleteEvent(player1, npc, source);
                             Bukkit.getPluginManager().callEvent(event);
                             if (event.isCancelled()) {
-                                player1.sendMessage(Msg.translate(player.locale(), "customnpcs.delete.failed_api"));
+                                player1.sendMessage(Msg.translate(player.locale(), "delete.failed_api"));
                                 return;
                             }
 
                             npc.remove();
                             npc.delete();
                             plugin.npcs.remove(npc.getUniqueID());
-                            player1.sendMessage(Msg.translate(player.locale(), "customnpcs.delete.success",
+                            player1.sendMessage(Msg.translate(player.locale(), "delete.success",
                                     npc.getSettings().getRawHolograms().getFirst()));
                             player1.closeInventory();
                             player1.playSound(player1, Sound.BLOCK_END_PORTAL_SPAWN, 1, 1);
                             npc.getCurrentLocation().getWorld().strikeLightningEffect(npc.getCurrentLocation());
                         }))).setButton(15, Button.clickable(
                         ItemBuilder.modern(Material.LIME_STAINED_GLASS_PANE)
-                                .setDisplay(Msg.translate(player.locale(), "customnpcs.items.go_back"))
-                                .setLore(Msg.translate(player.locale(), "customnpcs.menus.delete.items.to_safety"))
+                                .setDisplay(Msg.translate(player.locale(), "items.go_back"))
+                                .setLore(Msg.translate(player.locale(), "menus.delete.items.to_safety"))
                                 .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
                             CustomNPCs plugin = CustomNPCs.getInstance();
                             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
@@ -128,7 +129,7 @@ public class DeleteMenu implements Menu {
                             player1.playSound(player1, Sound.UI_BUTTON_CLICK, 1, 1);
                             if (npc == null) {
                                 player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
-                                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                                player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                                 return;
                             }
 
@@ -136,7 +137,7 @@ public class DeleteMenu implements Menu {
 
                             if (openMenu == null) {
                                 player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
-                                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.forgot_bailout_response"));
+                                player.sendMessage(Msg.translate(player.locale(), "error.forgot_bailout_response"));
                                 return;
                             }
 

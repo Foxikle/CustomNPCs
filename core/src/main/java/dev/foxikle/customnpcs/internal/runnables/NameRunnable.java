@@ -59,8 +59,8 @@ public class NameRunnable extends BukkitRunnable {
         if (!plugin.isWaiting(player, WaitingType.NAME))
             this.cancel();
         player.showTitle(Title.title(
-                Msg.translate(player.locale(), "customnpcs.data.name.title"),
-                Msg.translate(player.locale(), "customnpcs.data.name.subtitle"),
+                Msg.translate(player.locale(), "data.name.title"),
+                Msg.translate(player.locale(), "data.name.subtitle"),
                 Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
         ));
     }
