@@ -60,8 +60,8 @@ public class NudgeRunnable extends BukkitRunnable {
         if (!plugin.isWaiting(player, WaitingType.NUDGE))
             this.cancel();
         player.showTitle(Title.title(
-                Msg.translate(player.locale(), "customnpcs.data.nudge.title"),
-                Msg.translate(player.locale(), "customnpcs.data.nudge.subtitle"),
+                Msg.translate(player.locale(), "data.nudge.title"),
+                Msg.translate(player.locale(), "data.nudge.subtitle"),
                 Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
         ));
     }

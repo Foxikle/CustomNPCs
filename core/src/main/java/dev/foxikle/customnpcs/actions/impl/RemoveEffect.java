@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.defaultImpl;
+package dev.foxikle.customnpcs.actions.impl;
 
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.conditions.Condition;
@@ -39,6 +39,7 @@ import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
 import io.github.mqzen.menus.titles.MenuTitle;
 import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
@@ -48,6 +49,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,6 +66,7 @@ import static org.bukkit.Material.POTION;
 
 @Getter
 @Setter
+@NoArgsConstructor(onConstructor_ = {@ApiStatus.Internal})
 public class RemoveEffect extends Action {
 
     public static final StructCodec<RemoveEffect> CODEC = StructCodec.struct(
@@ -89,8 +92,8 @@ public class RemoveEffect extends Action {
     public Button creationButton(Player player) {
 
         return Button.clickable(ItemBuilder.modern(MILK_BUCKET)
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.remove_effect"))
-                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.remove_effect.description"))
+                        .setDisplay(Msg.translate(player.locale(), "favicons.remove_effect"))
+                        .setLore(Msg.lore(player.locale(), "favicons.remove_effect.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
@@ -105,14 +108,14 @@ public class RemoveEffect extends Action {
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(MILK_BUCKET).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.remove_effect"))
+        return ItemBuilder.modern(MILK_BUCKET).setDisplay(Msg.translate(player.locale(), "favicons.remove_effect"))
                 .setLore(
-                        Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.favicons.give_effect.effect", effect),
+                        Msg.translate(player.locale(), "favicons.give_effect.effect", effect),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
-                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "favicons.edit"),
+                        Msg.translate(player.locale(), "favicons.remove")
                 ).build();
     }
 
@@ -180,7 +183,7 @@ public class RemoveEffect extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
         }
 
         @Override
@@ -205,7 +208,7 @@ public class RemoveEffect extends Action {
                 else lore.add(Msg.format("<dark_aqua>▸ " + field.getName()));
             });
             return Button.clickable(ItemBuilder.modern(POTION)
-                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.remove_effect.effect"))
+                            .setDisplay(Msg.translate(player.locale(), "menus.action.remove_effect.effect"))
                             .addFlags(ItemFlag.values())
                             .setLore(lore.toArray(new Component[]{}))
                             .build(),

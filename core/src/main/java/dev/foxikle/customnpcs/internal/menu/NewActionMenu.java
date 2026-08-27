@@ -42,7 +42,7 @@ public class NewActionMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.actions.new.title"));
+        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.actions.new.title"));
     }
 
     @Override

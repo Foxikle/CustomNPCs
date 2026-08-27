@@ -47,8 +47,8 @@ public class RecordingRunnable extends BukkitRunnable {
             return;
         }
         player.showTitle(Title.title(
-                Msg.translate(player.locale(), "customnpcs.data.recording.title"),
-                Msg.translate(player.locale(), "customnpcs.data.recording.subtitle"),
+                Msg.translate(player.locale(), "data.recording.title"),
+                Msg.translate(player.locale(), "data.recording.subtitle"),
                 Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
         ));
     }

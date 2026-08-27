@@ -60,8 +60,8 @@ public class ActionbarRunnable extends BukkitRunnable {
         if (!plugin.isWaiting(player, WaitingType.ACTIONBAR))
             this.cancel();
         player.showTitle(Title.title(
-                Msg.translate(player.locale(), "customnpcs.data.actionbar.title"),
-                Msg.translate(player.locale(), "customnpcs.data.actionbar.subtitle"),
+                Msg.translate(player.locale(), "data.actionbar.title"),
+                Msg.translate(player.locale(), "data.actionbar.subtitle"),
                 Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
         ));
     }

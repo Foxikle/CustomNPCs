@@ -66,8 +66,8 @@ public class TargetInputRunnable extends BukkitRunnable {
         if (!plugin.isWaiting(player, WaitingType.TARGET))
             this.cancel();
         player.showTitle(Title.title(
-                Msg.translate(player.locale(), "customnpcs.data.target.title"),
-                Msg.translate(player.locale(), "customnpcs.data.target.subtitle"),
+                Msg.translate(player.locale(), "data.target.title"),
+                Msg.translate(player.locale(), "data.target.subtitle"),
                 Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
         ));
     }
