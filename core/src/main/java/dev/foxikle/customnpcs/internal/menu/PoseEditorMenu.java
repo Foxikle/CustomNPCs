@@ -124,7 +124,7 @@ public class PoseEditorMenu implements Menu {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
-                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired "));
+                        player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                         return;
                     }
