@@ -538,18 +538,4 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     public Pagination getSkinCatalog(Player player) {
         return getMenuUtils().getSkinCatalogue(player.locale());
     }
-
-    public static class BukkitImperat {
-        public static void handleCommandException(com.mojang.brigadier.exceptions.CommandSyntaxException e,
-                                                  org.bukkit.command.CommandSender sender) {
-            if (e.getCursor() >= 0) {
-                String input = e.getInput();
-                String pointer = " ".repeat(Math.max(0, e.getCursor())) + "^";
-                sender.sendMessage(input);
-                sender.sendMessage(pointer);
-            }
-            sender.sendMessage(e.getMessage());
-        }
-    }
-
 }

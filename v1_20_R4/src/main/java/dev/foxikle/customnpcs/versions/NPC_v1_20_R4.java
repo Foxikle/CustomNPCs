@@ -535,10 +535,10 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
             case SWIMMING -> net.minecraft.world.entity.Pose.SWIMMING;
             case CROUCHING -> net.minecraft.world.entity.Pose.CROUCHING;
             case SITTING -> {
-                seat = world.spawn(new Location(world, 0, 0, 0), ArmorStand.class);
-                seat.setMarker(true);
-                seat.setVisible(false);
-                seat.teleport(spawnLoc);
+                seat = world.spawn(spawnLoc, ArmorStand.class, e -> {
+                    e.setMarker(true);
+                    e.setVisible(false);
+                });
                 startRiding(((CraftArmorStand) seat).getHandle(), true);
                 yield net.minecraft.world.entity.Pose.STANDING;
             }
