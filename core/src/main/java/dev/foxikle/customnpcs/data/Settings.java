@@ -151,7 +151,7 @@ public class Settings {
     }
 
     public static Builder builder() {
-        return new Builder(DEFAULT);
+        return new Builder(DEFAULT.clone());
     }
 
     public Builder toBuilder() {

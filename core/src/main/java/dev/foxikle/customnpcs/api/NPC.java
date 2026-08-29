@@ -77,7 +77,7 @@ public class NPC {
         if (NPCApi.plugin == null) throw new IllegalStateException("The CustomNPCs plugin does not exist!");
         if (world == null) throw new NullPointerException("world cannot be null.");
         UUID uuid = UUID.randomUUID();
-        Settings settings = Settings.DEFAULT;
+        Settings settings = Settings.DEFAULT.clone();
         settings.setResilient(false);
         this.npc = NPCApi.plugin.createNPC(world, new Location(world, 0, 0, 0), Equipment.DEFAULT, settings, uuid,
                 null, new ArrayList<>(), new ArrayList<>(), Selector.ONE);

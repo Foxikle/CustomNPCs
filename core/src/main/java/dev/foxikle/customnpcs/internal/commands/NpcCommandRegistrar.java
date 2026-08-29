@@ -138,7 +138,7 @@ public class NpcCommandRegistrar {
                             player.getWorld(),
                             player.getLocation(),
                             Equipment.DEFAULT,
-                            Settings.DEFAULT,
+                            Settings.DEFAULT.clone(),
                             uuid,
                             null,
                             new ArrayList<>(),
