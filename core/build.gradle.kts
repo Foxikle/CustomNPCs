@@ -39,15 +39,15 @@ dependencies {
     compileOnly("com.github.mqzn:Lotus:1.6.0")
     compileOnly("org.bstats:bstats-bukkit:3.2.1")
     compileOnly("me.clip:placeholderapi:2.12.2")
-    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:26.2.build.121-stable")
     compileOnly("net.kyori:adventure-api:5.1.1")
     compileOnly("net.kyori:adventure-nbt:5.1.1")
     compileOnly("org.mineskin:java-client-jsoup:3.2.6")
     compileOnly("org.mineskin:java-client:3.2.6")
     compileOnly("org.mongodb:mongodb-driver-sync:5.3.0")
-    compileOnly("com.mysql:mysql-connector-j:9.1.0")
+    compileOnly("com.mysql:mysql-connector-j:26.7.0")
     compileOnly("org.apache.logging.log4j:log4j-core:2.24.3")
-    compileOnly("com.zaxxer:HikariCP:6.2.1")
+    compileOnly("com.zaxxer:HikariCP:7.1.0")
     compileOnlyApi("dev.minestom-united.common:codec:0.0.2")
 
 
