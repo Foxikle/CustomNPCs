@@ -178,7 +178,7 @@ public class MenuUtils {
             return ItemBuilder.modern(PLAYER_HEAD).setDisplay(Msg.format("<yellow>" + name))
                     .setLore(
                             Component.empty(),
-                            Msg.translate(locale, "customnpcs.items.click_to_select")
+                            Msg.translate(locale, "items.click_to_select")
                     ).modifyMeta(SkullMeta.class, skullMeta -> {
                         PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
                         profile.setProperty(new ProfileProperty("textures", value));
@@ -193,13 +193,13 @@ public class MenuUtils {
             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
             if (npc == null) {
                 player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
-                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
+                player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
                 return;
             }
 
             event.setCancelled(true);
             npc.getSettings().setSkinData(signature, value, name);
-            player.sendMessage(Msg.translate(player.locale(), "customnpcs.skins.changed_with_catalog", name));
+            player.sendMessage(Msg.translate(player.locale(), "skins.changed_with_catalog", name));
             plugin.getLotus().openMenu(player, NPC_MAIN);
         }
     }

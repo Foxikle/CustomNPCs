@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.defaultImpl;
+package dev.foxikle.customnpcs.actions.impl;
 
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.conditions.Condition;
@@ -48,16 +48,19 @@ import net.minestom.server.codec.StructCodec;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(onConstructor_ = {@ApiStatus.Internal})
 public class GiveXP extends Action {
 
     public static final StructCodec<GiveXP> CODEC = StructCodec.struct(
@@ -67,20 +70,21 @@ public class GiveXP extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             GiveXP::new
     );
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(EXPERIENCE_BOTTLE)
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.give_xp"))
-                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.give_xp.description"))
+                        .setDisplay(Msg.translate(player.locale(), "favicons.give_xp"))
+                        .setLore(Msg.lore(player.locale(), "favicons.give_xp.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    GiveXP actionImpl = new GiveXP(1, true, 0, Selector.ONE, new ArrayList<>(), 0);
+                    GiveXP actionImpl = new GiveXP(1, true, 0, Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -95,23 +99,26 @@ public class GiveXP extends Action {
      * @param levels if the xp is in levels
      * @param amount the number
      */
-    public GiveXP(int amount, boolean levels, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public GiveXP(int amount, boolean levels, int delay, Selector mode, List<Condition> conditionals, int cooldown,
+                  @Nullable UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.levels = levels;
         this.amount = amount;
     }
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(EXPERIENCE_BOTTLE).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.give_xp"))
+        return ItemBuilder.modern(EXPERIENCE_BOTTLE).setDisplay(Msg.translate(player.locale(), "favicons.give_xp"))
                 .setLore(
-                        Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.menus.action.give_xp.xp", amount),
-                        Msg.translate(player.locale(), "customnpcs.menus.action.give_xp.awarding", (levels ? Msg.translatedString(player.locale(), "customnpcs.menus.action.xp.levels") : Msg.translatedString(player.locale(), "customnpcs.menus.action.xp.points"))),
+                        Msg.translate(player.locale(), "menus.action.give_xp.xp", amount),
+                        Msg.translate(player.locale(), "menus.action.give_xp.awarding", (levels ?
+                                Msg.translatedString(player.locale(), "menus.action.xp.levels") :
+                                Msg.translatedString(player.locale(), "menus.action.xp.points"))),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
-                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "favicons.edit"),
+                        Msg.translate(player.locale(), "favicons.remove")
                 ).build();
     }
 
@@ -136,7 +143,8 @@ public class GiveXP extends Action {
 
     @Override
     public Action clone() {
-        return new GiveXP(amount, levels, getDelay(), getSelector(), new ArrayList<>(getConditions()), getCooldown());
+        return new GiveXP(amount, levels, getDelay(), getSelector(), new ArrayList<>(getConditions()), getCooldown(),
+                getUuid());
     }
 
     @Override
@@ -164,7 +172,8 @@ public class GiveXP extends Action {
         boolean levels = parseBoolean(serialized, "levels");
         ParseResult pr = parseBase(serialized);
 
-        GiveXP message = new GiveXP(amount, levels, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        GiveXP message = new GiveXP(amount, levels, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
+                UUID.randomUUID());
 
         return clazz.cast(message);
     }
@@ -183,7 +192,7 @@ public class GiveXP extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
         }
 
         @Override
@@ -194,14 +203,14 @@ public class GiveXP extends Action {
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
 
-            Component[] incLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.increment.description");
-            Component[] decLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.decrement.description");
+            Component[] incLore = Msg.lore(player.locale(), "menus.action_customizer.delay.increment.description");
+            Component[] decLore = Msg.lore(player.locale(), "menus.action_customizer.delay.decrement.description");
 
             return MenuUtils.actionBase(action, player)
 
                     // increment
                     .setButton(11, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_xp.increase"))
+                                    .setDisplay(Msg.translate(player.locale(), "menus.action.give_xp.increase"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -214,18 +223,21 @@ public class GiveXP extends Action {
                                 } else if (event.isRightClick()) {
                                     setAmount(getAmount() + 5);
                                 }
-                                menuView.updateButton(20, button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_xp.xp", getAmount()))));
+                                menuView.updateButton(20,
+                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.give_xp.xp", getAmount()))));
                             }))
-                    ).setButton(20, MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_xp.xp", getAmount()))
+                    ).setButton(20, MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.give_xp.xp"
+                            , getAmount()))
                     ).setButton(29, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_xp.decrease"))
+                                    .setDisplay(Msg.translate(player.locale(), "menus.action.give_xp.decrease"))
                                     .setLore(decLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 if (getAmount() == 1) {
-                                    event.getWhoClicked().sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.give_xp.xp_less_one"));
+                                    event.getWhoClicked().sendMessage(Msg.translate(player.locale(), "menus.action" +
+                                            ".give_xp.xp_less_one"));
                                     return;
                                 }
 
@@ -236,7 +248,8 @@ public class GiveXP extends Action {
                                 } else if (event.isRightClick()) {
                                     setAmount(Math.max(1, getAmount() - 5));
                                 }
-                                menuView.updateButton(20, button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_xp.xp", getAmount()))));
+                                menuView.updateButton(20,
+                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.give_xp.xp", getAmount()))));
                             }))
                     ).setButton(24, toggle(player))
 
@@ -245,7 +258,9 @@ public class GiveXP extends Action {
 
         private Button toggle(Player player) {
             return Button.clickable(ItemBuilder.modern(isLevels() ? GREEN_CANDLE : RED_CANDLE)
-                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_xp.awarding", (isLevels() ? Msg.translate(player.locale(), "customnpcs.menus.action.xp.levels") : Msg.translate(player.locale(), "customnpcs.menus.action.xp.points"))))
+                            .setDisplay(Msg.translate(player.locale(), "menus.action.give_xp.awarding", (isLevels() ?
+                                    Msg.translate(player.locale(), "menus.action.xp.levels") :
+                                    Msg.translate(player.locale(), "menus.action.xp.points"))))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);

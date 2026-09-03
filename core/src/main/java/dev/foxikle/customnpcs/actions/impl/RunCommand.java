@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.defaultImpl;
+package dev.foxikle.customnpcs.actions.impl;
 
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.conditions.Condition;
@@ -53,16 +53,19 @@ import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(onConstructor_ = {@ApiStatus.Internal})
 public class RunCommand extends Action {
 
     public static final StructCodec<RunCommand> CODEC = StructCodec.struct(
@@ -72,46 +75,60 @@ public class RunCommand extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             RunCommand::new
     );
+    private String command;
+    private boolean asConsole;
+
+    public RunCommand(String rawCommand, boolean asConsole, int delay, Selector mode,
+                      List<Condition> conditionals, int cooldown, @Nullable UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
+        this.command = rawCommand;
+        this.asConsole = asConsole;
+    }
+
+    @Deprecated(forRemoval = true)
+    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+        if (!clazz.equals(RunCommand.class)) {
+            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RunCommand.class.getName());
+        }
+        String raw = parseString(serialized, "raw");
+        boolean asConsole = parseBoolean(serialized, "asConsole");
+        ParseResult pr = parseBase(serialized);
+
+        RunCommand command = new RunCommand(raw, asConsole, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
+                UUID.randomUUID());
+        return clazz.cast(command);
+    }
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(ANVIL)
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.command"))
-                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.command.description"))
+                        .setDisplay(Msg.translate(player.locale(), "favicons.command"))
+                        .setLore(Msg.lore(player.locale(), "favicons.command.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
                     Player p = (Player) event.getWhoClicked();
                     event.setCancelled(true);
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    RunCommand actionImpl = new RunCommand("say hi", false, 0, Selector.ONE, new ArrayList<>(), 0);
+                    RunCommand actionImpl = new RunCommand("say hi", false, 0, Selector.ONE, new ArrayList<>(), 0,
+                            UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
     }
 
-    private String command;
-    private boolean asConsole;
-
-
-    public RunCommand(String rawCommand, boolean asConsole, int delay, Selector mode,
-                      List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
-        this.command = rawCommand;
-        this.asConsole = asConsole;
-    }
-
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(ANVIL).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.command"))
+        return ItemBuilder.modern(ANVIL).setDisplay(Msg.translate(player.locale(), "favicons.command"))
                 .setLore(
-                        Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.favicons.command.syntax", command),
-                        Msg.translate(player.locale(), "customnpcs.favicons.command.as_console", asConsole),
+                        Msg.translate(player.locale(), "favicons.command.syntax", command),
+                        Msg.translate(player.locale(), "favicons.command.as_console", asConsole),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
-                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "favicons.edit"),
+                        Msg.translate(player.locale(), "favicons.remove")
                 ).build();
     }
 
@@ -142,20 +159,7 @@ public class RunCommand extends Action {
     @Override
     public Action clone() {
         return new RunCommand(command, asConsole, getDelay(), getSelector(), new ArrayList<>(getConditions()),
-                getCooldown());
-    }
-
-    @Deprecated(forRemoval = true)
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
-        if (!clazz.equals(RunCommand.class)) {
-            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + RunCommand.class.getName());
-        }
-        String raw = parseString(serialized, "raw");
-        boolean asConsole = parseBoolean(serialized, "asConsole");
-        ParseResult pr = parseBase(serialized);
-
-        RunCommand command = new RunCommand(raw, asConsole, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
-        return clazz.cast(command);
+                getCooldown(), getUuid());
     }
 
     public class RunCommandCustomizer implements Menu {
@@ -173,7 +177,7 @@ public class RunCommand extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
         }
 
         @Override
@@ -195,23 +199,21 @@ public class RunCommand extends Action {
             if (!player.hasPermission("customnpcs.run_command.enable_console")) return MenuItems.MENU_GLASS;
             List<Component> lore = new ArrayList<>();
             if (isAsConsole()) {
-                lore.addAll(Utils.list(Msg.lore(player.locale(),
-                        "customnpcs.menus.action.command.as_console.warning")));
+                lore.addAll(Utils.list(Msg.lore(player.locale(), "menus.action.command.as_console.warning")));
             }
-            lore.add(Msg.translate(player.locale(), "customnpcs.items.click_to_change"));
+            lore.add(Msg.translate(player.locale(), "items.click_to_change"));
             return Button.clickable(ItemBuilder.modern(isAsConsole() ? RED_CANDLE : GREEN_CANDLE)
                             .setLore(lore.toArray(new Component[]{}))
-                            .setDisplay(isAsConsole() ? Msg.translate(player.locale(), "customnpcs.menus.action" +
-                                                                                       ".command.as_console.true") :
-                                    Msg.translate(player.locale(), "customnpcs.menus" +
-                                                                                                                                                    ".action.command.as_console.false"))
+                            .setDisplay(isAsConsole() ? Msg.translate(player.locale(), "menus.action" +
+                                    ".command.as_console.true") :
+                                    Msg.translate(player.locale(), "menus.action.command.as_console.false"))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
                         player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                         Player p = (Player) event.getWhoClicked();
                         if (!p.hasPermission("customnpcs.run_command.enable_console")) {
-                            p.sendMessage(Msg.translate(player.locale(), "customnpcs.commands.no_permission"));
+                            p.sendMessage(Msg.translate(player.locale(), "commands.no_permission"));
                             return;
                         }
 
@@ -223,7 +225,7 @@ public class RunCommand extends Action {
         private Button setCommand(Player player) {
             return Button.clickable(ItemBuilder.modern(ANVIL)
                             .setDisplay(Component.text("/" + getCommand()))
-                            .setLore(Msg.translate(player.locale(), "customnpcs.items.click_to_change"))
+                            .setLore(Msg.translate(player.locale(), "items.click_to_change"))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         CustomNPCs plugin = CustomNPCs.getInstance();
@@ -239,25 +241,25 @@ public class RunCommand extends Action {
         private Button papiTip(Player player) {
             Component[] lore;
             if (!CustomNPCs.getInstance().papi) {
-                lore = Msg.lore(player.locale(), "customnpcs.menus.action.command.papi_tip.no_papi");
+                lore = Msg.lore(player.locale(), "menus.action.command.papi_tip.no_papi");
             } else if (!CustomNPCs.getInstance().papiPlayerExpansion) {
-                lore = Msg.lore(player.locale(), "customnpcs.menus.action.command.papi_tip.no_expansion");
+                lore = Msg.lore(player.locale(), "menus.action.command.papi_tip.no_expansion");
             } else {
-                lore = Msg.lore(player.locale(), "customnpcs.menus.action.command.papi_tip.all_good");
+                lore = Msg.lore(player.locale(), "menus.action.command.papi_tip.all_good");
             }
             return Button.clickable(ItemBuilder.modern(REDSTONE_TORCH)
-                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.command.papi_tip.title"))
+                    .setDisplay(Msg.translate(player.locale(), "menus.action.command.papi_tip.title"))
                     .setLore(lore)
                     .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
                 inventoryClickEvent.setCancelled(true);
                 if (!CustomNPCs.getInstance().papi) {
                     player.sendMessage(Msg.translate(player.locale(),
-                            "customnpcs.menus.action.command.papi_tip.download.plugin"));
+                            "menus.action.command.papi_tip.download.plugin"));
                     return;
                 }
                 if (!CustomNPCs.getInstance().papiPlayerExpansion) {
                     player.sendMessage(Msg.translate(player.locale(),
-                            "customnpcs.menus.action.command.papi_tip.download.expansion"));
+                            "menus.action.command.papi_tip.download.expansion"));
                 }
             }));
         }

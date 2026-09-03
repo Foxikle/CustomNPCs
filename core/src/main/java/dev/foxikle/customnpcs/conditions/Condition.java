@@ -44,12 +44,6 @@ public interface Condition {
      */
     boolean compute(Player player);
 
-    /**
-     * Serializes the condition to json using Gson
-     *
-     * @return the serialized condition
-     */
-    String toJson();
 
     /**
      * @param data the serialized condition
@@ -104,7 +98,7 @@ public interface Condition {
      *
      * @param targetValue the target value
      */
-    void setTargetValue(String targetValue);
+    void setTarget(String targetValue);
 
     /**
      * Gets the target of the condition
@@ -133,11 +127,16 @@ public interface Condition {
         NUMERIC(NumericCondition.CODEC),
 
         /**
-         * Represents a comparison between a Value and a target value with a finite number of possibilities
+         * Represents a comparison between two strings
+         */
+        TEXT(TextCondition.CODEC),
+
+        /**
+         * Represents a boolean value condition
          *
          * @see Value
          */
-        LOGICAL(LogicalCondition.CODEC);
+        LOGICAL(BooleanCondition.CODEC); // name has to be logical since Enum codecs serialize by name, not ordinal
 
         @Getter
         private final StructCodec<? extends Condition> codec;
@@ -148,103 +147,38 @@ public interface Condition {
      */
     enum Value {
         // numeric
-        /**
-         * Represents the player's experience levels
-         */
-        EXP_LEVELS(false, "customnpcs.conditions.xp_levels"),
-
-        /**
-         * Represents the player's experience points
-         */
-        EXP_POINTS(false, "customnpcs.conditions.xp_points"),
-
-        /**
-         * Represents the player's health
-         */
-        HEALTH(false, "customnpcs.conditions.health"),
-
-        /**
-         * Represents the player's absorption
-         */
-        ABSORPTION(false, "customnpcs.conditions.absorption"),
-
-        /**
-         * Represents the player's Y coordinate
-         */
-        Y_COORD(false, "customnpcs.conditions.y_coord"),
-
-        /**
-         * Represents the player's X coordinate
-         */
-        X_COORD(false, "customnpcs.conditions.x_coord"),
-
-        /**
-         * Represents the player's Z coordinate
-         */
-        Z_COORD(false, "customnpcs.conditions.z_coord"),
+        EXP_LEVELS("conditions.xp_levels", NumericCondition.class),
+        EXP_POINTS("conditions.xp_points", NumericCondition.class),
+        HEALTH("conditions.health", NumericCondition.class),
+        ABSORPTION("conditions.absorption", NumericCondition.class),
+        Y_COORD("conditions.y_coord", NumericCondition.class),
+        X_COORD("conditions.x_coord", NumericCondition.class),
+        Z_COORD("conditions.z_coord", NumericCondition.class),
 
 
-        // logical
-        /**
-         * Represents if the player has an effect
-         */
-        HAS_EFFECT(true, "customnpcs.conditions.has_effect"),
+        // boolean
+        HAS_EFFECT("conditions.has_effect", BooleanCondition.class),
+        HAS_PERMISSION("conditions.has_permission", BooleanCondition.class),
+        IS_FLYING("conditions.is_flying", BooleanCondition.class),
+        IS_SPRINTING("conditions.is_sprinting", BooleanCondition.class),
+        IS_SNEAKING("conditions.is_sneaking", BooleanCondition.class),
+        IS_FROZEN("conditions.is_frozen", BooleanCondition.class),
+        IS_GLIDING("conditions.is_gliding", BooleanCondition.class),
 
-        /**
-         * Represents if the player has a permission node
-         */
-        HAS_PERMISSION(true, "customnpcs.conditions.has_permission"),
-
-        /**
-         * Represents if the player is in the gamemode
-         */
-        GAMEMODE(true, "customnpcs.conditions.gamemode"),
-
-        /**
-         * Represents if the player is flying
-         */
-        IS_FLYING(true, "customnpcs.conditions.is_flying"),
-
-        /**
-         * Represents if the player is sprinting
-         */
-        IS_SPRINTING(true, "customnpcs.conditions.is_sprinting"),
-
-        /**
-         * Represents if the player is sneaking
-         */
-        IS_SNEAKING(true, "customnpcs.conditions.is_sneaking"),
-
-        /**
-         * Represents if the player is frozen
-         */
-        IS_FROZEN(true, "customnpcs.conditions.is_frozen"),
-
-        /**
-         * Represents if the player is gliding
-         */
-        IS_GLIDING(true, "customnpcs.conditions.is_gliding");
+        // text based
+        GAMEMODE("conditions.gamemode", TextCondition.class),
+        USERNAME("conditions.username", TextCondition.class),
+        UUID("conditions.uuid", TextCondition.class),
+        CLIENT_BRAND("conditions.client_brand", TextCondition.class);
 
 
-        /**
-         * -- GETTER --
-         *  Determines if the value is considered 'logical'
-         *
-         * @return if the value is logical
-         */
-        @Getter
-        private final boolean isLogical;
         private final String key;
+        private final Class<? extends Condition>[] supportedTypes;
 
-        /**
-         * The constructor for the Value
-         *
-         * @param isLogical if the value is considered 'logical'
-         * @param key       The translation key for the value
-         */
-        Value(boolean isLogical, String key) {
-            this.isLogical = isLogical;
+
+        Value(String key, Class<? extends Condition>... supportedTypes) {
             this.key = key;
+            this.supportedTypes = supportedTypes;
         }
 
         public String getTranslationKey() {

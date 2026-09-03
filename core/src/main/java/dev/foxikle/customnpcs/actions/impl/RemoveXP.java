@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.defaultImpl;
+package dev.foxikle.customnpcs.actions.impl;
 
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.conditions.Condition;
@@ -49,16 +49,19 @@ import net.minestom.server.codec.StructCodec;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(onConstructor_ = {@ApiStatus.Internal})
 public class RemoveXP extends Action {
 
     public static final StructCodec<RemoveXP> CODEC = StructCodec.struct(
@@ -68,28 +71,31 @@ public class RemoveXP extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             RemoveXP::new
     );
     private int amount;
     private boolean levels;
 
-    public RemoveXP(int amount, boolean levels, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public RemoveXP(int amount, boolean levels, int delay, Selector mode, List<Condition> conditionals, int cooldown,
+                    @Nullable UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.levels = levels;
         this.amount = amount;
     }
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(GLASS_BOTTLE)
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.remove_xp"))
-                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.remove_xp.description"))
+                        .setDisplay(Msg.translate(player.locale(), "favicons.remove_xp"))
+                        .setLore(Msg.lore(player.locale(), "favicons.remove_xp.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    RemoveXP actionImpl = new RemoveXP(1, true, 0, Selector.ONE, new ArrayList<>(), 0);
+                    RemoveXP actionImpl = new RemoveXP(1, true, 0, Selector.ONE, new ArrayList<>(), 0,
+                            UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -97,18 +103,18 @@ public class RemoveXP extends Action {
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(GLASS_BOTTLE).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons" +
+        return ItemBuilder.modern(GLASS_BOTTLE).setDisplay(Msg.translate(player.locale(), "favicons" +
                         ".remove_xp"))
                 .setLore(
-                        Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.menus.action.remove_xp.xp", amount),
-                        Msg.translate(player.locale(), "customnpcs.menus.action.remove_xp.awarding", (levels ?
-                                Msg.translatedString(player.locale(), "customnpcs.menus.action.xp.levels") :
-                                Msg.translatedString(player.locale(), "customnpcs.menus.action.xp.points"))),
+                        Msg.translate(player.locale(), "menus.action.remove_xp.xp", amount),
+                        Msg.translate(player.locale(), "menus.action.remove_xp.awarding", (levels ?
+                                Msg.translatedString(player.locale(), "menus.action.xp.levels") :
+                                Msg.translatedString(player.locale(), "menus.action.xp.points"))),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
-                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "favicons.edit"),
+                        Msg.translate(player.locale(), "favicons.remove")
                 ).build();
     }
 
@@ -153,7 +159,7 @@ public class RemoveXP extends Action {
     @Override
     public Action clone() {
         return new RemoveXP(getAmount(), isLevels(), getDelay(), getSelector(), new ArrayList<>(getConditions()),
-                getCooldown());
+                getCooldown(), getUuid());
     }
 
     @Deprecated(forRemoval = true)
@@ -165,7 +171,8 @@ public class RemoveXP extends Action {
         boolean levels = parseBoolean(serialized, "levels");
         ParseResult pr = parseBase(serialized);
 
-        RemoveXP xp = new RemoveXP(amount, levels, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        RemoveXP xp = new RemoveXP(amount, levels, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
+                UUID.randomUUID());
 
         return clazz.cast(xp);
     }
@@ -184,7 +191,7 @@ public class RemoveXP extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
         }
 
         @Override
@@ -195,16 +202,16 @@ public class RemoveXP extends Action {
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
 
-            Component[] incLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.increment" +
+            Component[] incLore = Msg.lore(player.locale(), "menus.action_customizer.delay.increment" +
                     ".description");
-            Component[] decLore = Msg.lore(player.locale(), "customnpcs.menus.action_customizer.delay.decrement" +
+            Component[] decLore = Msg.lore(player.locale(), "menus.action_customizer.delay.decrement" +
                     ".description");
 
             return MenuUtils.actionBase(action, player)
 
                     // increment
                     .setButton(11, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_xp" +
+                                    .setDisplay(Msg.translate(player.locale(), "menus.action.give_xp" +
                                             ".increase"))
                                     .setLore(incLore)
                                     .build(),
@@ -219,12 +226,12 @@ public class RemoveXP extends Action {
                                     setAmount(getAmount() + 5);
                                 }
                                 menuView.updateButton(20,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.remove_xp.xp", getAmount()))));
+                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.remove_xp.xp", getAmount()))));
                             }))
-                    ).setButton(20, MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action" +
+                    ).setButton(20, MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action" +
                             ".remove_xp.xp", getAmount()))
                     ).setButton(29, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.give_xp" +
+                                    .setDisplay(Msg.translate(player.locale(), "menus.action.give_xp" +
                                             ".decrease"))
                                     .setLore(decLore)
                                     .build(),
@@ -245,7 +252,7 @@ public class RemoveXP extends Action {
                                     setAmount(Math.max(1, getAmount() - 5));
                                 }
                                 menuView.updateButton(20,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.remove_xp.xp", getAmount()))));
+                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.remove_xp.xp", getAmount()))));
                             }))
                     ).setButton(24, toggle(player))
 
@@ -254,10 +261,10 @@ public class RemoveXP extends Action {
 
         private Button toggle(Player player) {
             return Button.clickable(ItemBuilder.modern(isLevels() ? GREEN_CANDLE : RED_CANDLE)
-                            .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.remove_xp.awarding",
+                            .setDisplay(Msg.translate(player.locale(), "menus.action.remove_xp.awarding",
                                     (isLevels() ?
-                                            Msg.translate(player.locale(), "customnpcs.menus.action.xp.levels") :
-                                            Msg.translate(player.locale(), "customnpcs.menus.action.xp.points"))))
+                                            Msg.translate(player.locale(), "menus.action.xp.levels") :
+                                            Msg.translate(player.locale(), "menus.action.xp.points"))))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);

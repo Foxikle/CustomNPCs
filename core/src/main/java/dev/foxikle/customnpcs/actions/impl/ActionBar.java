@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.defaultImpl;
+package dev.foxikle.customnpcs.actions.impl;
 
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.conditions.Condition;
@@ -49,17 +49,19 @@ import net.minestom.server.codec.StructCodec;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.bukkit.Material.IRON_INGOT;
 import static org.bukkit.Material.PAPER;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(onConstructor_ = {@ApiStatus.Internal})
 public class ActionBar extends Action {
 
     public static final StructCodec<ActionBar> CODEC = StructCodec.struct(
@@ -68,6 +70,7 @@ public class ActionBar extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             ActionBar::new
     );
 
@@ -78,20 +81,21 @@ public class ActionBar extends Action {
      *
      * @param rawMessage The raw message
      */
-    public ActionBar(String rawMessage, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public ActionBar(String rawMessage, int delay, Selector mode, List<Condition> conditionals, int cooldown,
+                     UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.rawMessage = rawMessage;
     }
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(IRON_INGOT)
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.actionbar"))
-                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.actionbar.description"))
+                        .setDisplay(Msg.translate(player.locale(), "favicons.actionbar"))
+                        .setLore(Msg.lore(player.locale(), "favicons.actionbar.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
-                    ActionBar actionImpl = new ActionBar("", 0, Selector.ONE, new ArrayList<>(), 0);
+                    ActionBar actionImpl = new ActionBar("", 0, Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -105,16 +109,15 @@ public class ActionBar extends Action {
     @Override
     public ItemStack getFavicon(Player player) {
         return ItemBuilder.modern(IRON_INGOT)
-                .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.actionbar"))
-                .setLore(Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
-                        Msg.translate(player.locale(), "customnpcs.favicons.preview", Msg.format(getRawMessage())),
+                .setDisplay(Msg.translate(player.locale(), "favicons.actionbar"))
+                .setLore(Msg.translate(player.locale(), "favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "favicons.preview", Msg.format(getRawMessage())),
                         Msg.format(getRawMessage().isEmpty() ?
-                                "<dark_gray><i>" + Msg.translatedString(player.locale(), "customnpcs.messages" +
-                                                                                         ".empty_string") :
+                                "<dark_gray><i>" + Msg.translatedString(player.locale(), "messages.empty_string") :
                                 getRawMessage()),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
-                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "favicons.edit"),
+                        Msg.translate(player.locale(), "favicons.remove")
                 ).build();
     }
 
@@ -144,7 +147,8 @@ public class ActionBar extends Action {
 
     @Override
     public Action clone() {
-        return new ActionBar(rawMessage, getDelay(), getSelector(), new ArrayList<>(getConditions()), getCooldown());
+        return new ActionBar(rawMessage, getDelay(), getSelector(), new ArrayList<>(getConditions()), getCooldown(),
+                getUuid());
     }
 
     @Deprecated(forRemoval = true)
@@ -155,7 +159,8 @@ public class ActionBar extends Action {
         String rawMessage = parseString(serialized, "raw");
         ParseResult pr = parseBase(serialized);
 
-        ActionBar message = new ActionBar(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        ActionBar message = new ActionBar(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
+                UUID.randomUUID());
 
         return clazz.cast(message);
     }
@@ -175,7 +180,7 @@ public class ActionBar extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
         }
 
         @Override
@@ -191,7 +196,7 @@ public class ActionBar extends Action {
                                             "<dark_gray><i>" + Msg.translatedString(player.locale(), "customnpcs" +
                                                                                                      ".messages" +
                                                                                                      ".empty_string") : getRawMessage()))
-                                    .setLore(Msg.translate(player.locale(), "customnpcs.items.click_to_change"))
+                                    .setLore(Msg.translate(player.locale(), "items.click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((_, event) -> {
                                 event.setCancelled(true);

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.defaultImpl;
+package dev.foxikle.customnpcs.actions.impl;
 
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.conditions.Condition;
@@ -50,17 +50,20 @@ import net.minestom.server.codec.StructCodec;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.bukkit.Material.OAK_HANGING_SIGN;
 import static org.bukkit.Material.PAPER;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(onConstructor_ = {@ApiStatus.Internal})
 public class SendMessage extends Action {
 
     public static final StructCodec<SendMessage> CODEC = StructCodec.struct(
@@ -69,29 +72,32 @@ public class SendMessage extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             SendMessage::new
     );
 
     private String rawMessage;
 
 
-    public SendMessage(String rawMessage, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public SendMessage(String rawMessage, int delay, Selector mode, List<Condition> conditionals, int cooldown,
+                       @Nullable UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.rawMessage = rawMessage;
     }
 
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(PAPER)
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.message"))
-                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.message.description"))
+                        .setDisplay(Msg.translate(player.locale(), "favicons.message"))
+                        .setLore(Msg.lore(player.locale(), "favicons.message.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    SendMessage actionImpl = new SendMessage("", 0, Selector.ONE, new ArrayList<>(), 0);
+                    SendMessage actionImpl = new SendMessage("", 0, Selector.ONE, new ArrayList<>(), 0,
+                            UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                     menuView.getAPI().openMenu(p, actionImpl.getMenu());
                 }));
@@ -99,15 +105,17 @@ public class SendMessage extends Action {
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(PAPER).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.message"))
+        return ItemBuilder.modern(PAPER).setDisplay(Msg.translate(player.locale(), "favicons.message"))
                 .setLore(
-                        Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
                         Msg.format("<dark_aqua><st>                                    "),
-                        Msg.translate(player.locale(), "customnpcs.favicons.preview"),
-                        Msg.format(getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString(player.locale(), "customnpcs.messages.empty_string") : getRawMessage()),
+                        Msg.translate(player.locale(), "favicons.preview"),
+                        Msg.format(getRawMessage().isEmpty() ?
+                                "<dark_gray><i>" + Msg.translatedString(player.locale(), "messages.empty_string") :
+                                getRawMessage()),
                         Msg.format("<dark_aqua><st>                                    "),
-                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
-                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "favicons.edit"),
+                        Msg.translate(player.locale(), "favicons.remove")
                 ).build();
     }
 
@@ -139,7 +147,7 @@ public class SendMessage extends Action {
 
     @Override
     public Action clone() {
-        return new SendMessage(rawMessage, getDelay(), getSelector(), getConditions(), getCooldown());
+        return new SendMessage(rawMessage, getDelay(), getSelector(), getConditions(), getCooldown(), getUuid());
     }
 
     public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
@@ -148,7 +156,8 @@ public class SendMessage extends Action {
         }
         String rawMessage = parseString(serialized, "raw");
         ParseResult pr = parseBase(serialized);
-        SendMessage message = new SendMessage(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        SendMessage message = new SendMessage(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
+                UUID.randomUUID());
 
         return clazz.cast(message);
     }
@@ -168,7 +177,7 @@ public class SendMessage extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
         }
 
         @Override
@@ -180,8 +189,10 @@ public class SendMessage extends Action {
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
             return MenuUtils.actionBase(action, player)
                     .setButton(22, Button.clickable(ItemBuilder.modern(OAK_HANGING_SIGN)
-                                    .setDisplay(Msg.format(getRawMessage().isEmpty() ? "<dark_gray><i>" + Msg.translatedString(player.locale(), "customnpcs.messages.empty_string") : getRawMessage()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE))
-                                    .setLore(Msg.translate(player.locale(), "customnpcs.items.click_to_change"))
+                                    .setDisplay(Msg.format(getRawMessage().isEmpty() ?
+                                            "<dark_gray><i>" + Msg.translatedString(player.locale(), "messages" +
+                                                    ".empty_string") : getRawMessage()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE))
+                                    .setLore(Msg.translate(player.locale(), "items.click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 CustomNPCs plugin = CustomNPCs.getInstance();

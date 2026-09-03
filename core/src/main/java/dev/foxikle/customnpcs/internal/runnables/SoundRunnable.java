@@ -67,8 +67,8 @@ public class SoundRunnable extends BukkitRunnable {
         if (!plugin.isWaiting(player, WaitingType.SOUND))
             this.cancel();
         player.showTitle(Title.title(
-                Msg.translate(player.locale(), "customnpcs.data.sound.title"),
-                Msg.translate(player.locale(), "customnpcs.data.sound.subtitle"),
+                Msg.translate(player.locale(), "data.sound.title"),
+                Msg.translate(player.locale(), "data.sound.subtitle"),
                 Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
         ));
     }

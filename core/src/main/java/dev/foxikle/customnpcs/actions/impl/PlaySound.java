@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.defaultImpl;
+package dev.foxikle.customnpcs.actions.impl;
 
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.conditions.Condition;
@@ -51,17 +51,20 @@ import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static dev.foxikle.customnpcs.internal.utils.Utils.DECIMAL_FORMAT;
 import static org.bukkit.Material.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(onConstructor_ = {@ApiStatus.Internal})
 public class PlaySound extends Action {
 
     public static final StructCodec<PlaySound> CODEC = StructCodec.struct(
@@ -72,48 +75,68 @@ public class PlaySound extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             PlaySound::new
     );
-
-    public Button creationButton(Player player) {
-        return Button.clickable(ItemBuilder.modern(BELL)
-                        .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.sound"))
-                        .setLore(Msg.lore(player.locale(), "customnpcs.favicons.sound.description"))
-                        .build(),
-                ButtonClickAction.plain((menuView, event) -> {
-                    event.setCancelled(true);
-                    Player p = (Player) event.getWhoClicked();
-                    p.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
-                    PlaySound actionImpl = new PlaySound("minecraft:ui.button.click", 1, 1, 0, Selector.ONE, new ArrayList<>(), 0);
-                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
-                    menuView.getAPI().openMenu(p, actionImpl.getMenu());
-                }));
-    }
-
     float volume;
     float pitch;
     private String sound;
 
-    public PlaySound(String sound, float volume, float pitch, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public PlaySound(String sound, float volume, float pitch, int delay, Selector mode, List<Condition> conditionals,
+                     int cooldown, @Nullable UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.sound = sound;
         this.volume = volume;
         this.pitch = pitch;
     }
 
+    @Deprecated(forRemoval = true)
+    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
+        if (!clazz.equals(PlaySound.class)) {
+            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + PlaySound.class.getName());
+        }
+        String sound = parseString(serialized, "sound");
+        float volume = parseFloat(serialized, "volume");
+        float pitch = parseFloat(serialized, "pitch");
+
+        ParseResult pr = parseBase(serialized);
+
+        PlaySound message = new PlaySound(sound, volume, pitch, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown()
+                , UUID.randomUUID());
+
+        return clazz.cast(message);
+    }
+
+    public Button creationButton(Player player) {
+        return Button.clickable(ItemBuilder.modern(BELL)
+                        .setDisplay(Msg.translate(player.locale(), "favicons.sound"))
+                        .setLore(Msg.lore(player.locale(), "favicons.sound.description"))
+                        .build(),
+                ButtonClickAction.plain((menuView, event) -> {
+                    event.setCancelled(true);
+                    Player p = (Player) event.getWhoClicked();
+                    p.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
+                    PlaySound actionImpl = new PlaySound("minecraft:ui.button.click", 1, 1, 0, Selector.ONE,
+                            new ArrayList<>(), 0, UUID.randomUUID());
+                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
+                    menuView.getAPI().openMenu(p, actionImpl.getMenu());
+                }));
+    }
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(BELL).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.sound"))
+        return ItemBuilder.modern(BELL).setDisplay(Msg.translate(player.locale(), "favicons.sound"))
                 .setLore(
-                        Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.menus.action.sound.sound", sound),
-                        Msg.translate(player.locale(), "customnpcs.menus.action.sound.volume", DECIMAL_FORMAT.format(volume)),
-                        Msg.translate(player.locale(), "customnpcs.menus.action.sound.pitch", DECIMAL_FORMAT.format(pitch)),
+                        Msg.translate(player.locale(), "menus.action.sound.sound", sound),
+                        Msg.translate(player.locale(), "menus.action.sound.volume",
+                                DECIMAL_FORMAT.format(volume)),
+                        Msg.translate(player.locale(), "menus.action.sound.pitch",
+                                DECIMAL_FORMAT.format(pitch)),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
-                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "favicons.edit"),
+                        Msg.translate(player.locale(), "favicons.remove")
                 ).build();
     }
 
@@ -134,7 +157,7 @@ public class PlaySound extends Action {
 
     public Action clone() {
         return new PlaySound(sound, volume, pitch, getDelay(), getSelector(), new ArrayList<>(getConditions()),
-                getCooldown());
+                getCooldown(), getUuid());
     }
 
     @Override
@@ -152,22 +175,6 @@ public class PlaySound extends Action {
         return new PlaySoundCustomizer(this);
     }
 
-    @Deprecated(forRemoval = true)
-    public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
-        if (!clazz.equals(PlaySound.class)) {
-            throw new IllegalArgumentException("Cannot deserialize " + clazz.getName() + " to " + PlaySound.class.getName());
-        }
-        String sound = parseString(serialized, "sound");
-        float volume = parseFloat(serialized, "volume");
-        float pitch = parseFloat(serialized, "pitch");
-
-        ParseResult pr = parseBase(serialized);
-
-        PlaySound message = new PlaySound(sound, volume, pitch, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
-
-        return clazz.cast(message);
-    }
-
     public class PlaySoundCustomizer implements Menu {
         private final PlaySound action;
 
@@ -182,7 +189,7 @@ public class PlaySound extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
         }
 
         @Override
@@ -193,8 +200,8 @@ public class PlaySound extends Action {
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
 
-            Component incLore = Msg.translate(player.locale(), "customnpcs.menus.action.sound.increase");
-            Component decLore = Msg.translate(player.locale(), "customnpcs.menus.action.sound.decrease");
+            Component incLore = Msg.translate(player.locale(), "menus.action.sound.increase");
+            Component decLore = Msg.translate(player.locale(), "menus.action.sound.decrease");
 
             return MenuUtils.actionBase(action, player)
 
@@ -204,52 +211,62 @@ public class PlaySound extends Action {
 
                     // increment
                     .setButton(10, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.increase_pitch"))
+                                    .setDisplay(Msg.translate(player.locale(), "menus.action.sound" +
+                                            ".increase_pitch"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
+                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"),
+                                        Sound.Source.MASTER, 1, 1));
                                 setPitch(getPitch() + .1f);
                                 menuView.replaceButton(19, pitch(player));
                             }))
                     ).setButton(12, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.increase_volume"))
+                                    .setDisplay(Msg.translate(player.locale(), "menus.action.sound" +
+                                            ".increase_volume"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
+                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"),
+                                        Sound.Source.MASTER, 1, 1));
                                 setVolume(getVolume() + .1f);
                                 menuView.replaceButton(21, volume(player));
                             })))
 
                     // decrement
                     .setButton(28, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.decrease_pitch"))
+                                    .setDisplay(Msg.translate(player.locale(), "menus.action.sound" +
+                                            ".decrease_pitch"))
                                     .setLore(decLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
+                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"),
+                                        Sound.Source.MASTER, 1, 1));
                                 Player p1 = (Player) event.getWhoClicked();
                                 if (getPitch() - .1 <= 0) {
-                                    p1.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.sound.invalid_pitch"));
+                                    p1.sendMessage(Msg.translate(player.locale(), "menus.action.sound" +
+                                            ".invalid_pitch"));
                                 } else {
                                     setPitch(getPitch() - .1f);
                                 }
                                 menuView.replaceButton(19, pitch(player));
                             }))
                     ).setButton(30, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.decrease_volume"))
+                                    .setDisplay(Msg.translate(player.locale(), "menus.action.sound" +
+                                            ".decrease_volume"))
                                     .setLore(decLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
+                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"),
+                                        Sound.Source.MASTER, 1, 1));
                                 Player p1 = (Player) event.getWhoClicked();
                                 if (getVolume() - .1 <= 0) {
-                                    p1.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.action.sound.invalid_volume"));
+                                    p1.sendMessage(Msg.translate(player.locale(), "menus.action.sound" +
+                                            ".invalid_volume"));
                                 } else {
                                     setVolume(getVolume() - .1f);
                                     menuView.replaceButton(21, volume(player));
@@ -258,12 +275,15 @@ public class PlaySound extends Action {
 
                     // select sound button
                     .setButton(24, Button.clickable(ItemBuilder.modern(OAK_SIGN)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.sound", getSound()))
-                                    .setLore(Component.empty(), Msg.translate(player.locale(), "customnpcs.items.click_to_change"))
+                                    .setDisplay(Msg.translate(player.locale(), "menus.action.sound.sound",
+                                            getSound()))
+                                    .setLore(Component.empty(), Msg.translate(player.locale(), "items" +
+                                            ".click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"), Sound.Source.MASTER, 1, 1));
+                                player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"),
+                                        Sound.Source.MASTER, 1, 1));
                                 Player p = (Player) event.getWhoClicked();
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 p.closeInventory();
@@ -278,11 +298,15 @@ public class PlaySound extends Action {
         }
 
         private Button volume(Player player) {
-            return Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.volume", DECIMAL_FORMAT.format(getVolume()))), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)));
+            return Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action" +
+                            ".sound.volume", DECIMAL_FORMAT.format(getVolume()))),
+                    ButtonClickAction.plain((menu, event) -> event.setCancelled(true)));
         }
 
         private Button pitch(Player player) {
-            return Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs.menus.action.sound.pitch", DECIMAL_FORMAT.format(getPitch()))), ButtonClickAction.plain((menu, event) -> event.setCancelled(true)));
+            return Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action" +
+                            ".sound.pitch", DECIMAL_FORMAT.format(getPitch()))),
+                    ButtonClickAction.plain((menu, event) -> event.setCancelled(true)));
         }
     }
 }

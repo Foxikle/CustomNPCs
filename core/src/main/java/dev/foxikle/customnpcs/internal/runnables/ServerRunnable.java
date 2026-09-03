@@ -65,8 +65,8 @@ public class ServerRunnable extends BukkitRunnable {
         if (!plugin.isWaiting(player, WaitingType.SERVER))
             this.cancel();
         player.showTitle(Title.title(
-                Msg.translate(player.locale(), "customnpcs.data.server.title"),
-                Msg.translate(player.locale(), "customnpcs.data.server.subtitle"),
+                Msg.translate(player.locale(), "data.server.title"),
+                Msg.translate(player.locale(), "data.server.subtitle"),
                 Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
         ));
     }

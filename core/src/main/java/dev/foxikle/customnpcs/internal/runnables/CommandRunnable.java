@@ -59,8 +59,8 @@ public class CommandRunnable extends BukkitRunnable {
         if (!plugin.isWaiting(player, WaitingType.COMMAND))
             this.cancel();
         player.showTitle(Title.title(
-                Msg.translate(player.locale(), "customnpcs.data.command.title"),
-                Msg.translate(player.locale(), "customnpcs.data.command.subtitle"),
+                Msg.translate(player.locale(), "data.command.title"),
+                Msg.translate(player.locale(), "data.command.subtitle"),
                 Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
         ));
     }

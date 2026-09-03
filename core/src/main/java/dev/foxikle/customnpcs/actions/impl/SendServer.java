@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.actions.defaultImpl;
+package dev.foxikle.customnpcs.actions.impl;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
@@ -51,17 +51,20 @@ import net.minestom.server.codec.StructCodec;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.bukkit.Material.GRASS_BLOCK;
 import static org.bukkit.Material.OAK_HANGING_SIGN;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(onConstructor_ = {@ApiStatus.Internal})
 public class SendServer extends Action {
 
     public static final StructCodec<SendServer> CODEC = StructCodec.struct(
@@ -70,22 +73,24 @@ public class SendServer extends Action {
             "selector", Codec.Enum(Selector.class), Action::getSelector,
             "conditions", Condition.CODEC.list(), Action::getConditions,
             "cooldown", Codec.INT, Action::getCooldown,
+            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             SendServer::new
     );
 
     private String server;
 
 
-    public SendServer(String server, int delay, Selector mode, List<Condition> conditionals, int cooldown) {
-        super(delay, mode, conditionals, cooldown);
+    public SendServer(String server, int delay, Selector mode, List<Condition> conditionals, int cooldown,
+                      @Nullable UUID uuid) {
+        super(delay, mode, conditionals, cooldown, uuid);
         this.server = server;
     }
 
     public Button creationButton(Player player) {
         return
                 Button.clickable(ItemBuilder.modern(GRASS_BLOCK)
-                                .setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.server"))
-                                .setLore(Msg.lore(player.locale(), "customnpcs.favicons.server.description"))
+                                .setDisplay(Msg.translate(player.locale(), "favicons.server"))
+                                .setLore(Msg.lore(player.locale(), "favicons.server.description"))
                                 .build(),
                         ButtonClickAction.plain((menuView, event) -> {
                             event.setCancelled(true);
@@ -93,7 +98,8 @@ public class SendServer extends Action {
                             p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                             //todo: watch out for duplications
 
-                            SendServer actionImpl = new SendServer("server", 0, Selector.ONE, new ArrayList<>(), 0);
+                            SendServer actionImpl = new SendServer("server", 0, Selector.ONE, new ArrayList<>(), 0,
+                                    UUID.randomUUID());
                             CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
                             menuView.getAPI().openMenu(p, actionImpl.getMenu());
                         }));
@@ -115,14 +121,14 @@ public class SendServer extends Action {
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(GRASS_BLOCK).setDisplay(Msg.translate(player.locale(), "customnpcs.favicons.server"))
+        return ItemBuilder.modern(GRASS_BLOCK).setDisplay(Msg.translate(player.locale(), "favicons.server"))
                 .setLore(
-                        Msg.translate(player.locale(), "customnpcs.favicons.delay", getDelay()),
+                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.favicons.server.target", server),
+                        Msg.translate(player.locale(), "favicons.server.target", server),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "customnpcs.favicons.edit"),
-                        Msg.translate(player.locale(), "customnpcs.favicons.remove")
+                        Msg.translate(player.locale(), "favicons.edit"),
+                        Msg.translate(player.locale(), "favicons.remove")
                 ).build();
     }
 
@@ -143,7 +149,7 @@ public class SendServer extends Action {
 
     @Override
     public Action clone() {
-        return new SendServer(server, getDelay(), getSelector(), getConditions(), getCooldown());
+        return new SendServer(server, getDelay(), getSelector(), getConditions(), getCooldown(), getUuid());
     }
 
     @Deprecated(forRemoval = true)
@@ -154,7 +160,8 @@ public class SendServer extends Action {
         String server = parseString(serialized, "server");
         ParseResult pr = parseBase(serialized);
 
-        SendServer message = new SendServer(server, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown());
+        SendServer message = new SendServer(server, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
+                UUID.randomUUID());
 
         return clazz.cast(message);
     }
@@ -174,7 +181,7 @@ public class SendServer extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
         }
 
         @Override
@@ -187,7 +194,7 @@ public class SendServer extends Action {
             return MenuUtils.actionBase(action, player)
                     .setButton(22, Button.clickable(ItemBuilder.modern(OAK_HANGING_SIGN)
                                     .setDisplay(Component.text(getServer()))
-                                    .setLore(Msg.translate(player.locale(), "customnpcs.items.click_to_change"))
+                                    .setLore(Msg.translate(player.locale(), "items.click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 CustomNPCs plugin = CustomNPCs.getInstance();
