@@ -23,6 +23,7 @@
 package dev.foxikle.customnpcs.internal.menu;
 
 import dev.foxikle.customnpcs.conditions.Condition;
+import dev.foxikle.customnpcs.conditions.TextCondition;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import io.github.mqzen.menus.base.Content;
@@ -53,13 +54,28 @@ public class ConditionCustomizerMenu implements Menu {
     @Override
     public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
         Condition condition = CustomNPCs.getInstance().editingConditionals.get(player.getUniqueId());
+        if (condition instanceof TextCondition text) {
+            return getText(player, text, capacity);
+        }
         return Content.builder(capacity)
                 .apply(content -> content.fill(MenuItems.MENU_GLASS))
                 .setButton(18, MenuItems.toNewCondition(player))
                 .setButton(22, MenuItems.saveCondition(player))
-                .setButton(11, MenuItems.comparatorSwitcher(condition, player))
+                .setButton(11, MenuItems.comparatorSwitcher(condition, player, 11))
                 .setButton(13, MenuItems.targetValueSelector(condition, player))
-                .setButton(15, MenuItems.valueSwitcher(condition, player))
+                .setButton(15, MenuItems.valueSwitcher(condition, player, 15))
+                .build();
+    }
+
+    private @NotNull Content getText(Player player, TextCondition condition, Capacity capacity) {
+        return Content.builder(capacity)
+                .apply(content -> content.fill(MenuItems.MENU_GLASS))
+                .setButton(18, MenuItems.toNewCondition(player))
+                .setButton(22, MenuItems.saveCondition(player))
+                .setButton(10, MenuItems.comparatorSwitcher(condition, player, 10))
+                .setButton(12, MenuItems.targetValueSelector(condition, player))
+                .setButton(14, MenuItems.valueSwitcher(condition, player, 14))
+                .setButton(16, MenuItems.toggleTextConditionInversion(condition, player))
                 .build();
     }
 }

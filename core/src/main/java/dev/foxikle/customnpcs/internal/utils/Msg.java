@@ -73,8 +73,8 @@ public class Msg {
                 .toArray(Component[]::new);
     }
 
-    public static Component format(String str) {
-        return CustomNPCs.getInstance().getMiniMessage().deserialize(str)
+    public static Component format(String str, Object... args) {
+        return CustomNPCs.getInstance().getMiniMessage().deserialize(str.formatted(args))
                 .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
                 .colorIfAbsent(NamedTextColor.WHITE);
     }

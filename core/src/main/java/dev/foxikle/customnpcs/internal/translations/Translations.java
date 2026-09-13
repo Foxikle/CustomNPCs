@@ -35,8 +35,8 @@ import java.util.ResourceBundle;
 public class Translations {
     public static final Locale VIETNAMESE = new Locale("vi");
     public static final Locale RUSSIAN = new Locale("ru");
-    private static final TranslationStore<MessageFormat> STORE = TranslationStore.messageFormat(Key.key("customnpcs" +
-            ":root"));
+    private static final TranslationStore<MessageFormat> STORE = TranslationStore.messageFormat(
+            Key.key("customnpcs:root"));
     private static final Map<Locale, ResourceBundle> BUNDLES = new HashMap<>();
     private static boolean setup = false;
 

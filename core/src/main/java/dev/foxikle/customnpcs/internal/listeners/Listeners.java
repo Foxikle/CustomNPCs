@@ -470,8 +470,7 @@ public class Listeners implements Listener {
             for (ProfileProperty property : profile.getProperties()) {
                 if (!property.getName().equals("textures")) continue;
                 npc.getSettings().setSkinData(property.getSignature(), property.getValue(),
-                        Msg.translatedString(player.locale(), "customnpcs" +
-                                ".skins.imported_by.player_name", Msg.format(name)));
+                        Msg.translatedString(player.locale(), "skins.imported_by.player_name", Msg.format(name)));
             }
 
             plugin.waiting.remove(player.getUniqueId());
@@ -499,8 +498,7 @@ public class Listeners implements Listener {
                         .visibility(Visibility.UNLISTED);
                 SkinUtils.fetch(request).thenAccept(skin -> {
                             npc.getSettings().setSkinData(skin.texture().data().signature(),
-                                    skin.texture().data().value(), Msg.translatedString(player.locale(), "customnpcs" +
-                                            ".skins.imported_by.url"));
+                                    skin.texture().data().value(), Msg.translatedString(player.locale(), "skins.imported_by.url"));
                             plugin.waiting.remove(player.getUniqueId());
                             player.sendMessage(Msg.translate(player.locale(), "skins.success.url", message));
                             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, MenuUtils.NPC_SKIN));
