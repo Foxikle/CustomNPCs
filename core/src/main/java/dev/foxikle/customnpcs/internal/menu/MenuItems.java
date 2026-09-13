@@ -30,7 +30,6 @@ import dev.foxikle.customnpcs.conditions.Comparator;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
-import dev.foxikle.customnpcs.internal.runnables.*;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.OpenButtonAction;
 import dev.foxikle.customnpcs.internal.utils.Utils;
@@ -157,7 +156,7 @@ public class MenuItems {
         return ItemBuilder.modern(Material.NAME_TAG)
                 .setDisplay(Msg.translate(player.locale(), "menus.main.items.name.name"))
                 .setLore(Msg.translate(player.locale(), "menus.main.items.name.current_name",
-                        plugin.getMiniMessage().deserialize(npc.getSettings().getRawHolograms().getFirst())))
+                        Msg.format(npc.getSettings().getRawHolograms().getFirst())))
                 .build();
     }
 
@@ -749,7 +748,6 @@ public class MenuItems {
 
                             p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
                             HologramMenu.editingIndicies.put(p.getUniqueId(), finalI);
-                            new NameRunnable(p, plugin).runTaskTimer(plugin, 1, 15);
                             p.closeInventory();
 
                             if (plugin.getConfig().getBoolean("NameReferenceMessages")) {
@@ -798,7 +796,6 @@ public class MenuItems {
 
                     p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
                     HologramMenu.editingIndicies.put(p.getUniqueId(), raw.size());
-                    new NameRunnable(p, plugin).runTaskTimer(plugin, 1, 15);
                     p.closeInventory();
                 })
         ));
@@ -1005,7 +1002,6 @@ public class MenuItems {
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             p.closeInventory();
             plugin.wait(p, WaitingType.TARGET);
-            new TargetInputRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
         }));
     }
 
@@ -1086,7 +1082,6 @@ public class MenuItems {
 
             p.closeInventory();
             p.sendMessage(Msg.translate(p.locale(), "menus.extra.hologram_text.type"));
-            new InteractableHologramRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
         }));
     }
 
@@ -1120,7 +1115,6 @@ public class MenuItems {
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             p.closeInventory();
             plugin.wait(p, WaitingType.PLAYER);
-            new PlayerNameRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
             event.setCancelled(true);
         }));
     }
@@ -1156,7 +1150,6 @@ public class MenuItems {
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             p.closeInventory();
             plugin.wait(p, WaitingType.URL);
-            new UrlRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
             event.setCancelled(true);
         }));
     }

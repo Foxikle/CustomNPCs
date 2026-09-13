@@ -28,7 +28,6 @@ import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
-import dev.foxikle.customnpcs.internal.runnables.MessageRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
@@ -127,11 +126,7 @@ public class SendMessage extends Action {
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
 
-        if (CustomNPCs.getInstance().papi) {
-            player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(PlaceholderAPI.setPlaceholders(player, rawMessage)));
-        } else {
-            player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(rawMessage));
-        }
+        player.sendMessage(Msg.format(Msg.papi(player, rawMessage)));
         activateCooldown(player.getUniqueId());
     }
 
@@ -199,7 +194,6 @@ public class SendMessage extends Action {
                                 Player p = (Player) event.getWhoClicked();
                                 p.closeInventory();
                                 plugin.wait(p, WaitingType.MESSAGE);
-                                new MessageRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                             })))

@@ -24,6 +24,7 @@ package dev.foxikle.customnpcs.internal.commands.suggestion;
 
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.utils.Msg;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 
 public class NpcSuggester {
@@ -33,7 +34,7 @@ public class NpcSuggester {
         String input = builder.getRemaining().toLowerCase();
 
         plugin.npcs.values().stream()
-                .map(npc -> plugin.getMiniMessage().stripTags(npc.getSettings().getRawHolograms().getFirst()))
+                .map(npc -> Msg.MINI.stripTags(npc.getSettings().getRawHolograms().getFirst()))
                 .filter(name -> name.toLowerCase().startsWith(input))
                 .forEach(builder::suggest);
 

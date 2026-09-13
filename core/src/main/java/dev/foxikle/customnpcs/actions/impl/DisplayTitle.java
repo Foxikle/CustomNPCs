@@ -29,8 +29,6 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
-import dev.foxikle.customnpcs.internal.runnables.SubtitleRunnable;
-import dev.foxikle.customnpcs.internal.runnables.TitleRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
@@ -149,8 +147,8 @@ public class DisplayTitle extends Action {
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
 
-        Component titleComponent = CustomNPCs.getInstance().miniMessage.deserialize(CustomNPCs.getInstance().papi ? PlaceholderAPI.setPlaceholders(player, title) : title);
-        Component subtitleComponent = CustomNPCs.getInstance().miniMessage.deserialize(CustomNPCs.getInstance().papi ? PlaceholderAPI.setPlaceholders(player, subTitle) : subTitle);
+        Component titleComponent = Msg.format(Msg.papi(player, title));
+        Component subtitleComponent = Msg.format(Msg.papi(player, subTitle));
 
         player.showTitle(Title.title(titleComponent, subtitleComponent, Title.Times.times(Duration.ofMillis(fadeIn * 50L), Duration.ofMillis(stay * 50L), Duration.ofMillis(fadeOut * 50L))));
         activateCooldown(player.getUniqueId());
@@ -353,7 +351,6 @@ public class DisplayTitle extends Action {
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 p.closeInventory();
                         plugin.wait(p, WaitingType.TITLE);
-                                new TitleRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                             }))
                     ).setButton(34, Button.clickable(ItemBuilder.modern(DARK_OAK_HANGING_SIGN)
                                     .setDisplay(Msg.translate(player.locale(), "menus.action.title.current.subtitle"))
@@ -367,7 +364,6 @@ public class DisplayTitle extends Action {
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 p.closeInventory();
                                 plugin.wait(p, WaitingType.SUBTITLE);
-                                new SubtitleRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                             }))
                     ).build();
         }

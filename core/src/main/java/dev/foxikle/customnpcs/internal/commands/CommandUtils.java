@@ -104,7 +104,7 @@ public class CommandUtils {
         for (InternalNpc npc : plugin.getNPCs()) {
             if (npc.getSettings().isResilient()) {
                 Component name = Msg.format("<gray>◆<reset> ")
-                        .append(plugin.getMiniMessage().deserialize(npc.getSettings().getRawHolograms().getFirst()).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.manage.copy_uuid")))).clickEvent(ClickEvent.copyToClipboard(npc.getUniqueID().toString()))
+                        .append(Msg.format(npc.getSettings().getRawHolograms().getFirst()).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.manage.copy_uuid")))).clickEvent(ClickEvent.copyToClipboard(npc.getUniqueID().toString()))
                         .append(Msg.translate(p, "commands.manage.button.edit").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.manage.button.edit.hover"))).clickEvent(ClickEvent.runCommand("/npc edit " + npc.getUniqueID())))
                         .append(Msg.translate(p, "commands.manage.button.delete").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.manage.button.delete.hover"))).clickEvent(ClickEvent.suggestCommand("/npc delete " + npc.getUniqueID())))
                         .appendNewline();
@@ -148,7 +148,7 @@ public class CommandUtils {
             }
 
             Set<UUID> uuids = plugin.npcs.values().stream().map(npc -> {
-                if (plugin.getMiniMessage().stripTags(npc.getSettings().getRawHolograms().getFirst()).equalsIgnoreCase(data)) {
+                if (Msg.MINI.stripTags(npc.getSettings().getRawHolograms().getFirst()).equalsIgnoreCase(data)) {
                     return npc.getUniqueID();
                 }
                 return null;

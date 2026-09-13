@@ -38,6 +38,7 @@ import dev.foxikle.customnpcs.internal.commands.NpcCommandRegistrar;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.menu.*;
+import dev.foxikle.customnpcs.internal.utils.Runnable;
 import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
@@ -51,7 +52,6 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
 import org.bstats.charts.SimplePie;
@@ -154,8 +154,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * keeps track of the current server version
      */
     public String serverVersion;
-    @Getter
-    public MiniMessage miniMessage = MiniMessage.miniMessage();
     Listeners listeners;
     @Getter
     private StorageManager storageManager;
@@ -533,6 +531,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
     public void wait(Player player, WaitingType type) {
         waiting.put(player.getUniqueId(), type);
+        new Runnable(player, this, type).runTaskTimer(this, 1, 15);
     }
 
     public Pagination getSkinCatalog(Player player) {

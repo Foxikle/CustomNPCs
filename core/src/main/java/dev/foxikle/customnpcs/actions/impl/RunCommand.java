@@ -29,7 +29,6 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
-import dev.foxikle.customnpcs.internal.runnables.CommandRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
@@ -140,8 +139,7 @@ public class RunCommand extends Action {
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
-        String command = this.command;
-        if (CustomNPCs.getInstance().papi) command = PlaceholderAPI.setPlaceholders(player, this.command);
+        String command = Msg.papi(player, this.command);
         Bukkit.dispatchCommand(asConsole ? Bukkit.getConsoleSender() : player, command);
         activateCooldown(player.getUniqueId());
     }
@@ -232,7 +230,6 @@ public class RunCommand extends Action {
                         Player p = (Player) event.getWhoClicked();
                         p.closeInventory();
                         plugin.wait(p, WaitingType.COMMAND);
-                        new CommandRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                         event.setCancelled(true);
                         player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                     }));

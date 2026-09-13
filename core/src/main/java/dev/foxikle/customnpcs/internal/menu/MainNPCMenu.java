@@ -24,7 +24,6 @@ package dev.foxikle.customnpcs.internal.menu;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
-import dev.foxikle.customnpcs.internal.runnables.FacingDirectionRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.OpenButtonAction;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
@@ -97,7 +96,6 @@ public class MainNPCMenu implements Menu {
                 .setButton(10, Button.clickable(MenuItems.looking(player), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
                     player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
                     plugin.wait(player, WaitingType.FACING);
-                    new FacingDirectionRunnable(plugin, player).go();
                     player.closeInventory();
                 })))
                 .setButton(8, Button.clickable(MenuItems.extraSettings(player), new OpenButtonAction(MenuUtils.NPC_EXTRA_SETTINGS)))

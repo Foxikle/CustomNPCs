@@ -25,7 +25,6 @@ package dev.foxikle.customnpcs.internal.menu;
 import dev.foxikle.customnpcs.api.Pose;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
-import dev.foxikle.customnpcs.internal.runnables.NudgeRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
@@ -108,7 +107,6 @@ public class PoseEditorMenu implements Menu {
                             });
 
                     plugin.wait(player, WaitingType.NUDGE);
-                    new NudgeRunnable(player, plugin).runTaskTimer(plugin, 1, 15);
                     player.closeInventory();
                 })
         );

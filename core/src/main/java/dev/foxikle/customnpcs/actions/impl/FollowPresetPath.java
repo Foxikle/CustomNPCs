@@ -29,7 +29,6 @@ import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
-import dev.foxikle.customnpcs.internal.runnables.RecordingRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
@@ -111,7 +110,6 @@ public class FollowPresetPath extends Action {
         }, 1, 1));
 
         CustomNPCs.getInstance().wait(player, WaitingType.RECORDING);
-        new RecordingRunnable(player, CustomNPCs.getInstance()).runTaskTimer(CustomNPCs.getInstance(), 0, 10);
     }
 
     public static List<RecordedPathNode> stopRecording(Player player) {

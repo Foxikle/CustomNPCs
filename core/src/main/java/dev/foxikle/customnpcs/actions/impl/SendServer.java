@@ -30,7 +30,6 @@ import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
-import dev.foxikle.customnpcs.internal.runnables.ServerRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
@@ -201,7 +200,6 @@ public class SendServer extends Action {
                                 Player p = (Player) event.getWhoClicked();
                                 p.closeInventory();
                                 plugin.wait(p, WaitingType.SERVER);
-                                new ServerRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                             })))

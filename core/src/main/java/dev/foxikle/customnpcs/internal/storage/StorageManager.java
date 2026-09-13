@@ -31,6 +31,7 @@ import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.BrokenReason;
+import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.SkinUtils;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.exceptions.EmptyLinesException;
@@ -174,7 +175,7 @@ public class StorageManager {
                         "-> %d).", version, 3));
                 yml.set("CONFIG_VERSION", 3);
                 yml.set("ClickText",
-                        plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(yml.getString("ClickText")))));
+                        Msg.MINI.serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(yml.getString("ClickText")))));
                 try {
                     yml.save(file);
                 } catch (IOException e) {
@@ -464,7 +465,7 @@ public class StorageManager {
                     }
 
                     if (err || !exists) {
-                        String rawName = plugin.getMiniMessage().stripTags(section.getString("name"));
+                        String rawName = Msg.MINI.stripTags(section.getString("name"));
                         throw new IllegalStateException("Detected an NPC (" + rawName + ") with an invalid location! " +
                                 "Please revert to 1.7.x and use the /npc fixconfig command to fix this!");
                     } else validNPCs.add(uuid);
@@ -627,7 +628,7 @@ public class StorageManager {
 
         List<Action> actions;
 
-        String rawName = plugin.getMiniMessage().stripTags(section.getStringList("lines").get(0));
+        String rawName = Msg.MINI.stripTags(section.getStringList("lines").get(0));
         World world;
 
         try {

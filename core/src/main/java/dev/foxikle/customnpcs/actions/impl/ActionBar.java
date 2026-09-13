@@ -28,7 +28,6 @@ import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
-import dev.foxikle.customnpcs.internal.runnables.ActionbarRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
@@ -131,8 +130,7 @@ public class ActionBar extends Action {
     @Override
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
-        player.sendActionBar(Msg.format(CustomNPCs.getInstance().papi ? PlaceholderAPI.setPlaceholders(player,
-                rawMessage) : rawMessage));
+        player.sendActionBar(Msg.format(Msg.papi(player, rawMessage)));
         activateCooldown(player.getUniqueId());
     }
 
@@ -203,7 +201,6 @@ public class ActionBar extends Action {
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 player.closeInventory();
                                 plugin.wait(player, WaitingType.ACTIONBAR);
-                                new ActionbarRunnable(player, plugin).runTaskTimer(plugin, 0, 10);
                             })))
                     .build();
         }
