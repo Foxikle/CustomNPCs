@@ -59,8 +59,12 @@ public class TextCondition implements Condition {
     public boolean compute(Player player) {
         String value = switch (this.value) {
             case GAMEMODE -> player.getGameMode().name();
+            case USERNAME -> player.getName();
+            case UUID -> player.getUniqueId().toString();
+            case CLIENT_BRAND -> player.getClientBrandName();
             default -> "";
         };
+        if (value == null) value = "null";
         boolean computed = switch (comparator) {
             case EQUAL_TO -> value.equals(target);
             case REGEX_EQUAL -> Pattern.matches(target, value);

@@ -23,6 +23,7 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        // for snapshots of the userdev plugin
         maven("https://repo.papermc.io/repository/maven-public/")
     }
 }

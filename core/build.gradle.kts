@@ -48,7 +48,7 @@ dependencies {
     compileOnly("com.mysql:mysql-connector-j:9.1.0")
     compileOnly("org.apache.logging.log4j:log4j-core:2.24.3")
     compileOnly("com.zaxxer:HikariCP:6.2.1")
-    compileOnlyApi("dev.minestom-united.common:codec:0.0.2")
+    compileOnlyApi("dev.minestom-united.common:codec:0.0.3")
 
 
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")
@@ -142,9 +142,9 @@ tasks {
         }
     }
 
-    compileJava {
-        options.release = 25
-    }
+//    compileJava {
+//        options.release = 25
+//    }
 
     jar {
         archiveClassifier = "core"

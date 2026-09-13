@@ -239,8 +239,7 @@ public class RemoveXP extends Action {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 if (getAmount() == 1) {
-                                    event.getWhoClicked().sendMessage(Msg.translate(player.locale(), "customnpcs" +
-                                            ".menus.action.give_xp.xp_less_one"));
+                                    event.getWhoClicked().sendMessage(Msg.translate(player.locale(), "menus.action.give_xp.xp_less_one"));
                                     return;
                                 }
 

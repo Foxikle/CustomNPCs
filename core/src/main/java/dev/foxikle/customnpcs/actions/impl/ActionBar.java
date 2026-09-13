@@ -193,9 +193,8 @@ public class ActionBar extends Action {
             return MenuUtils.actionBase(actionBar, player)
                     .setButton(22, Button.clickable(ItemBuilder.modern(PAPER)
                                     .setDisplay(Msg.translate(player.locale(), getRawMessage().isEmpty() ?
-                                            "<dark_gray><i>" + Msg.translatedString(player.locale(), "customnpcs" +
-                                                                                                     ".messages" +
-                                                                                                     ".empty_string") : getRawMessage()))
+                                            "<dark_gray><i>" + Msg.translatedString(player.locale(),
+                                                    "messages.empty_string") : getRawMessage()))
                                     .setLore(Msg.translate(player.locale(), "items.click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((_, event) -> {

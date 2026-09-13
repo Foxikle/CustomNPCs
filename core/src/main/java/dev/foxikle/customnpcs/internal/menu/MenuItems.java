@@ -64,7 +64,7 @@ public class MenuItems {
     static {
         MENU_GLASS =
                 Button.clickable(ItemBuilder.modern(Material.BLACK_STAINED_GLASS_PANE).setDisplay(Component.text(" ")).build(),
-                ButtonClickAction.plain((menuView, event) -> event.setCancelled(true)));
+                        ButtonClickAction.plain((menuView, event) -> event.setCancelled(true)));
     }
 
     public static Button changeLines(InternalNpc npc, Player player) {
@@ -722,8 +722,7 @@ public class MenuItems {
 
                         if (event.getClick() == ClickType.DROP) {
                             if (npc.getSettings().getRawHolograms().size() == 1) {
-                                player.sendMessage(Msg.translate(player.locale(), "menus.holograms" +
-                                        ".min_one"));
+                                player.sendMessage(Msg.translate(player.locale(), "menus.holograms.min_one"));
                                 return;
                             }
                             HologramMenu.editingIndicies.put(p.getUniqueId(), finalI);
@@ -953,17 +952,14 @@ public class MenuItems {
                 }));
     }
 
-    public static Button comparatorSwitcher(Condition condition, Player player) {
+    public static Button comparatorSwitcher(Condition condition, Player player, int slot) {
 
         List<Component> lore = new ArrayList<>();
-        for (Comparator c : Comparator.values()) {
-            if (condition.getType() == Condition.Type.NUMERIC || (condition.getType() == Condition.Type.LOGICAL && c.isStrictlyLogical())) {
-                if (condition.getComparator() != c)
-                    lore.add(Msg.translate(player.locale(), c.getKey()).color(NamedTextColor.GREEN));
-                else
-                    lore.add(Component.text("▸ ", NamedTextColor.DARK_AQUA).append(Msg.translate(player.locale(),
-                            c.getKey())));
-            }
+        for (Comparator c : Comparator.getSupportedConditions(condition)) {
+            if (condition.getComparator() != c)
+                lore.add(Msg.translate(player.locale(), c.getKey()).color(NamedTextColor.GREEN));
+            else
+                lore.add(Msg.format("<dark_aqua>▸ ").append(Msg.translate(player.locale(), c.getKey()).color(NamedTextColor.DARK_AQUA)));
         }
         lore.add(Msg.translate(player.locale(), "items.click_to_change"));
 
@@ -974,30 +970,25 @@ public class MenuItems {
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
             event.setCancelled(true);
-            List<Comparator> comparators = new ArrayList<>();
-            for (Comparator value : Comparator.values()) {
-                if (condition.getType() == Condition.Type.BOOLEAN && !value.isStrictlyLogical()) {
-                    continue;
-                }
-                comparators.add(value);
-            }
+            List<Comparator> comparators = List.copyOf(Comparator.getSupportedConditions(condition));
+
             int index = comparators.indexOf(condition.getComparator());
             if (event.isLeftClick()) {
                 if (comparators.size() > (index + 1)) {
                     condition.setComparator(comparators.get(index + 1));
                 } else {
-                    condition.setComparator(comparators.get(0));
+                    condition.setComparator(comparators.getFirst());
                 }
             } else if (event.isRightClick()) {
                 if (index == 0) {
-                    condition.setComparator(comparators.get(comparators.size() - 1));
+                    condition.setComparator(comparators.getLast());
                 } else {
                     condition.setComparator(comparators.get(index - 1));
                 }
             }
             Player p = (Player) event.getWhoClicked();
             p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            menuView.replaceButton(11, comparatorSwitcher(condition, p));
+            menuView.replaceButton(slot, comparatorSwitcher(condition, p, slot));
         }));
     }
 
@@ -1008,7 +999,7 @@ public class MenuItems {
                         Msg.translate(player.locale(), "items.click_to_change"))
                 .build();
 
-        return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
+        return Button.clickable(i, ButtonClickAction.plain((_, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
@@ -1018,20 +1009,15 @@ public class MenuItems {
         }));
     }
 
-    public static Button valueSwitcher(Condition condition, Player player) {
+    public static Button valueSwitcher(Condition condition, Player player, int slot) {
         List<Component> lore = new ArrayList<>();
 
-        for (Condition.Value v : Condition.Value.values()) {
-            //todo: re-evaluate this
-            if (v.isLogical() && condition.getType() != Condition.Type.BOOLEAN) continue;
-            if (!v.isLogical() && condition.getType() != Condition.Type.NUMERIC) continue;
-
+        for (Condition.Value v : Condition.Value.getSupportedConditions(condition)) {
 
             if (condition.getValue() != v)
                 lore.add(Msg.translate(player.locale(), v.getTranslationKey()).color(NamedTextColor.GREEN));
             else
-                lore.add(Component.text("▸ ", NamedTextColor.DARK_AQUA).append(Msg.translate(player.locale(),
-                        v.getTranslationKey())));
+                lore.add(Msg.format("<dark_aqua>▸ ").append(Msg.translate(player.locale(), v.getTranslationKey()).color(NamedTextColor.DARK_AQUA)));
 
         }
         lore.add(Msg.translate(player.locale(), "items.click_to_change"));
@@ -1043,30 +1029,25 @@ public class MenuItems {
 
         return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
             event.setCancelled(true);
-            List<Condition.Value> statistics = new ArrayList<>();
-            for (Condition.Value value : Condition.Value.values()) {
-                if (condition.getType() == Condition.Type.BOOLEAN) {
-                    if (value.isLogical()) statistics.add(value);
-                } else if (!value.isLogical()) statistics.add(value);
-            }
+            List<Condition.Value> values = List.copyOf(Condition.Value.getSupportedConditions(condition));
 
-            int index = statistics.indexOf(condition.getValue());
+            int index = values.indexOf(condition.getValue());
             if (event.isLeftClick()) {
-                if (statistics.size() > (index + 1)) {
-                    condition.setValue(statistics.get(index + 1));
+                if (values.size() > (index + 1)) {
+                    condition.setValue(values.get(index + 1));
                 } else {
-                    condition.setValue(statistics.get(0));
+                    condition.setValue(values.getFirst());
                 }
             } else if (event.isRightClick()) {
                 if (index == 0) {
-                    condition.setValue(statistics.get(statistics.size() - 1));
+                    condition.setValue(values.getLast());
                 } else {
-                    condition.setValue(statistics.get(index - 1));
+                    condition.setValue(values.get(index - 1));
                 }
             }
             Player p = (Player) event.getWhoClicked();
             p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            menuView.updateButton(15, button -> button.setItem(valueSwitcher(condition, player).getItem()));
+            menuView.updateButton(slot, button -> button.setItem(valueSwitcher(condition, player, slot).getItem()));
         }));
     }
 
@@ -1188,10 +1169,13 @@ public class MenuItems {
         }
 
         for (Condition condition : action.getConditions()) {
-            boolean logical = condition.getType() == Condition.Type.BOOLEAN;
-            ItemStack i = ItemBuilder.modern(logical ? COMPARATOR : POPPED_CHORUS_FRUIT)
-                    .setDisplay(logical ? Msg.translate(player.locale(), "menus.conditions.logical") :
-                            Msg.translate(player.locale(), "menus.conditions.numeric"))
+            Material mat = switch (condition.getType()) {
+                case NUMERIC -> POPPED_CHORUS_FRUIT;
+                case LOGICAL -> COMPARATOR;
+                case TEXT -> BOOK;
+            };
+            ItemStack i = ItemBuilder.modern(mat)
+                    .setDisplay(Msg.translate(player.locale(), "menus.conditions." + condition.getType().name().toLowerCase()))
                     .setLore(
                             Component.empty(),
                             Msg.translate(player.locale(), "menus.conditions.comparator",
@@ -1248,6 +1232,22 @@ public class MenuItems {
         }));
     }
 
+    public static Button toggleTextConditionInversion(TextCondition cond, Player player) {
+        boolean flag = cond.isInverted();
+        ItemStack i = ItemBuilder.modern(flag ? GREEN_CANDLE : RED_CANDLE)
+                .setDisplay(Msg.translate(player.locale(), "menus.conditions.invert.toggle"))
+                .setLore(Msg.lore(player.locale(), "menus.conditions.inverted." + flag))
+                .build();
+
+        return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            event.setCancelled(true);
+            cond.setInverted(!cond.isInverted());
+            menuView.replaceButton(16, toggleTextConditionInversion(cond, p));
+        }));
+    }
+
     public static Button toCondition(Player player) {
         ItemStack i = ItemBuilder.modern(ARROW)
                 .setDisplay(Msg.translate(player.locale(), "items.go_back"))
@@ -1291,7 +1291,25 @@ public class MenuItems {
         }));
     }
 
-    public static Button logic(Player player) {
+    public static Button text(Player player) {
+        ItemStack i = ItemBuilder.modern(WRITTEN_BOOK)
+                .setDisplay(Msg.translate(player.locale(), "menus.conditions.new.text"))
+                .setLore(Msg.lore(player.locale(), "menus.conditions.new.text.description"))
+                .addFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP)
+                .build();
+
+        return Button.clickable(i, ButtonClickAction.plain((menuView, event) -> {
+            event.setCancelled(true);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Condition conditional = new TextCondition(Comparator.EQUAL_TO, Condition.Value.USERNAME, "test", false);
+            plugin.originalEditingConditionals.remove(p.getUniqueId());
+            plugin.editingConditionals.put(p.getUniqueId(), conditional);
+            menuView.getAPI().openMenu(p, MenuUtils.NPC_CONDITION_CUSTOMIZER);
+        }));
+    }
+
+    public static Button booleanCondition(Player player) {
         ItemStack i = ItemBuilder.modern(COMPARATOR)
                 .setDisplay(Msg.translate(player.locale(), "menus.conditions.new.logical"))
                 .setLore(Msg.lore(player.locale(), "menus.conditions.new.logical.description"))

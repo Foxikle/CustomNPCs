@@ -77,7 +77,7 @@ public abstract class Action {
         this.uuid = uuid;
         this.delay = delay;
         this.selector = selector;
-        this.conditions = conditions;
+        this.conditions = new ArrayList<>(conditions);
         this.cooldown = cooldown;
     }
 

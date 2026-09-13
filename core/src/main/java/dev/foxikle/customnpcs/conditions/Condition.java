@@ -29,6 +29,11 @@ import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * The interface to represent a comparison
  */
@@ -171,6 +176,15 @@ public interface Condition {
         UUID("conditions.uuid", TextCondition.class),
         CLIENT_BRAND("conditions.client_brand", TextCondition.class);
 
+        private static final Map<Class<? extends Condition>, Set<Value>> BY_TYPE = new HashMap<>();
+
+        static {
+            for (Value value : values()) {
+                for (Class<? extends Condition> type : value.supportedTypes) {
+                    BY_TYPE.computeIfAbsent(type, _ -> new HashSet<>()).add(value);
+                }
+            }
+        }
 
         private final String key;
         private final Class<? extends Condition>[] supportedTypes;
@@ -185,5 +199,12 @@ public interface Condition {
             return key;
         }
 
+        public static Set<Value> getSupportedConditions(Condition type) {
+            return getSupportedConditions(type.getClass());
+        }
+
+        public static Set<Value> getSupportedConditions(Class<? extends Condition> type) {
+            return BY_TYPE.getOrDefault(type, new HashSet<>());
+        }
     }
 }

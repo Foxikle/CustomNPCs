@@ -256,10 +256,8 @@ public class GiveEffect extends Action {
                                 menuView.updateButton(21,
                                         button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.give_effect.amplifier", action.getAmplifier()), displayLore)));
                             }))
-                    ).setButton(19, Button.empty(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs" +
-                            ".menus.action.give_effect.duration", action.getDuration()), displayLore))
-                    ).setButton(21, Button.empty(MenuItems.genericDisplay(Msg.translate(player.locale(), "customnpcs" +
-                            ".menus.action.give_effect.amplifier", action.getAmplifier()), displayLore))
+                    ).setButton(19, Button.empty(MenuItems.genericDisplay(Msg.translate(player.locale(),"menus.action.give_effect.duration", action.getDuration()), displayLore))
+                    ).setButton(21, Button.empty(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.give_effect.amplifier", action.getAmplifier()), displayLore))
                     ).setButton(28, Button.clickable(ItemBuilder.modern(RED_DYE)
                                     .setDisplay(Msg.translate(player.locale(), "menus.action.give_effect" +
                                             ".duration.decrease"))

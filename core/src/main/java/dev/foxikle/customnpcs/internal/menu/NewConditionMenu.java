@@ -53,8 +53,9 @@ public class NewConditionMenu implements Menu {
         return Content.builder(capacity)
                 .apply(content -> content.fill(MenuItems.MENU_GLASS))
                 .setButton(18, MenuItems.toCondition(player))
-                .setButton(12, MenuItems.numeric(player))
-                .setButton(14, MenuItems.logic(player))
+                .setButton(11, MenuItems.numeric(player))
+                .setButton(13, MenuItems.text(player))
+                .setButton(15, MenuItems.booleanCondition(player))
                 .build();
     }
 }
