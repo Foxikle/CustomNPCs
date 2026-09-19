@@ -70,6 +70,7 @@ public class MenuUtils {
     public static final String NPC_CONDITIONS = "npc_conditions";
     public static final String NPC_SKIN = "npc_skin";
     public static final String NPC_HOLOGRAMS = "npc_holograms";
+    public static final String NPC_DELETE_ACTION = "npc_action_delete";
     /**
      * The instance of the main class
      */

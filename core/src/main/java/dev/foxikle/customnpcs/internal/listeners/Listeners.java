@@ -279,7 +279,7 @@ public class Listeners implements Listener {
 
             List<RecordedPathNode> path = FollowPresetPath.stopRecording(player);
             follow.setPath(path);
-            player.sendMessage(Msg.get(player, "actions.set.recording", Arg.arg(path.size())));
+            player.sendMessage(Msg.get(player, "action.set.recording", Arg.arg(path.size())));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, follow.getMenu()));
             return;
         } else if (plugin.isWaiting(player, WaitingType.COMMAND)) {
@@ -365,7 +365,7 @@ public class Listeners implements Listener {
 
             setTitle.setTitle(message);
 
-            player.sendMessage(Msg.get(player, "actions.set.title", Arg.arg(message)));
+            player.sendMessage(Msg.get(player, "action.set.title", Arg.arg(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, action.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.SUBTITLE)) {
             Action action = plugin.editingActions.get(player.getUniqueId());
@@ -383,7 +383,7 @@ public class Listeners implements Listener {
 
             setTitle.setSubTitle(message);
 
-            player.sendMessage(Msg.get(player, "actions.set.subtitle", Arg.arg(message)));
+            player.sendMessage(Msg.get(player, "action.set.subtitle", Arg.arg(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, action.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.MESSAGE)) {
             Action action = plugin.editingActions.get(player.getUniqueId());
@@ -399,7 +399,7 @@ public class Listeners implements Listener {
             plugin.waiting.remove(player.getUniqueId());
             sendMessage.setRawMessage(message);
 
-            player.sendMessage(Msg.get(player, "actions.set.message", Arg.arg(message)));
+            player.sendMessage(Msg.get(player, "action.set.message", Arg.arg(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, action.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.SERVER)) {
             Action action = plugin.editingActions.get(player.getUniqueId());
@@ -416,7 +416,7 @@ public class Listeners implements Listener {
 
             runServer.setServer(message);
 
-            player.sendMessage(Msg.get(player, "actions.set.server", Arg.arg(message)));
+            player.sendMessage(Msg.get(player, "action.set.server", Arg.arg(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, action.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.ACTIONBAR)) {
             Action action = plugin.editingActions.get(player.getUniqueId());
@@ -431,7 +431,7 @@ public class Listeners implements Listener {
             }
             plugin.waiting.remove(player.getUniqueId());
             actionBar.setRawMessage(message);
-            player.sendMessage(Msg.get(player, "actions.set.actionbar", Arg.arg(message)));
+            player.sendMessage(Msg.get(player, "action.set.actionbar", Arg.arg(message)));
             SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, action.getMenu()));
         } else if (plugin.isWaiting(player, WaitingType.PLAYER)) {
             if (cancel) {

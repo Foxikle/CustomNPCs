@@ -460,9 +460,14 @@ public class MenuItems {
                 event.setCancelled(true);
                 Player p = (Player) event.getWhoClicked();
                 if (event.isRightClick()) {
-                    p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
-                    npc.removeAction(action);
-                    menuView.getAPI().openMenu(p, MenuUtils.NPC_ACTIONS);
+                    if (event.isShiftClick()) {
+                        p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                        npc.removeAction(action);
+                        menuView.getAPI().openMenu(p, MenuUtils.NPC_ACTIONS);
+                        return;
+                    }
+                    plugin.editingActions.put(p.getUniqueId(), action);
+                    menuView.getAPI().openMenu(p, MenuUtils.NPC_DELETE_ACTION);
                 } else if (event.isLeftClick()) {
                     if (action.canEdit()) {
                         p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1F, 1F);

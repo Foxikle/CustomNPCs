@@ -346,6 +346,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         lotus.registerMenu(new HologramMenu());
         lotus.registerMenu(new DeleteLineMenu());
         lotus.registerMenu(new PoseEditorMenu());
+        lotus.registerMenu(new DeleteActionMenu());
     }
 
     /**
