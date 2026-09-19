@@ -35,6 +35,7 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.InjectionManager;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
@@ -372,8 +373,7 @@ public class NPC_v1_21_R1 extends ServerPlayer implements InternalNpc {
     private Packet<?> createMojComponent(String clickableText, TextDisplay clickableHologram) {
         List<SynchedEntityData.DataValue<?>> meta =
                 ((CraftTextDisplay) clickableHologram).getHandle().getEntityData().getNonDefaultValues();
-        String serialized_component =
-                JSONComponentSerializer.json().serialize(plugin.getMiniMessage().deserialize(clickableText));
+        String serialized_component = Msg.toJson(Msg.format(clickableText));
         net.minecraft.network.chat.Component clickableComponent =
                 net.minecraft.network.chat.Component.Serializer.fromJson(serialized_component,
                         HolderLookup.Provider.create(Stream.of()));

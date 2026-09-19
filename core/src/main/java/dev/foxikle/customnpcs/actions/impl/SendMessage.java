@@ -28,7 +28,7 @@ import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
-import dev.foxikle.customnpcs.internal.runnables.MessageRunnable;
+import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
@@ -88,7 +88,7 @@ public class SendMessage extends Action {
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(PAPER)
-                        .setDisplay(Msg.translate(player.locale(), "favicons.message"))
+                        .setDisplay(Msg.get(player, "favicons.message"))
                         .setLore(Msg.lore(player.locale(), "favicons.message.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
@@ -105,17 +105,17 @@ public class SendMessage extends Action {
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(PAPER).setDisplay(Msg.translate(player.locale(), "favicons.message"))
+        return ItemBuilder.modern(PAPER).setDisplay(Msg.get(player, "favicons.message"))
                 .setLore(
-                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
+                        Msg.get(player, "favicons.delay", Arg.arg(getDelay())),
                         Msg.format("<dark_aqua><st>                                    "),
-                        Msg.translate(player.locale(), "favicons.preview"),
+                        Msg.get(player, "favicons.preview"),
                         Msg.format(getRawMessage().isEmpty() ?
                                 "<dark_gray><i>" + Msg.translatedString(player.locale(), "messages.empty_string") :
-                                getRawMessage()),
+                                "<!i>" + getRawMessage()),
                         Msg.format("<dark_aqua><st>                                    "),
-                        Msg.translate(player.locale(), "favicons.edit"),
-                        Msg.translate(player.locale(), "favicons.remove")
+                        Msg.get(player, "favicons.edit"),
+                        Msg.get(player, "favicons.remove")
                 ).build();
     }
 
@@ -127,11 +127,7 @@ public class SendMessage extends Action {
     public void perform(InternalNpc npc, Menu menu, Player player) {
         if (!processConditions(player)) return;
 
-        if (CustomNPCs.getInstance().papi) {
-            player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(PlaceholderAPI.setPlaceholders(player, rawMessage)));
-        } else {
-            player.sendMessage(CustomNPCs.getInstance().getMiniMessage().deserialize(rawMessage));
-        }
+        player.sendMessage(Msg.format(Msg.papi(player, rawMessage)));
         activateCooldown(player.getUniqueId());
     }
 
@@ -177,7 +173,7 @@ public class SendMessage extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.get(player, "menus.action_customizer.title"));
         }
 
         @Override
@@ -190,16 +186,14 @@ public class SendMessage extends Action {
             return MenuUtils.actionBase(action, player)
                     .setButton(22, Button.clickable(ItemBuilder.modern(OAK_HANGING_SIGN)
                                     .setDisplay(Msg.format(getRawMessage().isEmpty() ?
-                                            "<dark_gray><i>" + Msg.translatedString(player.locale(), "messages" +
-                                                    ".empty_string") : getRawMessage()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE))
-                                    .setLore(Msg.translate(player.locale(), "items.click_to_change"))
+                                            "<dark_gray><i>" + Msg.translatedString(player.locale(), "messages.empty_string") : "<!i>" + getRawMessage()))
+                                    .setLore(Msg.get(player, "items.click_to_change"))
                                     .build(),
-                            ButtonClickAction.plain((menuView, event) -> {
+                            ButtonClickAction.plain((_, event) -> {
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 Player p = (Player) event.getWhoClicked();
                                 p.closeInventory();
                                 plugin.wait(p, WaitingType.MESSAGE);
-                                new MessageRunnable(p, plugin).runTaskTimer(plugin, 0, 10);
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                             })))

@@ -41,7 +41,7 @@ public class SkinMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.skins.title"));
+        return MenuTitles.createModern(Msg.get(player, "menus.skins.title"));
     }
 
     @Override

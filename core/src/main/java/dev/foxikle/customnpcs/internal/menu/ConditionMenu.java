@@ -43,7 +43,7 @@ public class ConditionMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.conditions.title"));
+        return MenuTitles.createModern(Msg.get(player, "menus.conditions.title"));
     }
 
     @Override

@@ -20,37 +20,22 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.internal.utils;
+package dev.foxikle.customnpcs.versions;
 
-import io.github.mqzen.menus.base.MenuView;
-import io.github.mqzen.menus.misc.button.actions.ButtonClickAction;
-import org.bukkit.Sound;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.PacketFlow;
 
-import java.util.function.Consumer;
-
-public class OpenButtonAction implements ButtonClickAction {
-
-    private final String id;
-    private final Consumer<Player> action;
-
-    public OpenButtonAction(String id) {
-        this.id = id;
-        this.action = player -> player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-    }
-
-    @Override
-    public String tag() {
-        return "OPEN";
-    }
-
-    @Override
-    public void execute(MenuView<?> menuView, InventoryClickEvent inventoryClickEvent) {
-        Player player = (Player) inventoryClickEvent.getWhoClicked();
-        if (action != null) {
-            action.accept(player);
-        }
-        menuView.getAPI().openMenu(player, id);
+/**
+ * A fake connection for the NPCs
+ */
+public class FakeConnection_v26_3_R1 extends Connection {
+    /**
+     * <p> Creates a fake Connection for NPC
+     * </p>
+     *
+     * @param enumprotocoldirection The protocol direction
+     */
+    public FakeConnection_v26_3_R1(PacketFlow enumprotocoldirection) {
+        super(enumprotocoldirection);
     }
 }

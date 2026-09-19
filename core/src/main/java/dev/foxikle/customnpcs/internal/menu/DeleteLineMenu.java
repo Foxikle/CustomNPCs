@@ -24,6 +24,7 @@ package dev.foxikle.customnpcs.internal.menu;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
@@ -51,7 +52,7 @@ public class DeleteLineMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.hologram.delete.title"));
+        return MenuTitles.createModern(Msg.get(player, "menus.hologram.delete.title"));
     }
 
     @Override
@@ -66,54 +67,44 @@ public class DeleteLineMenu implements Menu {
         int index = HologramMenu.editingIndicies.getOrDefault(player.getUniqueId(), -1);
 
         if (npcFor == null || index < 0 || npcFor.getSettings().getHolograms().size() <= index) {
-            player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
+            player.sendMessage(Msg.get(player, "error.npc-menu-expired"));
             player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1, 1);
             return Content.empty(capacity);
         }
 
-        return Content.builder(capacity).apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(11, Button.clickable(
-                        ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                .setDisplay(Msg.translate(player.locale(), "menus.hologram.delete.confirm"))
-                                .setLore(Msg.lore(player.locale(), "menus.hologram.delete.confirm.lore",
-                                        npcFor.getSettings().getHolograms().get(index)))
-                                .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
+        return Content.builder(capacity).apply(content -> content.fill(MenuItems.MENU_GLASS)).setButton(11, Button.clickable(ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE).setDisplay(Msg.get(player, "menus.hologram.delete.confirm")).setLore(Msg.lore(player.locale(), "menus.hologram.delete.confirm.lore", Arg.arg(npcFor.getSettings().getHolograms().get(index)))).build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
 
-                            Player p = (Player) inventoryClickEvent.getWhoClicked();
-                            InternalNpc npc = plugin.getEditingNPCs().getIfPresent(p.getUniqueId());
+            Player p = (Player) inventoryClickEvent.getWhoClicked();
+            InternalNpc npc = plugin.getEditingNPCs().getIfPresent(p.getUniqueId());
 
-                            if (npc == null) {
-                                p.closeInventory();
-                                p.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
-                                p.playSound(p, Sound.ENTITY_VILLAGER_NO, 1, 1);
-                                return;
-                            }
+            if (npc == null) {
+                p.closeInventory();
+                p.sendMessage(Msg.get(player, "error.npc-menu-expired"));
+                p.playSound(p, Sound.ENTITY_VILLAGER_NO, 1, 1);
+                return;
+            }
 
-                            List<String> mutable = new ArrayList<>(npc.getSettings().getRawHolograms());
-                            if (index >= mutable.size()) {
-                                p.playSound(p, Sound.ENTITY_VILLAGER_NO, 1, 1);
-                                p.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
-                                return;
-                            }
-                            player.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1F, 1F);
-                            npc.getSettings().getRawHolograms().remove(index);
-                            plugin.getLotus().openMenu(p, MenuUtils.NPC_HOLOGRAMS);
-                        }))).setButton(15, Button.clickable(
-                        ItemBuilder.modern(Material.LIME_STAINED_GLASS_PANE)
-                                .setDisplay(Msg.translate(player.locale(), "items.go_back"))
-                                .setLore(Msg.translate(player.locale(), "menus.hologram.delete.to_safety"))
-                                .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
-                            InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-                            Player p = (Player) inventoryClickEvent.getWhoClicked();
-                            p.playSound(p, Sound.UI_BUTTON_CLICK, 1, 1);
+            List<String> mutable = new ArrayList<>(npc.getSettings().getRawHolograms());
+            if (index >= mutable.size()) {
+                p.playSound(p, Sound.ENTITY_VILLAGER_NO, 1, 1);
+                p.sendMessage(Msg.get(player, "error.npc-menu-expired"));
+                return;
+            }
+            player.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1F, 1F);
+            npc.getSettings().getRawHolograms().remove(index);
+            plugin.getLotus().openMenu(p, MenuUtils.NPC_HOLOGRAMS);
+        }))).setButton(15, Button.clickable(ItemBuilder.modern(Material.LIME_STAINED_GLASS_PANE).setDisplay(Msg.get(player, "items.go_back")).setLore(Msg.get(player, "menus.hologram.delete.to_safety")).build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
+            InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+            Player p = (Player) inventoryClickEvent.getWhoClicked();
+            p.playSound(p, Sound.UI_BUTTON_CLICK, 1, 1);
 
-                            if (npc == null) {
-                                player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
-                                player.sendMessage(Msg.translate(player.locale(), "error.npc-menu-expired"));
-                                return;
-                            }
+            if (npc == null) {
+                player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
+                player.sendMessage(Msg.get(player, "error.npc-menu-expired"));
+                return;
+            }
 
-                            plugin.getLotus().openMenu(p, MenuUtils.NPC_HOLOGRAMS);
-                        }))).build();
+            plugin.getLotus().openMenu(p, MenuUtils.NPC_HOLOGRAMS);
+        }))).build();
     }
 }

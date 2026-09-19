@@ -38,6 +38,7 @@ import dev.foxikle.customnpcs.internal.commands.NpcCommandRegistrar;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.menu.*;
+import dev.foxikle.customnpcs.internal.utils.Runnable;
 import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
@@ -51,7 +52,6 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
 import org.bstats.charts.SimplePie;
@@ -108,7 +108,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             TimeUnit.MINUTES).expireAfterAccess(1, TimeUnit.MINUTES).build();
     private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6",
             "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8", "1.21.9",
-            "1.21.10", "1.21.11", "26.1", "26.1.1", "26.1.2", "26.2"};
+            "1.21.10", "1.21.11", "26.1", "26.1.1", "26.1.2", "26.2", "26.3"};
     private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
     /**
      * The map of what the plugin is waiting for the players to enter.
@@ -154,8 +154,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * keeps track of the current server version
      */
     public String serverVersion;
-    @Getter
-    public MiniMessage miniMessage = MiniMessage.miniMessage();
     Listeners listeners;
     @Getter
     private StorageManager storageManager;
@@ -475,8 +473,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                     .newInstance(this, world, location, equipment, settings, uuid, target, actions, conditions,
                             injectionMode);
         } catch (ReflectiveOperationException e) {
-            getLogger().log(Level.SEVERE, ("An error occurred whilst creating the NPC '{name}! This is most likely a " +
-                    "configuration issue.").replace("{name}", settings.getRawHolograms().getFirst()), e);
+            getLogger().log(Level.SEVERE, ("An error occurred whilst creating the NPC '{name}! This is most likely a configuration issue.").replace("{name}", settings.getRawHolograms().getFirst()), e);
             throw new RuntimeException(e);
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "An error occurred whilst creating the NPC '{name}!".replace("{name}",
@@ -497,6 +494,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             case "1.21.11" -> "v1_21_R6";
             case "26.1", "26.1.1", "26.1.2" -> "v26_1_R1";
             case "26.2" -> "v26_2_R1";
+            case "26.3" -> "v26_3_R1";
             default -> "";
         };
     }
@@ -519,8 +517,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         logger.severe("|                      INVALID SERVER VERSION DETECTED                         |");
         logger.severe("|             ** PLEASE USE ONE OF THE FOLLOWING SERVER VERSIONS **            |");
         logger.severe("|                          [1.20.5+, 1.21.x, 26.x]                             |");
-        logger.severe("|                               DETECTED: '" + serverVersion + "'                             " +
-                "|");
+        logger.severe("|                               DETECTED: '" + serverVersion + "'                             |");
         logger.severe("|           Please contact @foxikle on Discord for more information.           |");
         logger.severe("+------------------------------------------------------------------------------+");
         logger.severe("");
@@ -533,6 +530,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
     public void wait(Player player, WaitingType type) {
         waiting.put(player.getUniqueId(), type);
+        new Runnable(player, this, type).runTaskTimer(this, 1, 15);
     }
 
     public Pagination getSkinCatalog(Player player) {

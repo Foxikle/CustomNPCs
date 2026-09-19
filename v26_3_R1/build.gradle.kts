@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026. Foxikle
+ * Copyright (c) 2024-2026. Foxikle
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,36 +20,37 @@
  * SOFTWARE.
  */
 
-package dev.foxikle.customnpcs.internal.runnables;
+plugins {
+    id("java")
+    id("io.freefair.lombok") version "9.5.0"
+    id("io.papermc.paperweight.userdev") version "2.0.0-SNAPSHOT"
+}
 
-import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.utils.Msg;
-import dev.foxikle.customnpcs.internal.utils.WaitingType;
-import net.kyori.adventure.title.Title;
-import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven("https://jitpack.io")
+    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+}
 
-import java.time.Duration;
+dependencies {
+    compileOnly("me.clip:placeholderapi:2.12.2")
+    compileOnly(project(":core"))
+    paperweight.paperDevBundle("26.3.build.+")
+}
 
-public class RecordingRunnable extends BukkitRunnable {
-    private final Player player;
-    private final CustomNPCs plugin;
+tasks {
+    paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
-    public RecordingRunnable(Player player, CustomNPCs plugin) {
-        this.player = player;
-        this.plugin = plugin;
+    java {
+        toolchain.languageVersion = JavaLanguageVersion.of(25)
     }
 
-    @Override
-    public void run() {
-        if (!plugin.isWaiting(player, WaitingType.RECORDING)) {
-            this.cancel();
-            return;
-        }
-        player.showTitle(Title.title(
-                Msg.translate(player.locale(), "data.recording.title"),
-                Msg.translate(player.locale(), "data.recording.subtitle"),
-                Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
-        ));
+    compileJava {
+        options.release = 25
+    }
+
+    jar {
+        archiveClassifier = "v26_1_R1"
     }
 }

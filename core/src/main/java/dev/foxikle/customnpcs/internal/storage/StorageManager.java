@@ -31,6 +31,7 @@ import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.BrokenReason;
+import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.SkinUtils;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.exceptions.EmptyLinesException;
@@ -122,8 +123,7 @@ public class StorageManager {
             if (!yml.contains("Skins")) {
                 BackupResult br = createBackup(file);
                 if (br.success) {
-                    plugin.getLogger().warning("The config is irreparably damaged! Resetting config. Your old config " +
-                            "was saved to the file \"" + br.filePath.toString() + "\"");
+                    plugin.getLogger().warning("The config is irreparably damaged! Resetting config. Your old config was saved to the file \"" + br.filePath.toString() + "\"");
                     plugin.saveResource("config.yml", true);
                 }
             }
@@ -134,24 +134,18 @@ public class StorageManager {
                 if (!br.success()) {
                     throw new RuntimeException("Failed to create a backup of the config file before updating it!");
                 } else {
-                    plugin.getLogger().info("Created backup of config.yml before updating it! A copy of your existing" +
-                            " config was saved to " + br.filePath().toString());
+                    plugin.getLogger().info("Created backup of config.yml before updating it! A copy of your existing config was saved to " + br.filePath().toString());
                 }
             }
 
             if (version == 0) { // doesn't exist?
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
-                        "-> %d).", version, 1));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 1));
                 yml.set("CONFIG_VERSION", 1);
-                yml.setComments("CONFIG_VERSION", List.of(" DO NOT, under ANY circumstances modify the " +
-                        "'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.", ""));
+                yml.setComments("CONFIG_VERSION", List.of(" DO NOT, under ANY circumstances modify the 'CONFIG_VERSION' field. Doing so can cause catastrophic data loss.", ""));
                 yml.set("ClickText", "&e&lCLICK");
-                yml.setComments("ClickText", List.of("ClickText -> The hologram displayed above the NPC if it is " +
-                        "interactable", " NOTE: Due to Minecraft limitations, this cannot be more than 16 characters " +
-                        "INCLUDING color and format codes.", " (But not the &)", ""));
+                yml.setComments("ClickText", List.of("ClickText -> The hologram displayed above the NPC if it is interactable", " NOTE: Due to Minecraft limitations, this cannot be more than 16 characters INCLUDING color and format codes.", " (But not the &)", ""));
                 yml.set("DisplayClickText", true);
-                yml.setComments("DisplayClickText", List.of(" DisplayClickText -> Should the plugin display a " +
-                        "hologram above the NPC's head if it is interactable?", ""));
+                yml.setComments("DisplayClickText", List.of(" DisplayClickText -> Should the plugin display a hologram above the NPC's head if it is interactable?", ""));
                 try {
                     yml.save(file);
                 } catch (IOException e) {
@@ -159,8 +153,7 @@ public class StorageManager {
                 }
             }
             if (version < 2) { // prior to 1.4-pre2
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
-                        "-> %d).", version, 2));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 2));
                 yml.set("CONFIG_VERSION", 2);
                 yml.set("AlertOnUpdate", true);
                 try {
@@ -170,11 +163,10 @@ public class StorageManager {
                 }
             }
             if (version < 3) { // prior to 1.5.2-pre1
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
-                        "-> %d).", version, 3));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 3));
                 yml.set("CONFIG_VERSION", 3);
                 yml.set("ClickText",
-                        plugin.getMiniMessage().serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(yml.getString("ClickText")))));
+                        Msg.MINI.serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(yml.getString("ClickText")))));
                 try {
                     yml.save(file);
                 } catch (IOException e) {
@@ -182,8 +174,7 @@ public class StorageManager {
                 }
             }
             if (version < 4) { //prior to 1.6-pre2
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
-                        "-> %d).", version, 4));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 4));
                 yml.set("CONFIG_VERSION", 4);
                 yml.set("DisableCollisions", true);
                 try {
@@ -193,8 +184,7 @@ public class StorageManager {
                 }
             }
             if (version < 5) {
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
-                        "-> %d).", version, 5));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 5));
                 yml.set("CONFIG_VERSION", 5);
                 yml.set("NameReferenceMessages", true);
                 try {
@@ -204,8 +194,7 @@ public class StorageManager {
                 }
             }
             if (version < 6) {
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
-                        "-> %d).", version, 6));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 6));
                 yml.set("CONFIG_VERSION", 6);
                 yml.set("InjectionDistance", 48);
                 yml.set("InjectionInterval", 10);
@@ -218,12 +207,10 @@ public class StorageManager {
                 }
             }
             if (version < 7) {
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
-                        "-> %d).", version, 7));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 7));
                 yml.set("CONFIG_VERSION", 7);
                 yml.set("DefaultInterpolationDuration", 5);
-                yml.setComments("DefaultInterpolationDuration", List.of("DefaultInterpolationDuration -> How long " +
-                        "should moving NPCs interpolate their Nametags moving?"));
+                yml.setComments("DefaultInterpolationDuration", List.of("DefaultInterpolationDuration -> How long should moving NPCs interpolate their Nametags moving?"));
                 try {
                     yml.save(file);
                 } catch (IOException e) {
@@ -231,26 +218,21 @@ public class StorageManager {
                 }
             }
             if (version < 8) {
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
-                        "-> %d).", version, 8));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 8));
                 yml.set("CONFIG_VERSION", 8);
                 ConfigurationSection section = yml.createSection("MineSkin");
                 yml.setComments("MineSkin", List.of(
                         " ############################",
                         " #        Skin API          #",
                         " ############################",
-                        "This plugin uses Mineskin.org's free skin api to generate skins from urls and player names. " +
-                                "CustomNPCs comes with an api",
-                        "key embedded, but the same key is used by every other person using the plugin, so it will " +
-                                "likely be reaching the rate limit",
-                        "nearly constantly. To combat this, you can use your own API key. You can get one here: " +
-                                "https://account.mineskin.org/keys/"
+                        "This plugin uses Mineskin.org's free skin api to generate skins from urls and player names. CustomNPCs comes with an api",
+                        "key embedded, but the same key is used by every other person using the plugin, so it will likely be reaching the rate limit",
+                        "nearly constantly. To combat this, you can use your own API key. You can get one here: https://account.mineskin.org/keys/"
                 ));
                 section.set("ApiKey", "");
                 section.setInlineComments("ApiKey", List.of("Put your api key here, if desired"));
                 section.set("ApiUrl", "");
-                section.setInlineComments("ApiUrl", List.of("Alternatively you can specify a proxied host to use " +
-                        "instead: https://docs.mineskin.org/docs/guides/api-best-practises#use-a-proxy-server"));
+                section.setInlineComments("ApiUrl", List.of("Alternatively you can specify a proxied host to use instead: https://docs.mineskin.org/docs/guides/api-best-practises#use-a-proxy-server"));
                 try {
                     yml.save(file);
                 } catch (IOException e) {
@@ -259,52 +241,38 @@ public class StorageManager {
             }
 
             if (version < 9) {
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
-                        "-> %d).", version, 9));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 9));
                 yml.set("CONFIG_VERSION", 9);
                 yml.set("EditTip", true);
-                yml.setComments("EditTip", List.of("EditTip -> Should the plugin remind players with the customnpcs" +
-                        ".manage.edit permission they can open the edit menu by sneak-clicking an npc?"));
+                yml.setComments("EditTip", List.of("EditTip -> Should the plugin remind players with the customnpcs.manage.edit permission they can open the edit menu by sneak-clicking an npc?"));
             }
 
             if (version < 10) {
-                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d " +
-                        "-> %d).", version, 10));
+                plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 10));
 
                 yml.set("DebugMode", false);
-                yml.setComments("DebugMode", List.of("DebugMode -> Should the plugin launch in debug mode? This can " +
-                        "be quite spammy, so only use this if you're sure!"));
+                yml.setComments("DebugMode", List.of("DebugMode -> Should the plugin launch in debug mode? This can be quite spammy, so only use this if you're sure!"));
 
                 yml.set("CONFIG_VERSION", 10);
                 ConfigurationSection storage = yml.createSection("storage");
-                yml.setComments("storage", Utils.list("", "+---------------------------------------+", "|           " +
-                        "NPC Data Storage            |", "+---------------------------------------+"));
+                yml.setComments("storage", Utils.list("", "+---------------------------------------+", "|           NPC Data Storage            |", "+---------------------------------------+"));
 
                 storage.set("provider", "LOCAL");
-                storage.setComments("provider", Utils.list("", "+---------------------------------------+", "|       " +
-                                "    Storage Provider            |", "+---------------------------------------+", "",
-                        "The " +
-                                "storage provider determines how the plugin stores the NPC data. There are 3 " +
+                storage.setComments("provider", Utils.list("", "+---------------------------------------+", "|           Storage Provider            |", "+---------------------------------------+", "",
+                        "The storage provider determines how the plugin stores the NPC data. There are 3 " +
                                 "options:", "",
-                        "\"LOCAL\" is used by default. It stores the data on the same disk the server is running on. " +
-                                "It is a good choice if you don't want to deal with setting up a database or don't " +
-                                "have one.", "\"MYSQL\" is a typical relational database. It's not really optimized " +
-                                "for this kind of storage, it's a good choice if you already use a MySQL or MariaDB " +
-                                "database.", "\"MONGODB\" is the recommended option for using remote storage. It " +
-                                "tends to be more performant and optimized for storing JSON."));
+                        "\"LOCAL\" is used by default. It stores the data on the same disk the server is running on. It is a good choice if you don't want to deal with setting up a database or don't " +
+                                "have one.", "\"MYSQL\" is a typical relational database. It's not really optimized for this kind of storage, it's a good choice if you already use a MySQL or MariaDB " +
+                                "database.", "\"MONGODB\" is the recommended option for using remote storage. It tends to be more performant and optimized for storing JSON."));
 
                 ConfigurationSection mysql = storage.createSection("mysql");
-                storage.setComments("mysql", Utils.list("", "+---------------------------------------+", "|         " +
-                        "MySQL Configuration           |", "+---------------------------------------+", "These " +
-                        "settings only matter if the provider is set to \"MYSQL\""));
+                storage.setComments("mysql", Utils.list("", "+---------------------------------------+", "|         MySQL Configuration           |", "+---------------------------------------+", "These settings only matter if the provider is set to \"MYSQL\""));
 
                 mysql.set("hostname", "YOUR_HOST");
-                mysql.setComments("hostname", Utils.list("hostname -> the host name, or ip address of your database " +
-                        "server."));
+                mysql.setComments("hostname", Utils.list("hostname -> the host name, or ip address of your database server."));
 
                 mysql.set("port", 3306);
-                mysql.setComments("port", Utils.list("port -> The port the database runs on. Don't change this unless" +
-                        " you know what you're doing"));
+                mysql.setComments("port", Utils.list("port -> The port the database runs on. Don't change this unless you know what you're doing"));
 
                 mysql.set("username", "YOUR_USERNAME");
                 mysql.setComments("username", Utils.list("username -> The database username"));
@@ -316,24 +284,19 @@ public class StorageManager {
                 mysql.setComments("database", Utils.list("database -> The name of the database to use"));
 
                 mysql.set("table", "npcs");
-                mysql.setComments("table", Utils.list("table -> The name of the table used to store the data in. This" +
-                        " can be used to separate your npc configurations across servers. ie: lobby, survival, etc."));
+                mysql.setComments("table", Utils.list("table -> The name of the table used to store the data in. This can be used to separate your npc configurations across servers. ie: lobby, survival, etc."));
 
                 ConfigurationSection mongo = storage.createSection("mongo");
-                storage.setComments("mongo", Utils.list("", "+---------------------------------------+", "|        " +
-                        "MongoDB Configuration          |", "+---------------------------------------+", "These " +
-                        "settings only matter if the provider is set to \"MONGODB\""));
+                storage.setComments("mongo", Utils.list("", "+---------------------------------------+", "|        MongoDB Configuration          |", "+---------------------------------------+", "These settings only matter if the provider is set to \"MONGODB\""));
 
                 mongo.set("connectionString", "YOUR_CONNECTION_STRING");
-                mongo.setComments("connectionString", Utils.list("connectionString -> The connection string provided " +
-                        "by your mongo server."));
+                mongo.setComments("connectionString", Utils.list("connectionString -> The connection string provided by your mongo server."));
 
                 mongo.set("database", "YOUR_DATABASE");
                 mongo.setComments("database", Utils.list("database -> The name of the database to use"));
 
                 mongo.set("document", "npcs");
-                mongo.setComments("document", Utils.list("document -> The document name to use to store the" +
-                        " data. This can be used to separate your npc configurations across servers. ie: lobby, " +
+                mongo.setComments("document", Utils.list("document -> The document name to use to store the data. This can be used to separate your npc configurations across servers. ie: lobby, " +
                         "survival, etc."));
 
                 try {
@@ -366,20 +329,15 @@ public class StorageManager {
                     plugin.getLogger().severe("");
                     plugin.getLogger().severe(
                             "+------------------------------------------------------------------------------+");
-                    plugin.getLogger().severe("|                     Your NPC file is too old to migrate!            " +
-                            "         |");
-                    plugin.getLogger().severe("|                 Please update to CustomNPCs v1.7.10 before          " +
-                            "         |");
-                    plugin.getLogger().severe("|                          updating to this version!                  " +
-                            "         |");
-                    plugin.getLogger().severe("|                           Current Version: '" + version + "'        " +
-                            "                     |");
+                    plugin.getLogger().severe("|                     Your NPC file is too old to migrate!                     |");
+                    plugin.getLogger().severe("|                 Please update to CustomNPCs v1.7.10 before                   |");
+                    plugin.getLogger().severe("|                          updating to this version!                           |");
+                    plugin.getLogger().severe("|                           Current Version: '" + version + "'                             |");
                     plugin.getLogger().severe(
                             "+------------------------------------------------------------------------------+");
                     plugin.getLogger().severe("");
                     plugin.getLogger().severe("");
-                    throw new RuntimeException("Your NPC file is too old to migrate! Please update to CustomNPCs v1.7" +
-                            ".10 before updating. Current version: " + version);
+                    throw new RuntimeException("Your NPC file is too old to migrate! Please update to CustomNPCs v1.7.10 before updating. Current version: " + version);
                 }
 
                 // After 1.7-pre6
@@ -464,9 +422,8 @@ public class StorageManager {
                     }
 
                     if (err || !exists) {
-                        String rawName = plugin.getMiniMessage().stripTags(section.getString("name"));
-                        throw new IllegalStateException("Detected an NPC (" + rawName + ") with an invalid location! " +
-                                "Please revert to 1.7.x and use the /npc fixconfig command to fix this!");
+                        String rawName = Msg.MINI.stripTags(section.getString("name"));
+                        throw new IllegalStateException("Detected an NPC (" + rawName + ") with an invalid location! Please revert to 1.7.x and use the /npc fixconfig command to fix this!");
                     } else validNPCs.add(uuid);
                 }
             }
@@ -557,18 +514,15 @@ public class StorageManager {
                 plugin.getLogger().warning("Failed to load NPC " + npc.getUniqueID() + "!");
             }
         } catch (EmptyLinesException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " due to an invalid " +
-                    "world. This can be fixed via /npc fixconfig lines.");
+            plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " due to an invalid world. This can be fixed via /npc fixconfig lines.");
             brokenNPCs.get(BrokenReason.EMPTY_LINES).put(npc.getUniqueID(), npc);
         } catch (IllegalWorldException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " due to an invalid " +
-                    "world. This can be fixed via /npc fixconfig world");
+            plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " due to an invalid world. This can be fixed via /npc fixconfig world");
             brokenNPCs.get(BrokenReason.INVALID_WORLD).put(npc.getUniqueID(), npc);
         } catch (UntrackedNpcException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " as it was not tracked.");
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " due to an unknown " +
-                    "error.", e);
+            plugin.getLogger().log(Level.SEVERE, "Failed to load NPC " + npc.getUniqueID() + " due to an unknown error.", e);
             brokenNPCs.get(BrokenReason.UNKNOWN).put(npc.getUniqueID(), npc);
         }
 
@@ -627,30 +581,26 @@ public class StorageManager {
 
         List<Action> actions;
 
-        String rawName = plugin.getMiniMessage().stripTags(section.getStringList("lines").get(0));
+        String rawName = Msg.MINI.stripTags(section.getStringList("lines").get(0));
         World world;
 
         try {
             world = Bukkit.getWorld(Objects.requireNonNull(section.getString("world")));
         } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("The NPC '" + rawName + "' has an invalid world. Please downgrade to 1" +
-                    ".7.x and use the /npc fixconfig command!");
+            throw new IllegalArgumentException("The NPC '" + rawName + "' has an invalid world. Please downgrade to 1.7.x and use the /npc fixconfig command!");
         }
 
         Location location;
         try {
             location = section.getLocation("location");
         } catch (Exception ex) {
-            throw new IllegalArgumentException("The NPC '" + rawName + "' has an invalid location. Please downgrade " +
-                    "to 1.7.x and use the /npc fixconfig command!");
+            throw new IllegalArgumentException("The NPC '" + rawName + "' has an invalid location. Please downgrade to 1.7.x and use the /npc fixconfig command!");
         }
 
         if (world == null)
-            throw new IllegalArgumentException("The NPC '" + rawName + "' has an invalid world. Please downgrade to 1" +
-                    ".7.x and use the /npc fixconfig command!");
+            throw new IllegalArgumentException("The NPC '" + rawName + "' has an invalid world. Please downgrade to 1.7.x and use the /npc fixconfig command!");
         if (location == null)
-            throw new IllegalArgumentException("The NPC '" + rawName + "' has an invalid location. Please downgrade " +
-                    "to 1.7.x and use the /npc fixconfig command!");
+            throw new IllegalArgumentException("The NPC '" + rawName + "' has an invalid location. Please downgrade to 1.7.x and use the /npc fixconfig command!");
 
 
         actions = new ArrayList<>();
@@ -720,9 +670,7 @@ public class StorageManager {
             if (f.createNewFile()) {
                 yml.save(f);
             } else {
-                throw new RuntimeException("A duplicate file of file '" + f.getName() + "' exists! This means the " +
-                        "plugin attempted to back up the file '" + file.getName() + "' multiple times within this " +
-                        "millisecond! This is a serious issue that should be reported to @foxikle on discord!");
+                throw new RuntimeException("A duplicate file of file '" + f.getName() + "' exists! This means the plugin attempted to back up the file '" + file.getName() + "' multiple times within this millisecond! This is a serious issue that should be reported to @foxikle on discord!");
             }
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE,

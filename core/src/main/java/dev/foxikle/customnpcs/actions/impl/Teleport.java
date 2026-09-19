@@ -29,7 +29,9 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -64,19 +66,7 @@ import static org.bukkit.Material.*;
 @NoArgsConstructor(onConstructor_ = {@ApiStatus.Internal})
 public class Teleport extends Action {
 
-    public static final StructCodec<Teleport> CODEC = StructCodec.struct(
-            "x", Codec.DOUBLE, Teleport::getX,
-            "y", Codec.DOUBLE, Teleport::getY,
-            "z", Codec.DOUBLE, Teleport::getZ,
-            "pitch", Codec.FLOAT, Teleport::getPitch,
-            "yaw", Codec.FLOAT, Teleport::getYaw,
-            "delay", Codec.INT, Action::getDelay,
-            "selector", Codec.Enum(Selector.class), Action::getSelector,
-            "conditions", Condition.CODEC.list(), Action::getConditions,
-            "cooldown", Codec.INT, Action::getCooldown,
-            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
-            Teleport::new
-    );
+    public static final StructCodec<Teleport> CODEC = StructCodec.struct("x", Codec.DOUBLE, Teleport::getX, "y", Codec.DOUBLE, Teleport::getY, "z", Codec.DOUBLE, Teleport::getZ, "pitch", Codec.FLOAT, Teleport::getPitch, "yaw", Codec.FLOAT, Teleport::getYaw, "delay", Codec.INT, Action::getDelay, "selector", Codec.Enum(Selector.class), Action::getSelector, "conditions", Condition.CODEC.list(), Action::getConditions, "cooldown", Codec.INT, Action::getCooldown, "uuid", Codec.UUID_STRING.optional(), Action::getUuid, Teleport::new);
 
     private double x;
     private double y;
@@ -84,8 +74,7 @@ public class Teleport extends Action {
     private float pitch;
     private float yaw;
 
-    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Selector mode,
-                    List<Condition> conditionals, int cooldown, @Nullable UUID uuid) {
+    public Teleport(double x, double y, double z, float pitch, float yaw, int delay, Selector mode, List<Condition> conditionals, int cooldown, @Nullable UUID uuid) {
         super(delay, mode, conditionals, cooldown, uuid);
         this.x = x;
         this.y = y;
@@ -95,37 +84,20 @@ public class Teleport extends Action {
     }
 
     public Button creationButton(Player player) {
-        return Button.clickable(ItemBuilder.modern(ENDER_PEARL)
-                        .setDisplay(Msg.translate(player.locale(), "favicons.teleport"))
-                        .setLore(Msg.lore(player.locale(), "favicons.teleport.description"))
-                        .build(),
-                ButtonClickAction.plain((menuView, event) -> {
-                    event.setCancelled(true);
-                    Player p = (Player) event.getWhoClicked();
-                    p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+        return Button.clickable(ItemBuilder.modern(ENDER_PEARL).setDisplay(Msg.get(player, "favicons.teleport")).setLore(Msg.lore(player.locale(), "favicons.teleport.description")).build(), ButtonClickAction.plain((menuView, event) -> {
+            event.setCancelled(true);
+            Player p = (Player) event.getWhoClicked();
+            p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
 
-                    Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Selector.ONE, new ArrayList<>(), 0,
-                            UUID.randomUUID());
-                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
-                    menuView.getAPI().openMenu(p, actionImpl.getMenu());
-                }));
+            Teleport actionImpl = new Teleport(0, 0, 0, 0F, 0F, 0, Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
+            CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
+            menuView.getAPI().openMenu(p, actionImpl.getMenu());
+        }));
     }
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(ENDER_PEARL).setDisplay(Msg.translate(player.locale(), "favicons.teleport"))
-                .setLore(
-                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
-                        Msg.format(""),
-                        Msg.translate(player.locale(), "menus.action.teleport.display.x", x),
-                        Msg.translate(player.locale(), "menus.action.teleport.display.y", y),
-                        Msg.translate(player.locale(), "menus.action.teleport.display.z", z),
-                        Msg.translate(player.locale(), "menus.action.teleport.display.pitch", pitch),
-                        Msg.translate(player.locale(), "menus.action.teleport.display.yaw", yaw),
-                        Msg.format(""),
-                        Msg.translate(player.locale(), "favicons.edit"),
-                        Msg.translate(player.locale(), "favicons.remove")
-                ).build();
+        return ItemBuilder.modern(ENDER_PEARL).setDisplay(Msg.get(player, "favicons.teleport")).setLore(Msg.get(player, "favicons.delay", Arg.arg(getDelay())), Msg.format(""), Msg.get(player, "menus.action.teleport.display.x", Arg.arg(x)), Msg.get(player, "menus.action.teleport.display.y", Arg.arg(y)), Msg.get(player, "menus.action.teleport.display.z", Arg.arg(z)), Msg.get(player, "menus.action.teleport.display.pitch", Arg.arg(pitch)), Msg.get(player, "menus.action.teleport.display.yaw", Arg.arg(yaw)), Msg.format(""), Msg.get(player, "favicons.edit"), Msg.get(player, "favicons.remove")).build();
     }
 
     @Override
@@ -144,8 +116,7 @@ public class Teleport extends Action {
 
     @Override
     public Action clone() {
-        return new Teleport(getX(), getY(), getZ(), getPitch(), getYaw(), getDelay(), getSelector(), getConditions(),
-                getCooldown(), getUuid());
+        return new Teleport(getX(), getY(), getZ(), getPitch(), getYaw(), getDelay(), getSelector(), getConditions(), getCooldown(), getUuid());
     }
 
     @Override
@@ -171,8 +142,7 @@ public class Teleport extends Action {
         float yaw = parseFloat(serialized, "yaw");
         ParseResult pr = parseBase(serialized);
 
-        Teleport message = new Teleport(x, y, z, pitch, yaw, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
-                UUID.randomUUID());
+        Teleport message = new Teleport(x, y, z, pitch, yaw, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(), UUID.randomUUID());
         return clazz.cast(message);
     }
 
@@ -192,7 +162,7 @@ public class Teleport extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.get(player, "menus.action_customizer.title"));
         }
 
         @Override
@@ -202,7 +172,7 @@ public class Teleport extends Action {
 
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
-            this.displayLore = Msg.translate(player.locale(), "menus.action.teleport.in_blocks");
+            this.displayLore = Msg.get(player, "menus.action.teleport.in_blocks");
 
             Component[] incLore = Msg.lore(player.locale(), "menus.action_customizer.delay.increment.description");
             Component[] decLore = Msg.lore(player.locale(), "menus.action_customizer.delay.decrement.description");
@@ -210,220 +180,88 @@ public class Teleport extends Action {
             return MenuUtils.actionBase(action, player)
 
                     // displays
-                    .setButton(19, Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus" +
-                            ".action.teleport.display.x", action.getX()), displayLore), ButtonClickAction.plain((menu
-                            , event) -> event.setCancelled(true)))
-                    ).setButton(20, Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus" +
-                            ".action.teleport.display.y", action.getY()), displayLore), ButtonClickAction.plain((menu
-                            , event) -> event.setCancelled(true)))
-                    ).setButton(21, Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus" +
-                            ".action.teleport.display.z", action.getZ()), displayLore), ButtonClickAction.plain((menu
-                            , event) -> event.setCancelled(true)))
-                    ).setButton(23, compassDisplay(Msg.translate(player.locale(), "menus.action.teleport.display" +
-                            ".pitch", action.getPitch()))
-                    ).setButton(24, compassDisplay(Msg.translate(player.locale(), "menus.action.teleport.display.yaw"
-                            , action.getYaw())))
+                    .setButton(19, MenuItems.display(Msg.get(player, "menus.action.teleport.display.x", Arg.arg(action.getX())), displayLore))
+                    .setButton(20, MenuItems.display(Msg.get(player, "menus.action.teleport.display.y", Arg.arg(action.getY())), displayLore))
+                    .setButton(21, MenuItems.display(Msg.get(player, "menus.action.teleport.display.z", Arg.arg(action.getZ())), displayLore))
+                    .setButton(23, compassDisplay(Msg.get(player, "menus.action.teleport.display.pitch", Arg.arg(action.getPitch()))))
+                    .setButton(24, compassDisplay(Msg.get(player, "menus.action.teleport.display.yaw", Arg.arg(action.getYaw()))))
 
                     // increments
-                    .setButton(10, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.teleport.increase_x"))
-                                    .setLore(incLore)
-                                    .build(),
-                            ButtonClickAction.plain((menuView, event) -> {
-                                event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (event.isShiftClick()) {
-                                    action.setX(action.getX() + 20);
-                                } else if (event.isLeftClick()) {
-                                    action.setX(action.getX() + 1);
-                                } else if (event.isRightClick()) {
-                                    action.setX(action.getX() + 5);
-                                }
-                                menuView.updateButton(19,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.teleport.display.x", action.getX()), displayLore)));
-                            }))
-                    ).setButton(11, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.teleport.increase_y"))
-                                    .setLore(incLore)
-                                    .build(),
-                            ButtonClickAction.plain((menuView, event) -> {
-                                event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (event.isShiftClick()) {
-                                    action.setY(action.getY() + 20);
-                                } else if (event.isLeftClick()) {
-                                    action.setY(action.getY() + 1);
-                                } else if (event.isRightClick()) {
-                                    action.setY(action.getY() + 5);
-                                }
-                                menuView.updateButton(20,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.teleport.display.y", action.getY()), displayLore)));
-                            }))
-                    ).setButton(12, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.teleport.increase_z"))
-                                    .setLore(incLore)
-                                    .build(),
-                            ButtonClickAction.plain((menuView, event) -> {
-                                event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (event.isShiftClick()) {
-                                    action.setZ(action.getZ() + 20);
-                                } else if (event.isLeftClick()) {
-                                    action.setZ(action.getZ() + 1);
-                                } else if (event.isRightClick()) {
-                                    action.setZ(action.getZ() + 5);
-                                }
-                                menuView.updateButton(21,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.teleport.display.z", action.getZ()), displayLore)));
-                            }))
-                    ).setButton(14, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.teleport.increase_pitch"))
-                                    .setLore(incLore)
-                                    .build(),
-                            ButtonClickAction.plain((menuView, event) -> {
-                                event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (action.getPitch() == 90) {
-                                    event.getWhoClicked().sendMessage(Msg.translate(player.locale(), "menus.action" +
-                                            ".teleport.pitch_over_90"));
-                                    return;
-                                }
+                    .setButton(10, Button.clickable(ItemBuilder.modern(LIME_DYE).setDisplay(Msg.get(player, "menus.action.teleport.increase_x")).setLore(incLore).build(), ButtonClickAction.plain((menuView, event) -> {
+                        event.setCancelled(true);
+                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        action.x = Utils.incrementd(event).apply(action.x);
+                        menuView.replaceButton(19, MenuItems.display(Msg.get(player, "menus.action.teleport.display.x", Arg.arg(action.getX())), displayLore));
+                    }))).setButton(11, Button.clickable(ItemBuilder.modern(LIME_DYE).setDisplay(Msg.get(player, "menus.action.teleport.increase_y")).setLore(incLore).build(), ButtonClickAction.plain((menuView, event) -> {
+                        event.setCancelled(true);
+                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        action.y = Utils.incrementd(event).apply(action.y);
+                        menuView.replaceButton(20, MenuItems.display(Msg.get(player, "menus.action.teleport.display.y", Arg.arg(action.getY())), displayLore));
+                    }))).setButton(12, Button.clickable(ItemBuilder.modern(LIME_DYE).setDisplay(Msg.get(player, "menus.action.teleport.increase_z")).setLore(incLore).build(), ButtonClickAction.plain((menuView, event) -> {
+                        event.setCancelled(true);
+                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        action.z = Utils.incrementd(event).apply(action.z);
 
-                                if (event.isShiftClick()) {
-                                    action.setPitch(Math.min(action.getPitch() + 20, 90));
-                                } else if (event.isLeftClick()) {
-                                    action.setPitch(Math.min(action.getPitch() + 1, 90));
-                                } else if (event.isRightClick()) {
-                                    action.setPitch(Math.min(action.getPitch() + 5, 90));
-                                }
-                                menuView.updateButton(23,
-                                        button -> button.setItem(compassDisplay(Msg.translate(player.locale(), "menus" +
-                                                ".action.teleport.display.pitch", action.getPitch())).getItem()));
-                            }))
-                    ).setButton(15, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.teleport.increase_yaw"))
-                                    .setLore(incLore)
-                                    .build(),
-                            ButtonClickAction.plain((menuView, event) -> {
-                                event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (action.getYaw() == 180) {
-                                    player.sendMessage(Msg.translate(player.locale(), "menus.action.teleport" +
-                                            ".yaw_over_180"));
-                                    return;
-                                }
+                        menuView.replaceButton(21, MenuItems.display(Msg.get(player, "menus.action.teleport.display.z", Arg.arg(action.getZ())), displayLore));
+                    }))).setButton(14, Button.clickable(ItemBuilder.modern(LIME_DYE).setDisplay(Msg.get(player, "menus.action.teleport.increase_pitch")).setLore(incLore).build(), ButtonClickAction.plain((menuView, event) -> {
+                        event.setCancelled(true);
+                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        if (action.getPitch() == 90) {
+                            event.getWhoClicked().sendMessage(Msg.get(player, "menus.action.teleport.pitch_over_90"));
+                            return;
+                        }
 
-                                if (event.isShiftClick()) {
-                                    action.setYaw(Math.min(action.getYaw() + 20, 180));
-                                } else if (event.isLeftClick()) {
-                                    action.setYaw(Math.min(action.getYaw() + 1, 180));
-                                } else if (event.isRightClick()) {
-                                    action.setYaw(Math.min(action.getYaw() + 5, 180));
-                                }
-                                menuView.updateButton(24,
-                                        button -> button.setItem(compassDisplay(Msg.translate(player.locale(), "menus" +
-                                                ".action.teleport.display.yaw", action.getYaw())).getItem()));
-                            })))
+                        action.pitch = Math.min(90, (float) Utils.incrementd(event).apply((double) action.pitch).doubleValue());
+                        menuView.updateButton(23, b -> b.setItem(compassDisplay(Msg.get(player, "menus.action.teleport.display.pitch", Arg.arg(action.getPitch()))).getItem()));
+                    }))).setButton(15, Button.clickable(ItemBuilder.modern(LIME_DYE).setDisplay(Msg.get(player, "menus.action.teleport.increase_yaw")).setLore(incLore).build(), ButtonClickAction.plain((v, event) -> {
+                        event.setCancelled(true);
+                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        if (action.getYaw() == 180) {
+                            player.sendMessage(Msg.get(player, "menus.action.teleport.yaw_over_180"));
+                            return;
+                        }
+                        action.yaw = Math.min(180, (float) Utils.incrementd(event).apply((double) action.yaw).doubleValue());
+                        v.updateButton(24, b -> b.setItem(compassDisplay(Msg.get(player, "menus.action.teleport.display.yaw", Arg.arg(action.getYaw()))).getItem()));
+                    })))
 
                     // decreasers
 
-                    .setButton(28, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.teleport.decrease_x"))
-                                    .setLore(decLore)
-                                    .build(),
-                            ButtonClickAction.plain((menuView, event) -> {
-                                event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (event.isShiftClick()) {
-                                    action.setX(action.getX() - 20);
-                                } else if (event.isLeftClick()) {
-                                    action.setX(action.getX() - 1);
-                                } else if (event.isRightClick()) {
-                                    action.setX(action.getX() - 5);
-                                }
-                                menuView.updateButton(19,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.teleport.display.x", action.getX()), displayLore)));
-                            }))
-                    ).setButton(29, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.teleport.decrease_y"))
-                                    .setLore(decLore)
-                                    .build(),
-                            ButtonClickAction.plain((menuView, event) -> {
-                                event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (event.isShiftClick()) {
-                                    action.setY(action.getY() - 20);
-                                } else if (event.isLeftClick()) {
-                                    action.setY(action.getY() - 1);
-                                } else if (event.isRightClick()) {
-                                    action.setY(action.getY() - 5);
-                                }
-                                menuView.updateButton(20,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.teleport.display.y", action.getY()), displayLore)));
-                            }))
-                    ).setButton(30, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.teleport.decrease_z"))
-                                    .setLore(decLore)
-                                    .build(),
-                            ButtonClickAction.plain((menuView, event) -> {
-                                event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (event.isShiftClick()) {
-                                    action.setZ(action.getZ() - 20);
-                                } else if (event.isLeftClick()) {
-                                    action.setZ(action.getZ() - 1);
-                                } else if (event.isRightClick()) {
-                                    action.setZ(action.getZ() - 5);
-                                }
-                                menuView.updateButton(21,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.teleport.display.z", action.getZ()), displayLore)));
-                            }))
-                    ).setButton(32, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.teleport.decrease_pitch"))
-                                    .build(),
-                            ButtonClickAction.plain((menuView, event) -> {
-                                event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (action.getPitch() == -90) {
-                                    player.sendMessage(Msg.translate(player.locale(), "menus.action.teleport" +
-                                            ".pitch_under_90"));
-                                    return;
-                                }
+                    .setButton(28, Button.clickable(ItemBuilder.modern(RED_DYE).setDisplay(Msg.get(player, "menus.action.teleport.decrease_x")).setLore(decLore).build(), ButtonClickAction.plain((menuView, event) -> {
+                        event.setCancelled(true);
+                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        action.x = Utils.decrementd(event).apply(action.x);
+                        menuView.replaceButton(19, MenuItems.display(Msg.get(player, "menus.action.teleport.display.x", Arg.arg(action.getX())), displayLore));
+                    }))).setButton(29, Button.clickable(ItemBuilder.modern(RED_DYE).setDisplay(Msg.get(player, "menus.action.teleport.decrease_y")).setLore(decLore).build(), ButtonClickAction.plain((menuView, event) -> {
+                        event.setCancelled(true);
+                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        action.y = Utils.decrementd(event).apply(action.y);
+                        menuView.replaceButton(20, MenuItems.display(Msg.get(player, "menus.action.teleport.display.y", Arg.arg(action.getY())), displayLore));
+                    }))).setButton(30, Button.clickable(ItemBuilder.modern(RED_DYE).setDisplay(Msg.get(player, "menus.action.teleport.decrease_z")).setLore(decLore).build(), ButtonClickAction.plain((menuView, event) -> {
+                        event.setCancelled(true);
+                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        action.z = Utils.decrementd(event).apply(action.z);
+                        menuView.replaceButton(21, MenuItems.display(Msg.get(player, "menus.action.teleport.display.z", Arg.arg(action.getZ())), displayLore));
+                    }))).setButton(32, Button.clickable(ItemBuilder.modern(RED_DYE).setDisplay(Msg.get(player, "menus.action.teleport.decrease_pitch")).build(), ButtonClickAction.plain((menuView, event) -> {
+                        event.setCancelled(true);
+                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        if (action.getPitch() == -90) {
+                            player.sendMessage(Msg.get(player, "menus.action.teleport.pitch_under_90"));
+                            return;
+                        }
 
-                                if (event.isShiftClick()) {
-                                    action.setPitch(Math.max(action.getPitch() - 20, -90));
-                                } else if (event.isLeftClick()) {
-                                    action.setPitch(Math.max(action.getPitch() - 1, -90));
-                                } else if (event.isRightClick()) {
-                                    action.setPitch(Math.max(action.getPitch() - 5, -90));
-                                }
-                                menuView.updateButton(23,
-                                        button -> button.setItem(compassDisplay(Msg.translate(player.locale(), "menus" +
-                                                ".action.teleport.display.pitch", action.getPitch())).getItem()));
-                            }))
-                    ).setButton(33, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.teleport.decrease_yaw"))
-                                    .build(),
-                            ButtonClickAction.plain((menuView, event) -> {
-                                event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (action.getYaw() == -180) {
-                                    player.sendMessage(Msg.translate(player.locale(), "menus.action.teleport" +
-                                            ".yaw_under_180"));
-                                    return;
-                                }
+                        action.pitch = Math.max(-90, (float) Utils.decrementd(event).apply((double) action.pitch).doubleValue());
 
-                                if (event.isShiftClick()) {
-                                    action.setYaw(Math.max(action.getYaw() - 20, -180));
-                                } else if (event.isLeftClick()) {
-                                    action.setYaw(Math.max(action.getYaw() - 1, -180));
-                                } else if (event.isRightClick()) {
-                                    action.setYaw(Math.max(action.getYaw() - 5, -180));
-                                }
-                                menuView.updateButton(24,
-                                        button -> button.setItem(compassDisplay(Msg.translate(player.locale(), "menus" +
-                                                ".action.teleport.display.yaw", action.getYaw())).getItem()));
-                            })))
+                        menuView.updateButton(23, button -> button.setItem(compassDisplay(Msg.get(player, "menus.action.teleport.display.pitch", Arg.arg(action.getPitch()))).getItem()));
+                    }))).setButton(33, Button.clickable(ItemBuilder.modern(RED_DYE).setDisplay(Msg.get(player, "menus.action.teleport.decrease_yaw")).build(), ButtonClickAction.plain((menuView, event) -> {
+                        event.setCancelled(true);
+                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        if (action.getYaw() == -180) {
+                            player.sendMessage(Msg.get(player, "menus.action.teleport.yaw_under_180"));
+                            return;
+                        }
+                        action.yaw = Math.max(-180, (float) Utils.decrementd(event).apply((double) action.yaw).doubleValue());
+                        menuView.updateButton(24, button -> button.setItem(compassDisplay(Msg.get(player, "menus.action.teleport.display.yaw", Arg.arg(action.getYaw()))).getItem()));
+                    })))
 
                     .build();
         }

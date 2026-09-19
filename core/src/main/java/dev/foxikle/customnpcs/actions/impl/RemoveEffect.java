@@ -28,6 +28,7 @@ import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
@@ -92,7 +93,7 @@ public class RemoveEffect extends Action {
     public Button creationButton(Player player) {
 
         return Button.clickable(ItemBuilder.modern(MILK_BUCKET)
-                        .setDisplay(Msg.translate(player.locale(), "favicons.remove_effect"))
+                        .setDisplay(Msg.get(player, "favicons.remove_effect"))
                         .setLore(Msg.lore(player.locale(), "favicons.remove_effect.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
@@ -108,14 +109,14 @@ public class RemoveEffect extends Action {
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(MILK_BUCKET).setDisplay(Msg.translate(player.locale(), "favicons.remove_effect"))
+        return ItemBuilder.modern(MILK_BUCKET).setDisplay(Msg.get(player, "favicons.remove_effect"))
                 .setLore(
-                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
+                        Msg.get(player, "favicons.delay", Arg.arg(getDelay())),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "favicons.give_effect.effect", effect),
+                        Msg.get(player, "favicons.give_effect.effect", Arg.arg(effect)),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "favicons.edit"),
-                        Msg.translate(player.locale(), "favicons.remove")
+                        Msg.get(player, "favicons.edit"),
+                        Msg.get(player, "favicons.remove")
                 ).build();
     }
 
@@ -183,7 +184,7 @@ public class RemoveEffect extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.get(player, "menus.action_customizer.title"));
         }
 
         @Override
@@ -208,7 +209,7 @@ public class RemoveEffect extends Action {
                 else lore.add(Msg.format("<dark_aqua>▸ " + field.getName()));
             });
             return Button.clickable(ItemBuilder.modern(POTION)
-                            .setDisplay(Msg.translate(player.locale(), "menus.action.remove_effect.effect"))
+                            .setDisplay(Msg.get(player, "menus.action.remove_effect.effect"))
                             .addFlags(ItemFlag.values())
                             .setLore(lore.toArray(new Component[]{}))
                             .build(),

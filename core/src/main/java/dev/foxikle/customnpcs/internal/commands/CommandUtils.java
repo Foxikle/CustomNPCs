@@ -45,69 +45,34 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class CommandUtils {
 
+    private static final String[] HELP_SECTIONS = new String[]{"help", "manage", "create", "delete", "edit", "movehere", "clone", "reload", "goto", "wiki", "debug", "movedata", "disabletip"};
+
     @NotNull
     public static Component getHelpComponent(Locale p) {
-        Component component = Msg.translate(p, "commands.header",
-                Component.text(CustomNPCs.getInstance().getPluginMeta().getVersion()));
-        component = component.appendNewline()
-                .append(Msg.translate(p, "commands.help.help.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.help.aliases"))))
-                .append(Msg.translate(p, "commands.help.help.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.help.hover"))))
-                .appendNewline()
-                .append(Msg.translate(p, "commands.help.manage.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.manage.aliases"))))
-                .append(Msg.translate(p, "commands.help.manage.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.manage.hover"))))
-                .appendNewline()
-                .append(Msg.translate(p, "commands.help.create.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.create.aliases"))))
-                .append(Msg.translate(p, "commands.help.create.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.create.hover"))))
-                .appendNewline()
-                .append(Msg.translate(p, "commands.help.delete.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.delete.aliases"))))
-                .append(Msg.translate(p, "commands.help.delete.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.delete.hover"))))
-                .appendNewline()
-                .append(Msg.translate(p, "commands.help.edit.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.edit.aliases"))))
-                .append(Msg.translate(p, "commands.help.edit.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.edit.hover"))))
-                .appendNewline()
-                .append(Msg.translate(p, "commands.help.movehere.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.movehere.aliases"))))
-                .append(Msg.translate(p, "commands.help.movehere.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.movehere.hover"))))
-                .appendNewline()
-                .append(Msg.translate(p, "commands.help.clone.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.clone.aliases"))))
-                .append(Msg.translate(p, "commands.help.clone.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.clone.hover"))))
-                .appendNewline()
-                .append(Msg.translate(p, "commands.help.reload.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.reload.aliases"))))
-                .append(Msg.translate(p, "commands.help.reload.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.reload.hover"))))
-                .appendNewline()
-                .append(Msg.translate(p, "commands.help.goto.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.goto.aliases"))))
-                .append(Msg.translate(p, "commands.help.goto.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.goto.hover"))))
-                .appendNewline()
-                .append(Msg.translate(p, "commands.help.wiki.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.wiki.aliases"))))
-                .append(Msg.translate(p, "commands.help.wiki.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.wiki.hover"))))
-                .appendNewline()
-                .append(Msg.translate(p, "commands.help.debug.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.debug.aliases"))))
-                .append(Msg.translate(p, "commands.help.debug.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.debug.hover"))))
-                .appendNewline()
-                .append(Msg.translate(p, "commands.help.movedata.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.movedata.aliases"))))
-                .append(Msg.translate(p, "commands.help.movedata.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.movedata.hover"))))
-                .appendNewline()
-                .append(Msg.translate(p, "commands.help.disabletip.syntax").color(NamedTextColor.GOLD).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.disabletip.aliases"))))
-                .append(Msg.translate(p, "commands.help.disabletip.description").color(NamedTextColor.DARK_AQUA).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.help.disabletip.hover"))))
-                .appendNewline()
-                .append(Component.text("                                                                                 ", NamedTextColor.DARK_GREEN, TextDecoration.STRIKETHROUGH));
-        return component;
+
+        StringBuilder builder = new StringBuilder("<tr:commands.header:%s>\n".formatted(CustomNPCs.getInstance().getPluginMeta().getVersion()));
+
+        for (String s : HELP_SECTIONS) {
+            builder.append("""
+                    <gold><hover:show_text:<tr:commands.help.%s.aliases>><tr:commands.help.%s.syntax></hover>/<gold>\
+                    <dark_aqua><hover:show_text:<tr:commands.help.%s.hover>><tr:commands.help.%s.description></hover></dark_aqua>
+                    """.formatted(s, s, s, s));
+        }
+
+        return Msg.get(p, builder.toString());
     }
 
     @NotNull
     public static Component getListComponent(Locale p) {
         CustomNPCs plugin = CustomNPCs.getInstance();
         if (plugin.getNPCs().isEmpty()) {
-            return Msg.translate(p, "commands.manage.no_npcs");
+            return Msg.get(p, "commands.manage.no_npcs");
         }
 
-        Component message = Msg.translate(p, "commands.manage.header").appendNewline();
+        Component message = Msg.get(p, "commands.manage.header").appendNewline();
         for (InternalNpc npc : plugin.getNPCs()) {
             if (npc.getSettings().isResilient()) {
-                Component name = Msg.format("<gray>◆<reset> ")
-                        .append(plugin.getMiniMessage().deserialize(npc.getSettings().getRawHolograms().getFirst()).appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.manage.copy_uuid")))).clickEvent(ClickEvent.copyToClipboard(npc.getUniqueID().toString()))
-                        .append(Msg.translate(p, "commands.manage.button.edit").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.manage.button.edit.hover"))).clickEvent(ClickEvent.runCommand("/npc edit " + npc.getUniqueID())))
-                        .append(Msg.translate(p, "commands.manage.button.delete").appendSpace().hoverEvent(HoverEvent.showText(Msg.translate(p, "commands.manage.button.delete.hover"))).clickEvent(ClickEvent.suggestCommand("/npc delete " + npc.getUniqueID())))
-                        .appendNewline();
+                Component name = Msg.format("<gray>◆<reset> ").append(Msg.format(npc.getSettings().getRawHolograms().getFirst()).appendSpace().hoverEvent(HoverEvent.showText(Msg.get(p, "commands.manage.copy_uuid")))).clickEvent(ClickEvent.copyToClipboard(npc.getUniqueID().toString())).append(Msg.get(p, "commands.manage.button.edit").appendSpace().hoverEvent(HoverEvent.showText(Msg.get(p, "commands.manage.button.edit.hover"))).clickEvent(ClickEvent.runCommand("/npc edit " + npc.getUniqueID()))).append(Msg.get(p, "commands.manage.button.delete").appendSpace().hoverEvent(HoverEvent.showText(Msg.get(p, "commands.manage.button.delete.hover"))).clickEvent(ClickEvent.suggestCommand("/npc delete " + npc.getUniqueID()))).appendNewline();
                 message = message.append(name);
             }
         }
@@ -118,15 +83,14 @@ public class CommandUtils {
     public static boolean checkNpc(CommandSender source, UUID npc) {
         Locale locale = Locale.getDefault();
         if (source instanceof Player player) locale = player.locale();
-
         if (npc == null) {
-            source.sendMessage(Msg.translate(locale, "commands.invalid_name_or_uuid"));
+            source.sendMessage(Msg.get(locale, "commands.invalid_name_or_uuid"));
             return false;
         }
 
         boolean valid = CustomNPCs.getInstance().npcs.containsKey(npc);
 
-        if (!valid) source.sendMessage(Msg.translate(locale, "commands.invalid_uuid"));
+        if (!valid) source.sendMessage(Msg.get(locale, "commands.invalid_uuid"));
         return valid;
     }
 
@@ -139,7 +103,7 @@ public class CommandUtils {
         try {
             uuid = UUID.fromString(data);
             if (plugin.getNPCByID(uuid) == null) {
-                source.sendMessage(Msg.translate(locale, "commands.invalid_uuid"));
+                source.sendMessage(Msg.get(locale, "commands.invalid_uuid"));
                 return null;
             }
         } catch (IllegalArgumentException ignored) {
@@ -148,7 +112,7 @@ public class CommandUtils {
             }
 
             Set<UUID> uuids = plugin.npcs.values().stream().map(npc -> {
-                if (plugin.getMiniMessage().stripTags(npc.getSettings().getRawHolograms().getFirst()).equalsIgnoreCase(data)) {
+                if (Msg.MINI.stripTags(npc.getSettings().getRawHolograms().getFirst()).equalsIgnoreCase(data)) {
                     return npc.getUniqueID();
                 }
                 return null;
@@ -156,7 +120,7 @@ public class CommandUtils {
             uuids.removeIf(Objects::isNull);
 
             if (uuids.isEmpty()) {
-                source.sendMessage(Msg.translate(locale, "commands.invalid_name_or_uuid"));
+                source.sendMessage(Msg.get(locale, "commands.invalid_name_or_uuid"));
                 return null;
             } else if (uuids.size() > 1) {
                 double value = Double.MAX_VALUE;
@@ -182,11 +146,11 @@ public class CommandUtils {
             }
 
             if (uuid == null) {
-                source.sendMessage(Msg.translate(locale, "commands.invalid_name_or_uuid"));
+                source.sendMessage(Msg.get(locale, "commands.invalid_name_or_uuid"));
                 return null;
             }
             if (plugin.getNPCByID(uuid) == null) {
-                source.sendMessage(Msg.translate(p.locale(), "commands.invalid_uuid"));
+                source.sendMessage(Msg.get(p, "commands.invalid_uuid"));
                 return null;
             }
             return uuid;
@@ -195,14 +159,14 @@ public class CommandUtils {
         InternalNpc npc = plugin.getNPCByID(uuid);
 
         if (npc == null) {
-            source.sendMessage(Msg.translate(locale, "commands.invalid_name_or_uuid"));
+            source.sendMessage(Msg.get(locale, "commands.invalid_name_or_uuid"));
             return null;
         }
 
         boolean valid = CustomNPCs.getInstance().npcs.containsKey(uuid);
 
         if (!valid) {
-            source.sendMessage(Msg.translate(locale, "commands.invalid_uuid"));
+            source.sendMessage(Msg.get(locale, "commands.invalid_uuid"));
             return null;
         } else {
             return uuid;

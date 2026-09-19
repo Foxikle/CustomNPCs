@@ -24,7 +24,6 @@ package dev.foxikle.customnpcs.internal.menu;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
-import dev.foxikle.customnpcs.internal.runnables.FacingDirectionRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.OpenButtonAction;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
@@ -61,7 +60,7 @@ public class MainNPCMenu implements Menu {
      */
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.main.title"));
+        return MenuTitles.createModern(Msg.get(player, "menus.main.title"));
     }
 
     /**
@@ -83,7 +82,7 @@ public class MainNPCMenu implements Menu {
             return Content.builder(capacity)
                     .setButton(22, Button.clickable(
                             ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.main.error.no_npc"))
+                                    .setDisplay(Msg.get(player, "menus.main.error.no_npc"))
                                     .setLore(Msg.lore(player.locale(), "menus.main.error.no_npc.lore"))
                                     .build(),
                             new CloseMenuAction()
@@ -97,7 +96,6 @@ public class MainNPCMenu implements Menu {
                 .setButton(10, Button.clickable(MenuItems.looking(player), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
                     player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
                     plugin.wait(player, WaitingType.FACING);
-                    new FacingDirectionRunnable(plugin, player).go();
                     player.closeInventory();
                 })))
                 .setButton(8, Button.clickable(MenuItems.extraSettings(player), new OpenButtonAction(MenuUtils.NPC_EXTRA_SETTINGS)))
@@ -119,9 +117,9 @@ public class MainNPCMenu implements Menu {
                     p.spawnParticle(npc.getSpawnParticle(), npc.getSpawnLoc().clone().add(0, 1, 0), 1);
 
                     if (npc.getSettings().isResilient())
-                        p.sendMessage(Msg.translate(player.locale(), "menus.main.create.message.resilient"));
+                        p.sendMessage(Msg.get(player, "menus.main.create.message.resilient"));
                     else
-                        p.sendMessage(Msg.translate(player.locale(), "menus.main.create.message.temporary"));
+                        p.sendMessage(Msg.get(player, "menus.main.create.message.temporary"));
 
                     npc.reloadSettings();
 
@@ -131,7 +129,7 @@ public class MainNPCMenu implements Menu {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
-                    p.sendMessage(Msg.translate(player.locale(), "menus.main.cancel.message"));
+                    p.sendMessage(Msg.get(player, "menus.main.cancel.message"));
                     p.closeInventory();
                 })));
         if (plugin.getNPCByID(npc.getUniqueID()) != null)
