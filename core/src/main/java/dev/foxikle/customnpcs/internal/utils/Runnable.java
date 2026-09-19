@@ -24,8 +24,8 @@ public class Runnable extends BukkitRunnable {
     public void run() {
         if (!plugin.isWaiting(player, type)) this.cancel();
         player.showTitle(Title.title(
-                Msg.format(player, "<tr:data.%s.title>", type.i18nKey()),
-                Msg.format(player, "<tr:data.%s.subtitle>", type.i18nKey()),
+                Msg.get(player, "data." + type.i18nKey() + ".title"),
+                Msg.get(player, "data." + type.i18nKey() + ".subtitle"),
                 Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000L), Duration.ofMillis(0))
         ));
     }

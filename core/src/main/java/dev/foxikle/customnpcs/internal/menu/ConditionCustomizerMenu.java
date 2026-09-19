@@ -43,7 +43,7 @@ public class ConditionCustomizerMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.condition_customizer.title"));
+        return MenuTitles.createModern(Msg.get(player, "menus.condition_customizer.title"));
     }
 
     @Override

@@ -60,7 +60,7 @@ public class MainNPCMenu implements Menu {
      */
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.main.title"));
+        return MenuTitles.createModern(Msg.get(player, "menus.main.title"));
     }
 
     /**
@@ -82,7 +82,7 @@ public class MainNPCMenu implements Menu {
             return Content.builder(capacity)
                     .setButton(22, Button.clickable(
                             ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.main.error.no_npc"))
+                                    .setDisplay(Msg.get(player, "menus.main.error.no_npc"))
                                     .setLore(Msg.lore(player.locale(), "menus.main.error.no_npc.lore"))
                                     .build(),
                             new CloseMenuAction()
@@ -117,9 +117,9 @@ public class MainNPCMenu implements Menu {
                     p.spawnParticle(npc.getSpawnParticle(), npc.getSpawnLoc().clone().add(0, 1, 0), 1);
 
                     if (npc.getSettings().isResilient())
-                        p.sendMessage(Msg.translate(player.locale(), "menus.main.create.message.resilient"));
+                        p.sendMessage(Msg.get(player, "menus.main.create.message.resilient"));
                     else
-                        p.sendMessage(Msg.translate(player.locale(), "menus.main.create.message.temporary"));
+                        p.sendMessage(Msg.get(player, "menus.main.create.message.temporary"));
 
                     npc.reloadSettings();
 
@@ -129,7 +129,7 @@ public class MainNPCMenu implements Menu {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     p.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
-                    p.sendMessage(Msg.translate(player.locale(), "menus.main.cancel.message"));
+                    p.sendMessage(Msg.get(player, "menus.main.cancel.message"));
                     p.closeInventory();
                 })));
         if (plugin.getNPCByID(npc.getUniqueID()) != null)

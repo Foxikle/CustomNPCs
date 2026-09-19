@@ -29,7 +29,9 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
@@ -43,7 +45,6 @@ import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import net.minestom.server.codec.Codec;
@@ -105,7 +106,7 @@ public class DisplayTitle extends Action {
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(OAK_SIGN)
-                        .setDisplay(Msg.translate(player.locale(), "favicons.title"))
+                        .setDisplay(Msg.get(player, "favicons.title"))
                         .setLore(Msg.lore(player.locale(), "favicons.title.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
@@ -121,20 +122,20 @@ public class DisplayTitle extends Action {
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(OAK_SIGN).setDisplay(Msg.translate(player.locale(), "favicons.title"))
+        return ItemBuilder.modern(OAK_SIGN).setDisplay(Msg.get(player, "favicons.title"))
                 .setLore(
-                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
+                        Msg.get(player, "favicons.delay", Arg.arg(getDelay())),
                         Msg.format("<dark_aqua><st>                                    "),
-                        Msg.translate(player.locale(), "favicons.preview"),
+                        Msg.get(player, "favicons.preview"),
                         Msg.format("<white><!i>" + getTitle()),
                         Msg.format("<white><!i>" + getSubTitle()),
                         Msg.format("<dark_aqua><st>                                    "),
-                        Msg.translate(player.locale(), "menus.action.title.display.fade_in", fadeIn),
-                        Msg.translate(player.locale(), "menus.action.title.display.stay", stay),
-                        Msg.translate(player.locale(), "menus.action.title.display.fade_out", fadeOut),
+                        Msg.get(player, "menus.action.title.display.fade_in", Arg.arg(fadeIn)),
+                        Msg.get(player, "menus.action.title.display.stay", Arg.arg(stay)),
+                        Msg.get(player, "menus.action.title.display.fade_out", Arg.arg(fadeOut)),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "favicons.edit"),
-                        Msg.translate(player.locale(), "favicons.remove")
+                        Msg.get(player, "favicons.edit"),
+                        Msg.get(player, "favicons.remove")
                 ).build();
     }
 
@@ -204,7 +205,7 @@ public class DisplayTitle extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.get(player, "menus.action_customizer.title"));
         }
 
         @Override
@@ -217,145 +218,94 @@ public class DisplayTitle extends Action {
 
             Component[] incLore = Msg.lore(player.locale(), "menus.action_customizer.delay.increment.description");
             Component[] decLore = Msg.lore(player.locale(), "menus.action_customizer.delay.decrement.description");
-            Component displayLore = Msg.translate(player.locale(), "menus.action.title.display.lore");
+            Component displayLore = Msg.get(player, "menus.action.title.display.lore");
 
             return MenuUtils.actionBase(action, player)
                     .setButton(10, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.title.fade_in.increase"))
+                                    .setDisplay(Msg.get(player, "menus.action.title.fade_in.increase"))
                                     .setLore(incLore).build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (event.isShiftClick()) {
-                                    action.setFadeIn(action.getFadeIn() + 20);
-                                } else if (event.isLeftClick()) {
-                                    action.setFadeIn(action.getFadeIn() + 1);
-                                } else if (event.isRightClick()) {
-                                    action.setFadeIn(action.getFadeIn() + 5);
-                                }
-                                menuView.updateButton(19,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.title.display.fade_in", action.getFadeIn(), displayLore))));
+                                action.setFadeIn(Utils.increment(event).apply(action.fadeIn));
+                                menuView.replaceButton(19, MenuItems.display(Msg.get(player, "menus.action.title.display.fade_in", Arg.arg(action.getFadeIn())), displayLore));
                             }))
                     ).setButton(12, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.title.stay.increase"))
+                                    .setDisplay(Msg.get(player, "menus.action.title.stay.increase"))
                                     .setLore(incLore).build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (event.isShiftClick()) {
-                                    action.setStay(action.getStay() + 20);
-                                } else if (event.isLeftClick()) {
-                                    action.setStay(action.getStay() + 1);
-                                } else if (event.isRightClick()) {
-                                    action.setStay(action.getStay() + 5);
-                                }
-                                menuView.updateButton(21,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.title.display.stay", action.getStay(), displayLore))));
+                                action.setStay(Utils.increment(event).apply(action.stay));
+                                menuView.replaceButton(21, MenuItems.display(Msg.get(player, "menus.action.title.display.stay", Arg.arg(action.getStay())), displayLore));
                             }))
                     ).setButton(14, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.title.fade_out.increase"))
+                                    .setDisplay(Msg.get(player, "menus.action.title.fade_out.increase"))
                                     .setLore(incLore).build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (event.isShiftClick()) {
-                                    action.setFadeOut(action.getFadeOut() + 20);
-                                } else if (event.isLeftClick()) {
-                                    action.setFadeOut(action.getFadeOut() + 1);
-                                } else if (event.isRightClick()) {
-                                    action.setFadeOut(action.getFadeOut() + 5);
-                                }
-                                menuView.updateButton(23,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.title.display.fade_out", action.getFadeOut(), displayLore))));
+                                action.setFadeOut(Utils.increment(event).apply(action.fadeOut));
+                                menuView.replaceButton(23, MenuItems.display(Msg.get(player, "menus.action.title.display.fade_out", Arg.arg(action.fadeOut)), displayLore));
                             }))
-                    ).setButton(19, Button.empty(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus" +
-                            ".action.title.display.fade_in", action.fadeIn, displayLore)))
-                    ).setButton(21, Button.empty(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus" +
-                            ".action.title.display.stay", action.stay, displayLore)))
-                    ).setButton(23, Button.empty(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus" +
-                            ".action.title.display.fade_out", action.fadeOut, displayLore)))
+                    ).setButton(19, MenuItems.display(Msg.get(player, "menus.action.title.display.fade_in", Arg.arg(action.fadeIn)), displayLore)
+                    ).setButton(21, MenuItems.display(Msg.get(player, "menus.action.title.display.stay", Arg.arg(action.stay)), displayLore)
+                    ).setButton(23, MenuItems.display(Msg.get(player, "menus.action.title.display.fade_out", Arg.arg(action.fadeOut)), displayLore)
                     ).setButton(28, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.title.fade_in.decrease"))
+                                    .setDisplay(Msg.get(player, "menus.action.title.fade_in.decrease"))
                                     .setLore(decLore).build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 if (action.fadeIn == 1) {
-                                    player.sendMessage(Msg.translate(player.locale(), "menus.action.title" +
-                                            ".duration_less_than_1"));
+                                    player.sendMessage(Msg.get(player, "menus.action.title.duration_less_than_1"));
                                     return;
                                 }
-
-                                if (event.isShiftClick()) {
-                                    action.setFadeIn(Math.max((action.fadeIn - 20), 1));
-                                } else if (event.isLeftClick()) {
-                                    action.setFadeIn(Math.max((action.fadeIn - 1), 1));
-                                } else if (event.isRightClick()) {
-                                    action.setFadeIn(Math.max((action.fadeIn - 5), 1));
-                                }
-                                menuView.updateButton(19,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.title.display.fade_in", action.getFadeIn(), displayLore))));
+                                action.setFadeIn(Math.max(1, Utils.decrement(event).apply(action.fadeIn)));
+                                menuView.replaceButton(19, MenuItems.display(Msg.get(player, "menus.action.title.display.fade_in", Arg.arg(action.getFadeIn())), displayLore));
                             }))
                     ).setButton(30, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.title.stay.decrease"))
+                                    .setDisplay(Msg.get(player, "menus.action.title.stay.decrease"))
                                     .setLore(decLore).build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 if (action.fadeIn == 1) {
-                                    player.sendMessage(Msg.translate(player.locale(), "menus.action.title" +
-                                            ".duration_less_than_1"));
+                                    player.sendMessage(Msg.get(player, "menus.action.title.duration_less_than_1"));
                                     return;
                                 }
-
-                                if (event.isShiftClick()) {
-                                    action.setStay(Math.max((action.stay - 20), 1));
-                                } else if (event.isLeftClick()) {
-                                    action.setStay(Math.max((action.stay - 1), 1));
-                                } else if (event.isRightClick()) {
-                                    action.setStay(Math.max((action.stay - 5), 1));
-                                }
-                                menuView.updateButton(19,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.title.display.stay", action.getStay(), displayLore))));
+                                action.setStay(Math.max(1, Utils.decrement(event).apply(action.stay)));
+                                menuView.replaceButton(19, MenuItems.display(Msg.get(player, "menus.action.title.display.stay", Arg.arg(action.getStay())), displayLore));
                             }))
                     ).setButton(32, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.title.fade_out.decrease"))
+                                    .setDisplay(Msg.get(player, "menus.action.title.fade_out.decrease"))
                                     .setLore(decLore).build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 if (action.fadeOut == 1) {
-                                    player.sendMessage(Msg.translate(player.locale(), "menus.action.title" +
-                                            ".duration_less_than_1"));
+                                    player.sendMessage(Msg.get(player, "menus.action.title.duration_less_than_1"));
                                     return;
                                 }
-
-                                if (event.isShiftClick()) {
-                                    action.setFadeOut(Math.max((action.fadeOut - 20), 1));
-                                } else if (event.isLeftClick()) {
-                                    action.setFadeOut(Math.max((action.fadeOut - 1), 1));
-                                } else if (event.isRightClick()) {
-                                    action.setFadeOut(Math.max((action.fadeOut - 5), 1));
-                                }
-                                menuView.updateButton(19,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.title.display.fade_out", action.getFadeOut(), displayLore))));
+                                action.setFadeOut(Math.max(1, Utils.decrement(event).apply(action.fadeOut)));
+                                menuView.replaceButton(19, MenuItems.display(Msg.get(player, "menus.action.title.display.fade_out", Arg.arg(action.getFadeOut())), displayLore));
                             }))
                     ).setButton(16, Button.clickable(ItemBuilder.modern(OAK_HANGING_SIGN)
-                            .setDisplay(Msg.translate(player.locale(), "menus.action.title.current.title"))
-                            .setLore(Msg.format("<white><!i>" + action.getTitle()), Component.empty(),
-                                    Msg.translate(player.locale(), "items.click_to_change"))
-                                    .build(), ButtonClickAction.plain((menuView, event) -> {
+                                    .setDisplay(Msg.get(player, "menus.action.title.current.title"))
+                                    .setLore(Msg.format("<white><!i>%s", action.getTitle()), Component.empty(),
+                                            Msg.get(player, "items.click_to_change"))
+                                    .build(), ButtonClickAction.plain((_, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 Player p = (Player) event.getWhoClicked();
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 p.closeInventory();
-                        plugin.wait(p, WaitingType.TITLE);
+                                plugin.wait(p, WaitingType.TITLE);
                             }))
                     ).setButton(34, Button.clickable(ItemBuilder.modern(DARK_OAK_HANGING_SIGN)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.title.current.subtitle"))
-                                    .setLore(Msg.format("<white><!i>" + action.getSubTitle()), Component.empty(),
-                                            Msg.translate(player.locale(), "items.click_to_change"))
+                                    .setDisplay(Msg.get(player, "menus.action.title.current.subtitle"))
+                                    .setLore(Msg.format("<white><!i>%s", action.getSubTitle()), Component.empty(),
+                                            Msg.get(player, "items.click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);

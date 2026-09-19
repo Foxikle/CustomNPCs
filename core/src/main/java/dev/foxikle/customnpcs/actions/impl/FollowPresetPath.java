@@ -29,6 +29,7 @@ import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
@@ -152,8 +153,8 @@ public class FollowPresetPath extends Action {
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(Material.RAIL)
-                        .setDisplay(Msg.translate(player.locale(), "menus.action.follow_path.favicon"))
-                        .setLore(Msg.translate(player.locale(), "menus.action.follow_path.description"))
+                        .setDisplay(Msg.get(player, "menus.action.follow_path.favicon"))
+                        .setLore(Msg.get(player, "menus.action.follow_path.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
                     Player p = (Player) event.getWhoClicked();
@@ -206,15 +207,15 @@ public class FollowPresetPath extends Action {
     @Override
     public ItemStack getFavicon(Player player) {
         return ItemBuilder.modern(Material.RAIL)
-                .setDisplay(Msg.translate(player.locale(), "menus.action.follow_path.favicon"))
+                .setDisplay(Msg.get(player, "menus.action.follow_path.favicon"))
                 .setLore(
-                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
+                        Msg.get(player, "favicons.delay", Arg.arg(getDelay())),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "menus.action.follow_path.nodes", path.size()),
-                        Msg.translate(player.locale(), "menus.action.follow_path.looped", loop),
+                        Msg.get(player, "menus.action.follow_path.nodes", Arg.arg(path.size())),
+                        Msg.get(player, "menus.action.follow_path.looped", Arg.arg(loop)),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "favicons.edit"),
-                        Msg.translate(player.locale(), "favicons.remove")
+                        Msg.get(player, "favicons.edit"),
+                        Msg.get(player, "favicons.remove")
                 )
                 .build();
     }
@@ -254,7 +255,7 @@ public class FollowPresetPath extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action.follow_path.title"));
+            return MenuTitles.createModern(Msg.get(player, "menus.action.follow_path.title"));
         }
 
         @Override
@@ -272,10 +273,8 @@ public class FollowPresetPath extends Action {
 
         private Button candle(Player player) {
             return Button.clickable(ItemBuilder.modern(action.loop ? Material.GREEN_CANDLE : Material.RED_CANDLE)
-                    .setDisplay(Msg.translate(player.locale(), action.loop ? "menus.action.follow_path" +
-                            ".loop.true" : "menus.action.follow_path.loop.false"))
-                    .setLore(Msg.lore(player.locale(), action.loop ? "menus.action.follow_path.loop.true" +
-                            ".description" : "menus.action.follow_path.loop.false.description"))
+                    .setDisplay(Msg.get(player, "menus.action.follow_path.loop." + action.loop))
+                    .setLore(Msg.lore(player.locale(), "menus.action.follow_path.loop." + action.loop + ".description"))
                     .build(), ButtonClickAction.plain((m, e) -> {
                         e.setCancelled(true);
                         player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
@@ -289,19 +288,18 @@ public class FollowPresetPath extends Action {
         private Button button(Player player) {
             if (action.path == null || action.path.isEmpty()) {
                 return Button.clickable(ItemBuilder.modern(Material.PLAYER_HEAD)
-                        .setDisplay(Msg.translate(player.locale(), "menus.action.follow_path.record"))
-                        .setLore(Msg.translate(player.locale(), "menus.action.follow_path.record.lore"))
-                        .build(), ButtonClickAction.plain((menuView, event) -> {
+                        .setDisplay(Msg.get(player, "menus.action.follow_path.record"))
+                        .setLore(Msg.get(player, "menus.action.follow_path.record.lore"))
+                        .build(), ButtonClickAction.plain((_, _) -> {
                     player.closeInventory();
                     startRecording(player);
                 }));
             }
 
             return Button.clickable(ItemBuilder.modern(Material.PLAYER_HEAD)
-                    .setDisplay(Msg.translate(player.locale(), "menus.action.follow_path.rerecord"))
-                    .setLore(Msg.translate(player.locale(), "menus.action.follow_path.rerecord.lore",
-                            path.size()))
-                    .build(), ButtonClickAction.plain((menuView, event) -> {
+                    .setDisplay(Msg.get(player, "menus.action.follow_path.rerecord"))
+                    .setLore(Msg.get(player, "menus.action.follow_path.rerecord.lore", Arg.arg(path.size())))
+                    .build(), ButtonClickAction.plain((_, _) -> {
                 player.closeInventory();
                 startRecording(player);
             }));

@@ -29,6 +29,7 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
@@ -103,7 +104,7 @@ public class RunCommand extends Action {
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(ANVIL)
-                        .setDisplay(Msg.translate(player.locale(), "favicons.command"))
+                        .setDisplay(Msg.get(player, "favicons.command"))
                         .setLore(Msg.lore(player.locale(), "favicons.command.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
@@ -119,15 +120,14 @@ public class RunCommand extends Action {
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(ANVIL).setDisplay(Msg.translate(player.locale(), "favicons.command"))
+        return ItemBuilder.modern(ANVIL).setDisplay(Msg.get(player, "favicons.command"))
                 .setLore(
-                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
+                        Msg.get(player, "favicons.delay", Arg.arg(getDelay())),                        Msg.format(""),
+                        Msg.get(player, "favicons.command.syntax", Arg.arg(command)),
+                        Msg.get(player, "favicons.command.as_console", Arg.arg(asConsole)),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "favicons.command.syntax", command),
-                        Msg.translate(player.locale(), "favicons.command.as_console", asConsole),
-                        Msg.format(""),
-                        Msg.translate(player.locale(), "favicons.edit"),
-                        Msg.translate(player.locale(), "favicons.remove")
+                        Msg.get(player, "favicons.edit"),
+                        Msg.get(player, "favicons.remove")
                 ).build();
     }
 
@@ -175,7 +175,7 @@ public class RunCommand extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.get(player, "menus.action_customizer.title"));
         }
 
         @Override
@@ -199,19 +199,18 @@ public class RunCommand extends Action {
             if (isAsConsole()) {
                 lore.addAll(Utils.list(Msg.lore(player.locale(), "menus.action.command.as_console.warning")));
             }
-            lore.add(Msg.translate(player.locale(), "items.click_to_change"));
+            lore.add(Msg.get(player, "items.click_to_change"));
             return Button.clickable(ItemBuilder.modern(isAsConsole() ? RED_CANDLE : GREEN_CANDLE)
                             .setLore(lore.toArray(new Component[]{}))
-                            .setDisplay(isAsConsole() ? Msg.translate(player.locale(), "menus.action" +
-                                    ".command.as_console.true") :
-                                    Msg.translate(player.locale(), "menus.action.command.as_console.false"))
+                            .setDisplay(isAsConsole() ? Msg.get(player, "menus.action.command.as_console.true") :
+                                    Msg.get(player, "menus.action.command.as_console.false"))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);
                         player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                         Player p = (Player) event.getWhoClicked();
                         if (!p.hasPermission("customnpcs.run_command.enable_console")) {
-                            p.sendMessage(Msg.translate(player.locale(), "commands.no_permission"));
+                            p.sendMessage(Msg.get(player, "commands.no_permission"));
                             return;
                         }
 
@@ -223,7 +222,7 @@ public class RunCommand extends Action {
         private Button setCommand(Player player) {
             return Button.clickable(ItemBuilder.modern(ANVIL)
                             .setDisplay(Component.text("/" + getCommand()))
-                            .setLore(Msg.translate(player.locale(), "items.click_to_change"))
+                            .setLore(Msg.get(player, "items.click_to_change"))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         CustomNPCs plugin = CustomNPCs.getInstance();
@@ -245,18 +244,16 @@ public class RunCommand extends Action {
                 lore = Msg.lore(player.locale(), "menus.action.command.papi_tip.all_good");
             }
             return Button.clickable(ItemBuilder.modern(REDSTONE_TORCH)
-                    .setDisplay(Msg.translate(player.locale(), "menus.action.command.papi_tip.title"))
+                    .setDisplay(Msg.get(player, "menus.action.command.papi_tip.title"))
                     .setLore(lore)
                     .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
                 inventoryClickEvent.setCancelled(true);
                 if (!CustomNPCs.getInstance().papi) {
-                    player.sendMessage(Msg.translate(player.locale(),
-                            "menus.action.command.papi_tip.download.plugin"));
+                    player.sendMessage(Msg.get(player, "menus.action.command.papi_tip.download.plugin"));
                     return;
                 }
                 if (!CustomNPCs.getInstance().papiPlayerExpansion) {
-                    player.sendMessage(Msg.translate(player.locale(),
-                            "menus.action.command.papi_tip.download.expansion"));
+                    player.sendMessage(Msg.get(player, "menus.action.command.papi_tip.download.expansion"));
                 }
             }));
         }

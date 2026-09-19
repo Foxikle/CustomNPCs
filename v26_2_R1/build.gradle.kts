@@ -36,7 +36,7 @@ repositories {
 dependencies {
     compileOnly("me.clip:placeholderapi:2.12.2")
     compileOnly(project(":core"))
-    paperweight.paperDevBundle("26.2-rc-2.build.+")
+    paperweight.paperDevBundle("26.2.build.+")
 }
 
 tasks {

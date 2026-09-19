@@ -46,7 +46,7 @@ public class ExtraSettingsMenu implements Menu {
 
     @Override
     public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "menus.extra.title"));
+        return MenuTitles.createModern(Msg.get(player, "menus.extra.title"));
     }
 
     @Override
@@ -62,7 +62,7 @@ public class ExtraSettingsMenu implements Menu {
             return Content.builder(capacity)
                     .setButton(22, Button.clickable(
                             ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.main.error.no_npc"))
+                                    .setDisplay(Msg.get(player, "menus.main.error.no_npc"))
                                     .setLore(Msg.lore(player.locale(), "menus.main.error.no_npc.lore"))
                                     .build(),
                             new CloseMenuAction()

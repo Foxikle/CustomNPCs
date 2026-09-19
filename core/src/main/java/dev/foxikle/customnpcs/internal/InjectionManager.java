@@ -67,8 +67,7 @@ public class InjectionManager {
 
             if (player.getWorld() != npc.getCurrentLocation().getWorld()) {
                 if (plugin.isDebug()) {
-                    plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler as they " +
-                            "are in a different world.", player.getName(),
+                    plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler as they are in a different world.", player.getName(),
                             npc.getSettings().getRawHolograms().getFirst()));
                 }
                 isVisible.remove(player.getUniqueId());
@@ -78,8 +77,7 @@ public class InjectionManager {
             double distance = player.getLocation().distanceSquared(npc.getCurrentLocation());
             if (distance > INJECTION_DISTANCE) {
                 if (plugin.isDebug()) {
-                    plugin.getLogger().info(String.format("[DEBUG] Tried to inject %s with %s, but they are too far " +
-                            "away! (Distance^2: %f )", player.getName(),
+                    plugin.getLogger().info(String.format("[DEBUG] Tried to inject %s with %s, but they are too far away! (Distance^2: %f )", player.getName(),
                             npc.getSettings().getRawHolograms().getFirst(), distance));
                 }
                 isVisible.put(player.getUniqueId(), false);
@@ -101,8 +99,7 @@ public class InjectionManager {
 
         for (UUID uuid : toRemove) {
             if (plugin.isDebug()) {
-                plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler! (likley " +
-                        "offline)", uuid.toString(), npc.getSettings().getRawHolograms().getFirst()));
+                plugin.getLogger().info(String.format("[DEBUG] Removing %s from %s's injection handler! (likley offline)", uuid.toString(), npc.getSettings().getRawHolograms().getFirst()));
             }
             isVisible.remove(uuid);
         }

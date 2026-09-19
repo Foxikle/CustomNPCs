@@ -30,6 +30,7 @@ import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
@@ -88,7 +89,7 @@ public class SendServer extends Action {
     public Button creationButton(Player player) {
         return
                 Button.clickable(ItemBuilder.modern(GRASS_BLOCK)
-                                .setDisplay(Msg.translate(player.locale(), "favicons.server"))
+                                .setDisplay(Msg.get(player, "favicons.server"))
                                 .setLore(Msg.lore(player.locale(), "favicons.server.description"))
                                 .build(),
                         ButtonClickAction.plain((menuView, event) -> {
@@ -120,14 +121,13 @@ public class SendServer extends Action {
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(GRASS_BLOCK).setDisplay(Msg.translate(player.locale(), "favicons.server"))
+        return ItemBuilder.modern(GRASS_BLOCK).setDisplay(Msg.get(player, "favicons.server"))
                 .setLore(
-                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
+                        Msg.get(player, "favicons.delay", Arg.arg(getDelay())),                        Msg.format(""),
+                        Msg.get(player, "favicons.server.target", Arg.arg(server)),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "favicons.server.target", server),
-                        Msg.format(""),
-                        Msg.translate(player.locale(), "favicons.edit"),
-                        Msg.translate(player.locale(), "favicons.remove")
+                        Msg.get(player, "favicons.edit"),
+                        Msg.get(player, "favicons.remove")
                 ).build();
     }
 
@@ -180,7 +180,7 @@ public class SendServer extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.get(player, "menus.action_customizer.title"));
         }
 
         @Override
@@ -193,7 +193,7 @@ public class SendServer extends Action {
             return MenuUtils.actionBase(action, player)
                     .setButton(22, Button.clickable(ItemBuilder.modern(OAK_HANGING_SIGN)
                                     .setDisplay(Component.text(getServer()))
-                                    .setLore(Msg.translate(player.locale(), "items.click_to_change"))
+                                    .setLore(Msg.get(player, "items.click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 CustomNPCs plugin = CustomNPCs.getInstance();

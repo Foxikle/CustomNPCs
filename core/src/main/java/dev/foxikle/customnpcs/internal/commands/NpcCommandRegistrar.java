@@ -42,6 +42,7 @@ import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.storage.FileStorage;
 import dev.foxikle.customnpcs.internal.storage.StorableNPC;
 import dev.foxikle.customnpcs.internal.storage.StorageManager;
+import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.BrokenReason;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
@@ -177,7 +178,7 @@ public class NpcCommandRegistrar {
         }
         CustomNPCs plugin = CustomNPCs.getInstance();
         if (plugin.getConfig().getBoolean("EditTip") && Utils.shouldSendEditTip(player)) {
-            player.sendMessage(Msg.translate(player.locale(), "commands.manage.button.edit.tip"));
+            player.sendMessage(Msg.get(player, "commands.manage.button.edit.tip"));
         }
         InternalNpc finalNpc = plugin.getNPCByID(uuid);
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -253,7 +254,7 @@ public class NpcCommandRegistrar {
                             InternalNpc newNpc = finalNpc.clone();
                             newNpc.setSpawnLoc(player.getLocation());
                             newNpc.createNPC();
-                            player.sendMessage(Msg.translate(player.locale(), "commands.clone.success"));
+                            player.sendMessage(Msg.get(player, "commands.clone.success"));
                             return 1;
                         })
                         .build())
@@ -283,7 +284,7 @@ public class NpcCommandRegistrar {
                             }
                             CustomNPCs plugin = CustomNPCs.getInstance();
                             InternalNpc finalNpc = plugin.getNPCByID(uuid);
-                            player.sendMessage(Msg.translate(player.locale(), "commands.move.nudge"));
+                            player.sendMessage(Msg.get(player, "commands.move.nudge"));
                             finalNpc.teleport(player.getLocation());
                             finalNpc.remove();
                             finalNpc.createNPC();
@@ -370,12 +371,12 @@ public class NpcCommandRegistrar {
                     CustomNPCs plugin = CustomNPCs.getInstance();
                     plugin.setReloading(true);
                     Locale locale = getLocale(sender);
-                    sender.sendMessage(Msg.translate(locale, "commands.reload.start"));
+                    sender.sendMessage(Msg.get(locale, "commands.reload.start"));
                     plugin.reloadConfig();
                     plugin.onDisable();
                     plugin.onEnable();
                     plugin.setReloading(false);
-                    sender.sendMessage(Msg.translate(locale, "commands.reload.end"));
+                    sender.sendMessage(Msg.get(locale, "commands.reload.end"));
                     return 1;
                 })
                 .build();
@@ -389,11 +390,10 @@ public class NpcCommandRegistrar {
                     CommandSender sender = context.getSource().getSender();
                     Locale locale = getLocale(sender);
                     sender.sendMessage(
-                            Msg.translate(locale, "commands.wiki")
+                            Msg.get(locale, "commands.wiki")
                                     .clickEvent(ClickEvent.openUrl("https://docs.foxikle.dev"))
                                     .appendSpace()
-                                    .hoverEvent(HoverEvent.showText(Msg.translate(locale, "commands.wiki" +
-                                            ".hover")))
+                                    .hoverEvent(HoverEvent.showText(Msg.get(locale, "commands.wiki.hover")))
                     );
                     return 1;
                 })
@@ -421,18 +421,16 @@ public class NpcCommandRegistrar {
                             String arg = StringArgumentType.getString(context, "tip");
                             switch (arg) {
                                 case "edit" -> {
-                                    player.sendMessage(Msg.translate(locale, "commands.disabletip.edit"));
+                                    player.sendMessage(Msg.get(locale, "commands.disabletip.edit"));
                                     player.getPersistentDataContainer().set(Utils.HIDE_EDIT_TIP,
                                             PersistentDataType.BOOLEAN, true);
                                 }
                                 case "name_reference" -> {
-                                    player.sendMessage(Msg.translate(locale, "commands.disabletip" +
-                                            ".name_reference"));
+                                    player.sendMessage(Msg.get(locale, "commands.disabletip.name_reference"));
                                     player.getPersistentDataContainer().set(Utils.HIDE_NAME_REFERENCE,
                                             PersistentDataType.BOOLEAN, true);
                                 }
-                                default -> player.sendMessage(Msg.translate(locale, "commands.disabletip" +
-                                        ".unknown_tip", arg));
+                                default -> player.sendMessage(Msg.get(locale, "commands.disabletip.unknown_tip", Arg.arg(arg)));
                             }
                             return 1;
                         }))
@@ -447,12 +445,10 @@ public class NpcCommandRegistrar {
                     CommandSender sender = context.getSource().getSender();
                     CustomNPCs plugin = CustomNPCs.getInstance();
                     if (plugin.isDebug()) {
-                        sender.sendMessage(Msg.translate(getLocale(sender), "commands.debug.message" +
-                                ".disable"));
+                        sender.sendMessage(Msg.get(getLocale(sender), "commands.debug.message.disable"));
                         plugin.setDebug(false);
                     } else {
-                        sender.sendMessage(Msg.translate(getLocale(sender), "commands.debug.message" +
-                                ".enable"));
+                        sender.sendMessage(Msg.get(getLocale(sender), "commands.debug.message.enable"));
                         plugin.setDebug(true);
                     }
                     return 1;
@@ -467,7 +463,7 @@ public class NpcCommandRegistrar {
                 .executes(context -> {
                     CommandSender sender = context.getSource().getSender();
                     Locale locale = getLocale(sender);
-                    sender.sendMessage(Msg.translate(locale, "commands.fix_config.usage"));
+                    sender.sendMessage(Msg.get(locale, "commands.fix_config.usage"));
                     return 0;
                 })
                 .then(LiteralArgumentBuilder.<CommandSourceStack>literal("world")
@@ -519,8 +515,7 @@ public class NpcCommandRegistrar {
                             if (plugin.isWaiting(player, WaitingType.SOUND)) {
                                 String formatted = soundRaw.trim().toLowerCase();
                                 if (Registry.SOUNDS.get(NamespacedKey.fromString(formatted)) == null) {
-                                    player.sendMessage(Msg.translate(player.locale(), "commands.setsound" +
-                                            ".unknown_sound"));
+                                    player.sendMessage(Msg.get(player, "commands.setsound.unknown_sound"));
                                 }
 
                                 Bukkit.getScheduler().runTask(plugin, () -> {
@@ -532,13 +527,11 @@ public class NpcCommandRegistrar {
                                     } else {
                                         throw new IllegalArgumentException("Action " + actionImpl.getClass().getName() + " is not of type PlaySound");
                                     }
-                                    player.sendMessage(Msg.translate(player.locale(), "commands.setsound" +
-                                            ".success", Component.text(formatted)));
+                                    player.sendMessage(Msg.get(player, "commands.setsound.success", Arg.arg(formatted)));
                                     plugin.getLotus().openMenu(player, actionImpl.getMenu());
                                 });
                             } else {
-                                player.sendMessage(Msg.translate(player.locale(), "commands.setsound" +
-                                        ".was_not_waiting"));
+                                player.sendMessage(Msg.get(player, "commands.setsound.was_not_waiting"));
                             }
                             return 1;
                         })
@@ -554,7 +547,7 @@ public class NpcCommandRegistrar {
                         .requires(sender -> sender.getSender().hasPermission(PERMISSION_MOVEDATA))
                         .executes(ctx -> {
                             ctx.getSource().getSender().sendMessage(
-                                    Msg.translate(
+                                    Msg.get(
                                             CommandUtils.getLocale(ctx.getSource().getSender()),
                                             "commands.movedata.invalid_operation"
                                     )
@@ -574,13 +567,13 @@ public class NpcCommandRegistrar {
                                     String operation = StringArgumentType.getString(ctx, "operation");
                                     if (!(operation.equalsIgnoreCase("MERGE_LOCAL") || operation.equalsIgnoreCase(
                                             "MERGE_REMOTE") || operation.equalsIgnoreCase("OVERWRITE"))) {
-                                        ctx.getSource().getSender().sendMessage(Msg.translate(
+                                        ctx.getSource().getSender().sendMessage(Msg.get(
                                                 CommandUtils.getLocale(ctx.getSource().getSender()),
                                                 "commands.movedata.invalid_operation"));
                                         return 0;
                                     }
                                     ctx.getSource().getSender().sendMessage(
-                                            Msg.translate(CommandUtils.getLocale(ctx.getSource().getSender()),
+                                            Msg.get(CommandUtils.getLocale(ctx.getSource().getSender()),
                                                     "commands.movedata.need_confirm"));
 
                                     return 1;
@@ -603,7 +596,7 @@ public class NpcCommandRegistrar {
 
     private static int executeMoveData(CommandSender source, String operation, List<String> flags) {
         if (!(operation.equalsIgnoreCase("MERGE_LOCAL") || operation.equalsIgnoreCase("MERGE_REMOTE") || operation.equalsIgnoreCase("OVERWRITE"))) {
-            source.sendMessage(Msg.translate(
+            source.sendMessage(Msg.get(
                     CommandUtils.getLocale(source),
                     "commands.movedata.invalid_operation"
             ));
@@ -611,7 +604,7 @@ public class NpcCommandRegistrar {
         }
 
         if (!(flags.contains("--confirm"))) {
-            source.sendMessage(Msg.translate(CommandUtils.getLocale(source),
+            source.sendMessage(Msg.get(CommandUtils.getLocale(source),
                     "commands.movedata.need_confirm"
             ));
             return 0;
@@ -627,22 +620,18 @@ public class NpcCommandRegistrar {
     }
 
     private static boolean start(CommandSender source) {
-        source.sendMessage(Msg.translate(CommandUtils.getLocale(source), "commands.movedata" +
-                ".operation_queued"));
+        source.sendMessage(Msg.get(CommandUtils.getLocale(source), "commands.movedata.operation_queued"));
 
         if ((CustomNPCs.getInstance().getStorageManager().getStorage() instanceof FileStorage)) {
-            CustomNPCs.getInstance().getLogger().log(Level.WARNING, "The current file provider is already File " +
-                    "storage!");
-            source.sendMessage(Msg.translate(CommandUtils.getLocale(source), "commands.movedata" +
-                    ".operation_failure"));
+            CustomNPCs.getInstance().getLogger().log(Level.WARNING, "The current file provider is already File storage!");
+            source.sendMessage(Msg.get(CommandUtils.getLocale(source), "commands.movedata.operation_failure"));
             return true;
         }
 
         if (!FileStorage.FILE.exists()) {
             CustomNPCs.getInstance().getLogger().log(Level.SEVERE, "The local NPC data file does not exist!",
                     new IllegalStateException());
-            source.sendMessage(Msg.translate(CommandUtils.getLocale(source), "commands.movedata" +
-                    ".operation_failure"));
+            source.sendMessage(Msg.get(CommandUtils.getLocale(source), "commands.movedata.operation_failure"));
             return true;
         }
         return false;
@@ -661,8 +650,7 @@ public class NpcCommandRegistrar {
                 currentData = fis.readAllBytes();
             } catch (Exception e) {
                 plugin.getLogger().log(Level.SEVERE, "An error occurred while reading local NPC file", e);
-                source.sendMessage(Msg.translate(CommandUtils.getLocale(source), "commands.movedata" +
-                        ".operation_failure"));
+                source.sendMessage(Msg.get(CommandUtils.getLocale(source), "commands.movedata.operation_failure"));
                 return;
             }
 
@@ -677,8 +665,7 @@ public class NpcCommandRegistrar {
                 if (throwable != null) {
                     plugin.getLogger().log(Level.SEVERE, "An error occurred while fetching remote NPC data!",
                             throwable);
-                    source.sendMessage(Msg.translate(CommandUtils.getLocale(source), "commands.movedata" +
-                            ".operation_failure"));
+                    source.sendMessage(Msg.get(CommandUtils.getLocale(source), "commands.movedata.operation_failure"));
                     return;
                 }
 
@@ -704,8 +691,7 @@ public class NpcCommandRegistrar {
                 currentData = fis.readAllBytes();
             } catch (Exception e) {
                 plugin.getLogger().log(Level.SEVERE, "An error occurred while reading local NPC file", e);
-                source.sendMessage(Msg.translate(CommandUtils.getLocale(source), "commands.movedata" +
-                        ".operation_failure"));
+                source.sendMessage(Msg.get(CommandUtils.getLocale(source), "commands.movedata.operation_failure"));
                 return;
             }
 
@@ -738,12 +724,10 @@ public class NpcCommandRegistrar {
                 if (throwable1 != null) {
                     plugin.getLogger().log(Level.SEVERE, "An error occurred while writing remote NPC data!",
                             throwable1);
-                    source.sendMessage(Msg.translate(CommandUtils.getLocale(source), "commands.movedata" +
-                            ".operation_failure"));
+                    source.sendMessage(Msg.get(CommandUtils.getLocale(source), "commands.movedata.operation_failure"));
                     return;
                 }
-                source.sendMessage(Msg.translate(CommandUtils.getLocale(source), "commands.movedata" +
-                        ".operation_success"));
+                source.sendMessage(Msg.get(CommandUtils.getLocale(source), "commands.movedata.operation_success"));
             });
         });
     }
@@ -774,7 +758,7 @@ public class NpcCommandRegistrar {
         }
 
         if (worldArg.isEmpty()) {
-            sender.sendMessage(Msg.translate(locale, "commands.fix_config.usage"));
+            sender.sendMessage(Msg.get(locale, "commands.fix_config.usage"));
             return 0;
         }
 
@@ -811,9 +795,8 @@ public class NpcCommandRegistrar {
                 } else {
                     loc = StorableNPC.StorableLocation.convert(new Location(w, 0, 0, 0, 0, 0));
                     locString = "(0, 0, 0)";
-                    plugin.getLogger().warning("Fixed an NPC whose location data was wiped by Bukkit's configuration " +
-                            "API. Its location was set to (0,0,0)");
-                    sender.sendMessage(Msg.translate(locale, "commands.fix_config.bukkit_wiped_data"));
+                    plugin.getLogger().warning("Fixed an NPC whose location data was wiped by Bukkit's configuration API. Its location was set to (0,0,0)");
+                    sender.sendMessage(Msg.get(locale, "commands.fix_config.bukkit_wiped_data"));
                 }
 
                 Location loc2 = loc.convert();
@@ -823,8 +806,7 @@ public class NpcCommandRegistrar {
                                 new Vector(0, -1, 0), 320D, FluidCollisionMode.NEVER);
 
                         if (traceResult == null) {
-                            plugin.getLogger().warning("Failed to fix npc " + uuid + " at " + locString + " -- " +
-                                    "Location cannot be made safe.");
+                            plugin.getLogger().warning("Failed to fix npc " + uuid + " at " + locString + " -- Location cannot be made safe.");
                             failedToFix.incrementAndGet();
                             continue;
                         }
@@ -845,13 +827,13 @@ public class NpcCommandRegistrar {
             try {
                 uuid = UUID.fromString(targetArg);
             } catch (IllegalArgumentException ignored) {
-                sender.sendMessage(Msg.translate(locale, "commands.invalid_name_or_uuid"));
+                sender.sendMessage(Msg.get(locale, "commands.invalid_name_or_uuid"));
                 return 0;
             }
 
             StorableNPC npc = fileManager.getBrokenNPCs(BrokenReason.INVALID_WORLD).get(uuid);
             if (npc == null) {
-                sender.sendMessage(Msg.translate(locale, "commands.invalid_name_or_uuid"));
+                sender.sendMessage(Msg.get(locale, "commands.invalid_name_or_uuid"));
                 return 0;
             }
 
@@ -865,9 +847,8 @@ public class NpcCommandRegistrar {
             } else {
                 loc = StorableNPC.StorableLocation.convert(new Location(w, 0, 0, 0, 0, 0));
                 locString = "(0, 0, 0)";
-                plugin.getLogger().warning("Fixed an NPC whose location data was wiped by Bukkit's configuration API." +
-                        " Its location was set to (0,0,0)");
-                sender.sendMessage(Msg.translate(locale, "commands.fix_config.bukkit_wiped_data"));
+                plugin.getLogger().warning("Fixed an NPC whose location data was wiped by Bukkit's configuration API. Its location was set to (0,0,0)");
+                sender.sendMessage(Msg.get(locale, "commands.fix_config.bukkit_wiped_data"));
             }
             loc2 = loc.convert();
 
@@ -877,8 +858,7 @@ public class NpcCommandRegistrar {
                             new Vector(0, -1, 0), 320D, FluidCollisionMode.NEVER);
 
                     if (traceResult == null) {
-                        plugin.getLogger().warning("Failed to fix npc " + uuid + " at " + locString + " -- Location " +
-                                "cannot be made safe.");
+                        plugin.getLogger().warning("Failed to fix npc " + uuid + " at " + locString + " -- Location cannot be made safe.");
                         failedToFix.incrementAndGet();
                         return 0;
                     }
@@ -894,8 +874,12 @@ public class NpcCommandRegistrar {
         }
 
         fileManager.saveNpcs();
-        sender.sendMessage(Msg.translate(locale, "commands.fix_config.report",
-                totalFixed.get(), movedbyStrategy.get(), failedToFix.get(), nonExistentNpcs.get()));
+        sender.sendMessage(Msg.get(locale, "commands.fix_config.report",
+                Arg.named("fixed", totalFixed.get()),
+                Arg.named("adjusted", movedbyStrategy.get()),
+                Arg.named("failed_fix", failedToFix.get()),
+                Arg.named("failed_find", nonExistentNpcs.get())
+        ));
         return 1;
     }
 
@@ -927,13 +911,13 @@ public class NpcCommandRegistrar {
             try {
                 uuid = UUID.fromString(targetArg);
             } catch (IllegalArgumentException ignored) {
-                sender.sendMessage(Msg.translate(locale, "commands.invalid_name_or_uuid"));
+                sender.sendMessage(Msg.get(locale, "commands.invalid_name_or_uuid"));
                 return 0;
             }
 
             StorableNPC npc = sm.getBrokenNPCs(BrokenReason.EMPTY_LINES).get(uuid);
             if (npc == null) {
-                sender.sendMessage(Msg.translate(locale, "commands.invalid_name_or_uuid"));
+                sender.sendMessage(Msg.get(locale, "commands.invalid_name_or_uuid"));
                 return 0;
             }
 
@@ -942,7 +926,12 @@ public class NpcCommandRegistrar {
             totalFixed.incrementAndGet();
             sm.getBrokenNPCs(BrokenReason.EMPTY_LINES).remove(uuid);
         }
-        sender.sendMessage(Msg.translate(locale, "commands.fix_config.report", totalFixed.get(), 0, 0, 0));
+        sender.sendMessage(Msg.get(locale, "commands.fix_config.report",
+                Arg.named("fixed", totalFixed.get()),
+                Arg.named("adjusted", 0),
+                Arg.named("failed_fix", 0),
+                Arg.named("failed_find", 0)
+        ));
         sm.saveNpcs();
         return 1;
     }

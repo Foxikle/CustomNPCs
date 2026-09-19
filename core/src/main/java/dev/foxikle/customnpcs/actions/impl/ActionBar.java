@@ -28,6 +28,7 @@ import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
@@ -42,7 +43,6 @@ import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.clip.placeholderapi.PlaceholderAPI;
 import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
 import org.bukkit.Sound;
@@ -88,7 +88,7 @@ public class ActionBar extends Action {
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(IRON_INGOT)
-                        .setDisplay(Msg.translate(player.locale(), "favicons.actionbar"))
+                        .setDisplay(Msg.get(player, "favicons.actionbar"))
                         .setLore(Msg.lore(player.locale(), "favicons.actionbar.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
@@ -106,17 +106,20 @@ public class ActionBar extends Action {
     }
 
     @Override
-    public ItemStack getFavicon(Player player) {
+    public ItemStack getFavicon(Player p) {
+        String raw = getRawMessage();
+        if (raw == null || raw.isEmpty()) {
+            raw = "<dark_gray><i><tr:messages.empty_string>";
+        }
         return ItemBuilder.modern(IRON_INGOT)
-                .setDisplay(Msg.translate(player.locale(), "favicons.actionbar"))
-                .setLore(Msg.translate(player.locale(), "favicons.delay", getDelay()),
-                        Msg.translate(player.locale(), "favicons.preview", Msg.format(getRawMessage())),
-                        Msg.format(getRawMessage().isEmpty() ?
-                                "<dark_gray><i>" + Msg.translatedString(player.locale(), "messages.empty_string") :
-                                getRawMessage()),
+                .setDisplay(Msg.get(p, "favicons.actionbar"))
+                .setLore(
+                        Msg.get(p, "favicons.delay", Arg.arg(getDelay())),
+                        Msg.get(p, "favicons.preview"),
+                        Msg.format(raw),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "favicons.edit"),
-                        Msg.translate(player.locale(), "favicons.remove")
+                        Msg.get(p, "favicons.edit"),
+                        Msg.get(p, "favicons.remove")
                 ).build();
     }
 
@@ -177,8 +180,8 @@ public class ActionBar extends Action {
         }
 
         @Override
-        public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
+        public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player p) {
+            return MenuTitles.createModern(Msg.get(p, "menus.action_customizer.title"));
         }
 
         @Override
@@ -188,12 +191,13 @@ public class ActionBar extends Action {
 
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
+
+            String raw = getRawMessage();
+            if (raw.isEmpty()) raw = "<dark_gray><i><tr:messages.empty_string>";
             return MenuUtils.actionBase(actionBar, player)
                     .setButton(22, Button.clickable(ItemBuilder.modern(PAPER)
-                                    .setDisplay(Msg.translate(player.locale(), getRawMessage().isEmpty() ?
-                                            "<dark_gray><i>" + Msg.translatedString(player.locale(),
-                                                    "messages.empty_string") : getRawMessage()))
-                                    .setLore(Msg.translate(player.locale(), "items.click_to_change"))
+                                    .setDisplay(Msg.get(player, raw))
+                                    .setLore(Msg.get(player, "items.click_to_change"))
                                     .build(),
                             ButtonClickAction.plain((_, event) -> {
                                 event.setCancelled(true);

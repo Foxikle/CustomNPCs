@@ -29,6 +29,7 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import io.github.mqzen.menus.base.Content;
@@ -108,7 +109,7 @@ public class PlaySound extends Action {
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(BELL)
-                        .setDisplay(Msg.translate(player.locale(), "favicons.sound"))
+                        .setDisplay(Msg.get(player, "favicons.sound"))
                         .setLore(Msg.lore(player.locale(), "favicons.sound.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
@@ -124,18 +125,16 @@ public class PlaySound extends Action {
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(BELL).setDisplay(Msg.translate(player.locale(), "favicons.sound"))
+        return ItemBuilder.modern(BELL).setDisplay(Msg.get(player, "favicons.sound"))
                 .setLore(
-                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
+                        Msg.get(player, "favicons.delay", Arg.arg(getDelay())),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "menus.action.sound.sound", sound),
-                        Msg.translate(player.locale(), "menus.action.sound.volume",
-                                DECIMAL_FORMAT.format(volume)),
-                        Msg.translate(player.locale(), "menus.action.sound.pitch",
-                                DECIMAL_FORMAT.format(pitch)),
+                        Msg.get(player, "menus.action.sound.sound", Arg.arg(sound)),
+                        Msg.get(player, "menus.action.sound.volume", Arg.arg(DECIMAL_FORMAT.format(volume))),
+                        Msg.get(player, "menus.action.sound.pitch", Arg.arg(DECIMAL_FORMAT.format(pitch))),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "favicons.edit"),
-                        Msg.translate(player.locale(), "favicons.remove")
+                        Msg.get(player, "favicons.edit"),
+                        Msg.get(player, "favicons.remove")
                 ).build();
     }
 
@@ -188,7 +187,7 @@ public class PlaySound extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.get(player, "menus.action_customizer.title"));
         }
 
         @Override
@@ -199,8 +198,8 @@ public class PlaySound extends Action {
         @Override
         public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
 
-            Component incLore = Msg.translate(player.locale(), "menus.action.sound.increase");
-            Component decLore = Msg.translate(player.locale(), "menus.action.sound.decrease");
+            Component incLore = Msg.get(player, "menus.action.sound.increase");
+            Component decLore = Msg.get(player, "menus.action.sound.decrease");
 
             return MenuUtils.actionBase(action, player)
 
@@ -210,8 +209,7 @@ public class PlaySound extends Action {
 
                     // increment
                     .setButton(10, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.sound" +
-                                            ".increase_pitch"))
+                                    .setDisplay(Msg.get(player, "menus.action.sound.increase_pitch"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -222,8 +220,7 @@ public class PlaySound extends Action {
                                 menuView.replaceButton(19, pitch(player));
                             }))
                     ).setButton(12, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.sound" +
-                                            ".increase_volume"))
+                                    .setDisplay(Msg.get(player, "menus.action.sound.increase_volume"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -236,8 +233,7 @@ public class PlaySound extends Action {
 
                     // decrement
                     .setButton(28, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.sound" +
-                                            ".decrease_pitch"))
+                                    .setDisplay(Msg.get(player, "menus.action.sound.decrease_pitch"))
                                     .setLore(decLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -246,16 +242,14 @@ public class PlaySound extends Action {
                                         Sound.Source.MASTER, 1, 1));
                                 Player p1 = (Player) event.getWhoClicked();
                                 if (getPitch() - .1 <= 0) {
-                                    p1.sendMessage(Msg.translate(player.locale(), "menus.action.sound" +
-                                            ".invalid_pitch"));
-                                } else {
-                                    setPitch(getPitch() - .1f);
+                                    p1.sendMessage(Msg.get(player, "menus.action.sound.invalid_pitch"));
+                                    return;
                                 }
+                                setPitch(getPitch() - .1f);
                                 menuView.replaceButton(19, pitch(player));
                             }))
                     ).setButton(30, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.sound" +
-                                            ".decrease_volume"))
+                                    .setDisplay(Msg.get(player, "menus.action.sound.decrease_volume"))
                                     .setLore(decLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
@@ -264,22 +258,19 @@ public class PlaySound extends Action {
                                         Sound.Source.MASTER, 1, 1));
                                 Player p1 = (Player) event.getWhoClicked();
                                 if (getVolume() - .1 <= 0) {
-                                    p1.sendMessage(Msg.translate(player.locale(), "menus.action.sound" +
-                                            ".invalid_volume"));
-                                } else {
-                                    setVolume(getVolume() - .1f);
-                                    menuView.replaceButton(21, volume(player));
+                                    p1.sendMessage(Msg.get(player, "menus.action.sound.invalid_volume"));
+                                    return;
                                 }
+                                setVolume(getVolume() - .1f);
+                                menuView.replaceButton(21, volume(player));
                             })))
 
                     // select sound button
                     .setButton(24, Button.clickable(ItemBuilder.modern(OAK_SIGN)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.sound.sound",
-                                            getSound()))
-                                    .setLore(Component.empty(), Msg.translate(player.locale(), "items" +
-                                            ".click_to_change"))
+                                    .setDisplay(Msg.get(player.locale(), "menus.action.sound.sound", Arg.arg(sound)))
+                                    .setLore(Component.empty(), Msg.get(player, "items.click_to_change"))
                                     .build(),
-                            ButtonClickAction.plain((menuView, event) -> {
+                            ButtonClickAction.plain((_, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(Sound.sound(Key.key("minecraft:ui.button.click"),
                                         Sound.Source.MASTER, 1, 1));
@@ -292,15 +283,11 @@ public class PlaySound extends Action {
         }
 
         private Button volume(Player player) {
-            return Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action" +
-                            ".sound.volume", DECIMAL_FORMAT.format(getVolume()))),
-                    ButtonClickAction.plain((menu, event) -> event.setCancelled(true)));
+            return MenuItems.display(Msg.get(player, "menus.action.sound.volume", Arg.arg(DECIMAL_FORMAT.format(volume))));
         }
 
         private Button pitch(Player player) {
-            return Button.clickable(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action" +
-                            ".sound.pitch", DECIMAL_FORMAT.format(getPitch()))),
-                    ButtonClickAction.plain((menu, event) -> event.setCancelled(true)));
+            return MenuItems.display(Msg.get(player, "menus.action.sound.pitch", Arg.arg(DECIMAL_FORMAT.format(pitch))));
         }
     }
 }

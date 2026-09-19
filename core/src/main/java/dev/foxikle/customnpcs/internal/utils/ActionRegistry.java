@@ -41,12 +41,10 @@ public class ActionRegistry {
 
     public void register(Action action) {
         if (idToInstance.containsKey(action.getId())) {
-            throw new IllegalArgumentException("An action with the ID '" + action.getId() + "' has already been " +
-                    "registered!");
+            throw new IllegalArgumentException("An action with the ID '" + action.getId() + "' has already been registered!");
         }
         if (classToInstance.containsKey(action.getClass())) {
-            throw new IllegalArgumentException("An action with the class '" + action.getClass().getName() + "' has " +
-                    "already been registered!");
+            throw new IllegalArgumentException("An action with the class '" + action.getClass().getName() + "' has already been registered!");
         }
         idToInstance.put(action.getId(), action);
         classToInstance.put(action.getClass(), action);

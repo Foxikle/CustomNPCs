@@ -29,7 +29,9 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuItems;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import io.github.mqzen.menus.base.Content;
 import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.misc.Capacity;
@@ -76,7 +78,7 @@ public class GiveXP extends Action {
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.modern(EXPERIENCE_BOTTLE)
-                        .setDisplay(Msg.translate(player.locale(), "favicons.give_xp"))
+                        .setDisplay(Msg.get(player, "favicons.give_xp"))
                         .setLore(Msg.lore(player.locale(), "favicons.give_xp.description"))
                         .build(),
                 ButtonClickAction.plain((menuView, event) -> {
@@ -108,17 +110,17 @@ public class GiveXP extends Action {
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(EXPERIENCE_BOTTLE).setDisplay(Msg.translate(player.locale(), "favicons.give_xp"))
+        return ItemBuilder.modern(EXPERIENCE_BOTTLE).setDisplay(Msg.get(player, "favicons.give_xp"))
                 .setLore(
-                        Msg.translate(player.locale(), "favicons.delay", getDelay()),
+                        Msg.get(player, "favicons.delay", Arg.arg(getDelay())),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "menus.action.give_xp.xp", amount),
-                        Msg.translate(player.locale(), "menus.action.give_xp.awarding", (levels ?
-                                Msg.translatedString(player.locale(), "menus.action.xp.levels") :
-                                Msg.translatedString(player.locale(), "menus.action.xp.points"))),
+                        Msg.get(player, "menus.action.give_xp.xp", Arg.arg(amount)),
+                        Msg.get(player, "menus.action.give_xp.awarding", Arg.arg(levels ?
+                                Msg.get(player, "menus.action.xp.levels") :
+                                Msg.get(player, "menus.action.xp.points"))),
                         Msg.format(""),
-                        Msg.translate(player.locale(), "favicons.edit"),
-                        Msg.translate(player.locale(), "favicons.remove")
+                        Msg.get(player, "favicons.edit"),
+                        Msg.get(player, "favicons.remove")
                 ).build();
     }
 
@@ -192,7 +194,7 @@ public class GiveXP extends Action {
 
         @Override
         public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.translate(player.locale(), "menus.action_customizer.title"));
+            return MenuTitles.createModern(Msg.get(player, "menus.action_customizer.title"));
         }
 
         @Override
@@ -210,57 +212,41 @@ public class GiveXP extends Action {
 
                     // increment
                     .setButton(11, Button.clickable(ItemBuilder.modern(LIME_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.give_xp.increase"))
+                                    .setDisplay(Msg.get(player, "menus.action.give_xp.increase"))
                                     .setLore(incLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                                if (event.isShiftClick()) {
-                                    setAmount(getAmount() + 20);
-                                } else if (event.isLeftClick()) {
-                                    setAmount(getAmount() + 1);
-                                } else if (event.isRightClick()) {
-                                    setAmount(getAmount() + 5);
-                                }
-                                menuView.updateButton(20,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.give_xp.xp", getAmount()))));
+
+                                amount = Utils.increment(event).apply(amount);
+                                menuView.replaceButton(20, MenuItems.display(Msg.get(player, "menus.action.give_xp.xp", Arg.arg(amount))));
                             }))
-                    ).setButton(20, MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.give_xp.xp"
-                            , getAmount()))
+                    ).setButton(20, MenuItems.display(Msg.get(player, "menus.action.give_xp.xp", Arg.arg(getAmount())))
                     ).setButton(29, Button.clickable(ItemBuilder.modern(RED_DYE)
-                                    .setDisplay(Msg.translate(player.locale(), "menus.action.give_xp.decrease"))
+                                    .setDisplay(Msg.get(player, "menus.action.give_xp.decrease"))
                                     .setLore(decLore)
                                     .build(),
                             ButtonClickAction.plain((menuView, event) -> {
                                 event.setCancelled(true);
                                 player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                                 if (getAmount() == 1) {
-                                    event.getWhoClicked().sendMessage(Msg.translate(player.locale(), "menus.action" +
-                                            ".give_xp.xp_less_one"));
+                                    event.getWhoClicked().sendMessage(Msg.get(player, "menus.action.give_xp.xp_less_one"));
                                     return;
                                 }
 
-                                if (event.isShiftClick()) {
-                                    setAmount(Math.max(1, getAmount() - 20));
-                                } else if (event.isLeftClick()) {
-                                    setAmount(Math.max(1, getAmount() - 1));
-                                } else if (event.isRightClick()) {
-                                    setAmount(Math.max(1, getAmount() - 5));
-                                }
-                                menuView.updateButton(20,
-                                        button -> button.setItem(MenuItems.genericDisplay(Msg.translate(player.locale(), "menus.action.give_xp.xp", getAmount()))));
+                                amount = Math.max(1, Utils.decrement(event).apply(amount));
+                                menuView.replaceButton(20, MenuItems.display(Msg.get(player, "menus.action.give_xp.xp", Arg.arg(amount))));
                             }))
                     ).setButton(24, toggle(player))
-
                     .build();
         }
 
         private Button toggle(Player player) {
             return Button.clickable(ItemBuilder.modern(isLevels() ? GREEN_CANDLE : RED_CANDLE)
-                            .setDisplay(Msg.translate(player.locale(), "menus.action.give_xp.awarding", (isLevels() ?
-                                    Msg.translate(player.locale(), "menus.action.xp.levels") :
-                                    Msg.translate(player.locale(), "menus.action.xp.points"))))
+                            .setDisplay(Msg.get(player, "menus.action.give_xp.awarding", Arg.arg((isLevels() ?
+                                    Msg.get(player, "menus.action.xp.levels") :
+                                    Msg.get(player, "menus.action.xp.points")))))
                             .build(),
                     ButtonClickAction.plain((menuView, event) -> {
                         event.setCancelled(true);

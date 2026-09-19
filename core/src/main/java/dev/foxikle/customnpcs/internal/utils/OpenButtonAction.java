@@ -22,7 +22,6 @@
 
 package dev.foxikle.customnpcs.internal.utils;
 
-import io.github.mqzen.menus.base.Menu;
 import io.github.mqzen.menus.base.MenuView;
 import io.github.mqzen.menus.misc.button.actions.ButtonClickAction;
 import org.bukkit.Sound;
@@ -39,15 +38,6 @@ public class OpenButtonAction implements ButtonClickAction {
     public OpenButtonAction(String id) {
         this.id = id;
         this.action = player -> player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-    }
-
-    public OpenButtonAction(String id, Consumer<Player> beforeOpen) {
-        this.id = id;
-        this.action = beforeOpen;
-    }
-
-    public OpenButtonAction(Menu menu) {
-        this(menu.getName());
     }
 
     @Override
