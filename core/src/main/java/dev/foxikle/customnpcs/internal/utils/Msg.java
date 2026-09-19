@@ -145,6 +145,16 @@ public class Msg {
         return text;
     }
 
+    public static String flatten(List<Component> list) {
+        StringBuilder builder = new StringBuilder();
+        for (Component component : list) {
+            builder.append(toMini(component));
+            builder.append("<newline>");
+        }
+
+        return builder.toString();
+    }
+
     public static String plainText(Component comp) {
         return PlainTextComponentSerializer.plainText().serialize(comp);
     }
