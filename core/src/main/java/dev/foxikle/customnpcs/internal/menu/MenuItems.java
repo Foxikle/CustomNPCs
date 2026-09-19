@@ -727,6 +727,10 @@ public class MenuItems {
     }
 
     public static Button targetValueSelector(Condition condition, Player player) {
+        if (!condition.getValue().hasInput) {
+            return MENU_GLASS;
+        }
+
         ItemStack i = ItemBuilder.modern(OAK_HANGING_SIGN).setDisplay(Msg.get(player, "value.select")).setLore(Msg.get(player, "value.current", Arg.arg(condition.getTarget())), Msg.get(player, "items.click_to_change")).build();
 
         return Button.clickable(i, ButtonClickAction.plain((_, event) -> {
@@ -738,7 +742,7 @@ public class MenuItems {
         }));
     }
 
-    public static Button valueSwitcher(Condition condition, Player player, int slot) {
+    public static Button valueSwitcher(Condition condition, Player player, int slot, int inputSlot) {
         List<Component> lore = new ArrayList<>();
 
         for (Condition.Value v : Condition.Value.getSupportedConditions(condition)) {
@@ -772,7 +776,8 @@ public class MenuItems {
             }
             Player p = (Player) event.getWhoClicked();
             p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            menuView.updateButton(slot, button -> button.setItem(valueSwitcher(condition, player, slot).getItem()));
+            menuView.updateButton(inputSlot, b -> b.setItem(targetValueSelector(condition, player).getItem()));
+            menuView.updateButton(slot, button -> button.setItem(valueSwitcher(condition, player, slot, inputSlot).getItem()));
         }));
     }
 
@@ -982,7 +987,7 @@ public class MenuItems {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            Condition conditional = new BooleanCondition(Comparator.EQUAL_TO, Condition.Value.GAMEMODE, "CREATIVE");
+            Condition conditional = new BooleanCondition(Comparator.EQUAL_TO, Condition.Value.HAS_PERMISSION, "customnpcs.*");
             plugin.originalEditingConditionals.remove(p.getUniqueId());
             plugin.editingConditionals.put(p.getUniqueId(), conditional);
             menuView.getAPI().openMenu(p, MenuUtils.NPC_CONDITION_CUSTOMIZER);

@@ -63,7 +63,7 @@ public class ConditionCustomizerMenu implements Menu {
                 .setButton(22, MenuItems.saveCondition(player))
                 .setButton(11, MenuItems.comparatorSwitcher(condition, player, 11))
                 .setButton(13, MenuItems.targetValueSelector(condition, player))
-                .setButton(15, MenuItems.valueSwitcher(condition, player, 15))
+                .setButton(15, MenuItems.valueSwitcher(condition, player, 15, 13))
                 .build();
     }
 
@@ -74,7 +74,7 @@ public class ConditionCustomizerMenu implements Menu {
                 .setButton(22, MenuItems.saveCondition(player))
                 .setButton(10, MenuItems.comparatorSwitcher(condition, player, 10))
                 .setButton(12, MenuItems.targetValueSelector(condition, player))
-                .setButton(14, MenuItems.valueSwitcher(condition, player, 14))
+                .setButton(14, MenuItems.valueSwitcher(condition, player, 14, 12))
                 .setButton(16, MenuItems.toggleTextConditionInversion(condition, player))
                 .build();
     }
