@@ -22,7 +22,7 @@
 
 plugins {
     id("java")
-    id("io.freefair.lombok") version "9.5.0"
+    id("io.freefair.lombok") version "9.7.0"
     `java-library`
     java
 }
@@ -44,7 +44,7 @@ dependencies {
     compileOnly("net.kyori:adventure-nbt:5.2.0")
     compileOnly("org.mineskin:java-client-jsoup:3.2.6")
     compileOnly("org.mineskin:java-client:3.2.6")
-    compileOnly("org.mongodb:mongodb-driver-sync:5.11.1")
+    compileOnly("org.mongodb:mongodb-driver-sync:5.13.0")
     compileOnly("com.mysql:mysql-connector-j:9.7.0")
     compileOnly("org.apache.logging.log4j:log4j-core:2.26.1")
     compileOnly("com.zaxxer:HikariCP:6.3.3")
