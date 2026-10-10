@@ -24,42 +24,37 @@ package dev.foxikle.customnpcs.internal.menu;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import io.github.mqzen.menus.base.Content;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.misc.Capacity;
-import io.github.mqzen.menus.misc.DataRegistry;
-import io.github.mqzen.menus.misc.button.Button;
-import io.github.mqzen.menus.titles.MenuTitle;
-import io.github.mqzen.menus.titles.MenuTitles;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNullByDefault;
+import studio.mevera.lotus.api.content.Content;
+import studio.mevera.lotus.api.menu.Menu;
+import studio.mevera.lotus.api.menu.MenuView;
+import studio.mevera.lotus.api.slot.Capacity;
+import studio.mevera.lotus.api.slot.Slot;
 
-public class NewActionMenu implements Menu {
+@NotNullByDefault
+public class NewActionMenu implements Menu<Component> {
     @Override
-    public String getName() {
+    public String name() {
         return MenuUtils.NPC_NEW_ACTION;
     }
 
     @Override
-    public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.get(player, "menus.actions.new.title"));
+    public Component title(MenuView<Component, ?> view) {
+        return Msg.get(view.viewer(), "menus.actions.new.title");
     }
 
     @Override
-    public @NotNull Capacity getCapacity(DataRegistry dataRegistry, Player player) {
+    public Capacity capacity(MenuView<Component, ?> view) {
         return Capacity.ofRows(4);
     }
 
     @Override
-    public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
-        return Content.builder(capacity)
-                .apply(content -> {
-                    content.fillBorder(MenuItems.MENU_GLASS);
-                    for (Button button : CustomNPCs.ACTION_REGISTRY.getButtons(player)) {
-                        content.addButton(button);
-                    }
-                })
-                .setButton(27, MenuItems.toAction(player))
+    public Content content(MenuView<Component, ?> view) {
+        return Content.builder(view.capacity())
+                .fillBorder(MenuItems.MENU_GLASS)
+                .apply(content -> CustomNPCs.ACTION_REGISTRY.getButtons(view.viewer()).forEach(content::add))
+                .set(Slot.of(27), MenuItems.toAction(view.viewer()))
                 .build();
     }
 }

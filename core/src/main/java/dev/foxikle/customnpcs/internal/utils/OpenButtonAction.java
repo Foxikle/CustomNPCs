@@ -22,15 +22,18 @@
 
 package dev.foxikle.customnpcs.internal.utils;
 
-import io.github.mqzen.menus.base.MenuView;
-import io.github.mqzen.menus.misc.button.actions.ButtonClickAction;
+import lombok.AllArgsConstructor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.jetbrains.annotations.NotNull;
+import studio.mevera.lotus.api.button.ClickAction;
+import studio.mevera.lotus.api.menu.MenuView;
 
 import java.util.function.Consumer;
 
-public class OpenButtonAction implements ButtonClickAction {
+@AllArgsConstructor
+public class OpenButtonAction implements ClickAction {
 
     private final String id;
     private final Consumer<Player> action;
@@ -41,16 +44,11 @@ public class OpenButtonAction implements ButtonClickAction {
     }
 
     @Override
-    public String tag() {
-        return "OPEN";
-    }
-
-    @Override
-    public void execute(MenuView<?> menuView, InventoryClickEvent inventoryClickEvent) {
-        Player player = (Player) inventoryClickEvent.getWhoClicked();
+    public void onClick(@NotNull MenuView<?, ?> view, @NotNull InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
         if (action != null) {
             action.accept(player);
         }
-        menuView.getAPI().openMenu(player, id);
+        view.lotus().openMenu(player, id);
     }
 }

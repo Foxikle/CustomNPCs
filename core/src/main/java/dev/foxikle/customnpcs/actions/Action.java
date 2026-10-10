@@ -24,14 +24,14 @@ package dev.foxikle.customnpcs.actions;
 
 import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.Selector;
+import dev.foxikle.customnpcs.data.CommandDataFixer;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Utils;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.misc.button.Button;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
@@ -39,6 +39,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.lotus.api.button.Button;
+import studio.mevera.lotus.api.menu.Menu;
 
 import java.lang.reflect.Method;
 import java.time.Instant;
@@ -51,11 +53,23 @@ import java.util.regex.Pattern;
 @Setter
 public abstract class Action {
 
+    public static final Map<String, CommandDataFixer> DATAFIXERS = Map.ofEntries(
+            Map.entry("Teleport", CommandDataFixer.TELEPORT),
+            Map.entry("GiveEffect", CommandDataFixer.GIVE_EFFECT),
+            Map.entry("GiveXP", CommandDataFixer.GIVE_XP),
+            Map.entry("RemoveEffect", CommandDataFixer.REMOVE_EFFECT),
+            Map.entry("PlaySound", CommandDataFixer.PLAY_SOUND),
+            Map.entry("RemoveXP", CommandDataFixer.REMOVE_XP)
+    );
+
     @Deprecated(forRemoval = true)
     private static final Pattern SPLITTER = Pattern.compile("^([A-z])*(?=(\\{.*}))");
 
 
     public static final Codec<Action> CODEC = Codec.STRING.unionType("id", s -> {
+        if (DATAFIXERS.containsKey(s)) {
+            return DATAFIXERS.get(s).fix();
+        }
         Class<? extends Action> clazz = CustomNPCs.ACTION_REGISTRY.getActionClass(s);
         if (clazz == null) throw new IllegalArgumentException("Invalid action type: " + s);
         try {
@@ -118,10 +132,9 @@ public abstract class Action {
      * Contains the execution of the action
      *
      * @param npc    The NPC
-     * @param menu   The menu
      * @param player The player
      */
-    public abstract void perform(InternalNpc npc, Menu menu, Player player);
+    public abstract void perform(InternalNpc npc, Player player);
 
 
     /**
@@ -132,7 +145,7 @@ public abstract class Action {
      */
     public abstract ItemStack getFavicon(Player player);
 
-    public abstract Menu getMenu();
+    public abstract Menu<Component> getMenu();
 
     /**
      * Returns if the action should be processed. This takes the cooldown into account.
@@ -185,6 +198,10 @@ public abstract class Action {
 
     public boolean canDuplicate() {
         return true;
+    }
+
+    public String displayId() {
+        return getUuid().toString().substring(0, 8);
     }
 
     /**

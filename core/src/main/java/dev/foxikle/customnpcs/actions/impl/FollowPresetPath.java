@@ -30,20 +30,14 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.translations.Arg;
+import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
-import io.github.mqzen.menus.base.Content;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.misc.Capacity;
-import io.github.mqzen.menus.misc.DataRegistry;
-import io.github.mqzen.menus.misc.button.Button;
-import io.github.mqzen.menus.misc.button.actions.ButtonClickAction;
-import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
-import io.github.mqzen.menus.titles.MenuTitle;
-import io.github.mqzen.menus.titles.MenuTitles;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
 import org.bukkit.*;
@@ -51,8 +45,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.lotus.api.button.Button;
+import studio.mevera.lotus.api.button.ClickAction;
+import studio.mevera.lotus.api.content.Content;
+import studio.mevera.lotus.api.menu.Menu;
+import studio.mevera.lotus.api.menu.MenuView;
+import studio.mevera.lotus.api.slot.Capacity;
+import studio.mevera.lotus.api.slot.Slot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -152,23 +153,23 @@ public class FollowPresetPath extends Action {
     }
 
     public Button creationButton(Player player) {
-        return Button.clickable(ItemBuilder.modern(Material.RAIL)
-                        .setDisplay(Msg.get(player, "menus.action.follow_path.favicon"))
-                        .setLore(Msg.get(player, "menus.action.follow_path.description"))
+        return Button.clickable(ItemBuilder.of(Material.RAIL)
+                        .displayName(Msg.get(player, "menus.action.follow_path.favicon"))
+                        .lore(Msg.get(player, "menus.action.follow_path.description"))
                         .build(),
-                ButtonClickAction.plain((menuView, event) -> {
+                (menuView, event) -> {
                     Player p = (Player) event.getWhoClicked();
                     event.setCancelled(true);
                     p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
                     FollowPresetPath action = new FollowPresetPath(new ArrayList<>(), false, 0,
                             Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), action);
-                    menuView.getAPI().openMenu(p, action.getMenu());
-                }));
+                    menuView.lotus().openMenu(p, action.getMenu());
+                });
     }
 
     @Override
-    public void perform(InternalNpc npc, Menu menu, Player player) {
+    public void perform(InternalNpc npc, Player player) {
         if (path == null || path.isEmpty()) return;
         if (activePlaybacks.containsKey(npc)) {
             if (loop) return;
@@ -206,9 +207,9 @@ public class FollowPresetPath extends Action {
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(Material.RAIL)
-                .setDisplay(Msg.get(player, "menus.action.follow_path.favicon"))
-                .setLore(
+        return ItemBuilder.of(Material.RAIL)
+                .displayName(Msg.get(player, "menus.action.follow_path.favicon"))
+                .lore(
                         Msg.get(player, "favicons.delay", Arg.arg(getDelay())),
                         Msg.format(""),
                         Msg.get(player, "menus.action.follow_path.nodes", Arg.arg(path.size())),
@@ -221,7 +222,7 @@ public class FollowPresetPath extends Action {
     }
 
     @Override
-    public Menu getMenu() {
+    public Menu<Component> getMenu() {
         return new FollowPathCustomizer(this);
     }
 
@@ -241,68 +242,64 @@ public class FollowPresetPath extends Action {
         return "FollowPresetPath";
     }
 
-    private class FollowPathCustomizer implements Menu {
+    @AllArgsConstructor
+    @NotNullByDefault
+    private class FollowPathCustomizer implements Menu<Component> {
         private final FollowPresetPath action;
 
-        public FollowPathCustomizer(FollowPresetPath action) {
-            this.action = action;
-        }
-
         @Override
-        public String getName() {
+        public String name() {
             return "follow_path_customizer";
         }
 
         @Override
-        public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.get(player, "menus.action.follow_path.title"));
+        public Component title(MenuView<Component, ?> view) {
+            return Msg.get(view.viewer(), "menus.action.follow_path.title");
         }
 
         @Override
-        public @NotNull Capacity getCapacity(DataRegistry dataRegistry, Player player) {
+        public Capacity capacity(MenuView<Component, ?> view) {
             return Capacity.ofRows(5);
         }
 
         @Override
-        public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
-            return MenuUtils.actionBase(action, player)
-                    .setButton(20, button(player))
-                    .setButton(24, candle(player))
+        public Content content(MenuView<Component, ?> view) {
+            return MenuUtils.actionBase(action, view.viewer())
+                    .set(Slot.of(20), button(view.viewer()))
+                    .set(Slot.of(24), candle(view.viewer()))
                     .build();
         }
 
         private Button candle(Player player) {
-            return Button.clickable(ItemBuilder.modern(action.loop ? Material.GREEN_CANDLE : Material.RED_CANDLE)
-                    .setDisplay(Msg.get(player, "menus.action.follow_path.loop." + action.loop))
-                    .setLore(Msg.lore(player.locale(), "menus.action.follow_path.loop." + action.loop + ".description"))
-                    .build(), ButtonClickAction.plain((m, e) -> {
+            return Button.clickable(ItemBuilder.of(action.loop ? Material.GREEN_CANDLE : Material.RED_CANDLE)
+                            .displayName(Msg.get(player, "menus.action.follow_path.loop." + action.loop))
+                            .lore(Msg.lore(player.locale(), "menus.action.follow_path.loop." + action.loop + ".description"))
+                            .build(), (m, e) -> {
                         e.setCancelled(true);
                         player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         action.loop = !action.loop;
-                        m.updateButton(24, button -> button.setItem(candle(player).getItem()));
+                        m.content().set(Slot.of(24), candle(player));
                         //todo: autostart
                     }
-            ));
+            );
         }
 
         private Button button(Player player) {
-            if (action.path == null || action.path.isEmpty()) {
-                return Button.clickable(ItemBuilder.modern(Material.PLAYER_HEAD)
-                        .setDisplay(Msg.get(player, "menus.action.follow_path.record"))
-                        .setLore(Msg.get(player, "menus.action.follow_path.record.lore"))
-                        .build(), ButtonClickAction.plain((_, _) -> {
-                    player.closeInventory();
-                    startRecording(player);
-                }));
-            }
-
-            return Button.clickable(ItemBuilder.modern(Material.PLAYER_HEAD)
-                    .setDisplay(Msg.get(player, "menus.action.follow_path.rerecord"))
-                    .setLore(Msg.get(player, "menus.action.follow_path.rerecord.lore", Arg.arg(path.size())))
-                    .build(), ButtonClickAction.plain((_, _) -> {
+            ClickAction click = (_, _) -> {
                 player.closeInventory();
                 startRecording(player);
-            }));
+            };
+            if (action.path == null || action.path.isEmpty()) {
+                return Button.clickable(ItemBuilder.of(Material.PLAYER_HEAD)
+                        .displayName(Msg.get(player, "menus.action.follow_path.record"))
+                        .lore(Msg.get(player, "menus.action.follow_path.record.lore"))
+                        .build(), click);
+            }
+
+            return Button.clickable(ItemBuilder.of(Material.PLAYER_HEAD)
+                    .displayName(Msg.get(player, "menus.action.follow_path.rerecord"))
+                    .lore(Msg.get(player, "menus.action.follow_path.rerecord.lore", Arg.arg(path.size())))
+                    .build(), click);
         }
     }
 }

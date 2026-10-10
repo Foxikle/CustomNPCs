@@ -26,71 +26,61 @@ import dev.foxikle.customnpcs.api.Pose;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.translations.Arg;
+import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
-import io.github.mqzen.menus.base.Content;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.misc.Capacity;
-import io.github.mqzen.menus.misc.DataRegistry;
-import io.github.mqzen.menus.misc.button.Button;
-import io.github.mqzen.menus.misc.button.actions.ButtonClickAction;
-import io.github.mqzen.menus.misc.button.actions.impl.CloseMenuAction;
-import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
-import io.github.mqzen.menus.titles.MenuTitle;
-import io.github.mqzen.menus.titles.MenuTitles;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.NotNullByDefault;
+import studio.mevera.lotus.api.button.Button;
+import studio.mevera.lotus.api.content.Content;
+import studio.mevera.lotus.api.data.DataRegistry;
+import studio.mevera.lotus.api.menu.Menu;
+import studio.mevera.lotus.api.menu.MenuView;
+import studio.mevera.lotus.api.slot.Capacity;
+import studio.mevera.lotus.api.slot.Slot;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
-public class PoseEditorMenu implements Menu {
+@NotNullByDefault
+public class PoseEditorMenu implements Menu<Component> {
     public static final Map<UUID, InternalNpc> previewNPCs = new HashMap<>();
 
     @Override
-    public String getName() {
+    public String name() {
         return MenuUtils.NPC_POSE;
     }
 
     @Override
-    public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.get(player, "menus.pose.title"));
+    public Component title(MenuView<Component, ?> view) {
+        return Msg.get(view.viewer(), "menus.pose.title");
     }
 
     @Override
-    public @NotNull Capacity getCapacity(DataRegistry dataRegistry, Player player) {
+    public Capacity capacity(MenuView<Component, ?> view) {
         return Capacity.ofRows(3);
     }
 
     @Override
-    public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
-
+    public Content content(MenuView<Component, ?> view) {
+        Player player = view.viewer();
         CustomNPCs plugin = CustomNPCs.getInstance();
         InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
         if (npc == null) {
-            return Content.builder(capacity)
-                    .setButton(22, Button.clickable(
-                            ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.get(player, "menus.main.error.no_npc"))
-                                    .setLore(Msg.lore(player.locale(), "menus.main.error.no_npc.lore"))
-                                    .build(),
-                            new CloseMenuAction()
-                    ))
-                    .build();
+            return MenuUtils.invalidNpc(view);
         }
 
         Button nudgeButton = Button.clickable(
-                ItemBuilder.modern(Material.RECOVERY_COMPASS)
-                        .setLore(Msg.lore(player.locale(), "menus.pose.nudge.lore"))
-                        .setDisplay(Msg.get(player, "menus.pose.nudge"))
+                ItemBuilder.of(Material.RECOVERY_COMPASS)
+                        .lore(Msg.lore(player.locale(), "menus.pose.nudge.lore"))
+                        .displayName(Msg.get(player, "menus.pose.nudge"))
                         .build(),
-                ButtonClickAction.plain((menu, event) -> {
+                (menu, event) -> {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
@@ -109,17 +99,17 @@ public class PoseEditorMenu implements Menu {
 
                     plugin.wait(player, WaitingType.NUDGE);
                     player.closeInventory();
-                })
+                }
         );
 
         Button standing = Button.clickable(
-                ItemBuilder.modern(Material.ARMOR_STAND)
-                        .setLore(Msg.lore(player.locale(), "menus.pose.standing.lore"))
-                        .setDisplay(Msg.get(player, "menus.pose.standing"))
-                        .enchant(Enchantment.MENDING, npc.getSettings().getPose() == Pose.STANDING ? 1 : 0)
+                ItemBuilder.of(Material.ARMOR_STAND)
+                        .lore(Msg.lore(player.locale(), "menus.pose.standing.lore"))
+                        .displayName(Msg.get(player, "menus.pose.standing"))
+                        .glowing(npc.getSettings().getPose() == Pose.STANDING)
                         .addFlags(ItemFlag.values())
                         .build(),
-                ButtonClickAction.plain((menu, event) -> {
+                (menu, event) -> {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
@@ -135,17 +125,17 @@ public class PoseEditorMenu implements Menu {
                     clickedNpc.getSettings().setPose(Pose.STANDING);
                     plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
                     player.playSound(player, Sound.ENTITY_VILLAGER_CELEBRATE, 1.0F, 1.0F);
-                })
+                }
         );
 
         Button sitting = Button.clickable(
-                ItemBuilder.modern(Material.OAK_STAIRS)
-                        .setLore(Msg.lore(player.locale(), "menus.pose.sitting.lore"))
-                        .setDisplay(Msg.get(player, "menus.pose.sitting"))
-                        .enchant(Enchantment.MENDING, npc.getSettings().getPose() == Pose.SITTING ? 1 : 0)
+                ItemBuilder.of(Material.OAK_STAIRS)
+                        .lore(Msg.lore(player.locale(), "menus.pose.sitting.lore"))
+                        .displayName(Msg.get(player, "menus.pose.sitting"))
+                        .glowing(npc.getSettings().getPose() == Pose.SITTING)
                         .addFlags(ItemFlag.values())
                         .build(),
-                ButtonClickAction.plain((menu, event) -> {
+                (menu, event) -> {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
@@ -161,16 +151,16 @@ public class PoseEditorMenu implements Menu {
                     clickedNpc.getSettings().setPose(Pose.SITTING);
                     plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
                     player.playSound(player, Sound.ENTITY_VILLAGER_CELEBRATE, 1.0F, 1.0F);
-                })
+                }
         );
 
         Button swimming = Button.clickable(
-                ItemBuilder.modern(Material.WATER_BUCKET)
-                        .setLore(Msg.lore(player.locale(), "menus.pose.swimming.lore"))
-                        .setDisplay(Msg.get(player, "menus.pose.swimming"))
-                        .enchant(Enchantment.MENDING, npc.getSettings().getPose() == Pose.SWIMMING ? 1 : 0)
+                ItemBuilder.of(Material.WATER_BUCKET)
+                        .lore(Msg.lore(player.locale(), "menus.pose.swimming.lore"))
+                        .displayName(Msg.get(player, "menus.pose.swimming"))
+                        .glowing(npc.getSettings().getPose() == Pose.SWIMMING)
                         .build(),
-                ButtonClickAction.plain((menu, event) -> {
+                (menu, event) -> {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
@@ -186,17 +176,17 @@ public class PoseEditorMenu implements Menu {
                     clickedNpc.getSettings().setPose(Pose.SWIMMING);
                     plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
                     player.playSound(player, Sound.ENTITY_VILLAGER_CELEBRATE, 1.0F, 1.0F);
-                })
+                }
         );
 
         Button crouching = Button.clickable(
-                ItemBuilder.modern(Material.SMOOTH_QUARTZ_SLAB)
-                        .setLore(Msg.lore(player.locale(), "menus.pose.crouching.lore"))
-                        .setDisplay(Msg.get(player, "menus.pose.crouching"))
-                        .enchant(Enchantment.MENDING, npc.getSettings().getPose() == Pose.CROUCHING ? 1 : 0)
+                ItemBuilder.of(Material.SMOOTH_QUARTZ_SLAB)
+                        .lore(Msg.lore(player.locale(), "menus.pose.crouching.lore"))
+                        .displayName(Msg.get(player, "menus.pose.crouching"))
+                        .glowing(npc.getSettings().getPose() == Pose.CROUCHING)
                         .addFlags(ItemFlag.values())
                         .build(),
-                ButtonClickAction.plain((menu, event) -> {
+                (menu, event) -> {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
@@ -211,17 +201,17 @@ public class PoseEditorMenu implements Menu {
                     clickedNpc.getSettings().setPose(Pose.CROUCHING);
                     plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
                     player.playSound(player, Sound.ENTITY_VILLAGER_CELEBRATE, 1.0F, 1.0F);
-                })
+                }
         );
 
         Button sleeping = Button.clickable(
-                ItemBuilder.modern(Material.RED_BED)
-                        .setLore(Msg.lore(player.locale(), "menus.pose.sleeping.lore"))
-                        .setDisplay(Msg.get(player, "menus.pose.sleeping"))
-                        .enchant(Enchantment.MENDING, npc.getSettings().getPose() == Pose.SLEEPING ? 1 : 0)
+                ItemBuilder.of(Material.RED_BED)
+                        .lore(Msg.lore(player.locale(), "menus.pose.sleeping.lore"))
+                        .displayName(Msg.get(player, "menus.pose.sleeping"))
+                        .glowing(npc.getSettings().getPose() == Pose.SLEEPING)
                         .addFlags(ItemFlag.values())
                         .build(),
-                ButtonClickAction.plain((menu, event) -> {
+                (menu, event) -> {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
@@ -237,17 +227,17 @@ public class PoseEditorMenu implements Menu {
                     clickedNpc.getSettings().setPose(Pose.SLEEPING);
                     plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
                     player.playSound(player, Sound.ENTITY_VILLAGER_CELEBRATE, 1.0F, 1.0F);
-                })
+                }
         );
 
         Button dying = Button.clickable(
-                ItemBuilder.modern(Material.LAVA_BUCKET)
-                        .setLore(Msg.lore(player.locale(), "menus.pose.dying.lore"))
-                        .setDisplay(Msg.get(player, "menus.pose.dying"))
-                        .enchant(Enchantment.MENDING, npc.getSettings().getPose() == Pose.DYING ? 1 : 0)
+                ItemBuilder.of(Material.LAVA_BUCKET)
+                        .lore(Msg.lore(player.locale(), "menus.pose.dying.lore"))
+                        .displayName(Msg.get(player, "menus.pose.dying"))
+                        .glowing(npc.getSettings().getPose() == Pose.DYING)
                         .addFlags(ItemFlag.values())
                         .build(),
-                ButtonClickAction.plain((menu, event) -> {
+                (menu, event) -> {
                     InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                     event.setCancelled(true);
                     if (clickedNpc == null) {
@@ -264,16 +254,14 @@ public class PoseEditorMenu implements Menu {
                     plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
                     player.playSound(player, Sound.ENTITY_VILLAGER_CELEBRATE, 1.0F, 1.0F);
 
-                })
+                }
         );
 
-        return Content.builder(capacity)
-                .apply(content -> {
-                    content.fillBorder(MenuItems.MENU_GLASS);
-                    content.addButton(standing, sitting, crouching, swimming, sleeping, dying);
-                })
-                .setButton(18, MenuItems.toMain(player))
-                .setButton(8, nudgeButton)
+        return Content.builder(view.capacity())
+                .fillBorder(MenuItems.MENU_GLASS)
+                .apply(content -> List.of(standing, sitting, crouching, swimming, sleeping, dying).forEach(content::add))
+                .set(Slot.of(18), MenuItems.toMain(player))
+                .set(Slot.of(8), nudgeButton)
                 .build();
     }
 }

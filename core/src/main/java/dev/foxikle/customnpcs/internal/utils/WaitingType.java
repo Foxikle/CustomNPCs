@@ -57,7 +57,6 @@ public enum WaitingType {
     SUBTITLE("subtitle"),
     MESSAGE("message"),
     FACING("facing_direction"),
-    SOUND("sound"),
     SERVER("server"),
     ACTIONBAR("actionbar"),
     URL("url"),

@@ -31,17 +31,9 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.translations.Arg;
+import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
-import io.github.mqzen.menus.base.Content;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.misc.Capacity;
-import io.github.mqzen.menus.misc.DataRegistry;
-import io.github.mqzen.menus.misc.button.Button;
-import io.github.mqzen.menus.misc.button.actions.ButtonClickAction;
-import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
-import io.github.mqzen.menus.titles.MenuTitle;
-import io.github.mqzen.menus.titles.MenuTitles;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -53,7 +45,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.lotus.api.button.Button;
+import studio.mevera.lotus.api.content.Content;
+import studio.mevera.lotus.api.data.DataRegistry;
+import studio.mevera.lotus.api.menu.Menu;
+import studio.mevera.lotus.api.menu.MenuView;
+import studio.mevera.lotus.api.slot.Capacity;
+import studio.mevera.lotus.api.slot.Slot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,11 +88,11 @@ public class SendServer extends Action {
 
     public Button creationButton(Player player) {
         return
-                Button.clickable(ItemBuilder.modern(GRASS_BLOCK)
-                                .setDisplay(Msg.get(player, "favicons.server"))
-                                .setLore(Msg.lore(player.locale(), "favicons.server.description"))
+                Button.clickable(ItemBuilder.of(GRASS_BLOCK)
+                                .displayName(Msg.get(player, "favicons.server"))
+                                .lore(Msg.lore(player.locale(), "favicons.server.description"))
                                 .build(),
-                        ButtonClickAction.plain((menuView, event) -> {
+                        (menuView, event) -> {
                             event.setCancelled(true);
                             Player p = (Player) event.getWhoClicked();
                             p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -101,13 +101,13 @@ public class SendServer extends Action {
                             SendServer actionImpl = new SendServer("server", 0, Selector.ONE, new ArrayList<>(), 0,
                                     UUID.randomUUID());
                             CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
-                            menuView.getAPI().openMenu(p, actionImpl.getMenu());
-                        }));
+                            menuView.lotus().openMenu(p, actionImpl.getMenu());
+                        });
     }
 
 
     @Override
-    public void perform(InternalNpc npc, Menu menu, Player player) {
+    public void perform(InternalNpc npc, Player player) {
         if (!processConditions(player)) return;
 
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
@@ -121,9 +121,9 @@ public class SendServer extends Action {
 
     @Override
     public ItemStack getFavicon(Player player) {
-        return ItemBuilder.modern(GRASS_BLOCK).setDisplay(Msg.get(player, "favicons.server"))
-                .setLore(
-                        Msg.get(player, "favicons.delay", Arg.arg(getDelay())),                        Msg.format(""),
+        return ItemBuilder.of(GRASS_BLOCK).displayName(Msg.get(player, "favicons.server"))
+                .lore(
+                        Msg.get(player, "favicons.delay", Arg.arg(getDelay())), Msg.format(""),
                         Msg.get(player, "favicons.server.target", Arg.arg(server)),
                         Msg.format(""),
                         Msg.get(player, "favicons.edit"),
@@ -132,7 +132,7 @@ public class SendServer extends Action {
     }
 
     @Override
-    public Menu getMenu() {
+    public Menu<Component> getMenu() {
         return new SendServerCustomizer(this);
     }
 
@@ -165,7 +165,8 @@ public class SendServer extends Action {
         return clazz.cast(message);
     }
 
-    public class SendServerCustomizer implements Menu {
+    @NotNullByDefault
+    public class SendServerCustomizer implements Menu<Component> {
 
         private final SendServer action;
 
@@ -174,35 +175,35 @@ public class SendServer extends Action {
         }
 
         @Override
-        public String getName() {
+        public String name() {
             return "SEND_SERVER_CUSTOMIZER";
         }
 
         @Override
-        public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-            return MenuTitles.createModern(Msg.get(player, "menus.action_customizer.title"));
+        public Component title(MenuView<Component, ?> view) {
+            return Msg.get(view.viewer(), "menus.action_customizer.title");
         }
 
         @Override
-        public @NotNull Capacity getCapacity(DataRegistry dataRegistry, Player player) {
+        public Capacity capacity(MenuView<Component, ?> view) {
             return Capacity.ofRows(5);
         }
 
         @Override
-        public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
-            return MenuUtils.actionBase(action, player)
-                    .setButton(22, Button.clickable(ItemBuilder.modern(OAK_HANGING_SIGN)
-                                    .setDisplay(Component.text(getServer()))
-                                    .setLore(Msg.get(player, "items.click_to_change"))
+        public Content content(MenuView<Component, ?> view) {
+            return MenuUtils.actionBase(action, view.viewer())
+                    .set(Slot.of(22), Button.clickable(ItemBuilder.of(OAK_HANGING_SIGN)
+                                    .displayName(Component.text(getServer()))
+                                    .lore(Msg.get(view.viewer(), "items.click_to_change"))
                                     .build(),
-                            ButtonClickAction.plain((menuView, event) -> {
+                            (_, event) -> {
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 Player p = (Player) event.getWhoClicked();
                                 p.closeInventory();
                                 plugin.wait(p, WaitingType.SERVER);
                                 event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
-                            })))
+                                p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                            }))
                     .build();
         }
     }

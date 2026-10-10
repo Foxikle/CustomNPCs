@@ -164,11 +164,11 @@ public interface Condition {
         // boolean
         HAS_EFFECT("conditions.has_effect", BooleanCondition.class),
         HAS_PERMISSION("conditions.has_permission", BooleanCondition.class),
-        IS_FLYING("conditions.is_flying", BooleanCondition.class),
-        IS_SPRINTING("conditions.is_sprinting", BooleanCondition.class),
-        IS_SNEAKING("conditions.is_sneaking", BooleanCondition.class),
-        IS_FROZEN("conditions.is_frozen", BooleanCondition.class),
-        IS_GLIDING("conditions.is_gliding", BooleanCondition.class),
+        IS_FLYING("conditions.is_flying", false, BooleanCondition.class),
+        IS_SPRINTING("conditions.is_sprinting", false, BooleanCondition.class),
+        IS_SNEAKING("conditions.is_sneaking",false, BooleanCondition.class),
+        IS_FROZEN("conditions.is_frozen",false, BooleanCondition.class),
+        IS_GLIDING("conditions.is_gliding",false, BooleanCondition.class),
 
         // text based
         GAMEMODE("conditions.gamemode", TextCondition.class),
@@ -188,11 +188,19 @@ public interface Condition {
 
         private final String key;
         private final Class<? extends Condition>[] supportedTypes;
+        public final boolean hasInput;
 
 
         Value(String key, Class<? extends Condition>... supportedTypes) {
             this.key = key;
             this.supportedTypes = supportedTypes;
+            hasInput = true;
+        }
+
+        Value(String key, boolean hasInput, Class<? extends Condition>... supportedTypes) {
+            this.key = key;
+            this.supportedTypes = supportedTypes;
+            this.hasInput = hasInput;
         }
 
         public String getTranslationKey() {

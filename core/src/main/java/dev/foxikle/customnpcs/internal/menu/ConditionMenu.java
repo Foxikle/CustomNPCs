@@ -25,42 +25,42 @@ package dev.foxikle.customnpcs.internal.menu;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import io.github.mqzen.menus.base.Content;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.misc.Capacity;
-import io.github.mqzen.menus.misc.DataRegistry;
-import io.github.mqzen.menus.misc.button.Button;
-import io.github.mqzen.menus.titles.MenuTitle;
-import io.github.mqzen.menus.titles.MenuTitles;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.NotNullByDefault;
+import studio.mevera.lotus.api.content.Content;
+import studio.mevera.lotus.api.menu.Menu;
+import studio.mevera.lotus.api.menu.MenuView;
+import studio.mevera.lotus.api.slot.Capacity;
+import studio.mevera.lotus.api.slot.Slot;
 
-public class ConditionMenu implements Menu {
+@NotNullByDefault
+public class ConditionMenu implements Menu<Component> {
+
     @Override
-    public String getName() {
+    public String name() {
         return MenuUtils.NPC_CONDITIONS;
     }
 
     @Override
-    public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.get(player, "menus.conditions.title"));
+    public Component title(MenuView<Component, ?> view) {
+        return Msg.get(view.viewer(), "menus.conditions.title");
     }
 
     @Override
-    public @NotNull Capacity getCapacity(DataRegistry dataRegistry, Player player) {
+    public Capacity capacity(MenuView<Component, ?> view) {
         return Capacity.ofRows(4);
     }
 
     @Override
-    public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
+    public Content content(MenuView<Component, ?> view) {
+        Player player = view.viewer();
         Action action = CustomNPCs.getInstance().editingActions.get(player.getUniqueId());
-        return Content.builder(capacity)
-                .apply(content -> {
-                    content.fillBorder(MenuItems.MENU_GLASS);
-                    content.addButton(MenuItems.conditions(action, player).toArray(new Button[]{}));
-                })
-                .setButton(31, MenuItems.toActionSaveConditions(player))
-                .setButton(35, MenuItems.toggleConditionMode(action, player))
+        return Content.builder(view.capacity())
+                .fillBorder(MenuItems.MENU_GLASS)
+                .apply(content -> MenuItems.conditions(action, player).forEach(content::add))
+                .set(Slot.of(31), MenuItems.toActionSaveConditions(player))
+                .set(Slot.of(35), MenuItems.toggleConditionMode(action, player))
                 .build();
     }
 }

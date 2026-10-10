@@ -71,7 +71,6 @@ public class BooleanCondition implements Condition {
             case HAS_PERMISSION -> value = player.hasPermission(target);
             case HAS_EFFECT ->
                     value = player.hasPotionEffect(Objects.requireNonNull(PotionEffectType.getByName(target)));
-            case GAMEMODE -> value = player.getGameMode().equals(GameMode.valueOf(target));
             case IS_FLYING -> value = player.isFlying();
             case IS_SPRINTING -> value = player.isSprinting();
             case IS_SNEAKING -> value = player.isSneaking();

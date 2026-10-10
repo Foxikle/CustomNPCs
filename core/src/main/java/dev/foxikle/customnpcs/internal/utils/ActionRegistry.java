@@ -23,9 +23,9 @@
 package dev.foxikle.customnpcs.internal.utils;
 
 import dev.foxikle.customnpcs.actions.Action;
-import io.github.mqzen.menus.misc.button.Button;
 import lombok.NoArgsConstructor;
 import org.bukkit.entity.Player;
+import studio.mevera.lotus.api.button.Button;
 
 import java.util.ArrayList;
 import java.util.HashMap;

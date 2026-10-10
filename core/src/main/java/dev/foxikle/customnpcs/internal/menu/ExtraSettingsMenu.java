@@ -25,57 +25,49 @@ package dev.foxikle.customnpcs.internal.menu;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import io.github.mqzen.menus.base.Content;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.misc.Capacity;
-import io.github.mqzen.menus.misc.DataRegistry;
-import io.github.mqzen.menus.misc.button.Button;
-import io.github.mqzen.menus.misc.button.actions.impl.CloseMenuAction;
-import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
-import io.github.mqzen.menus.titles.MenuTitle;
-import io.github.mqzen.menus.titles.MenuTitles;
-import org.bukkit.Material;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.NotNullByDefault;
+import studio.mevera.lotus.api.content.Content;
+import studio.mevera.lotus.api.data.DataRegistry;
+import studio.mevera.lotus.api.menu.Menu;
+import studio.mevera.lotus.api.menu.MenuView;
+import studio.mevera.lotus.api.slot.Capacity;
+import studio.mevera.lotus.api.slot.Slot;
 
-public class ExtraSettingsMenu implements Menu {
+@NotNullByDefault
+public class ExtraSettingsMenu implements Menu<Component> {
     @Override
-    public String getName() {
+    public String name() {
         return MenuUtils.NPC_EXTRA_SETTINGS;
     }
 
     @Override
-    public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.get(player, "menus.extra.title"));
+    public Component title(MenuView<Component, ?> view) {
+        return Msg.get(view.viewer(), "menus.extra.title");
     }
 
     @Override
-    public @NotNull Capacity getCapacity(DataRegistry dataRegistry, Player player) {
+    public Capacity capacity(MenuView<Component, ?> unused) {
         return Capacity.ofRows(3);
     }
 
     @Override
-    public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
+    public Content content(MenuView<Component, ?> view) {
+        Player player = view.viewer();
         CustomNPCs plugin = CustomNPCs.getInstance();
-        InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+        InternalNpc npc = plugin.getEditingNPCs().getIfPresent(view.viewer().getUniqueId());
         if (npc == null) {
-            return Content.builder(capacity)
-                    .setButton(22, Button.clickable(
-                            ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.get(player, "menus.main.error.no_npc"))
-                                    .setLore(Msg.lore(player.locale(), "menus.main.error.no_npc.lore"))
-                                    .build(),
-                            new CloseMenuAction()
-                    ))
-                    .build();
+            return MenuUtils.invalidNpc(view);
         }
 
-        return Content.builder(capacity)
-                .apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(11, MenuItems.interactableHologram(npc, player))
-                .setButton(13, MenuItems.interactableText(player))
-                .setButton(15, MenuItems.upsideDown(npc, player))
-                .setButton(18, MenuItems.toMain(player))
+        return Content.builder(view.capacity())
+                .fillAll(MenuItems.MENU_GLASS)
+                .set(Slot.of(11), MenuItems.interactableHologram(npc, player))
+                .set(Slot.of(13), MenuItems.interactableText(player))
+                .set(Slot.of(15), MenuItems.upsideDown(npc, player))
+                .set(Slot.of(18), MenuItems.toMain(player))
                 .build();
     }
 }
