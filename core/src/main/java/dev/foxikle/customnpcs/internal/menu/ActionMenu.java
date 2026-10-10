@@ -25,56 +25,46 @@ package dev.foxikle.customnpcs.internal.menu;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import io.github.mqzen.menus.base.Content;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.misc.Capacity;
-import io.github.mqzen.menus.misc.DataRegistry;
-import io.github.mqzen.menus.misc.button.Button;
-import io.github.mqzen.menus.misc.button.actions.impl.CloseMenuAction;
-import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
-import io.github.mqzen.menus.titles.MenuTitle;
-import io.github.mqzen.menus.titles.MenuTitles;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
+import studio.mevera.lotus.api.button.Button;
+import studio.mevera.lotus.api.content.Content;
+import studio.mevera.lotus.api.menu.Menu;
+import studio.mevera.lotus.api.menu.MenuView;
+import studio.mevera.lotus.api.slot.Capacity;
+import studio.mevera.lotus.api.slot.Slot;
+import studio.mevera.lotus.paper.ItemBuilder;
 
-public class ActionMenu implements Menu {
+public class ActionMenu implements Menu<Component> {
     @Override
-    public String getName() {
+    public @NonNull String name() {
         return MenuUtils.NPC_ACTIONS;
     }
 
     @Override
-    public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.get(player, "menus.actions.title"));
+    public @NotNull Component title(@NotNull MenuView<Component, ?> view) {
+        return Msg.get(view.viewer(), "menus.actions.title");
     }
 
     @Override
-    public @NotNull Capacity getCapacity(DataRegistry dataRegistry, Player player) {
+    public @NotNull Capacity capacity(@NotNull MenuView<Component, ?> view) {
         return Capacity.ofRows(6);
     }
 
     @Override
-    public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
+    public @NotNull Content content(@NotNull MenuView<Component, ?> view) {
         CustomNPCs plugin = CustomNPCs.getInstance();
-        InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+        InternalNpc npc = plugin.getEditingNPCs().getIfPresent(view.viewer().getUniqueId());
         if (npc == null) {
-            return Content.builder(capacity)
-                    .apply(content -> content.fillBorder(MenuItems.MENU_GLASS))
-                    .setButton(22, Button.clickable(
-                            ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.get(player, "menus.main.error.no_npc"))
-                                    .setLore(Msg.lore(player.locale(), "menus.main.error.no_npc.lore"))
-                                    .build(),
-                            new CloseMenuAction()
-                    ))
-                    .build();
+            return MenuUtils.invalidNpc(view);
         }
 
-        return Content.builder(capacity)
-                .apply(content -> content.fillBorder(MenuItems.MENU_GLASS))
-                .apply(content -> content.addButton(MenuItems.currentActions(npc, player).toArray(new Button[]{})))
-                .setButton(45, MenuItems.toMain(player))
+        return Content.builder(view.capacity())
+                .fillBorder(MenuItems.MENU_GLASS)
+                .apply(content -> MenuItems.currentActions(npc, view.viewer()).forEach(content::add))
+                .set(Slot.of(45), MenuItems.toMain(view.viewer()))
                 .build();
     }
 }

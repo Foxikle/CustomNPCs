@@ -90,7 +90,6 @@ public class NpcCommandRegistrar {
     private static final String PERMISSION_DISABLE_TIP = "customnpcs.command.disabletip";
     private static final String PERMISSION_DEBUG = "customnpcs.edit";
     private static final String PERMISSION_FIXCONFIG = "commands.fix_config";
-    private static final String PERMISSION_SETSOUND = "customnpcs.edit";
 
 
     public static LiteralCommandNode<CommandSourceStack> buildNode() {
@@ -117,7 +116,6 @@ public class NpcCommandRegistrar {
         registerWikiCommand(npcNode);
         registerDebugCommand(npcNode);
         registerFixConfigCommand(npcNode);
-        registerSetsoundCommand(npcNode);
         registerTipCommand(npcNode);
         registerMoveData(npcNode);
 
@@ -496,50 +494,6 @@ public class NpcCommandRegistrar {
                 .build();
         npcNode.addChild(n);
     }
-
-    private static void registerSetsoundCommand(LiteralCommandNode<CommandSourceStack> npcNode) {
-        LiteralCommandNode<CommandSourceStack> setsoundNode = LiteralArgumentBuilder.<CommandSourceStack>literal(
-                        "setsound")
-                .requires(sender -> sender.getSender().hasPermission(PERMISSION_SETSOUND))
-                .then(RequiredArgumentBuilder.<CommandSourceStack, String>argument("sound", greedyString())
-                        .suggests(SoundSuggester.SUGGESTIONS)
-                        .executes(context -> {
-                            CommandSender sender = context.getSource().getSender();
-                            if (!(sender instanceof Player player)) {
-                                sender.sendMessage("You can't do this :P");
-                                return 0;
-                            }
-                            String soundRaw = StringArgumentType.getString(context, "sound");
-                            CustomNPCs plugin = CustomNPCs.getInstance();
-
-                            if (plugin.isWaiting(player, WaitingType.SOUND)) {
-                                String formatted = soundRaw.trim().toLowerCase();
-                                if (Registry.SOUNDS.get(NamespacedKey.fromString(formatted)) == null) {
-                                    player.sendMessage(Msg.get(player, "commands.setsound.unknown_sound"));
-                                }
-
-                                Bukkit.getScheduler().runTask(plugin, () -> {
-                                    plugin.waiting.remove(player.getUniqueId());
-                                    dev.foxikle.customnpcs.actions.Action actionImpl =
-                                            plugin.editingActions.get(player.getUniqueId());
-                                    if (actionImpl instanceof dev.foxikle.customnpcs.actions.impl.PlaySound action) {
-                                        action.setSound(formatted);
-                                    } else {
-                                        throw new IllegalArgumentException("Action " + actionImpl.getClass().getName() + " is not of type PlaySound");
-                                    }
-                                    player.sendMessage(Msg.get(player, "commands.setsound.success", Arg.arg(formatted)));
-                                    plugin.getLotus().openMenu(player, actionImpl.getMenu());
-                                });
-                            } else {
-                                player.sendMessage(Msg.get(player, "commands.setsound.was_not_waiting"));
-                            }
-                            return 1;
-                        })
-                        .build())
-                .build();
-        npcNode.addChild(setsoundNode);
-    }
-
 
     private static void registerMoveData(LiteralCommandNode<CommandSourceStack> npcNode) {
         LiteralCommandNode<CommandSourceStack> moveDataNode =

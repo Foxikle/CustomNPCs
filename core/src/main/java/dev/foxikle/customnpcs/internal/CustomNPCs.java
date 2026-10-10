@@ -44,14 +44,13 @@ import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
 import dev.foxikle.customnpcs.internal.utils.UpdateChecker;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
-import io.github.mqzen.menus.Lotus;
-import io.github.mqzen.menus.base.pagination.Pagination;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
 import org.bstats.charts.SimplePie;
@@ -65,6 +64,9 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.lotus.Lotus;
+import studio.mevera.lotus.paper.PaperLotus;
+import studio.mevera.lotus.paper.api.pagination.Pagination;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -165,7 +167,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     private UpdateChecker updater;
 
     @Getter
-    private Lotus lotus;
+    private studio.mevera.lotus.@NotNull Lotus<Component> lotus;
     @Getter
     private CommandDispatcher<org.bukkit.command.CommandSender> commandDispatcher;
 
@@ -233,15 +235,9 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         getLogger().info("Loading action registry...");
         ACTION_REGISTRY.register(new ActionBar());
         ACTION_REGISTRY.register(new DisplayTitle());
-        ACTION_REGISTRY.register(new GiveEffect());
-        ACTION_REGISTRY.register(new GiveXP());
-        ACTION_REGISTRY.register(new PlaySound());
-        ACTION_REGISTRY.register(new RemoveEffect());
-        ACTION_REGISTRY.register(new RemoveXP());
         ACTION_REGISTRY.register(new RunCommand());
         ACTION_REGISTRY.register(new SendMessage());
         ACTION_REGISTRY.register(new SendServer());
-        ACTION_REGISTRY.register(new Teleport());
         ACTION_REGISTRY.register(new FollowPresetPath());
 
         if (!storageManager.setup()) {
@@ -278,12 +274,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             int actionbar = 0;
             int title = 0;
             int message = 0;
-            int give_effect = 0;
-            int remove_effect = 0;
-            int give_xp = 0;
-            int remove_xp = 0;
-            int play_sound = 0;
-            int teleport = 0;
+            int flow = 0;
+            int preset_path = 0;
             int send_server = 0;
             int run_command = 0;
 
@@ -292,14 +284,10 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                     if (action instanceof ActionBar) actionbar++;
                     else if (action instanceof DisplayTitle) title++;
                     else if (action instanceof SendMessage) message++;
-                    else if (action instanceof GiveEffect) give_effect++;
-                    else if (action instanceof RemoveEffect) remove_effect++;
-                    else if (action instanceof GiveXP) give_xp++;
-                    else if (action instanceof RemoveXP) remove_xp++;
-                    else if (action instanceof PlaySound) play_sound++;
-                    else if (action instanceof Teleport) teleport++;
                     else if (action instanceof SendServer) send_server++;
                     else if (action instanceof RunCommand) run_command++;
+                    else if (action instanceof FollowPresetPath) preset_path++;
+                    else if (action instanceof Flow) flow++;
                 }
             }
 
@@ -307,12 +295,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                     Map.entry("ActionBar", actionbar),
                     Map.entry("DisplayTitle", title),
                     Map.entry("SendMessage", message),
-                    Map.entry("GiveEffect", give_effect),
-                    Map.entry("RemoveEffect", remove_effect),
-                    Map.entry("GiveXP", give_xp),
-                    Map.entry("RemoveXP", remove_xp),
-                    Map.entry("PlaySound", play_sound),
-                    Map.entry("Teleport", teleport),
+                    Map.entry("FollowPresetPath", preset_path),
+                    Map.entry("Flow", flow),
                     Map.entry("SendServer", send_server),
                     Map.entry("RunCommand", run_command)
             );
@@ -330,9 +314,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
         getLogger().info("Loading menus!");
 
-        lotus = Lotus.load(this);
+        lotus = PaperLotus.create(this);
         lotus.registerMenu(new ActionMenu());
-        lotus.registerMenu(new ActionCustomizerMenu());
         lotus.registerMenu(new MainNPCMenu());
         lotus.registerMenu(new ConditionCustomizerMenu());
         lotus.registerMenu(new ConditionMenu());
@@ -341,7 +324,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         lotus.registerMenu(new ExtraSettingsMenu());
         lotus.registerMenu(new NewActionMenu());
         lotus.registerMenu(new NewConditionMenu());
-        lotus.registerMenu(new SkinCatalog());
         lotus.registerMenu(new SkinMenu());
         lotus.registerMenu(new HologramMenu());
         lotus.registerMenu(new DeleteLineMenu());
@@ -534,7 +516,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         new Runnable(player, this, type).runTaskTimer(this, 1, 15);
     }
 
-    public Pagination getSkinCatalog(Player player) {
+    public Pagination<MenuUtils.SkinIcon> getSkinCatalog(Player player) {
         return getMenuUtils().getSkinCatalogue(player.locale());
     }
 }

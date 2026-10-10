@@ -38,11 +38,11 @@ import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.SkinUtils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
-import io.github.mqzen.menus.base.MenuView;
 import io.papermc.paper.event.world.WorldGameRuleChangeEvent;
 import lombok.Getter;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPIPlugin;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.ConsoleCommandSender;
@@ -67,6 +67,7 @@ import org.mineskin.data.Visibility;
 import org.mineskin.exception.MineSkinRequestException;
 import org.mineskin.request.GenerateRequest;
 import org.mineskin.response.MineSkinResponse;
+import studio.mevera.lotus.api.menu.MenuView;
 
 import java.net.URL;
 import java.util.*;
@@ -235,7 +236,7 @@ public class Listeners implements Listener {
                 Bukkit.getServer().getPluginManager().callEvent(event);
                 if (event.isCancelled()) return;
                 npc.getActions().forEach(action -> SCHEDULER.runTaskLater(plugin, () ->
-                        action.perform(npc, null, player), action.getDelay()));
+                        action.perform(npc, player), action.getDelay()));
             }
         }
     }
@@ -711,13 +712,7 @@ public class Listeners implements Listener {
         }
 
         Player clicker = (Player) e.getWhoClicked();
-        MenuView<?> menu = plugin.getLotus().getMenuView(clicker.getUniqueId()).orElseGet(() -> {
-            if (e.getClickedInventory() == null) return null;
-            if (e.getClickedInventory().getHolder() instanceof MenuView<?> playerMenu) {
-                return playerMenu;
-            }
-            return null;
-        });
+        MenuView<Component, ?> menu = plugin.getLotus().resolveView(clicker);
 
         if (menu != null) {
             if (e.getClick() == ClickType.DOUBLE_CLICK) e.setCancelled(true);

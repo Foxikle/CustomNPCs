@@ -26,56 +26,58 @@ import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.TextCondition;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import io.github.mqzen.menus.base.Content;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.misc.Capacity;
-import io.github.mqzen.menus.misc.DataRegistry;
-import io.github.mqzen.menus.titles.MenuTitle;
-import io.github.mqzen.menus.titles.MenuTitles;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.NotNullByDefault;
+import studio.mevera.lotus.api.content.Content;
+import studio.mevera.lotus.api.menu.Menu;
+import studio.mevera.lotus.api.menu.MenuView;
+import studio.mevera.lotus.api.slot.Capacity;
+import studio.mevera.lotus.api.slot.Slot;
 
-public class ConditionCustomizerMenu implements Menu {
+@NotNullByDefault
+public class ConditionCustomizerMenu implements Menu<Component> {
     @Override
-    public String getName() {
+    public String name() {
         return MenuUtils.NPC_CONDITION_CUSTOMIZER;
     }
 
     @Override
-    public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.get(player, "menus.condition_customizer.title"));
+    public Component title(MenuView<Component, ?> view) {
+        return Msg.get(view.viewer(), "menus.condition_customizer.title");
     }
 
     @Override
-    public @NotNull Capacity getCapacity(DataRegistry dataRegistry, Player player) {
+    public Capacity capacity(MenuView<Component, ?> view) {
         return Capacity.ofRows(3);
     }
 
     @Override
-    public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
+    public Content content(MenuView<Component, ?> view) {
+        Player player = view.viewer();
         Condition condition = CustomNPCs.getInstance().editingConditionals.get(player.getUniqueId());
         if (condition instanceof TextCondition text) {
-            return getText(player, text, capacity);
+            return getText(player, text, view.capacity());
         }
-        return Content.builder(capacity)
-                .apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(18, MenuItems.toNewCondition(player))
-                .setButton(22, MenuItems.saveCondition(player))
-                .setButton(11, MenuItems.comparatorSwitcher(condition, player, 11))
-                .setButton(13, MenuItems.targetValueSelector(condition, player))
-                .setButton(15, MenuItems.valueSwitcher(condition, player, 15, 13))
+        return Content.builder(view.capacity())
+                .fillAll(MenuItems.MENU_GLASS)
+                .set(Slot.of(18), MenuItems.toNewCondition(player))
+                .set(Slot.of(22), MenuItems.saveCondition(player))
+                .set(Slot.of(11), MenuItems.comparatorSwitcher(condition, player, 11))
+                .set(Slot.of(13), MenuItems.targetValueSelector(condition, player))
+                .set(Slot.of(15), MenuItems.valueSwitcher(condition, player, 15, 13))
                 .build();
     }
 
-    private @NotNull Content getText(Player player, TextCondition condition, Capacity capacity) {
+    private Content getText(Player player, TextCondition condition, Capacity capacity) {
         return Content.builder(capacity)
-                .apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(18, MenuItems.toNewCondition(player))
-                .setButton(22, MenuItems.saveCondition(player))
-                .setButton(10, MenuItems.comparatorSwitcher(condition, player, 10))
-                .setButton(12, MenuItems.targetValueSelector(condition, player))
-                .setButton(14, MenuItems.valueSwitcher(condition, player, 14, 12))
-                .setButton(16, MenuItems.toggleTextConditionInversion(condition, player))
+                .fillAll(MenuItems.MENU_GLASS)
+                .set(Slot.of(18), MenuItems.toNewCondition(player))
+                .set(Slot.of(22), MenuItems.saveCondition(player))
+                .set(Slot.of(10), MenuItems.comparatorSwitcher(condition, player, 10))
+                .set(Slot.of(12), MenuItems.targetValueSelector(condition, player))
+                .set(Slot.of(14), MenuItems.valueSwitcher(condition, player, 14, 12))
+                .set(Slot.of(16), MenuItems.toggleTextConditionInversion(condition, player))
                 .build();
     }
 }
