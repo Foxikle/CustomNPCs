@@ -36,7 +36,6 @@ repositories {
 }
 
 dependencies {
-    compileOnly("studio.mevera:lotus-paper:2.0.0")
     compileOnly("org.bstats:bstats-bukkit:3.2.1")
     compileOnly("me.clip:placeholderapi:2.12.2")
     compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
@@ -48,8 +47,8 @@ dependencies {
     compileOnly("com.mysql:mysql-connector-j:9.1.0")
     compileOnly("org.apache.logging.log4j:log4j-core:2.24.3")
     compileOnly("com.zaxxer:HikariCP:6.2.1")
+    compileOnlyApi("studio.mevera:lotus-paper:2.0.0")
     compileOnlyApi("dev.minestom-united.common:codec:0.0.3")
-
 
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

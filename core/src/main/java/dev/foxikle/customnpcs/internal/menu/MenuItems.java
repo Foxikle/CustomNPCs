@@ -47,7 +47,6 @@ import studio.mevera.lotus.api.button.Button;
 import studio.mevera.lotus.api.slot.Slot;
 
 import java.util.*;
-import java.util.logging.Level;
 
 import static org.bukkit.Material.*;
 
