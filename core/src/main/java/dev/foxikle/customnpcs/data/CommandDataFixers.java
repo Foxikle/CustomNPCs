@@ -5,13 +5,16 @@ import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.Selector;
 import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.function.Function;
 
 interface CommandDataFixers {
 
     static <T, V> Function<T, V> err() {
-        throw new IllegalStateException("Called encode on a decode only codec.");
+        return _ -> {
+            throw new IllegalStateException("Called encode on a decode only codec.");
+        };
     }
 
 
@@ -25,11 +28,13 @@ interface CommandDataFixers {
             "conditions", Condition.CODEC.list(), err(),
             "cooldown", Codec.INT, err(),
             "uuid", Codec.UUID_STRING.optional(), err(),
-            (s, i, i2, b, i3, e, l, i4, u) ->
-                    new RunCommand(
-                            "effect give %%player_name%% %s %d %d %s".formatted(s, i / 20, i2, b),
-                            true, i3, e, l, i4, u
-                    )
+            (s, i, i2, b, i3, e, l, i4, u) -> {
+                PotionEffectType eff = PotionEffectType.getByName(s);
+                return new RunCommand(
+                        "effect give %%player_name%% %s %d %d %s".formatted(eff.getKey().asString(), i / 20, i2, b),
+                        true, i3, e, l, i4, u
+                );
+            }
     );
 
     CommandDataFixer REMOVE_EFFECT = () -> StructCodec.struct(
@@ -39,9 +44,11 @@ interface CommandDataFixers {
             "conditions", Condition.CODEC.list(), err(),
             "cooldown", Codec.INT, err(),
             "uuid", Codec.UUID_STRING.optional(), err(),
-            (s, i, e, l, i2, u) ->
-                    new RunCommand("effect clear %%player_name%% %s".formatted(s),
-                            true, i, e, l, i2, u)
+            (s, i, e, l, i2, u) ->{
+                PotionEffectType eff = PotionEffectType.getByName(s);
+                return new RunCommand("effect clear %%player_name%% %s".formatted(eff.getKey().asString()),
+                        true, i, e, l, i2, u);
+            }
     );
 
     CommandDataFixer GIVE_XP = () -> StructCodec.struct(
