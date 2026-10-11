@@ -65,9 +65,20 @@ public abstract class Action {
     @Deprecated(forRemoval = true)
     private static final Pattern SPLITTER = Pattern.compile("^([A-z])*(?=(\\{.*}))");
 
+    public static final Pattern PLACEHOLDERS = Pattern.compile("%.[^%]*%");
+    public static final Pattern PLAYER_PLACEHOLDERS = Pattern.compile("%player_[^%]*%");
+
+
 
     public static final Codec<Action> CODEC = Codec.STRING.unionType("id", s -> {
         if (DATAFIXERS.containsKey(s)) {
+            CustomNPCs.getInstance().getLogger().warning("");
+            CustomNPCs.getInstance().getLogger().warning("#--------------------------------------------------------------#");
+            CustomNPCs.getInstance().getLogger().warning("|  WARNING: An action with the following ID has been removed.  |");
+            CustomNPCs.getInstance().getLogger().warning("| It has been automatically converted to a RunCommand action.  |");
+            CustomNPCs.getInstance().getLogger().warning(String.format("|  %-58.58s  |", s));
+            CustomNPCs.getInstance().getLogger().warning("#--------------------------------------------------------------#");
+            CustomNPCs.getInstance().getLogger().warning("");
             return DATAFIXERS.get(s).fix();
         }
         Class<? extends Action> clazz = CustomNPCs.ACTION_REGISTRY.getActionClass(s);
@@ -115,11 +126,7 @@ public abstract class Action {
         cooldowns.put(uuid, Instant.now().plusMillis(50L * cooldown));
     }
 
-    /**
-     * A convenience method to add a condition to the action
-     *
-     * @param condition the condition to add
-     */
+
     public void addCondition(Condition condition) {
         conditions.add(condition);
     }
@@ -202,6 +209,14 @@ public abstract class Action {
 
     public String displayId() {
         return getUuid().toString().substring(0, 8);
+    }
+
+    public boolean hasPlaceholders() {
+        return false;
+    }
+
+    public boolean hasPlayerPlaceholders() {
+        return false;
     }
 
     /**

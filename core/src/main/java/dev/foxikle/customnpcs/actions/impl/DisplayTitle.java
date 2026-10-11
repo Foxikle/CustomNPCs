@@ -171,6 +171,16 @@ public class DisplayTitle extends Action {
                 new ArrayList<>(getConditions()), getCooldown(), getUuid());
     }
 
+    @Override
+    public boolean hasPlaceholders() {
+        return PLACEHOLDERS.matcher(title).find() || PLACEHOLDERS.matcher(subTitle).find();
+    }
+
+    @Override
+    public boolean hasPlayerPlaceholders() {
+        return PLAYER_PLACEHOLDERS.matcher(title).find() || PLAYER_PLACEHOLDERS.matcher(subTitle).find();
+    }
+
     @Deprecated(forRemoval = true)
     public static <T extends Action> T deserialize(String serialized, Class<T> clazz) {
         if (!clazz.equals(DisplayTitle.class)) {

@@ -122,6 +122,16 @@ public class ActionBar extends Action {
                         Msg.get(p, "favicons.remove")
                 ).build();
     }
+
+    @Override
+    public boolean hasPlaceholders() {
+        return PLACEHOLDERS.matcher(rawMessage).find();
+    }
+
+    @Override
+    public boolean hasPlayerPlaceholders() {
+        return PLAYER_PLACEHOLDERS.matcher(rawMessage).find();
+    }
     
     @Override
     public void perform(InternalNpc npc, Player player) {

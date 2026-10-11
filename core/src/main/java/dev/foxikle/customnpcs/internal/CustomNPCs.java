@@ -331,12 +331,27 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         lotus.registerMenu(new DeleteActionMenu());
     }
 
-    /**
-     * <p> Checks if the plugin is compatible with the server version
-     * </p>
-     *
-     * @return If the plugin is compatible with the server
-     */
+    public void checkForPlaceholderViolations() {
+        if (papiPlayerExpansion && papi) return;
+        boolean placeholders = false;
+        boolean players = false;
+        for (InternalNpc npc : getNPCs()) {
+            for (Action action : npc.getActions()) {
+                if (placeholders && players) break;
+                if (action instanceof Flow flow) {
+                    for (Action a : flow.getActions().keySet()) {
+                        placeholders = placeholders || a.hasPlaceholders();
+                        players = players || a.hasPlayerPlaceholders();
+                    }
+                    continue;
+                }
+                placeholders = placeholders || action.hasPlaceholders();
+                players = players || action.hasPlayerPlaceholders();
+            }
+        }
+        if ((players || placeholders) && !papi) printMissingPlaceholders();
+        if (players && !papiPlayerExpansion) printMissingPlayerExpansion();
+    }
 
     public boolean checkForValidVersion() {
         serverVersion = Bukkit.getMinecraftVersion();
@@ -482,16 +497,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         };
     }
 
-    private Locale setupLocale(String lang) {
-        return switch (lang.toUpperCase()) {
-            case "GERMAN", "DE" -> Locale.GERMAN;
-            case "CHINESE", "ZH" -> Locale.CHINESE;
-            case "RUSSIAN", "RU" -> new Locale("ru");
-            default -> Locale.ENGLISH;
-        };
-    }
-
-
     private void printInvalidVersion() {
         Logger logger = getLogger();
         logger.severe("");
@@ -505,6 +510,26 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         logger.severe("+------------------------------------------------------------------------------+");
         logger.severe("");
         logger.severe("");
+    }
+
+    private void printMissingPlaceholders() {
+        Logger l = getLogger();
+        l.warning("+----------------------------------------------+");
+        l.warning("|                ** WARNING **                 |");
+        l.warning("|  One or more Action have placeholders, but   |");
+        l.warning("|   this server does not have PlaceholderAPI   |");
+        l.warning("+----------------------------------------------+");
+    }
+
+    private void printMissingPlayerExpansion() {
+        Logger l = getLogger();
+        l.warning("+----------------------------------------------+");
+        l.warning("|                ** WARNING **                 |");
+        l.warning("|        One or more Actions have player       |");
+        l.warning("|    placeholders, but this server does not    |");
+        l.warning("|  have the Player expansion. Install it via:  |");
+        l.warning("|          /papi ecloud download Player        |");
+        l.warning("+----------------------------------------------+");
     }
 
     public boolean isWaiting(Player player, WaitingType type) {

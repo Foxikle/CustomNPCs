@@ -823,8 +823,8 @@ public class Listeners implements Listener {
                 plugin.papi = true;
             } else {
                 plugin.papi = false;
-                plugin.getLogger().warning("Could not find PlaceholderAPI! PlaceholderAPI isn't required, but CustomNPCs does support it.");
             }
+            plugin.checkForPlaceholderViolations();
         }, 30);
     }
 

@@ -159,6 +159,16 @@ public class SendMessage extends Action {
         return clazz.cast(message);
     }
 
+    @Override
+    public boolean hasPlaceholders() {
+        return PLACEHOLDERS.matcher(rawMessage).find();
+    }
+
+    @Override
+    public boolean hasPlayerPlaceholders() {
+        return PLAYER_PLACEHOLDERS.matcher(rawMessage).find();
+    }
+
     @NotNullByDefault
     @AllArgsConstructor
     public class SendMessageCustomizer implements Menu<Component> {

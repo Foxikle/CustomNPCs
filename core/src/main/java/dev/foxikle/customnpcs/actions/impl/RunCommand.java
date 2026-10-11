@@ -60,6 +60,7 @@ import studio.mevera.lotus.api.slot.Slot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import static org.bukkit.Material.*;
 
@@ -158,6 +159,16 @@ public class RunCommand extends Action {
     public Action clone() {
         return new RunCommand(command, asConsole, getDelay(), getSelector(), new ArrayList<>(getConditions()),
                 getCooldown(), getUuid());
+    }
+
+    @Override
+    public boolean hasPlaceholders() {
+        return PLACEHOLDERS.matcher(command).find();
+    }
+
+    @Override
+    public boolean hasPlayerPlaceholders() {
+        return PLAYER_PLACEHOLDERS.matcher(command).find();
     }
 
     @AllArgsConstructor
