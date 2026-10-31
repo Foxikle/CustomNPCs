@@ -112,7 +112,7 @@ public class DisplayTitle extends Action {
                 (menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
-                    p.playSound(p, Sound.UI_BUTTON_CLICK, 1, 1);
+                    Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                     DisplayTitle action = new DisplayTitle("Title", "Subtitle", 10, 10, 10, 0, Selector.ONE,
                             new ArrayList<>(), 0, UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), action);
@@ -238,7 +238,7 @@ public class DisplayTitle extends Action {
                                     .lore(incLore).build(),
                             (menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                                Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                                 action.setFadeIn(Utils.increment(event).apply(action.fadeIn));
                                 menuView.content().set(Slot.of(19), MenuItems.display(Msg.get(player, "menus.action.title.display.fade_in", Arg.arg(action.getFadeIn())), displayLore));
                             }))
@@ -248,7 +248,7 @@ public class DisplayTitle extends Action {
                                     .lore(incLore).build(),
                             (menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                                Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                                 action.setStay(Utils.increment(event).apply(action.stay));
                                 menuView.content().set(Slot.of(21), MenuItems.display(Msg.get(player, "menus.action.title.display.stay", Arg.arg(action.getStay())), displayLore));
                             }))
@@ -258,7 +258,7 @@ public class DisplayTitle extends Action {
                                     .lore(incLore).build(),
                             (menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                                Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                                 action.setFadeOut(Utils.increment(event).apply(action.fadeOut));
                                 menuView.content().set(Slot.of(23), MenuItems.display(Msg.get(player, "menus.action.title.display.fade_out", Arg.arg(action.fadeOut)), displayLore));
                             })
@@ -271,7 +271,7 @@ public class DisplayTitle extends Action {
                                     .lore(decLore).build(),
                             (menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                                Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                                 if (action.fadeIn == 1) {
                                     player.sendMessage(Msg.get(player, "menus.action.title.duration_less_than_1"));
                                     return;
@@ -284,7 +284,7 @@ public class DisplayTitle extends Action {
                                     .lore(decLore).build(),
                             (menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                                Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                                 if (action.fadeIn == 1) {
                                     player.sendMessage(Msg.get(player, "menus.action.title.duration_less_than_1"));
                                     return;
@@ -297,7 +297,7 @@ public class DisplayTitle extends Action {
                                     .lore(decLore).build(),
                             (menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                                Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                                 if (action.fadeOut == 1) {
                                     player.sendMessage(Msg.get(player, "menus.action.title.duration_less_than_1"));
                                     return;
@@ -311,7 +311,7 @@ public class DisplayTitle extends Action {
                                     Msg.get(player, "items.click_to_change"))
                             .build(), (_, event) -> {
                         event.setCancelled(true);
-                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                         Player p = (Player) event.getWhoClicked();
                         CustomNPCs plugin = CustomNPCs.getInstance();
                         p.closeInventory();
@@ -324,7 +324,7 @@ public class DisplayTitle extends Action {
                                     .build(),
                             (menuView, event) -> {
                                 event.setCancelled(true);
-                                player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                                Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                                 Player p = (Player) event.getWhoClicked();
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 p.closeInventory();

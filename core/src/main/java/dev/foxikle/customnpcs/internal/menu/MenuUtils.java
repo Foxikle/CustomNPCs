@@ -30,6 +30,7 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -197,7 +198,7 @@ public class MenuUtils {
         public ClickAction onClick() {
             return (v, event) -> {
                 Player player = (Player) event.getWhoClicked();
-                player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+                Utils.sound(v, Sound.UI_BUTTON_CLICK);
                 InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                 player.closeInventory();
                 if (npc == null) {

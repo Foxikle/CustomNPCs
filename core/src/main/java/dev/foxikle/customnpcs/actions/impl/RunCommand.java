@@ -111,7 +111,7 @@ public class RunCommand extends Action {
                 (menuView, event) -> {
                     Player p = (Player) event.getWhoClicked();
                     event.setCancelled(true);
-                    p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                     RunCommand actionImpl = new RunCommand("say hi", false, 0, Selector.ONE, new ArrayList<>(), 0,
                             UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
@@ -217,7 +217,7 @@ public class RunCommand extends Action {
                             .build(),
                     (menuView, event) -> {
                         event.setCancelled(true);
-                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                         Player p = (Player) event.getWhoClicked();
                         if (!p.hasPermission("customnpcs.run_command.enable_console")) {
                             p.sendMessage(Msg.get(player, "commands.no_permission"));
@@ -234,13 +234,13 @@ public class RunCommand extends Action {
                             .displayName(Component.text("/" + getCommand()))
                             .lore(Msg.get(player, "items.click_to_change"))
                             .build(),
-                    (_, event) -> {
+                    (v, event) -> {
                         CustomNPCs plugin = CustomNPCs.getInstance();
                         Player p = (Player) event.getWhoClicked();
                         p.closeInventory();
                         plugin.wait(p, WaitingType.COMMAND);
                         event.setCancelled(true);
-                        player.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                        Utils.sound(v, Sound.UI_BUTTON_CLICK);
                     });
         }
 

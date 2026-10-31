@@ -27,6 +27,7 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -71,7 +72,7 @@ public class DeleteLineMenu implements Menu<Component> {
 
         if (npcFor == null || index < 0 || npcFor.getSettings().getHolograms().size() <= index) {
             player.sendMessage(Msg.get(player, "error.npc-menu-expired"));
-            player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1, 1);
+            Utils.sound(view, Sound.ENTITY_VILLAGER_NO);
             return MenuUtils.invalidNpc(view);
         }
 
@@ -81,7 +82,7 @@ public class DeleteLineMenu implements Menu<Component> {
                         ItemBuilder.of(Material.RED_STAINED_GLASS_PANE)
                                 .displayName(Msg.get(player, "menus.hologram.delete.confirm"))
                                 .lore(Msg.lore(player.locale(), "menus.hologram.delete.confirm.lore", Arg.arg(npcFor.getSettings().getHolograms().get(index))))
-                                .build(), (_, e) -> {
+                                .build(), (menuView, e) -> {
 
                             Player p = (Player) e.getWhoClicked();
                             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(p.getUniqueId());
@@ -89,13 +90,13 @@ public class DeleteLineMenu implements Menu<Component> {
                             if (npc == null) {
                                 p.closeInventory();
                                 p.sendMessage(Msg.get(player, "error.npc-menu-expired"));
-                                p.playSound(p, Sound.ENTITY_VILLAGER_NO, 1, 1);
+                                Utils.sound(menuView, Sound.ENTITY_VILLAGER_NO);
                                 return;
                             }
 
                             List<String> mutable = new ArrayList<>(npc.getSettings().getRawHolograms());
                             if (index >= mutable.size()) {
-                                p.playSound(p, Sound.ENTITY_VILLAGER_NO, 1, 1);
+                                Utils.sound(menuView, Sound.ENTITY_VILLAGER_NO);
                                 p.sendMessage(Msg.get(player, "error.npc-menu-expired"));
                                 return;
                             }

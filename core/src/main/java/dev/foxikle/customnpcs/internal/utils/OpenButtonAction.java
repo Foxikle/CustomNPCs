@@ -36,18 +36,18 @@ import java.util.function.Consumer;
 public class OpenButtonAction implements ClickAction {
 
     private final String id;
-    private final Consumer<Player> action;
+    private final Consumer<MenuView<?,?>> action;
 
     public OpenButtonAction(String id) {
         this.id = id;
-        this.action = player -> player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+        this.action = v -> Utils.sound(v, Sound.UI_BUTTON_CLICK);
     }
 
     @Override
     public void onClick(@NotNull MenuView<?, ?> view, @NotNull InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
         if (action != null) {
-            action.accept(player);
+            action.accept(view);
         }
         view.lotus().openMenu(player, id);
     }

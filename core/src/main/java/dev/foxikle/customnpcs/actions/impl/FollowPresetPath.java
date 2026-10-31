@@ -32,6 +32,7 @@ import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -160,7 +161,7 @@ public class FollowPresetPath extends Action {
                 (menuView, event) -> {
                     Player p = (Player) event.getWhoClicked();
                     event.setCancelled(true);
-                    p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                     FollowPresetPath action = new FollowPresetPath(new ArrayList<>(), false, 0,
                             Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
                     CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), action);
@@ -276,7 +277,7 @@ public class FollowPresetPath extends Action {
                             .lore(Msg.lore(player.locale(), "menus.action.follow_path.loop." + action.loop + ".description"))
                             .build(), (m, e) -> {
                         e.setCancelled(true);
-                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+                        Utils.sound(m, Sound.UI_BUTTON_CLICK);
                         action.loop = !action.loop;
                         m.content().set(Slot.of(24), candle(player));
                         //todo: autostart

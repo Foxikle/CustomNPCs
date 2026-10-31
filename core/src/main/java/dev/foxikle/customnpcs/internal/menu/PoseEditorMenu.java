@@ -28,6 +28,7 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
@@ -85,7 +86,7 @@ public class PoseEditorMenu implements Menu<Component> {
                     event.setCancelled(true);
                     if (clickedNpc == null) {
                         player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
-                        player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
                         return;
                     }
                     final InternalNpc finalClickedNpc = clickedNpc.clone();
@@ -114,17 +115,17 @@ public class PoseEditorMenu implements Menu<Component> {
                     event.setCancelled(true);
                     if (clickedNpc == null) {
                         player.sendMessage(Msg.get(player, "error.npc-menu-expired"));
-                        player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
                         return;
                     }
                     if (clickedNpc.getSettings().getPose() == Pose.STANDING) {
                         player.sendMessage(Msg.get(player, "pose.already", Arg.arg("standing")));
-                        player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
                         return;
                     }
                     clickedNpc.getSettings().setPose(Pose.STANDING);
                     plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
-                    player.playSound(player, Sound.ENTITY_VILLAGER_CELEBRATE, 1.0F, 1.0F);
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
                 }
         );
 
@@ -140,17 +141,17 @@ public class PoseEditorMenu implements Menu<Component> {
                     event.setCancelled(true);
                     if (clickedNpc == null) {
                         player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
-                        player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
                         return;
                     }
                     if (clickedNpc.getSettings().getPose() == Pose.SITTING) {
                         player.sendMessage(Msg.get(player, "pose.already", Arg.arg("sitting")));
-                        player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
                         return;
                     }
                     clickedNpc.getSettings().setPose(Pose.SITTING);
                     plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
-                    player.playSound(player, Sound.ENTITY_VILLAGER_CELEBRATE, 1.0F, 1.0F);
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
                 }
         );
 
@@ -165,17 +166,17 @@ public class PoseEditorMenu implements Menu<Component> {
                     event.setCancelled(true);
                     if (clickedNpc == null) {
                         player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
-                        player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
                         return;
                     }
                     if (clickedNpc.getSettings().getPose() == Pose.SWIMMING) {
                         player.sendMessage(Msg.get(player, "pose.already", Arg.arg("swimming")));
-                        player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
                         return;
                     }
                     clickedNpc.getSettings().setPose(Pose.SWIMMING);
                     plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
-                    player.playSound(player, Sound.ENTITY_VILLAGER_CELEBRATE, 1.0F, 1.0F);
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
                 }
         );
 
@@ -191,7 +192,7 @@ public class PoseEditorMenu implements Menu<Component> {
                     event.setCancelled(true);
                     if (clickedNpc == null) {
                         player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
-                        player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
                         return;
                     }
                     if (clickedNpc.getSettings().getPose() == Pose.CROUCHING) {
@@ -200,7 +201,7 @@ public class PoseEditorMenu implements Menu<Component> {
                     }
                     clickedNpc.getSettings().setPose(Pose.CROUCHING);
                     plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
-                    player.playSound(player, Sound.ENTITY_VILLAGER_CELEBRATE, 1.0F, 1.0F);
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
                 }
         );
 
@@ -216,17 +217,17 @@ public class PoseEditorMenu implements Menu<Component> {
                     event.setCancelled(true);
                     if (clickedNpc == null) {
                         player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
-                        player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
                         return;
                     }
                     if (clickedNpc.getSettings().getPose() == Pose.SLEEPING) {
                         player.sendMessage(Msg.get(player, "pose.already", Arg.arg("sleeping")));
-                        player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
                         return;
                     }
                     clickedNpc.getSettings().setPose(Pose.SLEEPING);
                     plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
-                    player.playSound(player, Sound.ENTITY_VILLAGER_CELEBRATE, 1.0F, 1.0F);
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
                 }
         );
 
@@ -242,18 +243,17 @@ public class PoseEditorMenu implements Menu<Component> {
                     event.setCancelled(true);
                     if (clickedNpc == null) {
                         player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
-                        player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
                         return;
                     }
                     if (clickedNpc.getSettings().getPose() == Pose.DYING) {
                         player.sendMessage(Msg.get(player, "pose.already", Arg.arg("dying")));
-                        player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
                         return;
                     }
                     clickedNpc.getSettings().setPose(Pose.DYING);
                     plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
-                    player.playSound(player, Sound.ENTITY_VILLAGER_CELEBRATE, 1.0F, 1.0F);
-
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
                 }
         );
 

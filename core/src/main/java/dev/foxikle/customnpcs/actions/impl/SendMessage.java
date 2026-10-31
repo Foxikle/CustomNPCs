@@ -31,6 +31,7 @@ import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -94,12 +95,12 @@ public class SendMessage extends Action {
                 (menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
-                    p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
 
-                    SendMessage actionImpl = new SendMessage("", 0, Selector.ONE, new ArrayList<>(), 0,
+                    SendMessage action = new SendMessage("", 0, Selector.ONE, new ArrayList<>(), 0,
                             UUID.randomUUID());
-                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
-                    menuView.lotus().openMenu(p, actionImpl.getMenu());
+                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), action);
+                    menuView.lotus().openMenu(p, action.getMenu());
                 });
     }
 

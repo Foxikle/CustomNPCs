@@ -28,15 +28,13 @@ import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.ApiStatus;
+import studio.mevera.lotus.api.menu.MenuView;
 
 import java.lang.reflect.Type;
 import java.text.DecimalFormat;
@@ -232,6 +230,10 @@ public class Utils {
             return d -> d + 5;
         }
         return d -> d;
+    }
+
+    public static void sound(MenuView<?,?> view, Sound sound) {
+        view.viewer().playSound(view.viewer().getLocation(), sound, 1, 1);
     }
 
 }

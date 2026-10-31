@@ -33,6 +33,7 @@ import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -95,7 +96,7 @@ public class SendServer extends Action {
                         (menuView, event) -> {
                             event.setCancelled(true);
                             Player p = (Player) event.getWhoClicked();
-                            p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                             //todo: watch out for duplications
 
                             SendServer actionImpl = new SendServer("server", 0, Selector.ONE, new ArrayList<>(), 0,
@@ -196,13 +197,13 @@ public class SendServer extends Action {
                                     .displayName(Component.text(getServer()))
                                     .lore(Msg.get(view.viewer(), "items.click_to_change"))
                                     .build(),
-                            (_, event) -> {
+                            (menuView, event) -> {
                                 CustomNPCs plugin = CustomNPCs.getInstance();
                                 Player p = (Player) event.getWhoClicked();
                                 p.closeInventory();
                                 plugin.wait(p, WaitingType.SERVER);
                                 event.setCancelled(true);
-                                p.playSound(event.getWhoClicked(), Sound.UI_BUTTON_CLICK, 1, 1);
+                                Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                             }))
                     .build();
         }

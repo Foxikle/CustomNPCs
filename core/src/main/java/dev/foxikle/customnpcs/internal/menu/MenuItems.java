@@ -87,7 +87,7 @@ public class MenuItems {
 
         return Button.clickable(i, (menuView, event) -> {
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             event.setCancelled(true);
             if (npc.getSettings().isResilient()) p.sendMessage(Msg.get(p, "menus.main.resilient.message.now_false"));
             else p.sendMessage(Msg.get(p, "menus.main.resilient.message.now_true"));
@@ -130,7 +130,7 @@ public class MenuItems {
         return Button.clickable(ItemBuilder.of(interactable ? Material.OAK_SAPLING : Material.DEAD_BUSH).lore(interactable ? Msg.get(player, "menus.main.interactable.true") : Msg.get(player, "menus.main.interactable.false")).displayName(Msg.get(player, "menus.main.interactable.name.toggle")).build(), (menuView, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             if (npc.getSettings().isInteractable())
                 p.sendMessage(Msg.get(player, "menus.main.interactable.message.now_false"));
             else p.sendMessage(Msg.get(player, "menus.main.interactable.message.now_true"));
@@ -161,7 +161,7 @@ public class MenuItems {
     public static Button tunnelVision(InternalNpc npc, Player player) {
         return Button.clickable(ItemBuilder.of(Material.SPYGLASS).displayName(Msg.get(player, "menus.main.vision.name")).lore(npc.getSettings().isTunnelvision() ? Msg.get(player, "menus.main.vision.tunnel") : Msg.get(player, "menus.main.vision.normal")).build(), (menuView, event) -> {
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             event.setCancelled(true);
             npc.getSettings().setTunnelvision(!npc.getSettings().isTunnelvision());
             menuView.content().set(Slot.of(28), MenuItems.tunnelVision(npc, p));
@@ -191,7 +191,7 @@ public class MenuItems {
                 event.setCancelled(true);
                 Player p = (Player) event.getWhoClicked();
                 if (event.getCursor().getType() == Material.AIR || event.isRightClick()) return;
-                p.playSound(p, Sound.ITEM_ARMOR_EQUIP_LEATHER, 1.0F, 1.0F);
+                Utils.sound(menuView, Sound.ITEM_ARMOR_EQUIP_LEATHER);
                 npc.getEquipment().setHead(event.getCursor().clone());
                 event.getCursor().setAmount(0);
                 p.sendMessage(Msg.get(p, "menus.equipment.helmet.message.success", Arg.arg(equipmentName(p, npc.getEquipment().getHead()))));
@@ -210,14 +210,14 @@ public class MenuItems {
 
                 if (event.isRightClick()) {
                     npc.getEquipment().setHead(new ItemStack(Material.AIR));
-                    p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_TRIDENT_HIT);
                     p.sendMessage(Msg.get(p, "menus.equipment.helmet.reset"));
                     menuView.content().set(Slot.of(13), helmetSlot(npc, p));
                 } else {
                     if (event.getCursor().getType() == Material.AIR) return;
                     npc.getEquipment().setHead(event.getCursor().clone());
                     event.getCursor().setAmount(0);
-                    p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_ARMOR_EQUIP_LEATHER);
                     p.sendMessage(Msg.get(p, "menus.equipment.helmet.message.success", Arg.arg(equipmentName(p, npc.getEquipment().getHead()))));
                     menuView.content().set(Slot.of(13), helmetSlot(npc, p));
                 }
@@ -237,7 +237,7 @@ public class MenuItems {
                 if (event.getCursor().getType().name().contains("CHESTPLATE")) {
                     npc.getEquipment().setChest(event.getCursor().clone());
                     event.getCursor().setAmount(0);
-                    p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_ARMOR_EQUIP_LEATHER);
                     p.sendMessage(Msg.get(p, "menus.equipment.chestplate.message.success", Arg.arg(equipmentName(p, npc.getEquipment().getChest()))));
                 } else {
                     if (event.getCursor().getType() == AIR) return;
@@ -257,14 +257,14 @@ public class MenuItems {
                 Player p = (Player) event.getWhoClicked();
                 if (event.isRightClick()) {
                     npc.getEquipment().setChest(new ItemStack(AIR));
-                    p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_TRIDENT_HIT);
                     p.sendMessage(Msg.get(p, "menus.equipment.chestplate.reset"));
                     menuView.content().set(Slot.of(22), chestplateSlot(npc, p));
                     return;
                 } else if (event.getCursor().getType().name().contains("CHESTPLATE")) {
                     npc.getEquipment().setChest(event.getCursor().clone());
                     event.getCursor().setAmount(0);
-                    p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_ARMOR_EQUIP_LEATHER);
                     p.sendMessage(Msg.get(p, "menus.equipment.chestplate.message.success", Arg.arg(equipmentName(p, npc.getEquipment().getChest()))));
                     return;
                 } else {
@@ -286,7 +286,7 @@ public class MenuItems {
                 if (event.getCursor().getType().name().contains("LEGGINGS")) {
                     npc.getEquipment().setLegs(event.getCursor().clone());
                     event.getCursor().setAmount(0);
-                    p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_ARMOR_EQUIP_LEATHER);
                     p.sendMessage(Msg.get(p, "menus.equipment.legs.message.success", Arg.arg(equipmentName(p, npc.getEquipment().getLegs()))));
                 } else {
                     if (event.getCursor().getType() == AIR) return;
@@ -306,13 +306,13 @@ public class MenuItems {
 
                 if (event.isRightClick()) {
                     npc.getEquipment().setLegs(new ItemStack(AIR));
-                    p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_TRIDENT_HIT);
                     p.sendMessage(Msg.get(p, "menus.equipment.legs.reset"));
                     menuView.content().set(Slot.of(31), leggingsSlot(npc, player));
                 } else if (event.getCursor().getType().name().contains("LEGGINGS")) {
                     npc.getEquipment().setLegs(event.getCursor().clone());
                     event.getCursor().setAmount(0);
-                    p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_ARMOR_EQUIP_LEATHER);
                     p.sendMessage(Msg.get(p, "menus.equipment.legs.message.success", Arg.arg(equipmentName(p, npc.getEquipment().getLegs()))));
                     menuView.content().set(Slot.of(31), leggingsSlot(npc, p));
                 } else {
@@ -332,7 +332,7 @@ public class MenuItems {
                 if (event.getCursor().getType().name().contains("BOOTS")) {
                     npc.getEquipment().setBoots(event.getCursor().clone());
                     event.getCursor().setAmount(0);
-                    p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_ARMOR_EQUIP_LEATHER);
                     p.sendMessage(Msg.get(p, "menus.equipment.boots.message.success", Arg.arg(equipmentName(p, npc.getEquipment().getBoots()))));
                 } else {
                     if (event.getCursor().getType() == AIR) return;
@@ -352,12 +352,12 @@ public class MenuItems {
                 Player p = (Player) event.getWhoClicked();
                 if (event.isRightClick()) {
                     npc.getEquipment().setBoots(new ItemStack(AIR));
-                    p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_TRIDENT_HIT);
                     p.sendMessage(Msg.get(p, "menus.equipment.boots.reset"));
                 } else if (event.getCursor().getType().name().contains("LEGGINGS")) {
                     npc.getEquipment().setBoots(event.getCursor().clone());
                     event.getCursor().setAmount(0);
-                    p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_ARMOR_EQUIP_LEATHER);
                     p.sendMessage(Msg.get(p, "menus.equipment.boots.message.success", Arg.arg(equipmentName(p, npc.getEquipment().getBoots()))));
                 } else {
                     if (event.getCursor().getType() == AIR) return;
@@ -378,7 +378,7 @@ public class MenuItems {
                 if (event.getCursor().getType() == AIR) return;
                 npc.getEquipment().setHand(event.getCursor().clone());
                 event.getCursor().setAmount(0);
-                p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                Utils.sound(menuView, Sound.ITEM_ARMOR_EQUIP_LEATHER);
                 p.sendMessage(Msg.get(p, "menus.equipment.hand.message.success", Arg.arg(equipmentName(p, npc.getEquipment().getHand()))));
                 menuView.content().set(Slot.of(23), handSlot(npc, p));
             });
@@ -392,14 +392,14 @@ public class MenuItems {
                 Player p = (Player) event.getWhoClicked();
                 if (event.isRightClick()) {
                     npc.getEquipment().setHand(new ItemStack(AIR));
-                    p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_TRIDENT_HIT);
                     p.sendMessage(Msg.get(p, "menus.equipment.hand.reset"));
                     menuView.content().set(Slot.of(23), handSlot(npc, p));
                 } else {
                     if (event.getCursor().getType() == AIR) return;
                     npc.getEquipment().setHand(event.getCursor().clone());
                     event.getCursor().setAmount(0);
-                    p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_ARMOR_EQUIP_LEATHER);
                     p.sendMessage(Msg.get(p, "menus.equipment.hand.message.success", Arg.arg(equipmentName(p, npc.getEquipment().getHand()))));
                     menuView.content().set(Slot.of(23), handSlot(npc, p));
                 }
@@ -416,7 +416,7 @@ public class MenuItems {
                 if (event.getCursor().getType() == AIR) return;
                 npc.getEquipment().setOffhand(event.getCursor().clone());
                 event.getCursor().setAmount(0);
-                p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                Utils.sound(menuView, Sound.ITEM_ARMOR_EQUIP_LEATHER);
                 p.sendMessage(Msg.get(p, "menus.equipment.offhand.message.success", Arg.arg(equipmentName(p, npc.getEquipment().getOffhand()))));
                 menuView.content().set(Slot.of(21), offhandSlot(npc, p));
             });
@@ -430,13 +430,13 @@ public class MenuItems {
                 Player p = (Player) event.getWhoClicked();
                 if (event.isRightClick()) {
                     npc.getEquipment().setOffhand(new ItemStack(AIR));
-                    p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_TRIDENT_HIT);
                     p.sendMessage(Msg.get(p, "menus.equipment.offhand.reset"));
                 } else {
                     if (event.getCursor().getType() == AIR) return;
                     npc.getEquipment().setOffhand(event.getCursor().clone());
                     event.getCursor().setAmount(0);
-                    p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_ARMOR_EQUIP_LEATHER);
                     p.sendMessage(Msg.get(p, "menus.equipment.offhand.message.success", Arg.arg(equipmentName(p, npc.getEquipment().getOffhand()))));
                 }
                 menuView.content().set(Slot.of(21), offhandSlot(npc, p));
@@ -466,7 +466,7 @@ public class MenuItems {
         return Button.clickable(ItemBuilder.of(ARROW).displayName(Msg.get(player, "items.go_back")).build(), (menu, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menu, Sound.UI_BUTTON_CLICK);
             Action action = CustomNPCs.getInstance().editingActions.getOrDefault(player.getUniqueId(), null);
             if (action == null) {
                 player.sendMessage(Msg.get(p, "error.npc-menu-expired"));
@@ -489,7 +489,7 @@ public class MenuItems {
                 Player p = (Player) event.getWhoClicked();
                 if (event.isRightClick()) {
                     if (event.isShiftClick()) {
-                        p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                        Utils.sound(menuView, Sound.ITEM_TRIDENT_HIT);
                         npc.removeAction(action);
                         menuView.lotus().openMenu(p, MenuUtils.NPC_ACTIONS);
                         return;
@@ -498,13 +498,12 @@ public class MenuItems {
                     menuView.lotus().openMenu(p, MenuUtils.NPC_DELETE_ACTION);
                 } else if (event.isLeftClick()) {
                     if (action.canEdit()) {
-                        p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1F, 1F);
-                        Action cloned = action.clone();
+                        Utils.sound(menuView, Sound.UI_BUTTON_CLICK);                        Action cloned = action.clone();
                         plugin.editingActions.put(p.getUniqueId(), cloned);
                         plugin.originalEditingActions.put(p.getUniqueId(), action);
                         plugin.getLotus().openMenu(p, cloned.getMenu());
                     } else {
-                        p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1F, 1F);
+                        Utils.sound(menuView, Sound.ENTITY_VILLAGER_NO);
                         p.sendMessage(Msg.get(p, "edit.fail"));
                     }
                 }
@@ -523,7 +522,7 @@ public class MenuItems {
         List<String> mutable = new ArrayList<>(raw);
         for (int i = 0; i < raw.size(); i++) {
             String line = raw.get(i);
-            List<Component> lore = Utils.list(Msg.format(line), Component.empty(), Msg.get(player, "menus.holograms.edit"), Msg.get(player, "menus.holograms.delete"));
+            List<Component> lore = Utils.list(Msg.format(line), Component.empty(), Msg.get(player, "menus.ordered.edit"), Msg.get(player, "menus.ordered.delete"));
             boolean canMoveDown = i < raw.size() - 1;
             boolean canMoveUp = i > 0;
 
@@ -531,7 +530,7 @@ public class MenuItems {
             if (canMoveUp) lore.add(Msg.get(player, "menus.holograms.move_up"));
 
             int finalI = i;
-            buttons.add(Button.clickable(ItemBuilder.of(PAPER).displayName(Msg.get(player, "menus.holograms.line", Arg.arg(i + 1))).lore(lore).build(), (_, event) -> {
+            buttons.add(Button.clickable(ItemBuilder.of(PAPER).displayName(Msg.get(player, "menus.holograms.line", Arg.arg(i + 1))).lore(lore).build(), (menuView, event) -> {
                 event.setCancelled(true);
                 Player p = (Player) event.getWhoClicked();
 
@@ -556,7 +555,7 @@ public class MenuItems {
                         return;
                     }
                     mutable.remove(finalI);
-                    player.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1F, 1F);
+                    Utils.sound(menuView, Sound.ITEM_TRIDENT_HIT);
                     npc.getSettings().getRawHolograms().remove(finalI);
                     npc.getSettings().setHolograms(mutable);
                     plugin.getLotus().openMenu(p, MenuUtils.NPC_HOLOGRAMS);
@@ -567,7 +566,7 @@ public class MenuItems {
 
                     plugin.wait(p, WaitingType.NAME);
 
-                    p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+                    Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                     HologramMenu.editingIndicies.put(p.getUniqueId(), finalI);
                     p.closeInventory();
 
@@ -582,27 +581,27 @@ public class MenuItems {
                 if (event.isLeftClick()) {
                     if (!canMoveUp) {
                         p.sendMessage(Msg.get(p, "menus.holograms.move_up_fail"));
-                        p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1F, 1F);
+                        Utils.sound(menuView, Sound.ENTITY_VILLAGER_NO);
                         return;
                     }
 
                     Collections.swap(mutable, finalI, finalI - 1);
                     npc.getSettings().setHolograms(mutable);
                     plugin.getLotus().openMenu(p, MenuUtils.NPC_HOLOGRAMS);
-                    p.playSound(p.getLocation(), Sound.BLOCK_PISTON_EXTEND, .7F, .9F);
+                    Utils.sound(menuView, Sound.BLOCK_PISTON_EXTEND);
                     return;
                 }
 
                 if (!canMoveDown) {
                     p.sendMessage(Msg.get(p, "menus.holograms.move_down_fail"));
-                    p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1F, 1F);
+                    Utils.sound(menuView, Sound.ENTITY_VILLAGER_NO);
                     return;
                 }
 
                 Collections.swap(mutable, finalI, finalI + 1);
                 npc.getSettings().setHolograms(mutable);
                 plugin.getLotus().openMenu(p, MenuUtils.NPC_HOLOGRAMS);
-                p.playSound(p.getLocation(), Sound.BLOCK_PISTON_CONTRACT, .7F, .9F);
+                Utils.sound(menuView, Sound.BLOCK_PISTON_CONTRACT);
             }));
         }
 
@@ -612,7 +611,7 @@ public class MenuItems {
 
             plugin.wait(p, WaitingType.NAME);
 
-            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             HologramMenu.editingIndicies.put(p.getUniqueId(), raw.size());
             p.closeInventory();
         }));
@@ -629,7 +628,7 @@ public class MenuItems {
         return Button.clickable(ItemBuilder.of(RED_DYE).displayName(Msg.get(player, "menus.action_customizer.delay.decrement")).lore(Msg.lore(player.locale(), "menus.action_customizer.delay.decrement.description")).build(), (menuView, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             if (action.getDelay() == 0) {
                 p.sendMessage(Msg.get(p, "menus.action_customizer.delay.error"));
                 return;
@@ -645,7 +644,7 @@ public class MenuItems {
             action.setDelay(Utils.increment(event).apply(action.getDelay()));
 
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             menuView.content().set(Slot.of(4), delayDisplay(action, p));
         });
     }
@@ -659,7 +658,7 @@ public class MenuItems {
         return Button.clickable(ItemBuilder.of(RED_DYE).displayName(Msg.get(player, "menus.action_customizer.cooldown.decrement")).lore(Msg.lore(player.locale(), "menus.action_customizer.cooldown.decrement.description")).build(), (menuView, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             if (action.getCooldown() == 0) {
                 p.sendMessage(Msg.get(p, "menus.action_customizer.cooldown.error"));
                 return;
@@ -676,7 +675,7 @@ public class MenuItems {
             action.setCooldown(Math.max(0, Utils.increment(event).apply(action.getCooldown())));
 
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             menuView.content().set(Slot.of(7), cooldownDisplay(action, p));
         });
     }
@@ -685,7 +684,7 @@ public class MenuItems {
         return Button.clickable(ItemBuilder.of(LILY_PAD).displayName(Msg.get(player, "menus.action_customizer.confirm")).build(), (menuView, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(p.getUniqueId());
 
             if (npc == null) {
@@ -711,7 +710,7 @@ public class MenuItems {
             event.setCancelled(true);
 
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             Action actionImpl = plugin.editingActions.get(p.getUniqueId());
             Condition original = plugin.originalEditingConditionals.get(p.getUniqueId());
             if (original != null) actionImpl.removeCondition(original);
@@ -753,7 +752,7 @@ public class MenuItems {
                 }
             }
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             menuView.content().set(Slot.of(slot), comparatorSwitcher(condition, p, slot));
         });
     }
@@ -765,10 +764,10 @@ public class MenuItems {
 
         ItemStack i = ItemBuilder.of(OAK_HANGING_SIGN).displayName(Msg.get(player, "value.select")).lore(Msg.get(player, "value.current", Arg.arg(condition.getTarget())), Msg.get(player, "items.click_to_change")).build();
 
-        return Button.clickable(i, (_, event) -> {
+        return Button.clickable(i, (menuView, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             p.closeInventory();
             plugin.wait(p, WaitingType.TARGET);
         });
@@ -808,7 +807,7 @@ public class MenuItems {
                 }
             }
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             menuView.content().set(Slot.of(inputSlot), targetValueSelector(condition, player));
             menuView.content().set(Slot.of(slot), valueSwitcher(condition, player, slot, inputSlot));
         });
@@ -820,7 +819,7 @@ public class MenuItems {
 
         return Button.clickable(i, (menuView, event) -> {
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             event.setCancelled(true);
             npc.getSettings().setHideClickableHologram(!hideClickableTag);
             menuView.content().set(Slot.of(11), interactableHologram(npc, p));
@@ -833,7 +832,7 @@ public class MenuItems {
         return Button.clickable(i, (menuView, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             plugin.wait(p, WaitingType.HOLOGRAM);
 
             p.closeInventory();
@@ -849,7 +848,7 @@ public class MenuItems {
 
         return Button.clickable(i, (menuView, event) -> {
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             event.setCancelled(true);
             npc.getSettings().setUpsideDown(!upsideDown);
             menuView.content().set(Slot.of(15), upsideDown(npc, p));
@@ -861,7 +860,7 @@ public class MenuItems {
 
         return Button.clickable(i, (menuView, event) -> {
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             p.closeInventory();
             plugin.wait(p, WaitingType.PLAYER);
             event.setCancelled(true);
@@ -874,7 +873,7 @@ public class MenuItems {
         return Button.clickable(i, (menuView, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             CustomNPCs.getInstance().getSkinCatalog(p).open(CustomNPCs.getInstance().getLotus(), p);
         });
     }
@@ -884,7 +883,7 @@ public class MenuItems {
 
         return Button.clickable(i, (menuView, event) -> {
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             p.closeInventory();
             plugin.wait(p, WaitingType.URL);
             event.setCancelled(true);
@@ -912,11 +911,11 @@ public class MenuItems {
                 Player p = (Player) event.getWhoClicked();
 
                 if (event.isRightClick()) {
-                    p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT, 1, 1);
+                    Utils.sound(menuView, Sound.ITEM_TRIDENT_HIT);
                     action.removeCondition(condition);
                     menuView.lotus().openMenu(p, MenuUtils.NPC_CONDITIONS);
                 } else {
-                    p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+                    Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                     plugin.editingConditionals.put(p.getUniqueId(), condition.clone());
                     plugin.originalEditingConditionals.put(p.getUniqueId(), condition);
                     menuView.lotus().openMenu(p, MenuUtils.NPC_CONDITION_CUSTOMIZER);
@@ -938,7 +937,7 @@ public class MenuItems {
 
         return Button.clickable(i, (menuView, event) -> {
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             event.setCancelled(true);
             action.setSelector(isAll ? Selector.ONE : Selector.ALL);
             menuView.content().set(Slot.of(35), toggleConditionMode(action, p));
@@ -951,7 +950,7 @@ public class MenuItems {
 
         return Button.clickable(i, (menuView, event) -> {
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             event.setCancelled(true);
             cond.setInverted(!cond.isInverted());
             menuView.content().set(Slot.of(16), toggleTextConditionInversion(cond, p));
@@ -963,7 +962,7 @@ public class MenuItems {
 
         return Button.clickable(i, (menuView, event) -> {
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             event.setCancelled(true);
             menuView.lotus().openMenu(p, MenuUtils.NPC_CONDITIONS);
         });
@@ -975,7 +974,7 @@ public class MenuItems {
         return Button.clickable(i, (menuView, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             menuView.lotus().openMenu(p, MenuUtils.NPC_CONDITIONS);
         });
     }
@@ -986,7 +985,7 @@ public class MenuItems {
         return Button.clickable(i, (menuView, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             Condition conditional = new NumericCondition(Comparator.EQUAL_TO, Condition.Value.EXP_LEVELS, 0.0);
             plugin.originalEditingConditionals.remove(p.getUniqueId());
             plugin.editingConditionals.put(p.getUniqueId(), conditional);
@@ -1003,7 +1002,7 @@ public class MenuItems {
         return Button.clickable(i, (menuView, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             Condition conditional = new TextCondition(Comparator.EQUAL_TO, Condition.Value.USERNAME, "test", false);
             plugin.originalEditingConditionals.remove(p.getUniqueId());
             plugin.editingConditionals.put(p.getUniqueId(), conditional);
@@ -1018,7 +1017,7 @@ public class MenuItems {
         return Button.clickable(i, (menuView, event) -> {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
             Condition conditional = new BooleanCondition(Comparator.EQUAL_TO, Condition.Value.HAS_PERMISSION, "customnpcs.*");
             plugin.originalEditingConditionals.remove(p.getUniqueId());
             plugin.editingConditionals.put(p.getUniqueId(), conditional);

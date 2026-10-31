@@ -28,6 +28,7 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -70,7 +71,7 @@ public class DeleteMenu implements Menu<Component> {
                         ItemBuilder.of(Material.RED_STAINED_GLASS_PANE)
                                 .displayName(Msg.get(player, "menus.delete.items.confirm.name"))
                                 .lore(Component.empty(), Msg.get(player, "menus.delete.items.confirm.lore"))
-                                .build(),(v, e) -> {
+                                .build(), (v, e) -> {
                             CustomNPCs plugin = CustomNPCs.getInstance();
                             Player player1 = (Player) e.getWhoClicked();
                             InternalNpc dontUse = plugin.getEditingNPCs().getIfPresent(player1.getUniqueId());
@@ -78,7 +79,7 @@ public class DeleteMenu implements Menu<Component> {
                             if (dontUse == null) {
                                 player1.closeInventory();
                                 player1.sendMessage(Msg.get(player, "error.npc-menu-expired"));
-                                player1.playSound(player1, Sound.ENTITY_VILLAGER_NO, 1, 1);
+                                Utils.sound(v, Sound.ENTITY_VILLAGER_NO);
                                 return;
                             }
 
@@ -87,7 +88,7 @@ public class DeleteMenu implements Menu<Component> {
 
                             if (npc == null) {
                                 player1.closeInventory();
-                                player1.playSound(player1, Sound.ENTITY_VILLAGER_NO, 1, 1);
+                                Utils.sound(v, Sound.ENTITY_VILLAGER_NO);
                                 player1.sendMessage(Msg.get(player, "error.npc-menu-expired"));
                                 return;
                             }
@@ -113,7 +114,7 @@ public class DeleteMenu implements Menu<Component> {
                             player1.sendMessage(Msg.get(player, "delete.success",
                                     Arg.arg(npc.getSettings().getRawHolograms().getFirst())));
                             player1.closeInventory();
-                            player1.playSound(player1, Sound.BLOCK_END_PORTAL_SPAWN, 1, 1);
+                            Utils.sound(view, Sound.BLOCK_END_PORTAL_SPAWN);
                             npc.getCurrentLocation().getWorld().strikeLightningEffect(npc.getCurrentLocation());
                         }))
                 .set(Slot.of(15), Button.clickable(
@@ -124,7 +125,7 @@ public class DeleteMenu implements Menu<Component> {
                             CustomNPCs plugin = CustomNPCs.getInstance();
                             InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
                             Player player1 = (Player) e.getWhoClicked();
-                            player1.playSound(player1, Sound.UI_BUTTON_CLICK, 1, 1);
+                            Utils.sound(view, Sound.UI_BUTTON_CLICK);
                             if (npc == null) {
                                 player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
                                 player.sendMessage(Msg.get(player, "error.npc-menu-expired"));
