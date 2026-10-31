@@ -72,7 +72,7 @@ public class DeleteActionMenu implements Menu<Component> {
         BiConsumer<Player, InternalNpc> onCancel = (BiConsumer<Player, InternalNpc>) view.data().get(Key.of("onCancel", BiConsumer.class)).orElseThrow();
         CustomNPCs plugin = CustomNPCs.getInstance();
         InternalNpc npcFor = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-        Action action = plugin.editingActions.get(player.getUniqueId());
+        Action action = view.data().get(Key.of("action", Action.class)).orElse(plugin.editingActions.get(player.getUniqueId()));
 
         if (npcFor == null || action == null) {
             player.sendMessage(Msg.get(player, "error.npc-menu-expired"));
