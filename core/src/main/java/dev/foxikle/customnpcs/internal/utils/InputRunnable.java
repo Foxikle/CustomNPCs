@@ -7,14 +7,14 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Duration;
 
-public class Runnable extends BukkitRunnable {
+public class InputRunnable extends BukkitRunnable {
 
     private final Player player;
     private final CustomNPCs plugin;
     private final WaitingType type;
 
 
-    public Runnable(Player player, CustomNPCs plugin, WaitingType type) {
+    public InputRunnable(Player player, CustomNPCs plugin, WaitingType type) {
         this.player = player;
         this.plugin = plugin;
         this.type = type;
