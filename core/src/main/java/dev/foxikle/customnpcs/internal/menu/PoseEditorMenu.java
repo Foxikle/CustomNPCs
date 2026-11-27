@@ -30,27 +30,29 @@ import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
+import dev.foxikle.customnpcs.internal.utils.await.Await;
+import dev.foxikle.customnpcs.internal.utils.await.Result;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNullByDefault;
 import studio.mevera.lotus.api.button.Button;
 import studio.mevera.lotus.api.content.Content;
-import studio.mevera.lotus.api.data.DataRegistry;
+import studio.mevera.lotus.api.data.Key;
 import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
 import studio.mevera.lotus.api.slot.Slot;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 @NotNullByDefault
 public class PoseEditorMenu implements Menu<Component> {
-    public static final Map<UUID, InternalNpc> previewNPCs = new HashMap<>();
+    public static final Key<InternalNpc> PREVIEW_NPC = Key.of("preview_npc", InternalNpc.class);
 
     @Override
     public String name() {
@@ -77,191 +79,212 @@ public class PoseEditorMenu implements Menu<Component> {
         }
 
         Button nudgeButton = Button.clickable(
-                ItemBuilder.of(Material.RECOVERY_COMPASS)
-                        .lore(Msg.lore(player.locale(), "menus.pose.nudge.lore"))
-                        .displayName(Msg.get(player, "menus.pose.nudge"))
-                        .build(),
-                (menu, event) -> {
-                    InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-                    event.setCancelled(true);
-                    if (clickedNpc == null) {
-                        player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
-                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
-                        return;
-                    }
-                    final InternalNpc finalClickedNpc = clickedNpc.clone();
-                    finalClickedNpc.getSettings().setResilient(false);
-                    Optional.ofNullable(plugin.getNPCByID(clickedNpc.getUniqueID()))
-                            .ifPresent(internalNpc -> {
-                                internalNpc.remove();
-                                finalClickedNpc.createNPC();
-                                previewNPCs.put(player.getUniqueId(), finalClickedNpc);
-                            });
-
-                    plugin.wait(player, WaitingType.NUDGE);
-                    player.closeInventory();
+            ItemBuilder.of(Material.RECOVERY_COMPASS)
+                .lore(Msg.lore(player.locale(), "menus.pose.nudge.lore"))
+                .displayName(Msg.get(player, "menus.pose.nudge"))
+                .build(),
+            (menu, event) -> {
+                InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+                event.setCancelled(true);
+                if (clickedNpc == null) {
+                    player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
+                    return;
                 }
+                final InternalNpc finalClickedNpc = clickedNpc.clone();
+                finalClickedNpc.getSettings().setResilient(false);
+                Optional.ofNullable(plugin.getNPCByID(clickedNpc.getUniqueID()))
+                    .ifPresent(internalNpc -> {
+                        internalNpc.remove();
+                        finalClickedNpc.createNPC();
+                        view.data().put(PREVIEW_NPC, finalClickedNpc);
+                    });
+
+                Await.signal(player, WaitingType.NUDGE, view.data())
+                    .thenAccept(result -> {
+                        switch (result) {
+                            case Result.Cancelled<?> _ -> MenuUtils.open(view);
+                            case Result.Failed<?> res -> MenuUtils.awaitFail(res, view);
+                            case Result.Ok<?> _ -> {
+                                InternalNpc npc_ = view.data().getOrNull(InternalNpc.KEY);
+                                InternalNpc previewNpc = view.data().getOrNull(PREVIEW_NPC);
+                                if (previewNpc == null || npc_ == null) {
+                                    view.viewer().sendMessage(Msg.get(view.viewer(), "await.error", Arg.arg("NPC is null")));
+                                    return;
+                                }
+
+                                Location finalLoc = previewNpc.getCurrentLocation();
+                                finalLoc.setPitch(npc_.getSpawnLoc().getPitch());
+                                finalLoc.setYaw(npc_.getSpawnLoc().getYaw());
+                                npc_.setSpawnLoc(finalLoc);
+                                previewNpc.remove();
+                                npc_.createNPC();
+                                MenuUtils.open(view);
+                            }
+                        }
+                    });
+            }
         );
 
         Button standing = Button.clickable(
-                ItemBuilder.of(Material.ARMOR_STAND)
-                        .lore(Msg.lore(player.locale(), "menus.pose.standing.lore"))
-                        .displayName(Msg.get(player, "menus.pose.standing"))
-                        .glowing(npc.getSettings().getPose() == Pose.STANDING)
-                        .addFlags(ItemFlag.values())
-                        .build(),
-                (menu, event) -> {
-                    InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-                    event.setCancelled(true);
-                    if (clickedNpc == null) {
-                        player.sendMessage(Msg.get(player, "error.npc-menu-expired"));
-                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
-                        return;
-                    }
-                    if (clickedNpc.getSettings().getPose() == Pose.STANDING) {
-                        player.sendMessage(Msg.get(player, "pose.already", Arg.arg("standing")));
-                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
-                        return;
-                    }
-                    clickedNpc.getSettings().setPose(Pose.STANDING);
-                    plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
-                    Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
+            ItemBuilder.of(Material.ARMOR_STAND)
+                .lore(Msg.lore(player.locale(), "menus.pose.standing.lore"))
+                .displayName(Msg.get(player, "menus.pose.standing"))
+                .glowing(npc.getSettings().getPose() == Pose.STANDING)
+                .addFlags(ItemFlag.values())
+                .build(),
+            (menu, event) -> {
+                InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+                event.setCancelled(true);
+                if (clickedNpc == null) {
+                    player.sendMessage(Msg.get(player, "error.npc-menu-expired"));
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
+                    return;
                 }
+                if (clickedNpc.getSettings().getPose() == Pose.STANDING) {
+                    player.sendMessage(Msg.get(player, "pose.already", Arg.arg("standing")));
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
+                    return;
+                }
+                clickedNpc.getSettings().setPose(Pose.STANDING);
+                plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
+                Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
+            }
         );
 
         Button sitting = Button.clickable(
-                ItemBuilder.of(Material.OAK_STAIRS)
-                        .lore(Msg.lore(player.locale(), "menus.pose.sitting.lore"))
-                        .displayName(Msg.get(player, "menus.pose.sitting"))
-                        .glowing(npc.getSettings().getPose() == Pose.SITTING)
-                        .addFlags(ItemFlag.values())
-                        .build(),
-                (menu, event) -> {
-                    InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-                    event.setCancelled(true);
-                    if (clickedNpc == null) {
-                        player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
-                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
-                        return;
-                    }
-                    if (clickedNpc.getSettings().getPose() == Pose.SITTING) {
-                        player.sendMessage(Msg.get(player, "pose.already", Arg.arg("sitting")));
-                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
-                        return;
-                    }
-                    clickedNpc.getSettings().setPose(Pose.SITTING);
-                    plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
-                    Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
+            ItemBuilder.of(Material.OAK_STAIRS)
+                .lore(Msg.lore(player.locale(), "menus.pose.sitting.lore"))
+                .displayName(Msg.get(player, "menus.pose.sitting"))
+                .glowing(npc.getSettings().getPose() == Pose.SITTING)
+                .addFlags(ItemFlag.values())
+                .build(),
+            (menu, event) -> {
+                InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+                event.setCancelled(true);
+                if (clickedNpc == null) {
+                    player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
+                    return;
                 }
+                if (clickedNpc.getSettings().getPose() == Pose.SITTING) {
+                    player.sendMessage(Msg.get(player, "pose.already", Arg.arg("sitting")));
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
+                    return;
+                }
+                clickedNpc.getSettings().setPose(Pose.SITTING);
+                plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
+                Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
+            }
         );
 
         Button swimming = Button.clickable(
-                ItemBuilder.of(Material.WATER_BUCKET)
-                        .lore(Msg.lore(player.locale(), "menus.pose.swimming.lore"))
-                        .displayName(Msg.get(player, "menus.pose.swimming"))
-                        .glowing(npc.getSettings().getPose() == Pose.SWIMMING)
-                        .build(),
-                (menu, event) -> {
-                    InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-                    event.setCancelled(true);
-                    if (clickedNpc == null) {
-                        player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
-                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
-                        return;
-                    }
-                    if (clickedNpc.getSettings().getPose() == Pose.SWIMMING) {
-                        player.sendMessage(Msg.get(player, "pose.already", Arg.arg("swimming")));
-                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
-                        return;
-                    }
-                    clickedNpc.getSettings().setPose(Pose.SWIMMING);
-                    plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
-                    Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
+            ItemBuilder.of(Material.WATER_BUCKET)
+                .lore(Msg.lore(player.locale(), "menus.pose.swimming.lore"))
+                .displayName(Msg.get(player, "menus.pose.swimming"))
+                .glowing(npc.getSettings().getPose() == Pose.SWIMMING)
+                .build(),
+            (menu, event) -> {
+                InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+                event.setCancelled(true);
+                if (clickedNpc == null) {
+                    player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
+                    return;
                 }
+                if (clickedNpc.getSettings().getPose() == Pose.SWIMMING) {
+                    player.sendMessage(Msg.get(player, "pose.already", Arg.arg("swimming")));
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
+                    return;
+                }
+                clickedNpc.getSettings().setPose(Pose.SWIMMING);
+                plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
+                Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
+            }
         );
 
         Button crouching = Button.clickable(
-                ItemBuilder.of(Material.SMOOTH_QUARTZ_SLAB)
-                        .lore(Msg.lore(player.locale(), "menus.pose.crouching.lore"))
-                        .displayName(Msg.get(player, "menus.pose.crouching"))
-                        .glowing(npc.getSettings().getPose() == Pose.CROUCHING)
-                        .addFlags(ItemFlag.values())
-                        .build(),
-                (menu, event) -> {
-                    InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-                    event.setCancelled(true);
-                    if (clickedNpc == null) {
-                        player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
-                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
-                        return;
-                    }
-                    if (clickedNpc.getSettings().getPose() == Pose.CROUCHING) {
-                        player.sendMessage(Msg.get(player, "pose.already", Arg.arg("crouching")));
-                        return;
-                    }
-                    clickedNpc.getSettings().setPose(Pose.CROUCHING);
-                    plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
-                    Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
+            ItemBuilder.of(Material.SMOOTH_QUARTZ_SLAB)
+                .lore(Msg.lore(player.locale(), "menus.pose.crouching.lore"))
+                .displayName(Msg.get(player, "menus.pose.crouching"))
+                .glowing(npc.getSettings().getPose() == Pose.CROUCHING)
+                .addFlags(ItemFlag.values())
+                .build(),
+            (menu, event) -> {
+                InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+                event.setCancelled(true);
+                if (clickedNpc == null) {
+                    player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
+                    return;
                 }
+                if (clickedNpc.getSettings().getPose() == Pose.CROUCHING) {
+                    player.sendMessage(Msg.get(player, "pose.already", Arg.arg("crouching")));
+                    return;
+                }
+                clickedNpc.getSettings().setPose(Pose.CROUCHING);
+                plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
+                Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
+            }
         );
 
         Button sleeping = Button.clickable(
-                ItemBuilder.of(Material.RED_BED)
-                        .lore(Msg.lore(player.locale(), "menus.pose.sleeping.lore"))
-                        .displayName(Msg.get(player, "menus.pose.sleeping"))
-                        .glowing(npc.getSettings().getPose() == Pose.SLEEPING)
-                        .addFlags(ItemFlag.values())
-                        .build(),
-                (menu, event) -> {
-                    InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-                    event.setCancelled(true);
-                    if (clickedNpc == null) {
-                        player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
-                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
-                        return;
-                    }
-                    if (clickedNpc.getSettings().getPose() == Pose.SLEEPING) {
-                        player.sendMessage(Msg.get(player, "pose.already", Arg.arg("sleeping")));
-                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
-                        return;
-                    }
-                    clickedNpc.getSettings().setPose(Pose.SLEEPING);
-                    plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
-                    Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
+            ItemBuilder.of(Material.RED_BED)
+                .lore(Msg.lore(player.locale(), "menus.pose.sleeping.lore"))
+                .displayName(Msg.get(player, "menus.pose.sleeping"))
+                .glowing(npc.getSettings().getPose() == Pose.SLEEPING)
+                .addFlags(ItemFlag.values())
+                .build(),
+            (menu, event) -> {
+                InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+                event.setCancelled(true);
+                if (clickedNpc == null) {
+                    player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
+                    return;
                 }
+                if (clickedNpc.getSettings().getPose() == Pose.SLEEPING) {
+                    player.sendMessage(Msg.get(player, "pose.already", Arg.arg("sleeping")));
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
+                    return;
+                }
+                clickedNpc.getSettings().setPose(Pose.SLEEPING);
+                plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
+                Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
+            }
         );
 
         Button dying = Button.clickable(
-                ItemBuilder.of(Material.LAVA_BUCKET)
-                        .lore(Msg.lore(player.locale(), "menus.pose.dying.lore"))
-                        .displayName(Msg.get(player, "menus.pose.dying"))
-                        .glowing(npc.getSettings().getPose() == Pose.DYING)
-                        .addFlags(ItemFlag.values())
-                        .build(),
-                (menu, event) -> {
-                    InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-                    event.setCancelled(true);
-                    if (clickedNpc == null) {
-                        player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
-                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
-                        return;
-                    }
-                    if (clickedNpc.getSettings().getPose() == Pose.DYING) {
-                        player.sendMessage(Msg.get(player, "pose.already", Arg.arg("dying")));
-                        Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
-                        return;
-                    }
-                    clickedNpc.getSettings().setPose(Pose.DYING);
-                    plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
-                    Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
+            ItemBuilder.of(Material.LAVA_BUCKET)
+                .lore(Msg.lore(player.locale(), "menus.pose.dying.lore"))
+                .displayName(Msg.get(player, "menus.pose.dying"))
+                .glowing(npc.getSettings().getPose() == Pose.DYING)
+                .addFlags(ItemFlag.values())
+                .build(),
+            (menu, event) -> {
+                InternalNpc clickedNpc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
+                event.setCancelled(true);
+                if (clickedNpc == null) {
+                    player.sendMessage(Msg.get(player, "error.npc-menu-expired "));
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
+                    return;
                 }
+                if (clickedNpc.getSettings().getPose() == Pose.DYING) {
+                    player.sendMessage(Msg.get(player, "pose.already", Arg.arg("dying")));
+                    Utils.sound(menu, Sound.ENTITY_VILLAGER_NO);
+                    return;
+                }
+                clickedNpc.getSettings().setPose(Pose.DYING);
+                plugin.getLotus().openMenu((Player) event.getWhoClicked(), MenuUtils.NPC_MAIN);
+                Utils.sound(menu, Sound.ENTITY_VILLAGER_CELEBRATE);
+            }
         );
 
         return Content.builder(view.capacity())
-                .fillBorder(MenuItems.MENU_GLASS)
-                .apply(content -> List.of(standing, sitting, crouching, swimming, sleeping, dying).forEach(content::add))
-                .set(Slot.of(18), MenuItems.toMain(player))
-                .set(Slot.of(8), nudgeButton)
-                .build();
+            .fillBorder(MenuItems.MENU_GLASS)
+            .apply(content -> List.of(standing, sitting, crouching, swimming, sleeping, dying).forEach(content::add))
+            .set(Slot.of(18), MenuItems.toMain(player))
+            .set(Slot.of(8), nudgeButton)
+            .build();
     }
 }

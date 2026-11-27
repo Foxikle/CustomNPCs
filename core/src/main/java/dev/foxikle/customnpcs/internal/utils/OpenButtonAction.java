@@ -22,12 +22,16 @@
 
 package dev.foxikle.customnpcs.internal.utils;
 
+import dev.foxikle.customnpcs.internal.CustomNPCs;
 import lombok.AllArgsConstructor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.lotus.api.button.ClickAction;
+import studio.mevera.lotus.api.data.DataRegistry;
+import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 
 import java.util.function.Consumer;
@@ -35,12 +39,21 @@ import java.util.function.Consumer;
 @AllArgsConstructor
 public class OpenButtonAction implements ClickAction {
 
-    private final String id;
+    private final Menu<Component> menu;
+    private final DataRegistry data;
     private final Consumer<MenuView<?,?>> action;
 
+
     public OpenButtonAction(String id) {
-        this.id = id;
+        this.menu = CustomNPCs.getInstance().getLotus().registeredMenu(id).orElseThrow();
         this.action = v -> Utils.sound(v, Sound.UI_BUTTON_CLICK);
+        this.data = DataRegistry.empty();
+    }
+
+    public OpenButtonAction(@NotNull Menu<Component> menu, DataRegistry data) {
+        this.menu = menu;
+        this.action = v -> Utils.sound(v, Sound.UI_BUTTON_CLICK);
+        this.data = data;
     }
 
     @Override
@@ -49,6 +62,6 @@ public class OpenButtonAction implements ClickAction {
         if (action != null) {
             action.accept(view);
         }
-        view.lotus().openMenu(player, id);
+        view.lotus().openMenu(player, menu, data);
     }
 }

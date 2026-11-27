@@ -25,6 +25,7 @@ package dev.foxikle.customnpcs.internal.storage;
 import com.google.gson.JsonParser;
 import dev.foxikle.customnpcs.actions.Action;
 import dev.foxikle.customnpcs.api.Pose;
+import dev.foxikle.customnpcs.api.Skin;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
@@ -166,7 +167,7 @@ public class StorageManager {
                 plugin.getLogger().log(Level.WARNING, String.format("Outdated Config version! Converting config (%d -> %d).", version, 3));
                 yml.set("CONFIG_VERSION", 3);
                 yml.set("ClickText",
-                        Msg.MINI.serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(yml.getString("ClickText")))));
+                    Msg.MINI.serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(Objects.requireNonNull(yml.getString("ClickText")))));
                 try {
                     yml.save(file);
                 } catch (IOException e) {
@@ -222,12 +223,12 @@ public class StorageManager {
                 yml.set("CONFIG_VERSION", 8);
                 ConfigurationSection section = yml.createSection("MineSkin");
                 yml.setComments("MineSkin", List.of(
-                        " ############################",
-                        " #        Skin API          #",
-                        " ############################",
-                        "This plugin uses Mineskin.org's free skin api to generate skins from urls and player names. CustomNPCs comes with an api",
-                        "key embedded, but the same key is used by every other person using the plugin, so it will likely be reaching the rate limit",
-                        "nearly constantly. To combat this, you can use your own API key. You can get one here: https://account.mineskin.org/keys/"
+                    " ############################",
+                    " #        Skin API          #",
+                    " ############################",
+                    "This plugin uses Mineskin.org's free skin api to generate skins from urls and player names. CustomNPCs comes with an api",
+                    "key embedded, but the same key is used by every other person using the plugin, so it will likely be reaching the rate limit",
+                    "nearly constantly. To combat this, you can use your own API key. You can get one here: https://account.mineskin.org/keys/"
                 ));
                 section.set("ApiKey", "");
                 section.setInlineComments("ApiKey", List.of("Put your api key here, if desired"));
@@ -259,11 +260,11 @@ public class StorageManager {
 
                 storage.set("provider", "LOCAL");
                 storage.setComments("provider", Utils.list("", "+---------------------------------------+", "|           Storage Provider            |", "+---------------------------------------+", "",
-                        "The storage provider determines how the plugin stores the NPC data. There are 3 " +
-                                "options:", "",
-                        "\"LOCAL\" is used by default. It stores the data on the same disk the server is running on. It is a good choice if you don't want to deal with setting up a database or don't " +
-                                "have one.", "\"MYSQL\" is a typical relational database. It's not really optimized for this kind of storage, it's a good choice if you already use a MySQL or MariaDB " +
-                                "database.", "\"MONGODB\" is the recommended option for using remote storage. It tends to be more performant and optimized for storing JSON."));
+                    "The storage provider determines how the plugin stores the NPC data. There are 3 " +
+                        "options:", "",
+                    "\"LOCAL\" is used by default. It stores the data on the same disk the server is running on. It is a good choice if you don't want to deal with setting up a database or don't " +
+                        "have one.", "\"MYSQL\" is a typical relational database. It's not really optimized for this kind of storage, it's a good choice if you already use a MySQL or MariaDB " +
+                        "database.", "\"MONGODB\" is the recommended option for using remote storage. It tends to be more performant and optimized for storing JSON."));
 
                 ConfigurationSection mysql = storage.createSection("mysql");
                 storage.setComments("mysql", Utils.list("", "+---------------------------------------+", "|         MySQL Configuration           |", "+---------------------------------------+", "These settings only matter if the provider is set to \"MYSQL\""));
@@ -297,7 +298,7 @@ public class StorageManager {
 
                 mongo.set("document", "npcs");
                 mongo.setComments("document", Utils.list("document -> The document name to use to store the data. This can be used to separate your npc configurations across servers. ie: lobby, " +
-                        "survival, etc."));
+                    "survival, etc."));
 
                 try {
                     yml.save(file);
@@ -328,13 +329,13 @@ public class StorageManager {
                     plugin.getLogger().severe("");
                     plugin.getLogger().severe("");
                     plugin.getLogger().severe(
-                            "+------------------------------------------------------------------------------+");
+                        "+------------------------------------------------------------------------------+");
                     plugin.getLogger().severe("|                     Your NPC file is too old to migrate!                     |");
                     plugin.getLogger().severe("|                 Please update to CustomNPCs v1.7.10 before                   |");
                     plugin.getLogger().severe("|                          updating to this version!                           |");
                     plugin.getLogger().severe("|                           Current Version: '" + version + "'                             |");
                     plugin.getLogger().severe(
-                            "+------------------------------------------------------------------------------+");
+                        "+------------------------------------------------------------------------------+");
                     plugin.getLogger().severe("");
                     plugin.getLogger().severe("");
                     throw new RuntimeException("Your NPC file is too old to migrate! Please update to CustomNPCs v1.7.10 before updating. Current version: " + version);
@@ -609,21 +610,26 @@ public class StorageManager {
         }
 
         Equipment equipment = new Equipment(section.getItemStack("headItem"),
-                section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack(
-                "feetItem")
-                , section.getItemStack("handItem"), section.getItemStack("offhandItem"));
+            section.getItemStack("chestItem"), section.getItemStack("legsItem"), section.getItemStack(
+            "feetItem")
+            , section.getItemStack("handItem"), section.getItemStack("offhandItem"));
 
         Settings settings = new Settings(
-                section.getBoolean("clickable"),
-                section.getBoolean("tunnelvision"),
-                true,
-                section.getString("value"), section.getString("signature"), section.getString("skin"),
-                section.getStringList("lines"), section.getString("customHologram"),
-                section.getBoolean("hideInteractableHologram"), parsePose(section.getString("pose")),
-                section.getBoolean("upsideDown"));
+            section.getBoolean("clickable"),
+            section.getBoolean("tunnelvision"),
+            true,
+            CustomNPCs.INTERPOLATION_DURATION,
+            section.getStringList("lines"),
+            section.getBoolean("hideInteractableHologram"),
+            section.getString("customHologram"),
+            parsePose(section.getString("pose")),
+            null, false,
+            section.getBoolean("upsideDown"),
+            new Skin(section.getString("signature"), section.getString("value"),
+                section.getString("skin")));
 
         InternalNpc npc = plugin.createNPC(world, location, equipment,
-                settings, uuid, null, actions, new ArrayList<>(), Selector.ONE);
+            settings, uuid, null, actions, new ArrayList<>(), Selector.ONE);
 
         return new StorableNPC(npc);
     }
@@ -665,7 +671,7 @@ public class StorageManager {
     private BackupResult createBackup(File file) {
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         File f = new File(PARENT_DIRECTORY,
-                new Date().toString().replace(" ", "_").replace(":", "_") + "_backup_of_" + file.getName() + Instant.now().hashCode());
+            new Date().toString().replace(" ", "_").replace(":", "_") + "_backup_of_" + file.getName() + Instant.now().hashCode());
         try {
             if (f.createNewFile()) {
                 yml.save(f);
@@ -674,7 +680,7 @@ public class StorageManager {
             }
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE,
-                    "An error occurred whilst creating a backup of the file '" + file.getName() + "'", e);
+                "An error occurred whilst creating a backup of the file '" + file.getName() + "'", e);
             return new BackupResult(null, false);
         }
         return new BackupResult(f.toPath(), true);
@@ -694,7 +700,7 @@ public class StorageManager {
     public CompletableFuture<Boolean> saveNpcs() {
         try {
             String json =
-                    NPCS_CODEC.encode(Transcoder.JSON, new ArrayList<>(trackedNpcs.values())).orElseThrow().toString();
+                NPCS_CODEC.encode(Transcoder.JSON, new ArrayList<>(trackedNpcs.values())).orElseThrow().toString();
             return storage.save(json);
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to write NPC data to json!", e);

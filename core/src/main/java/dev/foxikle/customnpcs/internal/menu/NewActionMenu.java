@@ -23,17 +23,24 @@
 package dev.foxikle.customnpcs.internal.menu;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.menu.util.GoBack;
 import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.await.Await;
+import dev.foxikle.customnpcs.internal.utils.await.AwaitAction;
 import net.kyori.adventure.text.Component;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.jetbrains.annotations.NotNullByDefault;
 import studio.mevera.lotus.api.content.Content;
+import studio.mevera.lotus.api.data.Key;
+import studio.mevera.lotus.api.menu.InteractiveMenu;
 import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
 import studio.mevera.lotus.api.slot.Slot;
 
 @NotNullByDefault
-public class NewActionMenu implements Menu<Component> {
+public class NewActionMenu implements InteractiveMenu<Component> {
+
     @Override
     public String name() {
         return MenuUtils.NPC_NEW_ACTION;
@@ -50,11 +57,19 @@ public class NewActionMenu implements Menu<Component> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Content content(MenuView<Component, ?> view) {
+        GoBack gb = view.data().get(GoBack.KEY).or(() -> view.lotus().registeredMenu(MenuUtils.NPC_ACTIONS)).orElseThrow();
         return Content.builder(view.capacity())
                 .fillBorder(MenuItems.MENU_GLASS)
                 .apply(content -> CustomNPCs.ACTION_REGISTRY.getButtons(view.viewer()).forEach(content::add))
-                .set(Slot.of(27), MenuItems.toAction(view.viewer()))
+                .set(Slot.of(27), MenuItems.goBack(view.viewer(), gb.menu(), gb.data()))
                 .build();
+    }
+
+    @Override
+    public void onClose(MenuView<Component, ?> view, InventoryCloseEvent event) {
+        AwaitAction aa = view.data().get(Await.CREATION).orElseThrow();
+        aa.cancel();
     }
 }

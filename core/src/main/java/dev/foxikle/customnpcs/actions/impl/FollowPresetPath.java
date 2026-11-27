@@ -24,6 +24,8 @@ package dev.foxikle.customnpcs.actions.impl;
 
 import com.google.common.reflect.TypeToken;
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.api.actions.ActionCustomizer;
+import dev.foxikle.customnpcs.api.callbacks.ActionCreationCallback;
 import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
@@ -61,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 @NoArgsConstructor(onConstructor_ = {@ApiStatus.Internal})
 public class FollowPresetPath extends Action {
@@ -75,6 +78,13 @@ public class FollowPresetPath extends Action {
             "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
             FollowPresetPath::new
     );
+
+    @Getter
+    private final Supplier<FollowPresetPath> defaultValue = () -> new FollowPresetPath(new ArrayList<>(), false, 0,
+            Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
+
+    @Getter
+    private final ActionCustomizer menu = new FollowPathCustomizer();
 
     public static final Map<UUID, Location> lastRecordedPos = new ConcurrentHashMap<>();
     private static final Map<UUID, List<RecordedPathNode>> recordingPaths = new ConcurrentHashMap<>();
@@ -158,15 +168,7 @@ public class FollowPresetPath extends Action {
                         .displayName(Msg.get(player, "menus.action.follow_path.favicon"))
                         .lore(Msg.get(player, "menus.action.follow_path.description"))
                         .build(),
-                (menuView, event) -> {
-                    Player p = (Player) event.getWhoClicked();
-                    event.setCancelled(true);
-                    Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
-                    FollowPresetPath action = new FollowPresetPath(new ArrayList<>(), false, 0,
-                            Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
-                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), action);
-                    menuView.lotus().openMenu(p, action.getMenu());
-                });
+                new ActionCreationCallback(this));
     }
 
     @Override
@@ -223,11 +225,6 @@ public class FollowPresetPath extends Action {
     }
 
     @Override
-    public Menu<Component> getMenu() {
-        return new FollowPathCustomizer(this);
-    }
-
-    @Override
     public Action clone() {
         return new FollowPresetPath(new ArrayList<>(path), loop, getDelay(), getSelector(),
                 new ArrayList<>(getConditions()), getCooldown(), getUuid());
@@ -245,8 +242,7 @@ public class FollowPresetPath extends Action {
 
     @AllArgsConstructor
     @NotNullByDefault
-    private class FollowPathCustomizer implements Menu<Component> {
-        private final FollowPresetPath action;
+    private class FollowPathCustomizer implements ActionCustomizer {
 
         @Override
         public String name() {
@@ -265,13 +261,14 @@ public class FollowPresetPath extends Action {
 
         @Override
         public Content content(MenuView<Component, ?> view) {
+            FollowPresetPath action = getAction(view);
             return MenuUtils.actionBase(action, view.viewer())
-                    .set(Slot.of(20), button(view.viewer()))
-                    .set(Slot.of(24), candle(view.viewer()))
+                    .set(Slot.of(20), button(view.viewer(), action))
+                    .set(Slot.of(24), candle(view.viewer(), action))
                     .build();
         }
 
-        private Button candle(Player player) {
+        private Button candle(Player player, FollowPresetPath action) {
             return Button.clickable(ItemBuilder.of(action.loop ? Material.GREEN_CANDLE : Material.RED_CANDLE)
                             .displayName(Msg.get(player, "menus.action.follow_path.loop." + action.loop))
                             .lore(Msg.lore(player.locale(), "menus.action.follow_path.loop." + action.loop + ".description"))
@@ -279,13 +276,13 @@ public class FollowPresetPath extends Action {
                         e.setCancelled(true);
                         Utils.sound(m, Sound.UI_BUTTON_CLICK);
                         action.loop = !action.loop;
-                        m.content().set(Slot.of(24), candle(player));
+                        m.content().set(Slot.of(24), candle(player, action));
                         //todo: autostart
                     }
             );
         }
 
-        private Button button(Player player) {
+        private Button button(Player player, FollowPresetPath action) {
             ClickAction click = (_, _) -> {
                 player.closeInventory();
                 startRecording(player);

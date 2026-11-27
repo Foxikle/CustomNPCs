@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNullByDefault;
 import studio.mevera.lotus.api.content.Content;
 import studio.mevera.lotus.api.data.DataRegistry;
+import studio.mevera.lotus.api.data.Key;
 import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
@@ -42,7 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @NotNullByDefault
 public class HologramMenu implements Menu<Component> {
-    public static final Map<UUID, Integer> editingIndicies = new ConcurrentHashMap<>();
+    public static final Key<Integer> EDITING_INDEX = Key.of("editing_index", Integer.class);
 
     @Override
     public String name() {

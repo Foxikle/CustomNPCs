@@ -25,6 +25,7 @@ package dev.foxikle.customnpcs.data;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import dev.foxikle.customnpcs.api.NPC;
 import dev.foxikle.customnpcs.api.Pose;
+import dev.foxikle.customnpcs.api.Skin;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
@@ -44,6 +45,8 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dev.foxikle.customnpcs.data.CommandDataFixers.err;
+
 /**
  * A class holding the data for an NPC's settings
  */
@@ -53,59 +56,102 @@ import java.util.List;
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class Settings {
 
+    private static final int VERSION = 1;
+
     public static final Settings DEFAULT = new Settings(
             false, // interactable
             false, // tunnel vision
             true, // resilient
             CustomNPCs.INTERPOLATION_DURATION, // interpolation duration
-            "", // skin value
-            "", // skin signature
             Utils.list("An Unnamed NPC"),
-            "", // skin name
             false, // hide interactable hologram
-            "",
+            "", // custom interactable hologram
             Pose.STANDING,
             null, // custom hologram background
             false, // hide hologram background
-            false // upside down
+            false, // upside down,
+            Skin.EMPTY
     );
 
-    public static final Codec<Settings> CODEC = StructCodec.struct(
+    private static final StructCodec<Settings> LEGACY_CODEC = StructCodec.struct(
+            "interactable", Codec.BOOLEAN, err(),
+            "tunnelvision", Codec.BOOLEAN, err(),
+            "resilient", Codec.BOOLEAN, err(),
+            "interpolationDuration", Codec.INT.optional(CustomNPCs.INTERPOLATION_DURATION), err(),
+            "value", Codec.STRING.optional(""), err(),
+            "signature", Codec.STRING.optional(""), err(),
+            "holograms", Codec.STRING.list(), err(),
+            "skinName", Codec.STRING.optional(""), err(),
+            "hideClickableHologram", Codec.BOOLEAN, err(),
+            "customInteractionHologram", Codec.STRING.optional(""), err(),
+            "pose", Codec.Enum(Pose.class), err(),
+            "hologramBackground", Utils.COLOR_CODEC.optional(), err(),
+            "hideHologrambackground", Codec.BOOLEAN.optional(false), err(),
+            "upsideDown", Codec.BOOLEAN, err(),
+            Settings::new
+    );
+
+    private static final StructCodec<Settings> CODEC_V1 = StructCodec.struct(
             "interactable", Codec.BOOLEAN, Settings::isInteractable,
             "tunnelvision", Codec.BOOLEAN, Settings::isTunnelvision,
             "resilient", Codec.BOOLEAN, Settings::isResilient,
             "interpolationDuration", Codec.INT.optional(CustomNPCs.INTERPOLATION_DURATION),
             Settings::getInterpolationDuration,
-            "value", Codec.STRING.optional(""), Settings::getValue,
-            "signature", Codec.STRING.optional(""), Settings::getSignature,
             "holograms", Codec.STRING.list(), Settings::getRawHolograms,
-            "skinName", Codec.STRING, Settings::getSkinName,
             "hideClickableHologram", Codec.BOOLEAN, Settings::isHideClickableHologram,
             "customInteractionHologram", Codec.STRING.optional(""), Settings::getCustomInteractableHologram,
             "pose", Codec.Enum(Pose.class), Settings::getPose,
             "hologramBackground", Utils.COLOR_CODEC.optional(), Settings::getHologramBackground,
             "hideHologrambackground", Codec.BOOLEAN.optional(false), Settings::isHideBackgroundHologram,
             "upsideDown", Codec.BOOLEAN, Settings::isUpsideDown,
+            "skin", Skin.CODEC, Settings::getSkin,
             Settings::new
     );
+
+
+    @SuppressWarnings("SwitchStatementWithTooFewBranches")
+    public static final Codec<Settings> CODEC = Codec.INT.unionType("v", integer ->
+            switch (integer) {
+                case 1 -> CODEC_V1;
+                default -> LEGACY_CODEC;
+            }, _ -> VERSION); // always serailize to latest versionsz
 
 
     boolean interactable;
     boolean tunnelvision;
     boolean resilient;
     int interpolationDuration;
-    String value;
-    String signature;
     @Getter(AccessLevel.NONE)
     List<String> holograms;
-    String skinName;
     boolean hideClickableHologram;
     String customInteractableHologram;
     Pose pose;
     Color hologramBackground;
     boolean hideBackgroundHologram;
     boolean upsideDown;
+    Skin skin;
 
+
+    public Settings(boolean interactable, boolean tunnelvision, boolean resilient, int interpolationDuration,
+                    List<String> holograms, boolean hideClickableHologram, String customInteractableHologram,
+                    Pose pose, Color hologramBackground, boolean hideBackgroundHologram, boolean upsideDown,
+                    Skin skin) {
+        this.interactable = interactable;
+        this.tunnelvision = tunnelvision;
+        this.resilient = resilient;
+        this.interpolationDuration = interpolationDuration;
+        this.holograms = new ArrayList<>(holograms);
+        this.hideClickableHologram = hideClickableHologram;
+        this.customInteractableHologram = customInteractableHologram;
+        this.pose = pose;
+        this.hologramBackground = hologramBackground;
+        this.hideBackgroundHologram = hideBackgroundHologram;
+        this.upsideDown = upsideDown;
+        this.skin = skin;
+    }
+
+    // legacy codec constructor
+    @Deprecated
     public Settings(boolean interactable, boolean tunnelvision, boolean resilient, int interpolationDuration,
                     String value, String signature, List<String> holograms, String skinName,
                     boolean hideClickableHologram, String customInteractableHologram, Pose pose,
@@ -114,40 +160,14 @@ public class Settings {
         this.tunnelvision = tunnelvision;
         this.resilient = resilient;
         this.interpolationDuration = interpolationDuration;
-        this.value = value;
-        this.signature = signature;
         this.holograms = new ArrayList<>(holograms);
-        this.skinName = skinName;
         this.hideClickableHologram = hideClickableHologram;
         this.customInteractableHologram = customInteractableHologram;
         this.pose = pose;
         this.hologramBackground = hologramBackground;
         this.hideBackgroundHologram = hideBackgroundHologram;
         this.upsideDown = upsideDown;
-    }
-
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.10")
-    public Settings(boolean interactable, boolean tunnelvision, boolean resilient,
-                    String value, String signature, String skinName, List<String> holograms,
-                    String customInteractableHologram,
-
-                    boolean hideClickableHologram, Pose pose,
-                    boolean upsideDown) {
-        this.interactable = interactable;
-        this.tunnelvision = tunnelvision;
-        this.resilient = resilient;
-        this.interpolationDuration = DEFAULT.interpolationDuration;
-        this.value = value;
-        this.signature = signature;
-        this.holograms = new ArrayList<>(holograms);
-        this.skinName = skinName;
-        this.hideClickableHologram = hideClickableHologram;
-        this.customInteractableHologram = customInteractableHologram;
-        this.pose = pose;
-        this.hologramBackground = DEFAULT.hologramBackground;
-        this.hideBackgroundHologram = DEFAULT.hideBackgroundHologram;
-        this.upsideDown = upsideDown;
+        this.skin = new Skin(signature, value, skinName);
     }
 
     public static Builder builder() {
@@ -179,24 +199,28 @@ public class Settings {
         if (signature == null || value == null) {
             throw new IllegalStateException("Player does not have a valid skin!");
         }
-        this.signature = signature;
-        this.value = value;
-        this.skinName = player.getName() + "'s skin";
+        this.skin = new Skin(signature, value, player.getName() + "'s skin");
         return this;
     }
 
-    public Settings setSkinData(String sig, String val, String name) {
-        this.signature = sig;
-        this.value = val;
-        this.skinName = name;
+    public Settings setSkinData(Skin skin) {
+        this.skin = skin;
         return this;
+    }
+
+    /**
+     * Deprecated. Use {@link #setSkinData(Skin)} instead.
+     */
+    @Deprecated
+    public Settings setSkinData(String sig, String val, String name) {
+        return setSkinData(new Skin(sig, val, name));
     }
 
     @SuppressWarnings("all")
     public Settings clone() {
-        return new Settings(interactable, tunnelvision, resilient, interpolationDuration, value, signature, holograms,
-                skinName, hideClickableHologram, customInteractableHologram, pose, hologramBackground,
-                hideBackgroundHologram, upsideDown);
+        return new Settings(interactable, tunnelvision, resilient, interpolationDuration,
+                holograms, hideClickableHologram, customInteractableHologram, pose, hologramBackground,
+                hideBackgroundHologram, upsideDown, skin);
     }
 
     public static class Builder {
@@ -361,29 +385,23 @@ public class Settings {
         }
 
         /**
-         * Sets the skin data
-         *
-         * @param signature the skin signature
-         * @param value     the skin value
-         * @param skinName  the cosmetic name
+         * Deprecated. Use {@link Builder#skinData(Skin)} instead.
          */
+        @Deprecated
         public Builder skinData(String signature, String value, String skinName) {
-            settings.setValue(value);
-            settings.setSignature(signature);
-            settings.setSkinName(skinName);
-            return this;
+            return skinData(new Skin(signature, value, skinName));
         }
 
         /**
-         * Sets the skin data
-         *
-         * @param signature the skin signature
-         * @param value     the skin value
+         * Deprecated. Use {@link Builder#skinData(Skin)} instead.
          */
+        @Deprecated
         public Builder skinData(String signature, String value) {
-            settings.setValue(value);
-            settings.setSignature(signature);
-            settings.setSkinName("API Skin");
+            return skinData(new Skin(signature, value));
+        }
+
+        public Builder skinData(Skin skin) {
+            settings.skin = skin;
             return this;
         }
 

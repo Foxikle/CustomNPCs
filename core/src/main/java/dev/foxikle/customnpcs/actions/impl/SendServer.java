@@ -25,6 +25,8 @@ package dev.foxikle.customnpcs.actions.impl;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.api.actions.ActionCustomizer;
+import dev.foxikle.customnpcs.api.callbacks.ActionCreationCallback;
 import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
@@ -35,6 +37,8 @@ import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
+import dev.foxikle.customnpcs.internal.utils.await.Await;
+import dev.foxikle.customnpcs.internal.utils.await.Result;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -59,6 +63,7 @@ import studio.mevera.lotus.api.slot.Slot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import static org.bukkit.Material.GRASS_BLOCK;
 import static org.bukkit.Material.OAK_HANGING_SIGN;
@@ -69,14 +74,18 @@ import static org.bukkit.Material.OAK_HANGING_SIGN;
 public class SendServer extends Action {
 
     public static final StructCodec<SendServer> CODEC = StructCodec.struct(
-            "server", Codec.STRING, SendServer::getServer,
-            "delay", Codec.INT, Action::getDelay,
-            "selector", Codec.Enum(Selector.class), Action::getSelector,
-            "conditions", Condition.CODEC.list(), Action::getConditions,
-            "cooldown", Codec.INT, Action::getCooldown,
-            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
-            SendServer::new
+        "server", Codec.STRING, SendServer::getServer,
+        "delay", Codec.INT, Action::getDelay,
+        "selector", Codec.Enum(Selector.class), Action::getSelector,
+        "conditions", Condition.CODEC.list(), Action::getConditions,
+        "cooldown", Codec.INT, Action::getCooldown,
+        "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
+        SendServer::new
     );
+
+    private final Supplier<SendServer> defaultValue = () -> new SendServer("server", 0, Selector.ONE, new ArrayList<>(), 0,
+        UUID.randomUUID());
+    private final ActionCustomizer menu = new SendServerCustomizer();
 
     private String server;
 
@@ -89,21 +98,11 @@ public class SendServer extends Action {
 
     public Button creationButton(Player player) {
         return
-                Button.clickable(ItemBuilder.of(GRASS_BLOCK)
-                                .displayName(Msg.get(player, "favicons.server"))
-                                .lore(Msg.lore(player.locale(), "favicons.server.description"))
-                                .build(),
-                        (menuView, event) -> {
-                            event.setCancelled(true);
-                            Player p = (Player) event.getWhoClicked();
-                            Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
-                            //todo: watch out for duplications
-
-                            SendServer actionImpl = new SendServer("server", 0, Selector.ONE, new ArrayList<>(), 0,
-                                    UUID.randomUUID());
-                            CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
-                            menuView.lotus().openMenu(p, actionImpl.getMenu());
-                        });
+            Button.clickable(ItemBuilder.of(GRASS_BLOCK)
+                    .displayName(Msg.get(player, "favicons.server"))
+                    .lore(Msg.lore(player.locale(), "favicons.server.description"))
+                    .build(),
+                new ActionCreationCallback(this));
     }
 
 
@@ -123,18 +122,13 @@ public class SendServer extends Action {
     @Override
     public ItemStack getFavicon(Player player) {
         return ItemBuilder.of(GRASS_BLOCK).displayName(Msg.get(player, "favicons.server"))
-                .lore(
-                        Msg.get(player, "favicons.delay", Arg.arg(getDelay())), Msg.format(""),
-                        Msg.get(player, "favicons.server.target", Arg.arg(server)),
-                        Msg.format(""),
-                        Msg.get(player, "favicons.edit"),
-                        Msg.get(player, "favicons.remove")
-                ).build();
-    }
-
-    @Override
-    public Menu<Component> getMenu() {
-        return new SendServerCustomizer(this);
+            .lore(
+                Msg.get(player, "favicons.delay", Arg.arg(getDelay())), Msg.format(""),
+                Msg.get(player, "favicons.server.target", Arg.arg(server)),
+                Msg.format(""),
+                Msg.get(player, "favicons.edit"),
+                Msg.get(player, "favicons.remove")
+            ).build();
     }
 
     @Override
@@ -161,19 +155,13 @@ public class SendServer extends Action {
         ParseResult pr = parseBase(serialized);
 
         SendServer message = new SendServer(server, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
-                UUID.randomUUID());
+            UUID.randomUUID());
 
         return clazz.cast(message);
     }
 
     @NotNullByDefault
-    public class SendServerCustomizer implements Menu<Component> {
-
-        private final SendServer action;
-
-        public SendServerCustomizer(SendServer action) {
-            this.action = action;
-        }
+    public class SendServerCustomizer implements ActionCustomizer {
 
         @Override
         public String name() {
@@ -192,20 +180,32 @@ public class SendServer extends Action {
 
         @Override
         public Content content(MenuView<Component, ?> view) {
+            SendServer action = getAction(view);
             return MenuUtils.actionBase(action, view.viewer())
-                    .set(Slot.of(22), Button.clickable(ItemBuilder.of(OAK_HANGING_SIGN)
-                                    .displayName(Component.text(getServer()))
-                                    .lore(Msg.get(view.viewer(), "items.click_to_change"))
-                                    .build(),
-                            (menuView, event) -> {
-                                CustomNPCs plugin = CustomNPCs.getInstance();
-                                Player p = (Player) event.getWhoClicked();
-                                p.closeInventory();
-                                plugin.wait(p, WaitingType.SERVER);
-                                event.setCancelled(true);
-                                Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
-                            }))
-                    .build();
+                .set(Slot.of(22), Button.clickable(ItemBuilder.of(OAK_HANGING_SIGN)
+                        .displayName(Component.text(getServer()))
+                        .lore(Msg.get(view.viewer(), "items.click_to_change"))
+                        .build(),
+                    (v, event) -> {
+                        Player p = (Player) event.getWhoClicked();
+                        Utils.sound(v, Sound.UI_BUTTON_CLICK);
+                        Await.input(p, WaitingType.SERVER, v.data()).thenAccept(response -> {
+                            switch (response) {
+                                case Result.Cancelled<?> _ -> MenuUtils.open(v);
+                                case Result.Failed<?> res -> {
+                                    MenuUtils.open(v);
+                                    p.sendMessage(Msg.get(v.viewer(), "await.error", Arg.arg(res.cause())));
+                                }
+                                case Result.Ok<String> res -> {
+                                    SendServer a = getAction(v);
+                                    a.setServer(res.value());
+                                    MenuUtils.open(v);
+                                    p.sendMessage(Msg.get(p, "action.set.server", Arg.arg(res.value())));
+                                }
+                            }
+                        });
+                    }))
+                .build();
         }
     }
 }

@@ -31,6 +31,7 @@ import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
+import dev.foxikle.customnpcs.internal.utils.await.Result;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -114,6 +115,19 @@ public class MenuUtils {
                         (v, _) -> v.viewer().closeInventory()
                 ))
                 .build();
+    }
+
+    public static void open(MenuView<?, ?> v) {
+        if (Bukkit.isPrimaryThread()) {
+            v.lotus().openMenu(v.viewer(), v.menu(), v.data());
+            return;
+        }
+        Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> v.lotus().openMenu(v.viewer(), v.menu(), v.data()));
+    }
+
+    public static void awaitFail(Result.Failed<?> res, MenuView<?,?> v) {
+        open(v);
+        v.viewer().sendMessage(Msg.get(v.viewer(), "await.error", Arg.arg(res.cause())));
     }
 
     public String getValue(String name) {

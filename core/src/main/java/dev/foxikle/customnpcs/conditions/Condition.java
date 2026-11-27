@@ -28,6 +28,7 @@ import lombok.Getter;
 import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
+import studio.mevera.lotus.api.data.Key;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,6 +41,7 @@ import java.util.Set;
 public interface Condition {
 
     Codec<Condition> CODEC = Codec.Enum(Type.class).unionType(Type::getCodec, Condition::getType);
+    Key<Condition> KEY = Key.of("condition", Condition.class);
 
     /**
      * Computes the condition to determine if the action should be executed

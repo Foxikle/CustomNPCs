@@ -91,7 +91,7 @@ public class InjectionManager {
                 NpcInjectEvent injectEvent = new NpcInjectEvent(player, npc, distance, npc.evaluateInjectionConditions(player));
                 Bukkit.getServer().getPluginManager().callEvent(injectEvent);
                 if (injectEvent.isCancelled()) continue;
-                if (!npc.passesInectionConditions(player)) continue;
+                if (!npc.passesInjectionConditions(player)) continue;
                 npc.injectPlayer(player);
                 isVisible.put(player.getUniqueId(), true);
             }

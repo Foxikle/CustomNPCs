@@ -42,6 +42,10 @@ ARISING FROM,
 
 package dev.foxikle.customnpcs.internal.utils;
 
+import dev.foxikle.customnpcs.internal.utils.await.AwaitInput;
+import dev.foxikle.customnpcs.internal.utils.await.AwaitSignal;
+import dev.foxikle.customnpcs.internal.utils.await.AwaitSkin;
+import dev.foxikle.customnpcs.internal.utils.await.AwaitString;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -50,20 +54,21 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @Accessors(fluent = true)
 public enum WaitingType {
-    COMMAND("command"),
-    NAME("name"),
-    TARGET("target"),
-    TITLE("title"),
-    SUBTITLE("subtitle"),
-    MESSAGE("message"),
-    FACING("facing_direction"),
-    SERVER("server"),
-    ACTIONBAR("actionbar"),
-    URL("url"),
-    PLAYER("player_name"),
-    HOLOGRAM("interactable_hologram"),
-    NUDGE("nudge"),
-    RECORDING("recording");
+    COMMAND("command", AwaitString.class),
+    NAME("name", AwaitString.class),
+    TARGET("target", AwaitString.class),
+    TITLE("title", AwaitString.class),
+    SUBTITLE("subtitle", AwaitString.class),
+    MESSAGE("message", AwaitString.class),
+    FACING("facing_direction", AwaitSignal.class),
+    SERVER("server", AwaitString.class),
+    ACTIONBAR("actionbar", AwaitString.class),
+    URL("url", AwaitSkin.class),
+    PLAYER("player_name", AwaitSkin.class),
+    HOLOGRAM("interactable_hologram", AwaitString.class),
+    NUDGE("nudge", AwaitSignal.class),
+    RECORDING("recording", AwaitSignal.class);
 
     private final String i18nKey;
+    private final Class<? extends AwaitInput<?>> inputType;
 }

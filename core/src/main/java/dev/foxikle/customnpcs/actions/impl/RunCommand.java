@@ -23,6 +23,8 @@
 package dev.foxikle.customnpcs.actions.impl;
 
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.api.actions.ActionCustomizer;
+import dev.foxikle.customnpcs.api.callbacks.ActionCreationCallback;
 import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
@@ -34,6 +36,8 @@ import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
+import dev.foxikle.customnpcs.internal.utils.await.Await;
+import dev.foxikle.customnpcs.internal.utils.await.Result;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -60,6 +64,7 @@ import studio.mevera.lotus.api.slot.Slot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import static org.bukkit.Material.*;
@@ -70,15 +75,21 @@ import static org.bukkit.Material.*;
 public class RunCommand extends Action {
 
     public static final StructCodec<RunCommand> CODEC = StructCodec.struct(
-            "raw", Codec.STRING, RunCommand::getCommand,
-            "asConsole", Codec.BOOLEAN, RunCommand::isAsConsole,
-            "delay", Codec.INT, Action::getDelay,
-            "selector", Codec.Enum(Selector.class), Action::getSelector,
-            "conditions", Condition.CODEC.list(), Action::getConditions,
-            "cooldown", Codec.INT, Action::getCooldown,
-            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
-            RunCommand::new
+        "raw", Codec.STRING, RunCommand::getCommand,
+        "asConsole", Codec.BOOLEAN, RunCommand::isAsConsole,
+        "delay", Codec.INT, Action::getDelay,
+        "selector", Codec.Enum(Selector.class), Action::getSelector,
+        "conditions", Condition.CODEC.list(), Action::getConditions,
+        "cooldown", Codec.INT, Action::getCooldown,
+        "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
+        RunCommand::new
     );
+
+    private final Supplier<RunCommand> defaultValue = () -> new RunCommand("say hi", false, 0, Selector.ONE, new ArrayList<>(), 0,
+        UUID.randomUUID());
+
+    private final ActionCustomizer menu = new RunCommandCustomizer();
+
     private String command;
     private boolean asConsole;
 
@@ -99,42 +110,29 @@ public class RunCommand extends Action {
         ParseResult pr = parseBase(serialized);
 
         RunCommand command = new RunCommand(raw, asConsole, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
-                UUID.randomUUID());
+            UUID.randomUUID());
         return clazz.cast(command);
     }
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.of(ANVIL)
-                        .displayName(Msg.get(player, "favicons.command"))
-                        .lore(Msg.lore(player.locale(), "favicons.command.description"))
-                        .build(),
-                (menuView, event) -> {
-                    Player p = (Player) event.getWhoClicked();
-                    event.setCancelled(true);
-                    Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
-                    RunCommand actionImpl = new RunCommand("say hi", false, 0, Selector.ONE, new ArrayList<>(), 0,
-                            UUID.randomUUID());
-                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), actionImpl);
-                    menuView.lotus().openMenu(p, actionImpl.getMenu());
-                });
+                .displayName(Msg.get(player, "favicons.command"))
+                .lore(Msg.lore(player.locale(), "favicons.command.description"))
+                .build(),
+            new ActionCreationCallback(this));
     }
 
     @Override
     public ItemStack getFavicon(Player player) {
         return ItemBuilder.of(ANVIL).displayName(Msg.get(player, "favicons.command"))
-                .lore(
-                        Msg.get(player, "favicons.delay", Arg.arg(getDelay())), Msg.format(""),
-                        Msg.get(player, "favicons.command.syntax", Arg.arg(command)),
-                        Msg.get(player, "favicons.command.as_console", Arg.arg(asConsole)),
-                        Msg.format(""),
-                        Msg.get(player, "favicons.edit"),
-                        Msg.get(player, "favicons.remove")
-                ).build();
-    }
-
-    @Override
-    public Menu<Component> getMenu() {
-        return new RunCommandCustomizer(this);
+            .lore(
+                Msg.get(player, "favicons.delay", Arg.arg(getDelay())), Msg.format(""),
+                Msg.get(player, "favicons.command.syntax", Arg.arg(command)),
+                Msg.get(player, "favicons.command.as_console", Arg.arg(asConsole)),
+                Msg.format(""),
+                Msg.get(player, "favicons.edit"),
+                Msg.get(player, "favicons.remove")
+            ).build();
     }
 
     @Override
@@ -158,7 +156,7 @@ public class RunCommand extends Action {
     @Override
     public Action clone() {
         return new RunCommand(command, asConsole, getDelay(), getSelector(), new ArrayList<>(getConditions()),
-                getCooldown(), getUuid());
+            getCooldown(), getUuid());
     }
 
     @Override
@@ -173,9 +171,7 @@ public class RunCommand extends Action {
 
     @AllArgsConstructor
     @NotNullByDefault
-    public class RunCommandCustomizer implements Menu<Component> {
-
-        private final RunCommand action;
+    public class RunCommandCustomizer implements ActionCustomizer {
 
         @Override
         public String name() {
@@ -194,13 +190,14 @@ public class RunCommand extends Action {
 
         @Override
         public Content content(MenuView<Component, ?> view) {
+            RunCommand action = getAction(view);
             Player player = view.viewer();
             return MenuUtils.actionBase(action, player)
-                    .set(Slot.of(4), papiTip(player))
-                    .set(player.hasPermission("customnpcs.run_command.enable_console") ? Slot.of(21) :
-                            Slot.of(22), setCommand(player))
-                    .set(Slot.of(23), toggle(player))
-                    .build();
+                .set(Slot.of(4), papiTip(player))
+                .set(player.hasPermission("customnpcs.run_command.enable_console") ? Slot.of(21) :
+                    Slot.of(22), setCommand(player))
+                .set(Slot.of(23), toggle(player))
+                .build();
         }
 
         private Button toggle(Player player) {
@@ -211,37 +208,46 @@ public class RunCommand extends Action {
             }
             lore.add(Msg.get(player, "items.click_to_change"));
             return Button.clickable(ItemBuilder.of(isAsConsole() ? RED_CANDLE : GREEN_CANDLE)
-                            .lore(lore.toArray(new Component[]{}))
-                            .displayName(isAsConsole() ? Msg.get(player, "menus.action.command.as_console.true") :
-                                    Msg.get(player, "menus.action.command.as_console.false"))
-                            .build(),
-                    (menuView, event) -> {
-                        event.setCancelled(true);
-                        Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
-                        Player p = (Player) event.getWhoClicked();
-                        if (!p.hasPermission("customnpcs.run_command.enable_console")) {
-                            p.sendMessage(Msg.get(player, "commands.no_permission"));
-                            return;
-                        }
+                    .lore(lore.toArray(new Component[]{}))
+                    .displayName(isAsConsole() ? Msg.get(player, "menus.action.command.as_console.true") :
+                        Msg.get(player, "menus.action.command.as_console.false"))
+                    .build(),
+                (menuView, event) -> {
+                    event.setCancelled(true);
+                    Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
+                    Player p = (Player) event.getWhoClicked();
+                    if (!p.hasPermission("customnpcs.run_command.enable_console")) {
+                        p.sendMessage(Msg.get(player, "commands.no_permission"));
+                        return;
+                    }
 
-                        setAsConsole(!isAsConsole());
-                        menuView.content().set(Slot.of(23), toggle(p));
-                    });
+                    setAsConsole(!isAsConsole());
+                    menuView.content().set(Slot.of(23), toggle(p));
+                });
         }
 
         private Button setCommand(Player player) {
             return Button.clickable(ItemBuilder.of(ANVIL)
-                            .displayName(Component.text("/" + getCommand()))
-                            .lore(Msg.get(player, "items.click_to_change"))
-                            .build(),
-                    (v, event) -> {
-                        CustomNPCs plugin = CustomNPCs.getInstance();
-                        Player p = (Player) event.getWhoClicked();
-                        p.closeInventory();
-                        plugin.wait(p, WaitingType.COMMAND);
-                        event.setCancelled(true);
-                        Utils.sound(v, Sound.UI_BUTTON_CLICK);
-                    });
+                    .displayName(Component.text("/" + getCommand()))
+                    .lore(Msg.get(player, "items.click_to_change"))
+                    .build(),
+                (v, event) -> {
+                    Player p = (Player) event.getWhoClicked();
+                    Utils.sound(v, Sound.UI_BUTTON_CLICK);
+                    Await.input(p, WaitingType.COMMAND, v.data())
+                        .thenAccept(result -> {
+                            switch (result) {
+                                case Result.Cancelled<String> _ -> MenuUtils.open(v);
+                                case Result.Failed<String> res -> MenuUtils.awaitFail(res, v);
+                                case Result.Ok<String> res -> {
+                                    RunCommand a = (RunCommand) v.data().get(Action.KEY).orElseThrow();
+                                    a.setCommand(res.value());
+                                    player.sendMessage(Msg.get(player, "action.set.command", Arg.arg(res.value())));
+                                    MenuUtils.open(v);
+                                }
+                            }
+                        });
+                });
         }
 
         private Button papiTip(Player player) {
@@ -254,9 +260,9 @@ public class RunCommand extends Action {
                 lore = Msg.lore(player.locale(), "menus.action.command.papi_tip.all_good");
             }
             return Button.clickable(ItemBuilder.of(REDSTONE_TORCH)
-                    .displayName(Msg.get(player, "menus.action.command.papi_tip.title"))
-                    .lore(lore)
-                    .build(), (_, inventoryClickEvent) -> {
+                .displayName(Msg.get(player, "menus.action.command.papi_tip.title"))
+                .lore(lore)
+                .build(), (_, inventoryClickEvent) -> {
                 inventoryClickEvent.setCancelled(true);
                 if (!CustomNPCs.getInstance().papi) {
                     player.sendMessage(Msg.get(player, "menus.action.command.papi_tip.download.plugin"));

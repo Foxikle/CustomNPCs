@@ -38,18 +38,18 @@ import dev.foxikle.customnpcs.internal.commands.NpcCommandRegistrar;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.listeners.Listeners;
 import dev.foxikle.customnpcs.internal.menu.*;
-import dev.foxikle.customnpcs.internal.utils.Runnable;
+import dev.foxikle.customnpcs.internal.utils.InputRunnable;
 import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
 import dev.foxikle.customnpcs.internal.utils.UpdateChecker;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
+import dev.foxikle.customnpcs.internal.utils.await.AwaitInput;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
@@ -64,7 +64,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.lotus.Lotus;
 import studio.mevera.lotus.paper.PaperLotus;
 import studio.mevera.lotus.paper.api.pagination.Pagination;
 
@@ -79,7 +78,6 @@ import java.util.logging.Logger;
  * <p> The class that represents the plugin
  * </p>
  */
-@Slf4j
 public final class CustomNPCs extends JavaPlugin implements PluginMessageListener {
 
     public static final ActionRegistry ACTION_REGISTRY = new ActionRegistry();
@@ -90,10 +88,9 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     @Getter
     private static CustomNPCs instance;
-    /**
-     * The plugin's json handler
-     */
+
     @Getter
+    @Deprecated
     private static Gson gson;
 
     /**
@@ -115,7 +112,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     /**
      * The map of what the plugin is waiting for the players to enter.
      */
-    public Map<UUID, WaitingType> waiting = new ConcurrentHashMap<>();
+    public Map<UUID, AwaitInput<?>> waiting = new ConcurrentHashMap<>();
     /**
      * The List of NPC holograms
      */
@@ -339,7 +336,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             for (Action action : npc.getActions()) {
                 if (placeholders && players) break;
                 if (action instanceof Flow flow) {
-                    for (Action a : flow.getActions().keySet()) {
+                    for (Action a : flow.getActions()) {
                         placeholders = placeholders || a.hasPlaceholders();
                         players = players || a.hasPlayerPlaceholders();
                     }
@@ -533,12 +530,18 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     }
 
     public boolean isWaiting(Player player, WaitingType type) {
-        return waiting.getOrDefault(player.getUniqueId(), null) == type;
+        return switch (waiting.get(player.getUniqueId())) {
+            case AwaitInput<?> input -> input.type() == type;
+            case null -> false;
+        };
+    }
+    public boolean isWaiting(Player player) {
+        return waiting.containsKey(player.getUniqueId());
     }
 
-    public void wait(Player player, WaitingType type) {
+    public void wait(Player player, AwaitInput<?> type) {
         waiting.put(player.getUniqueId(), type);
-        new Runnable(player, this, type).runTaskTimer(this, 1, 15);
+        new InputRunnable(player, this, type.type()).runTaskTimer(this, 1, 15);
     }
 
     public Pagination<MenuUtils.SkinIcon> getSkinCatalog(Player player) {

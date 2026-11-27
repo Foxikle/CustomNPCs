@@ -22,6 +22,7 @@
 
 package dev.foxikle.customnpcs.actions;
 
+import dev.foxikle.customnpcs.api.actions.ActionCustomizer;
 import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.CommandDataFixer;
@@ -40,18 +41,22 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.lotus.api.button.Button;
+import studio.mevera.lotus.api.data.Key;
 import studio.mevera.lotus.api.menu.Menu;
 
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Getter
 @Setter
 public abstract class Action {
+
+    public static final Key<Action> KEY = Key.of("action", Action.class);
 
     public static final Map<String, CommandDataFixer> DATAFIXERS = Map.ofEntries(
             Map.entry("Teleport", CommandDataFixer.TELEPORT),
@@ -143,6 +148,12 @@ public abstract class Action {
      */
     public abstract void perform(InternalNpc npc, Player player);
 
+    /**
+     * Get the default value of this action
+     * @return An action with the default values of the implementation. Should be immutable.
+     * @param <T> The type of the implementation class
+     */
+    public abstract <T extends Action> Supplier<T> getDefaultValue();
 
     /**
      * The item used as an icon in the NPC's action menu
@@ -152,7 +163,7 @@ public abstract class Action {
      */
     public abstract ItemStack getFavicon(Player player);
 
-    public abstract Menu<Component> getMenu();
+    public abstract ActionCustomizer getMenu();
 
     /**
      * Returns if the action should be processed. This takes the cooldown into account.

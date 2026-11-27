@@ -23,6 +23,8 @@
 package dev.foxikle.customnpcs.actions.impl;
 
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.api.actions.ActionCustomizer;
+import dev.foxikle.customnpcs.api.callbacks.ActionCreationCallback;
 import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
@@ -33,6 +35,8 @@ import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
+import dev.foxikle.customnpcs.internal.utils.await.Await;
+import dev.foxikle.customnpcs.internal.utils.await.Result;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -55,6 +59,7 @@ import studio.mevera.lotus.api.slot.Slot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import static org.bukkit.Material.IRON_INGOT;
 import static org.bukkit.Material.PAPER;
@@ -65,22 +70,20 @@ import static org.bukkit.Material.PAPER;
 public class ActionBar extends Action {
 
     public static final StructCodec<ActionBar> CODEC = StructCodec.struct(
-            "raw", Codec.STRING, ActionBar::getRawMessage,
-            "delay", Codec.INT, Action::getDelay,
-            "selector", Codec.Enum(Selector.class), Action::getSelector,
-            "conditions", Condition.CODEC.list(), Action::getConditions,
-            "cooldown", Codec.INT, Action::getCooldown,
-            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
-            ActionBar::new
+        "raw", Codec.STRING, ActionBar::getRawMessage,
+        "delay", Codec.INT, Action::getDelay,
+        "selector", Codec.Enum(Selector.class), Action::getSelector,
+        "conditions", Condition.CODEC.list(), Action::getConditions,
+        "cooldown", Codec.INT, Action::getCooldown,
+        "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
+        ActionBar::new
     );
+
+    private final Supplier<ActionBar> defaultValue = () -> new ActionBar("", 0, Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
+    private final ActionCustomizer menu = new ActionbarCustomizer();
 
     private String rawMessage;
 
-    /**
-     * Creates a new SendMessage with the specified message
-     *
-     * @param rawMessage The raw message
-     */
     public ActionBar(String rawMessage, int delay, Selector mode, List<Condition> conditionals, int cooldown,
                      UUID uuid) {
         super(delay, mode, conditionals, cooldown, uuid);
@@ -89,21 +92,10 @@ public class ActionBar extends Action {
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.of(IRON_INGOT)
-                        .displayName(Msg.get(player, "favicons.actionbar"))
-                        .lore(Msg.lore(player.locale(), "favicons.actionbar.description"))
-                        .build(),
-                (v, event) -> {
-                    event.setCancelled(true);
-                    Player p = (Player) event.getWhoClicked();
-                    ActionBar action = new ActionBar("", 0, Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
-                    CustomNPCs.getInstance().editingActions.put(p.getUniqueId(), action);
-                    v.lotus().openMenu(p, action.getMenu());
-                });
-    }
-
-    @Override
-    public Menu<Component> getMenu() {
-        return new ActionbarCustomizer(this);
+                .displayName(Msg.get(player, "favicons.actionbar"))
+                .lore(Msg.lore(player.locale(), "favicons.actionbar.description"))
+                .build(),
+            new ActionCreationCallback(this));
     }
 
     @Override
@@ -113,15 +105,15 @@ public class ActionBar extends Action {
             raw = "<dark_gray><i><tr:messages.empty_string>";
         }
         return ItemBuilder.of(IRON_INGOT)
-                .displayName(Msg.get(p, "favicons.actionbar"))
-                .lore(
-                        Msg.get(p, "favicons.delay", Arg.arg(getDelay())),
-                        Msg.get(p, "favicons.preview"),
-                        Msg.format(raw),
-                        Msg.format(""),
-                        Msg.get(p, "favicons.edit"),
-                        Msg.get(p, "favicons.remove")
-                ).build();
+            .displayName(Msg.get(p, "favicons.actionbar"))
+            .lore(
+                Msg.get(p, "favicons.delay", Arg.arg(getDelay())),
+                Msg.get(p, "favicons.preview"),
+                Msg.format(raw),
+                Msg.format(""),
+                Msg.get(p, "favicons.edit"),
+                Msg.get(p, "favicons.remove")
+            ).build();
     }
 
     @Override
@@ -133,7 +125,7 @@ public class ActionBar extends Action {
     public boolean hasPlayerPlaceholders() {
         return PLAYER_PLACEHOLDERS.matcher(rawMessage).find();
     }
-    
+
     @Override
     public void perform(InternalNpc npc, Player player) {
         if (!processConditions(player)) return;
@@ -153,7 +145,7 @@ public class ActionBar extends Action {
     @Override
     public Action clone() {
         return new ActionBar(rawMessage, getDelay(), getSelector(), new ArrayList<>(getConditions()), getCooldown(),
-                getUuid());
+            getUuid());
     }
 
     @Deprecated(forRemoval = true)
@@ -165,19 +157,13 @@ public class ActionBar extends Action {
         ParseResult pr = parseBase(serialized);
 
         ActionBar message = new ActionBar(rawMessage, pr.delay(), pr.mode(), pr.conditions(), pr.cooldown(),
-                UUID.randomUUID());
+            UUID.randomUUID());
 
         return clazz.cast(message);
     }
 
     @NotNullByDefault
-    public class ActionbarCustomizer implements Menu<Component> {
-
-        private final ActionBar actionBar;
-
-        public ActionbarCustomizer(ActionBar actionBar) {
-            this.actionBar = actionBar;
-        }
+    public class ActionbarCustomizer implements ActionCustomizer {
 
         @Override
         public String name() {
@@ -196,22 +182,33 @@ public class ActionBar extends Action {
 
         @Override
         public Content content(MenuView<Component, ?> view) {
+            ActionBar action = getAction(view);
             Player player = view.viewer();
             String raw = getRawMessage();
             if (raw.isEmpty()) raw = "<dark_gray><i><tr:messages.empty_string>";
-            return MenuUtils.actionBase(actionBar, player)
-                    .set(Slot.of(22), Button.clickable(ItemBuilder.of(PAPER)
-                                    .displayName(Msg.get(player, raw))
-                                    .lore(Msg.get(player, "items.click_to_change"))
-                                    .build(),
-                            (v, event) -> {
-                                event.setCancelled(true);
-                                Utils.sound(v, Sound.UI_BUTTON_CLICK);
-                                CustomNPCs plugin = CustomNPCs.getInstance();
-                                player.closeInventory();
-                                plugin.wait(player, WaitingType.ACTIONBAR);
-                            }))
-                    .build();
+            return MenuUtils.actionBase(action, player)
+                .set(Slot.of(22), Button.clickable(ItemBuilder.of(PAPER)
+                        .displayName(Msg.get(player, raw))
+                        .lore(Msg.get(player, "items.click_to_change"))
+                        .build(),
+                    (v, _) -> {
+                        Player p = v.viewer();
+                        Utils.sound(v, Sound.UI_BUTTON_CLICK);
+                        Await.input(p, WaitingType.ACTIONBAR, v.data())
+                            .thenAccept(response -> {
+                                switch (response) {
+                                    case Result.Cancelled<?> _ -> MenuUtils.open(v);
+                                    case Result.Failed<?> res -> MenuUtils.awaitFail(res, v);
+                                    case Result.Ok<String> res -> {
+                                        ActionBar a = getAction(v);
+                                        a.setRawMessage(res.value());
+                                        MenuUtils.open(v);
+                                        player.sendMessage(Msg.get(player, "action.set.actionbar", Arg.arg(res.value())));
+                                    }
+                                }
+                            });
+                    }))
+                .build();
         }
     }
 }
