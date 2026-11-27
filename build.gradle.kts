@@ -24,7 +24,7 @@ plugins {
     `java-library`
     id("com.vanniktech.maven.publish") version "0.37.0"
     `maven-publish`
-    id("xyz.jpenilla.run-paper") version "3.0.2"
+    id("xyz.jpenilla.run-paper") version "3.1.0"
     id("io.github.goooler.shadow") version "8.1.8"
     id("io.papermc.paperweight.userdev") version "2.0.0-SNAPSHOT" apply false
 }
