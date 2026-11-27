@@ -26,20 +26,16 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.translations.Translations;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.json.JSONComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import net.kyori.adventure.translation.GlobalTranslator;
 import org.bukkit.entity.Player;
 
-import java.text.MessageFormat;
-import java.util.*;
+import java.util.Locale;
 
 /**
  * A class that handles message translations
@@ -92,11 +88,6 @@ public class Msg {
                 .toArray(Component[]::new);
     }
 
-    public static Component format(String str, TagResolver tags, Object... args) {
-        return MINI.deserialize(str.formatted(args), tags)
-                .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
-    }
-
     public static Component get(Locale locale, String key, TagResolver... arguments) {
         String message = translatedString(locale, key);
 
@@ -116,16 +107,9 @@ public class Msg {
         return get(p.locale(), str, args);
     }
 
-    public static Component format(Locale locale, String str, Object... args) {
+    public static Component format(String str) {
         if (str.isEmpty()) return Component.empty();
-        return MINI.deserialize(str.formatted(args), getTagResolver(locale))
-                .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
-                .colorIfAbsent(NamedTextColor.WHITE);
-    }
-
-    public static Component format(String str, Object... args) {
-        if (str.isEmpty()) return Component.empty();
-        return MINI.deserialize(str.formatted(args))
+        return MINI.deserialize(str)
                 .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
                 .colorIfAbsent(NamedTextColor.WHITE);
     }
@@ -143,16 +127,6 @@ public class Msg {
             return PlaceholderAPI.setPlaceholders(player, text);
         }
         return text;
-    }
-
-    public static String flatten(List<Component> list) {
-        StringBuilder builder = new StringBuilder();
-        for (Component component : list) {
-            builder.append(toMini(component));
-            builder.append("<newline>");
-        }
-
-        return builder.toString();
     }
 
     public static String plainText(Component comp) {

@@ -26,7 +26,6 @@ import com.google.common.reflect.TypeToken;
 import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
-import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -174,18 +173,6 @@ public class Utils {
         Boolean val = player.getPersistentDataContainer().get(HIDE_NAME_REFERENCE, PersistentDataType.BOOLEAN);
         if (val == null) return false;
         return val;
-    }
-
-    /**
-     * Formats the given string as a Minimessage component
-     *
-     * @param str The input
-     * @return the component, parsed in MiniMessage format.
-     * @deprecated Use {@link Msg#format(String)} instead.
-     */
-    @Deprecated
-    public static Component mm(String str) {
-        return Msg.format(str);
     }
 
     public static UnaryOperator<Integer> decrement(InventoryClickEvent event) {
