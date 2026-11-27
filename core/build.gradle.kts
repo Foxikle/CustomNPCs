@@ -45,9 +45,9 @@ dependencies {
     compileOnly("org.mineskin:java-client-jsoup:3.2.7")
     compileOnly("org.mineskin:java-client:3.2.7")
     compileOnly("org.mongodb:mongodb-driver-sync:5.15.0")
-    compileOnly("com.mysql:mysql-connector-j:9.7.0")
+    compileOnly("com.mysql:mysql-connector-j:26.10.0")
     compileOnly("org.apache.logging.log4j:log4j-core:2.26.1")
-    compileOnly("com.zaxxer:HikariCP:6.3.3")
+    compileOnly("com.zaxxer:HikariCP:7.1.0")
     compileOnlyApi("dev.minestom-united.common:codec:0.0.3")
 
 
