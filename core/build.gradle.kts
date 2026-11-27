@@ -39,7 +39,7 @@ dependencies {
     compileOnly("com.github.mqzn:Lotus:1.6.0")
     compileOnly("org.bstats:bstats-bukkit:3.2.1")
     compileOnly("me.clip:placeholderapi:2.12.3")
-    compileOnly("io.papermc.paper:paper-api:26.3.build.263-stable")
+    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
     compileOnly("net.kyori:adventure-api:5.2.0")
     compileOnly("net.kyori:adventure-nbt:5.2.0")
     compileOnly("org.mineskin:java-client-jsoup:3.2.7")
