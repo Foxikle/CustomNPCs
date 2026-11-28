@@ -184,8 +184,8 @@ public class NpcCommandRegistrar {
             InternalNpc newNpc = plugin.createNPC(
                 player.getWorld(),
                 finalNpc.getSpawnLoc(),
-                finalNpc.getEquipment(),
-                finalNpc.getSettings(),
+                finalNpc.getEquipment().clone(),
+                finalNpc.getSettings().clone(),
                 finalNpc.getUniqueID(),
                 null,
                 finalNpc.getActions(),

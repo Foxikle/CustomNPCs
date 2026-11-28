@@ -303,7 +303,6 @@ public class Listeners implements Listener {
                     return;
                 }
 
-                //fixme: ensure hanging % signs are escaped :)
                 as.complete(message.replace("%empty%", ""));
 
                 //fixme: impl

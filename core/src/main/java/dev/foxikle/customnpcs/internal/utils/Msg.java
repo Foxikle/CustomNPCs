@@ -60,7 +60,7 @@ public class Msg {
 
             TagResolver nested = TagResolver.builder()
                     .resolvers(inherited)
-                    .resolver(getTagResolver(locale, inherited)) //todo: stack overflow?
+                .resolver(getTagResolver(locale, inherited))
                     .build();
 
             Component component = context.deserialize(translated, nested);
