@@ -65,8 +65,7 @@ public class MysqlStorage implements StorageProvider {
 
         return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = dataSource.getConnection()) {
-                PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS npc_data (id " +
-                        "VARCHAR(255) PRIMARY KEY, data LONGTEXT)");
+                PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS npc_data (id VARCHAR(255) PRIMARY KEY, data LONGTEXT)");
                 statement.executeUpdate();
             } catch (Exception e) {
                 plugin.getLogger().log(Level.SEVERE, "Failed to create table", e);
@@ -91,8 +90,7 @@ public class MysqlStorage implements StorageProvider {
                 try (Connection connection = dataSource.getConnection()) {
 
                     // Prepare the SQL INSERT statement
-                    String sql = "INSERT INTO npc_data (id, data) VALUES (?, ?) ON DUPLICATE KEY UPDATE data = VALUES" +
-                            "(data)";
+                    String sql = "INSERT INTO npc_data (id, data) VALUES (?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)";
                     try (PreparedStatement statement = connection.prepareStatement(sql)) {
                         statement.setString(1, tableName);  // Set the id parameter
                         statement.setString(2, data); // Set the data (MEDIUMBLOB)
@@ -157,8 +155,7 @@ public class MysqlStorage implements StorageProvider {
 
     private String getSafeTableName(String tableName) {
         if (tableName == null || !tableName.matches("^[a-zA-Z0-9_]+$")) {
-            throw new IllegalArgumentException("Invalid table name: " + tableName + ". Only alphanumeric and " +
-                    "underscores are allowed.");
+            throw new IllegalArgumentException("Invalid table name: " + tableName + ". Only alphanumeric and underscores are allowed.");
         }
         return tableName;
     }

@@ -36,7 +36,6 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.github.mqzn:Lotus:1.6.0")
     compileOnly("org.bstats:bstats-bukkit:3.2.1")
     compileOnly("me.clip:placeholderapi:2.12.3")
     compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
@@ -48,8 +47,8 @@ dependencies {
     compileOnly("com.mysql:mysql-connector-j:26.10.0")
     compileOnly("org.apache.logging.log4j:log4j-core:2.26.1")
     compileOnly("com.zaxxer:HikariCP:7.1.0")
+    compileOnlyApi("studio.mevera:lotus-paper:2.0.0")
     compileOnlyApi("dev.minestom-united.common:codec:0.0.3")
-
 
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -142,9 +141,9 @@ tasks {
         }
     }
 
-    compileJava {
-        options.release = 25
-    }
+//    compileJava {
+//        options.release = 25
+//    }
 
     jar {
         archiveClassifier = "core"

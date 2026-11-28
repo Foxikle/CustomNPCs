@@ -63,10 +63,8 @@ public class MongoStorage implements StorageProvider {
                 .serverApi(serverApi)
                 .applyToLoggerSettings(builder -> builder.maxDocumentLength(0))
                 .build();
-        database = Objects.requireNonNull(plugin.getConfig().getString("storage.mongo.database"), "Invalid " +
-                "configuration! The MongoDB database must be set!");
-        document = Objects.requireNonNull(plugin.getConfig().getString("storage.mongo.collection"), "Invalid " +
-                "configuration! The MongoDB document must be set!");
+        database = Objects.requireNonNull(plugin.getConfig().getString("storage.mongo.database"), "Invalid configuration! The MongoDB database must be set!");
+        document = Objects.requireNonNull(plugin.getConfig().getString("storage.mongo.collection"), "Invalid configuration! The MongoDB document must be set!");
         plugin.getLogger().info("Successfully set up MongoDB storage!");
 
         return CompletableFuture.completedFuture(null);

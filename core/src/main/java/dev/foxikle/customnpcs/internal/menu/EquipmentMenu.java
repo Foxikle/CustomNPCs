@@ -22,88 +22,62 @@
 
 package dev.foxikle.customnpcs.internal.menu;
 
-import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import io.github.mqzen.menus.base.Content;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.base.MenuView;
-import io.github.mqzen.menus.misc.Capacity;
-import io.github.mqzen.menus.misc.DataRegistry;
-import io.github.mqzen.menus.misc.button.Button;
-import io.github.mqzen.menus.misc.button.actions.ButtonClickAction;
-import io.github.mqzen.menus.misc.button.actions.impl.CloseMenuAction;
-import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
-import io.github.mqzen.menus.titles.MenuTitle;
-import io.github.mqzen.menus.titles.MenuTitles;
-import org.bukkit.Material;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
+import studio.mevera.lotus.api.button.Button;
+import studio.mevera.lotus.api.content.Content;
+import studio.mevera.lotus.api.menu.Menu;
+import studio.mevera.lotus.api.menu.MenuView;
+import studio.mevera.lotus.api.slot.Capacity;
+import studio.mevera.lotus.api.slot.Slot;
 
-public class EquipmentMenu implements Menu {
+public class EquipmentMenu implements Menu<Component> {
     @Override
-    public String getName() {
+    public @NonNull String name() {
         return MenuUtils.NPC_EQUIPMENT;
     }
 
     @Override
-    public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.equipment.title"));
+    public @NotNull Component title(MenuView<Component, ?> view) {
+        return Msg.get(view.viewer(), "menus.equipment.title");
     }
 
     @Override
-    public void onPostClick(MenuView<?> playerMenuView, InventoryClickEvent event) {
-        if (event.getClickedInventory() == null) return;
-        if (event.getClickedInventory() == event.getWhoClicked().getInventory()) {
-            event.setCancelled(false); // allow clicking in own inventory
-        }
-    }
-
-    @Override
-    public @NotNull Capacity getCapacity(DataRegistry dataRegistry, Player player) {
+    public @NotNull Capacity capacity(@NonNull MenuView<Component, ?> view) {
         return Capacity.ofRows(6);
     }
 
     @Override
-    public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
-        CustomNPCs plugin = CustomNPCs.getInstance();
-        InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-        if (npc == null) {
-            return Content.builder(capacity)
-                    .setButton(22, Button.clickable(
-                            ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.error.no_npc"))
-                                    .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.error.no_npc.lore"))
-                                    .build(),
-                            new CloseMenuAction()
-                    ))
-                    .build();
-        }
+    public @NotNull Content content(MenuView<Component, ?> view) {
+        InternalNpc npc = view.data().require(InternalNpc.KEY);
 
-        return Content.builder(capacity)
-                .apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(8, Button.clickable(MenuItems.importArmor(player), ButtonClickAction.plain((menuView, event) -> {
+        return Content.builder(view.capacity())
+                .fillAll(MenuItems.MENU_GLASS)
+            .set(Slot.of(8), Button.clickable(MenuItems.importArmor(view), (menuView, event) -> {
                     event.setCancelled(true);
                     Player p = (Player) event.getWhoClicked();
                     npc.getEquipment().importFromEntityEquipment(p.getEquipment());
                     p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
 
-                    menuView.replaceButton(13, MenuItems.helmetSlot(npc, player));
-                    menuView.replaceButton(21, MenuItems.offhandSlot(npc, player));
-                    menuView.replaceButton(22, MenuItems.chestplateSlot(npc, player));
-                    menuView.replaceButton(23, MenuItems.handSlot(npc, player));
-                    menuView.replaceButton(31, MenuItems.leggingsSlot(npc, player));
-                    menuView.replaceButton(40, MenuItems.bootsSlot(npc, player));
-                })))
-                .setButton(13, MenuItems.helmetSlot(npc, player))
-                .setButton(21, MenuItems.offhandSlot(npc, player))
-                .setButton(22, MenuItems.chestplateSlot(npc, player))
-                .setButton(23, MenuItems.handSlot(npc, player))
-                .setButton(31, MenuItems.leggingsSlot(npc, player))
-                .setButton(40, MenuItems.bootsSlot(npc, player))
-                .setButton(49, MenuItems.toMain(player))
+                menuView.content().set(Slot.of(13), MenuItems.helmetSlot(view));
+                menuView.content().set(Slot.of(21), MenuItems.offhandSlot(view));
+                menuView.content().set(Slot.of(22), MenuItems.chestplateSlot(view));
+                menuView.content().set(Slot.of(23), MenuItems.handSlot(view));
+                menuView.content().set(Slot.of(31), MenuItems.leggingsSlot(view));
+                menuView.content().set(Slot.of(40), MenuItems.bootsSlot(view));
+                }))
+            .set(Slot.of(13), MenuItems.helmetSlot(view))
+            .set(Slot.of(21), MenuItems.offhandSlot(view))
+            .set(Slot.of(22), MenuItems.chestplateSlot(view))
+            .set(Slot.of(23), MenuItems.handSlot(view))
+            .set(Slot.of(31), MenuItems.leggingsSlot(view))
+            .set(Slot.of(40), MenuItems.bootsSlot(view))
+            .set(Slot.of(49), MenuItems.toMain(view))
                 .build();
     }
 }

@@ -25,127 +25,103 @@ package dev.foxikle.customnpcs.internal.menu;
 import dev.foxikle.customnpcs.api.events.NpcDeleteEvent;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.translations.Arg;
+import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import io.github.mqzen.menus.base.Content;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.misc.Capacity;
-import io.github.mqzen.menus.misc.DataRegistry;
-import io.github.mqzen.menus.misc.button.Button;
-import io.github.mqzen.menus.misc.button.actions.ButtonClickAction;
-import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
-import io.github.mqzen.menus.titles.MenuTitle;
-import io.github.mqzen.menus.titles.MenuTitles;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryType;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.NotNullByDefault;
+import studio.mevera.lotus.api.button.Button;
+import studio.mevera.lotus.api.content.Content;
+import studio.mevera.lotus.api.menu.Menu;
+import studio.mevera.lotus.api.menu.MenuView;
+import studio.mevera.lotus.api.slot.Capacity;
+import studio.mevera.lotus.api.slot.Slot;
 
-public class DeleteMenu implements Menu {
+
+@NotNullByDefault
+public class DeleteMenu implements Menu<Component> {
+
+
     @Override
-    public String getName() {
+    public String name() {
         return MenuUtils.NPC_DELETE;
     }
 
     @Override
-    public InventoryType getMenuType() {
-        return InventoryType.CHEST;
+    public Component title(MenuView<Component, ?> view) {
+        return Msg.get(view.viewer(), "menus.delete.title");
     }
 
     @Override
-    public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.delete.title"));
-    }
-
-    @Override
-    public @NotNull Capacity getCapacity(DataRegistry dataRegistry, Player player) {
+    public Capacity capacity(MenuView<Component, ?> view) {
         return Capacity.ofRows(3);
     }
 
     @Override
-    public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
-        return Content.builder(capacity).apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(11, Button.clickable(
-                        ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.delete.items.confirm.name"))
-                                .setLore(Component.empty(), Msg.translate(player.locale(), "customnpcs.menus.delete.items.confirm.lore"))
-                                .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
-                            CustomNPCs plugin = CustomNPCs.getInstance();
-                            Player player1 = (Player) inventoryClickEvent.getWhoClicked();
-                            InternalNpc dontUse = plugin.getEditingNPCs().getIfPresent(player1.getUniqueId());
+    public Content content(MenuView<Component, ?> view) {
+        Player player = view.viewer();
+        return Content.builder(view.capacity())
+            .fillAll(MenuItems.MENU_GLASS)
+            .set(Slot.of(11), Button.clickable(
+                ItemBuilder.of(Material.RED_STAINED_GLASS_PANE)
+                    .displayName(Msg.get(player, "menus.delete.items.confirm.name"))
+                    .lore(Component.empty(), Msg.get(player, "menus.delete.items.confirm.lore"))
+                    .build(), (v, e) -> {
+                    CustomNPCs plugin = CustomNPCs.getInstance();
+                    Player player1 = (Player) e.getWhoClicked();
+                    InternalNpc dontUse = v.data().require(InternalNpc.KEY);
 
-                            if (dontUse == null) {
-                                player1.closeInventory();
-                                player1.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
-                                player1.playSound(player1, Sound.ENTITY_VILLAGER_NO, 1, 1);
-                                return;
-                            }
+                    // we have to do this because the npcs stored in the cache are clones, and are not actually in
+                    // the world.
+                    InternalNpc npc = plugin.getNPCByID(dontUse.getUniqueID());
 
-                            // we have to do this because the npcs stored in the cache are clones, and are not actually in the world.
-                            InternalNpc npc = plugin.getNPCByID(dontUse.getUniqueID());
+                    if (npc == null) {
+                        player1.closeInventory();
+                        Utils.sound(v, Sound.ENTITY_VILLAGER_NO);
+                        player1.sendMessage(Msg.get(player, "error.npc-menu-expired"));
+                        return;
+                    }
 
-                            if (npc == null) {
-                                player1.closeInventory();
-                                player1.playSound(player1, Sound.ENTITY_VILLAGER_NO, 1, 1);
-                                player1.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
-                                return;
-                            }
+                    NpcDeleteEvent.DeletionSource source = v.data().get(NpcDeleteEvent.DeletionSource.KEY)
+                        .orElse(NpcDeleteEvent.DeletionSource.UNKNOWN);
 
-                            Boolean openMenu = plugin.getDeletionReason().getIfPresent(player1.getUniqueId());
-                            NpcDeleteEvent.DeletionSource source;
-                            if (openMenu == null) {
-                                source = NpcDeleteEvent.DeletionSource.UNKNOWN;
-                            } else if (openMenu) {
-                                source = NpcDeleteEvent.DeletionSource.MENU;
-                            } else source = NpcDeleteEvent.DeletionSource.COMMAND;
 
-                            NpcDeleteEvent event = new NpcDeleteEvent(player1, npc, source);
-                            Bukkit.getPluginManager().callEvent(event);
-                            if (event.isCancelled()) {
-                                player1.sendMessage(Msg.translate(player.locale(), "customnpcs.delete.failed_api"));
-                                return;
-                            }
+                    NpcDeleteEvent event = new NpcDeleteEvent(player1, npc, source);
+                    Bukkit.getPluginManager().callEvent(event);
+                    if (event.isCancelled()) {
+                        player1.sendMessage(Msg.get(player, "delete.failed_api"));
+                        return;
+                    }
 
-                            npc.remove();
-                            npc.delete();
-                            plugin.npcs.remove(npc.getUniqueID());
-                            player1.sendMessage(Msg.translate(player.locale(), "customnpcs.delete.success",
-                                    npc.getSettings().getRawHolograms().getFirst()));
-                            player1.closeInventory();
-                            player1.playSound(player1, Sound.BLOCK_END_PORTAL_SPAWN, 1, 1);
-                            npc.getCurrentLocation().getWorld().strikeLightningEffect(npc.getCurrentLocation());
-                        }))).setButton(15, Button.clickable(
-                        ItemBuilder.modern(Material.LIME_STAINED_GLASS_PANE)
-                                .setDisplay(Msg.translate(player.locale(), "customnpcs.items.go_back"))
-                                .setLore(Msg.translate(player.locale(), "customnpcs.menus.delete.items.to_safety"))
-                                .build(), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
-                            CustomNPCs plugin = CustomNPCs.getInstance();
-                            InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-                            Player player1 = (Player) inventoryClickEvent.getWhoClicked();
-                            player1.playSound(player1, Sound.UI_BUTTON_CLICK, 1, 1);
-                            if (npc == null) {
-                                player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
-                                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.npc-menu-expired"));
-                                return;
-                            }
+                    npc.remove();
+                    npc.delete();
+                    plugin.npcs.remove(npc.getUniqueID());
+                    player1.sendMessage(Msg.get(player, "delete.success",
+                        Arg.arg(npc.getSettings().getRawHolograms().getFirst())));
+                    player1.closeInventory();
+                    Utils.sound(view, Sound.BLOCK_END_PORTAL_SPAWN);
+                    npc.getCurrentLocation().getWorld().strikeLightningEffect(npc.getCurrentLocation());
+                }))
+            .set(Slot.of(15), Button.clickable(
+                ItemBuilder.of(Material.LIME_STAINED_GLASS_PANE)
+                    .displayName(Msg.get(player, "items.go_back"))
+                    .lore(Msg.get(player, "menus.delete.items.to_safety"))
+                    .build(), (v, _) -> {
+                    Utils.sound(view, Sound.UI_BUTTON_CLICK);
 
-                            Boolean openMenu = plugin.getDeletionReason().getIfPresent(player1.getUniqueId());
+                    NpcDeleteEvent.DeletionSource source = v.data().get(NpcDeleteEvent.DeletionSource.KEY)
+                        .orElse(NpcDeleteEvent.DeletionSource.UNKNOWN);
 
-                            if (openMenu == null) {
-                                player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
-                                player.sendMessage(Msg.translate(player.locale(), "customnpcs.error.forgot_bailout_response"));
-                                return;
-                            }
-
-                            if (openMenu) {
-                                plugin.getLotus().openMenu(player1, MenuUtils.NPC_MAIN);
-                                return;
-                            }
-
-                            player1.closeInventory();
-                        }))).build();
+                    if (source == NpcDeleteEvent.DeletionSource.MENU) {
+                        MenuUtils.open(v.viewer(), MenuUtils.NPC_MAIN, view.data());
+                        return;
+                    }
+                    v.viewer().closeInventory();
+                })).build();
     }
 }

@@ -47,9 +47,9 @@ tasks {
         toolchain.languageVersion = JavaLanguageVersion.of(25)
     }
 
-    compileJava {
-        options.release = 25
-    }
+//    compileJava {
+//        options.release = 25
+//    }
 
     jar {
         archiveClassifier = "v1_21_R2"

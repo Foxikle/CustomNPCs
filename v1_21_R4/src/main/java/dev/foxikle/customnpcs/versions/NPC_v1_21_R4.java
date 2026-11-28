@@ -200,8 +200,8 @@ public class NPC_v1_21_R4 extends ServerPlayer implements InternalNpc {
 
     public void setSkin() {
         super.getGameProfile().getProperties().removeAll("textures");
-        super.getGameProfile().getProperties().put("textures", new Property("textures", settings.getValue(),
-                settings.getSignature()));
+        super.getGameProfile().getProperties().put("textures", new Property("textures", settings.getSkin().value(),
+            settings.getSkin().signature()));
         byte bitmask = (byte) (0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40);
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, bitmask);
     }
@@ -260,8 +260,9 @@ public class NPC_v1_21_R4 extends ServerPlayer implements InternalNpc {
         return super.getBukkitEntity().getLocation();
     }
 
-    public void addAction(Action actionImpl) {
-        actions.add(actionImpl);
+    public void addAction(Action action) {
+        actions.removeIf(a -> a.getUuid().equals(action.getUuid()));
+        actions.add(action);
     }
 
     public boolean removeAction(Action actionImpl) {

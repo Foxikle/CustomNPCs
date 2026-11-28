@@ -22,41 +22,68 @@
 
 package dev.foxikle.customnpcs.actions;
 
+import dev.foxikle.customnpcs.api.actions.ActionCustomizer;
 import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.Selector;
+import dev.foxikle.customnpcs.data.CommandDataFixer;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Utils;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.misc.button.Button;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.lotus.api.button.Button;
+import studio.mevera.lotus.api.data.Key;
 
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public abstract class Action {
+
+    public static final Key<Action> KEY = Key.of("action", Action.class);
+
+    public static final Map<String, CommandDataFixer> DATAFIXERS = Map.ofEntries(
+            Map.entry("Teleport", CommandDataFixer.TELEPORT),
+            Map.entry("GiveEffect", CommandDataFixer.GIVE_EFFECT),
+            Map.entry("GiveXP", CommandDataFixer.GIVE_XP),
+            Map.entry("RemoveEffect", CommandDataFixer.REMOVE_EFFECT),
+            Map.entry("PlaySound", CommandDataFixer.PLAY_SOUND),
+            Map.entry("RemoveXP", CommandDataFixer.REMOVE_XP)
+    );
 
     @Deprecated(forRemoval = true)
     private static final Pattern SPLITTER = Pattern.compile("^([A-z])*(?=(\\{.*}))");
 
+    public static final Pattern PLACEHOLDERS = Pattern.compile("%.[^%]*%");
+    public static final Pattern PLAYER_PLACEHOLDERS = Pattern.compile("%player_[^%]*%");
+
+
 
     public static final Codec<Action> CODEC = Codec.STRING.unionType("id", s -> {
+        if (DATAFIXERS.containsKey(s)) {
+            CustomNPCs.getInstance().getLogger().warning("");
+            CustomNPCs.getInstance().getLogger().warning("#--------------------------------------------------------------#");
+            CustomNPCs.getInstance().getLogger().warning("|  WARNING: An action with the following ID has been removed.  |");
+            CustomNPCs.getInstance().getLogger().warning("| It has been automatically converted to a RunCommand action.  |");
+            CustomNPCs.getInstance().getLogger().warning(String.format("|  %-58.58s  |", s));
+            CustomNPCs.getInstance().getLogger().warning("#--------------------------------------------------------------#");
+            CustomNPCs.getInstance().getLogger().warning("");
+            return DATAFIXERS.get(s).fix();
+        }
         Class<? extends Action> clazz = CustomNPCs.ACTION_REGISTRY.getActionClass(s);
         if (clazz == null) throw new IllegalArgumentException("Invalid action type: " + s);
         try {
@@ -66,24 +93,32 @@ public abstract class Action {
         }
     }, Action::getId);
 
+    private final UUID uuid;
     private List<Condition> conditions;
     private int delay;
     private Selector selector;
     private int cooldown;
     private final Map<UUID, Instant> cooldowns = new ConcurrentHashMap<>();
 
-    public Action(int delay, Selector selector, List<Condition> conditions, int cooldown) {
+    public Action(int delay, Selector selector, List<Condition> conditions, int cooldown, @Nullable UUID uuid) {
+        if (uuid == null) uuid = UUID.randomUUID();
+        this.uuid = uuid;
         this.delay = delay;
         this.selector = selector;
-        this.conditions = conditions;
+        this.conditions = new ArrayList<>(conditions);
         this.cooldown = cooldown;
     }
 
-    public boolean isOnCooldown(UUID uuid) {
-        if (!cooldowns.containsKey(uuid)) return false;
-        Instant i = cooldowns.get(uuid);
+    @ApiStatus.Internal // only used by action registry
+    public Action() {
+        this.uuid = null;
+    }
+
+    public boolean isOnCooldown(UUID player) {
+        if (!cooldowns.containsKey(player)) return false;
+        Instant i = cooldowns.get(player);
         if (i.isBefore(Instant.now())) {
-            cooldowns.remove(uuid);
+            cooldowns.remove(player);
             return false;
         }
         return true;
@@ -94,28 +129,30 @@ public abstract class Action {
         cooldowns.put(uuid, Instant.now().plusMillis(50L * cooldown));
     }
 
-    /**
-     * A convenience method to add a condition to the action
-     *
-     * @param condition the condition to add
-     */
+
     public void addCondition(Condition condition) {
+        conditions.removeIf(c -> c.getUuid().equals(condition.getUuid()));
         conditions.add(condition);
     }
 
     public void removeCondition(Condition condition) {
-        conditions.remove(condition);
+        conditions.removeIf(c -> c.getUuid().equals(condition.getUuid()));
     }
 
     /**
      * Contains the execution of the action
      *
      * @param npc    The NPC
-     * @param menu   The menu
      * @param player The player
      */
-    public abstract void perform(InternalNpc npc, Menu menu, Player player);
+    public abstract void perform(InternalNpc npc, Player player);
 
+    /**
+     * Get the default value of this action
+     * @return An action with the default values of the implementation. Should be immutable.
+     * @param <T> The type of the implementation class
+     */
+    public abstract <T extends Action> Supplier<T> getDefaultValue();
 
     /**
      * The item used as an icon in the NPC's action menu
@@ -125,7 +162,7 @@ public abstract class Action {
      */
     public abstract ItemStack getFavicon(Player player);
 
-    public abstract Menu getMenu();
+    public abstract ActionCustomizer getMenu();
 
     /**
      * Returns if the action should be processed. This takes the cooldown into account.
@@ -178,6 +215,18 @@ public abstract class Action {
 
     public boolean canDuplicate() {
         return true;
+    }
+
+    public String displayId() {
+        return getUuid().toString().substring(0, 8);
+    }
+
+    public boolean hasPlaceholders() {
+        return false;
+    }
+
+    public boolean hasPlayerPlaceholders() {
+        return false;
     }
 
     /**

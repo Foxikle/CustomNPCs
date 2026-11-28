@@ -23,9 +23,9 @@
 package dev.foxikle.customnpcs.internal.utils;
 
 import dev.foxikle.customnpcs.actions.Action;
-import io.github.mqzen.menus.misc.button.Button;
 import lombok.NoArgsConstructor;
 import org.bukkit.entity.Player;
+import studio.mevera.lotus.api.button.Button;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,12 +41,10 @@ public class ActionRegistry {
 
     public void register(Action action) {
         if (idToInstance.containsKey(action.getId())) {
-            throw new IllegalArgumentException("An action with the ID '" + action.getId() + "' has already been " +
-                    "registered!");
+            throw new IllegalArgumentException("An action with the ID '" + action.getId() + "' has already been registered!");
         }
         if (classToInstance.containsKey(action.getClass())) {
-            throw new IllegalArgumentException("An action with the class '" + action.getClass().getName() + "' has " +
-                    "already been registered!");
+            throw new IllegalArgumentException("An action with the class '" + action.getClass().getName() + "' has already been registered!");
         }
         idToInstance.put(action.getId(), action);
         classToInstance.put(action.getClass(), action);

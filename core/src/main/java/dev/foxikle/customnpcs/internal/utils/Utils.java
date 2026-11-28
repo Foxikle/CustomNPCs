@@ -26,22 +26,21 @@ import com.google.common.reflect.TypeToken;
 import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.data.Settings;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
-import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.ApiStatus;
+import studio.mevera.lotus.api.menu.MenuView;
 
 import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.UnaryOperator;
 
 /**
  * A class holding usful methods
@@ -176,16 +175,52 @@ public class Utils {
         return val;
     }
 
-    /**
-     * Formats the given string as a Minimessage component
-     *
-     * @param str The input
-     * @return the component, parsed in MiniMessage format.
-     * @deprecated Use {@link Msg#format(String)} instead.
-     */
-    @Deprecated
-    public static Component mm(String str) {
-        return Msg.format(str);
+    public static UnaryOperator<Integer> decrement(InventoryClickEvent event) {
+        if (event.isShiftClick()) {
+            return integer -> integer - 20;
+        } else if (event.isLeftClick()) {
+            return integer -> integer - 1;
+        } else if (event.isRightClick()) {
+            return integer -> integer - 5;
+        }
+        return integer -> integer;
+    }
+
+    public static UnaryOperator<Integer> increment(InventoryClickEvent event) {
+        if (event.isShiftClick()) {
+            return integer -> integer + 20;
+        } else if (event.isLeftClick()) {
+            return integer -> integer + 1;
+        } else if (event.isRightClick()) {
+            return integer -> integer + 5;
+        }
+        return integer -> integer;
+    }
+
+    public static UnaryOperator<Double> decrementd(InventoryClickEvent event) {
+        if (event.isShiftClick()) {
+            return d -> d - 20;
+        } else if (event.isLeftClick()) {
+            return d -> d - 1;
+        } else if (event.isRightClick()) {
+            return d -> d - 5;
+        }
+        return d -> d;
+    }
+
+    public static UnaryOperator<Double> incrementd(InventoryClickEvent event) {
+        if (event.isShiftClick()) {
+            return d -> d + 20;
+        } else if (event.isLeftClick()) {
+            return d -> d + 1;
+        } else if (event.isRightClick()) {
+            return d -> d + 5;
+        }
+        return d -> d;
+    }
+
+    public static void sound(MenuView<?,?> view, Sound sound) {
+        view.viewer().playSound(view.viewer().getLocation(), sound, 1, 1);
     }
 
 }

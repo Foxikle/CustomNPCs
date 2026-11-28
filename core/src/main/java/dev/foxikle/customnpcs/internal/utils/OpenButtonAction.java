@@ -22,45 +22,47 @@
 
 package dev.foxikle.customnpcs.internal.utils;
 
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.base.MenuView;
-import io.github.mqzen.menus.misc.button.actions.ButtonClickAction;
+import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.menu.MenuUtils;
+import lombok.AllArgsConstructor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.jetbrains.annotations.NotNull;
+import studio.mevera.lotus.api.button.ClickAction;
+import studio.mevera.lotus.api.data.DataRegistry;
+import studio.mevera.lotus.api.menu.Menu;
+import studio.mevera.lotus.api.menu.MenuView;
 
 import java.util.function.Consumer;
 
-public class OpenButtonAction implements ButtonClickAction {
+@AllArgsConstructor
+public class OpenButtonAction implements ClickAction {
 
-    private final String id;
-    private final Consumer<Player> action;
+    private final Menu<Component> menu;
+    private final DataRegistry data;
+    private final Consumer<MenuView<?,?>> action;
 
-    public OpenButtonAction(String id) {
-        this.id = id;
-        this.action = player -> player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+
+    public OpenButtonAction(String id, DataRegistry data) {
+        this.menu = CustomNPCs.getInstance().getLotus().registeredMenu(id).orElseThrow();
+        this.action = v -> Utils.sound(v, Sound.UI_BUTTON_CLICK);
+        this.data = data;
     }
 
-    public OpenButtonAction(String id, Consumer<Player> beforeOpen) {
-        this.id = id;
-        this.action = beforeOpen;
-    }
-
-    public OpenButtonAction(Menu menu) {
-        this(menu.getName());
-    }
-
-    @Override
-    public String tag() {
-        return "OPEN";
+    public OpenButtonAction(@NotNull Menu<Component> menu, DataRegistry data) {
+        this.menu = menu;
+        this.action = v -> Utils.sound(v, Sound.UI_BUTTON_CLICK);
+        this.data = data;
     }
 
     @Override
-    public void execute(MenuView<?> menuView, InventoryClickEvent inventoryClickEvent) {
-        Player player = (Player) inventoryClickEvent.getWhoClicked();
+    public void onClick(@NotNull MenuView<?, ?> view, @NotNull InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
         if (action != null) {
-            action.accept(player);
+            action.accept(view);
         }
-        menuView.getAPI().openMenu(player, id);
+        MenuUtils.open(player, menu, data);
     }
 }

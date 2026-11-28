@@ -22,125 +22,119 @@
 
 package dev.foxikle.customnpcs.internal.menu;
 
+import dev.foxikle.customnpcs.api.events.NpcDeleteEvent;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
-import dev.foxikle.customnpcs.internal.runnables.FacingDirectionRunnable;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.OpenButtonAction;
+import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
-import io.github.mqzen.menus.base.Content;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.misc.Capacity;
-import io.github.mqzen.menus.misc.DataRegistry;
-import io.github.mqzen.menus.misc.button.Button;
-import io.github.mqzen.menus.misc.button.actions.ButtonClickAction;
-import io.github.mqzen.menus.misc.button.actions.impl.CloseMenuAction;
-import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
-import io.github.mqzen.menus.titles.MenuTitle;
-import io.github.mqzen.menus.titles.MenuTitles;
+import dev.foxikle.customnpcs.internal.utils.await.Await;
+import dev.foxikle.customnpcs.internal.utils.await.Result;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.NotNullByDefault;
+import studio.mevera.lotus.api.button.Button;
+import studio.mevera.lotus.api.content.Content;
+import studio.mevera.lotus.api.content.ContentBuilder;
+import studio.mevera.lotus.api.menu.Menu;
+import studio.mevera.lotus.api.menu.MenuView;
+import studio.mevera.lotus.api.slot.Capacity;
+import studio.mevera.lotus.api.slot.Slot;
 
 /**
  * The class representing the main NPC menu
  */
-public class MainNPCMenu implements Menu {
-    /**
-     * {@inheritDoc}
-     */
+@NotNullByDefault
+public class MainNPCMenu implements Menu<Component> {
+
     @Override
-    public String getName() {
+    public String name() {
         return MenuUtils.NPC_MAIN;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     @Override
-    public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.main.title"));
+    public Component title(MenuView<Component, ?> view) {
+        return Msg.get(view.viewer(), "menus.main.title");
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     @Override
-    public @NotNull Capacity getCapacity(DataRegistry dataRegistry, Player player) {
+    public Capacity capacity(MenuView<Component, ?> view) {
         return Capacity.ofRows(5);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     @Override
-    public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
+    public Content content(MenuView<Component, ?> view) {
         CustomNPCs plugin = CustomNPCs.getInstance();
-        InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-        if (npc == null) {
-            return Content.builder(capacity)
-                    .setButton(22, Button.clickable(
-                            ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.error.no_npc"))
-                                    .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.error.no_npc.lore"))
-                                    .build(),
-                            new CloseMenuAction()
-                    ))
-                    .build();
-        }
+        InternalNpc npc = view.data().require(InternalNpc.KEY);
 
-
-        Content.Builder builder = Content.builder(capacity);
-        builder.apply(content -> content.fill(MenuItems.MENU_GLASS))
-                .setButton(10, Button.clickable(MenuItems.looking(player), ButtonClickAction.plain((menuView, inventoryClickEvent) -> {
-                    player.playSound(player, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-                    plugin.wait(player, WaitingType.FACING);
-                    new FacingDirectionRunnable(plugin, player).go();
-                    player.closeInventory();
-                })))
-                .setButton(8, Button.clickable(MenuItems.extraSettings(player), new OpenButtonAction(MenuUtils.NPC_EXTRA_SETTINGS)))
-                .setButton(0, MenuItems.toPose(player))
-                .setButton(13, Button.clickable(MenuItems.skinSelection(npc, player), new OpenButtonAction(MenuUtils.NPC_SKIN)))
-                .setButton(16, MenuItems.changeLines(npc, player))
-                .setButton(19, Button.clickable(MenuItems.editEquipment(npc, player), new OpenButtonAction(MenuUtils.NPC_EQUIPMENT)))
-                .setButton(22, MenuItems.resilient(npc, player))
-                .setButton(25, MenuItems.interactable(npc, player))
-                .setButton(34, MenuItems.showActions(npc, player))
-                .setButton(28, MenuItems.tunnelVision(npc, player))
-                .setButton(31, Button.clickable(MenuItems.confirmCreation(player), ButtonClickAction.plain((menuView, event) -> {
-                    event.setCancelled(true);
-                    Player p = (Player) event.getWhoClicked();
-
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1), 1);
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1), 3);
-                    Bukkit.getScheduler().runTaskLater(plugin, npc::createNPC, 1);
-                    p.spawnParticle(npc.getSpawnParticle(), npc.getSpawnLoc().clone().add(0, 1, 0), 1);
-
-                    if (npc.getSettings().isResilient())
-                        p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.main.create.message.resilient"));
-                    else
-                        p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.main.create.message.temporary"));
-
-                    npc.reloadSettings();
-
-                    p.closeInventory();
-                })))
-                .setButton(36, Button.clickable(MenuItems.cancelCreation(player), ButtonClickAction.plain((menuView, event) -> {
-                    event.setCancelled(true);
-                    Player p = (Player) event.getWhoClicked();
-                    p.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
-                    p.sendMessage(Msg.translate(player.locale(), "customnpcs.menus.main.cancel.message"));
-                    p.closeInventory();
-                })));
-        if (plugin.getNPCByID(npc.getUniqueID()) != null)
-            builder.setButton(44, Button.clickable(MenuItems.deleteNpc(player), ButtonClickAction.plain((menu, event) -> {
+        ContentBuilder builder = Content.builder(view.capacity());
+        builder.fillAll(MenuItems.MENU_GLASS)
+            .set(Slot.of(10), Button.clickable(MenuItems.looking(view), (v, e) -> {
+                Utils.sound(v, Sound.UI_BUTTON_CLICK);
+                Await.signal(v.viewer(), WaitingType.FACING, v.data())
+                    .thenAccept(response -> {
+                        switch (response) {
+                            case Result.Cancelled<Void> _ -> MenuUtils.open(v);
+                            case Result.Failed<Void> res -> MenuUtils.awaitFail(res, v);
+                            case Result.Ok<Void> _ -> {
+                                npc.getSpawnLoc().setPitch(v.viewer().getLocation().getPitch());
+                                npc.getSpawnLoc().setYaw(v.viewer().getLocation().getYaw());
+                                v.viewer().sendMessage(Msg.get(v.viewer(), "set.facing_direction"));
+                                Utils.sound(v, Sound.BLOCK_AMETHYST_BLOCK_BREAK);
+                                MenuUtils.open(v);
+                            }
+                        }
+                    });
+            }))
+            .set(Slot.of(8), Button.clickable(MenuItems.extraSettings(view),
+                new OpenButtonAction(MenuUtils.NPC_EXTRA_SETTINGS, view.data())))
+            .set(Slot.of(0), MenuItems.toPose(view))
+            .set(Slot.of(13), Button.clickable(MenuItems.skinSelection(view), new OpenButtonAction(MenuUtils.NPC_SKIN
+                , view.data())))
+            .set(Slot.of(16), MenuItems.changeLines(view))
+            .set(Slot.of(19), Button.clickable(MenuItems.editEquipment(view),
+                new OpenButtonAction(MenuUtils.NPC_EQUIPMENT, view.data())))
+            .set(Slot.of(22), MenuItems.resilient(view))
+            .set(Slot.of(25), MenuItems.interactable(view))
+            .set(Slot.of(34), MenuItems.showActions(view))
+            .set(Slot.of(28), MenuItems.tunnelVision(view))
+            .set(Slot.of(31), Button.clickable(MenuItems.confirmCreation(view), (v, event) -> {
+                event.setCancelled(true);
                 Player p = (Player) event.getWhoClicked();
-                plugin.getDeletionReason().put(p.getUniqueId(), true);
-                plugin.getLotus().openMenu(p, MenuUtils.NPC_DELETE);
+
+                Bukkit.getScheduler().runTaskLater(plugin, () -> p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1), 1);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1), 3);
+                Bukkit.getScheduler().runTaskLater(plugin, npc::createNPC, 1);
+                p.spawnParticle(npc.getSpawnParticle(), npc.getSpawnLoc().clone().add(0, 1, 0), 1);
+
+                if (npc.getSettings().isResilient())
+                    p.sendMessage(Msg.get(v.viewer(), "menus.main.create.message.resilient"));
+                else
+                    p.sendMessage(Msg.get(v.viewer(), "menus.main.create.message.temporary"));
+
+                npc.reloadSettings();
+
+                p.closeInventory();
+            }))
+            .set(Slot.of(36), Button.clickable(MenuItems.cancelCreation(view), (v, event) -> {
+                event.setCancelled(true);
+                Utils.sound(v, Sound.BLOCK_GLASS_BREAK);
+                v.viewer().closeInventory();
+                v.viewer().sendMessage(Msg.get(v.viewer(), "menus.main.cancel.message"));
+            }));
+        if (plugin.getNPCByID(npc.getUniqueID()) != null)
+            builder.set(Slot.of(44), Button.clickable(MenuItems.deleteNpc(view), (_, event) -> {
+                Player p = (Player) event.getWhoClicked();
+                MenuUtils.open(p, MenuUtils.NPC_DELETE, view.data()
+                    .put(NpcDeleteEvent.DeletionSource.KEY, NpcDeleteEvent.DeletionSource.MENU));
                 p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
-            })));
+            }));
         return builder.build();
     }
 }

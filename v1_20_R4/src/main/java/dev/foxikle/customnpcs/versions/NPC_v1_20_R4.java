@@ -35,6 +35,7 @@ import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.InjectionManager;
 import dev.foxikle.customnpcs.internal.LookAtAnchor;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
+import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
@@ -197,8 +198,8 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
 
     public void setSkin() {
         super.getGameProfile().getProperties().removeAll("textures");
-        super.getGameProfile().getProperties().put("textures", new Property("textures", settings.getValue(),
-                settings.getSignature()));
+        super.getGameProfile().getProperties().put("textures", new Property("textures", settings.getSkin().value(),
+            settings.getSkin().signature()));
         byte bitmask = (byte) (0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40);
         super.getEntityData().set(net.minecraft.world.entity.player.Player.DATA_PLAYER_MODE_CUSTOMISATION, bitmask);
     }
@@ -257,8 +258,9 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
         return super.getBukkitEntity().getLocation();
     }
 
-    public void addAction(Action actionImpl) {
-        actions.add(actionImpl);
+    public void addAction(Action action) {
+        actions.removeIf(a -> a.getUuid().equals(action.getUuid()));
+        actions.add(action);
     }
 
     public boolean removeAction(Action actionImpl) {
@@ -375,8 +377,7 @@ public class NPC_v1_20_R4 extends ServerPlayer implements InternalNpc {
     private Packet<?> createMojComponent(String clickableText, TextDisplay clickableHologram) {
         List<SynchedEntityData.DataValue<?>> meta =
                 ((CraftTextDisplay) clickableHologram).getHandle().getEntityData().getNonDefaultValues();
-        String serialized_component =
-                JSONComponentSerializer.json().serialize(plugin.getMiniMessage().deserialize(clickableText));
+        String serialized_component = Msg.toJson(Msg.format(clickableText));
         net.minecraft.network.chat.Component clickableComponent =
                 net.minecraft.network.chat.Component.Serializer.fromJson(serialized_component,
                         HolderLookup.Provider.create(Stream.of()));

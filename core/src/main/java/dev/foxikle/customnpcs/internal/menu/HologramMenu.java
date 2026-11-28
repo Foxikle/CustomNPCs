@@ -22,65 +22,41 @@
 
 package dev.foxikle.customnpcs.internal.menu;
 
-import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
-import io.github.mqzen.menus.base.Content;
-import io.github.mqzen.menus.base.Menu;
-import io.github.mqzen.menus.misc.Capacity;
-import io.github.mqzen.menus.misc.DataRegistry;
-import io.github.mqzen.menus.misc.button.Button;
-import io.github.mqzen.menus.misc.button.actions.impl.CloseMenuAction;
-import io.github.mqzen.menus.misc.itembuilder.ItemBuilder;
-import io.github.mqzen.menus.titles.MenuTitle;
-import io.github.mqzen.menus.titles.MenuTitles;
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNullByDefault;
+import studio.mevera.lotus.api.content.Content;
+import studio.mevera.lotus.api.data.Key;
+import studio.mevera.lotus.api.menu.Menu;
+import studio.mevera.lotus.api.menu.MenuView;
+import studio.mevera.lotus.api.slot.Capacity;
+import studio.mevera.lotus.api.slot.Slot;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
-public class HologramMenu implements Menu {
-    public static final Map<UUID, Integer> editingIndicies = new ConcurrentHashMap<>();
+@NotNullByDefault
+public class HologramMenu implements Menu<Component> {
+    public static final Key<Integer> EDITING_INDEX = Key.of("editing_index", Integer.class);
 
     @Override
-    public String getName() {
+    public String name() {
         return MenuUtils.NPC_HOLOGRAMS;
     }
 
     @Override
-    public @NotNull MenuTitle getTitle(DataRegistry dataRegistry, Player player) {
-        return MenuTitles.createModern(Msg.translate(player.locale(), "customnpcs.menus.holograms.title"));
+    public Component title(MenuView<Component, ?> view) {
+        return Msg.get(view.viewer(), "menus.holograms.title");
     }
 
     @Override
-    public @NotNull Capacity getCapacity(DataRegistry dataRegistry, Player player) {
+    public Capacity capacity(MenuView<Component, ?> view) {
         return Capacity.ofRows(6);
     }
 
     @Override
-    public @NotNull Content getContent(DataRegistry dataRegistry, Player player, Capacity capacity) {
-        CustomNPCs plugin = CustomNPCs.getInstance();
-        InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-        if (npc == null) {
-            return Content.builder(capacity)
-                    .apply(content -> content.fillBorder(MenuItems.MENU_GLASS))
-                    .setButton(22, Button.clickable(
-                            ItemBuilder.modern(Material.RED_STAINED_GLASS_PANE)
-                                    .setDisplay(Msg.translate(player.locale(), "customnpcs.menus.main.error.no_npc"))
-                                    .setLore(Msg.lore(player.locale(), "customnpcs.menus.main.error.no_npc.lore"))
-                                    .build(),
-                            new CloseMenuAction()
-                    ))
-                    .build();
-        }
-
-        return Content.builder(capacity)
-                .apply(content -> content.fillBorder(MenuItems.MENU_GLASS))
-                .apply(content -> content.addButton(MenuItems.currentLines(npc, player).toArray(new Button[]{})))
-                .setButton(45, MenuItems.toMain(player))
+    public Content content(MenuView<Component, ?> view) {
+        return Content.builder(view.capacity())
+                .fillBorder(MenuItems.MENU_GLASS)
+            .apply(content -> MenuItems.currentLines(view).forEach(content::add))
+            .set(Slot.of(45), MenuItems.toMain(view))
                 .build();
     }
 }

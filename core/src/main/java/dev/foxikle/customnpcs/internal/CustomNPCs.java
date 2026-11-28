@@ -22,15 +22,13 @@
 
 package dev.foxikle.customnpcs.internal;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.CommandDispatcher;
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.actions.defaultImpl.*;
+import dev.foxikle.customnpcs.actions.impl.*;
 import dev.foxikle.customnpcs.conditions.Condition;
-import dev.foxikle.customnpcs.conditions.ConditionalTypeAdapter;
+import dev.foxikle.customnpcs.conditions.ConditionTypeAdapter;
 import dev.foxikle.customnpcs.conditions.Selector;
 import dev.foxikle.customnpcs.data.Equipment;
 import dev.foxikle.customnpcs.data.Settings;
@@ -41,17 +39,16 @@ import dev.foxikle.customnpcs.internal.menu.*;
 import dev.foxikle.customnpcs.internal.storage.StorageManager;
 import dev.foxikle.customnpcs.internal.translations.Translations;
 import dev.foxikle.customnpcs.internal.utils.ActionRegistry;
+import dev.foxikle.customnpcs.internal.utils.InputRunnable;
 import dev.foxikle.customnpcs.internal.utils.UpdateChecker;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
-import io.github.mqzen.menus.Lotus;
-import io.github.mqzen.menus.base.pagination.Pagination;
+import dev.foxikle.customnpcs.internal.utils.await.AwaitInput;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
 import org.bstats.charts.SimplePie;
@@ -65,11 +62,11 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.lotus.paper.PaperLotus;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -77,7 +74,6 @@ import java.util.logging.Logger;
  * <p> The class that represents the plugin
  * </p>
  */
-@Slf4j
 public final class CustomNPCs extends JavaPlugin implements PluginMessageListener {
 
     public static final ActionRegistry ACTION_REGISTRY = new ActionRegistry();
@@ -88,32 +84,19 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      */
     @Getter
     private static CustomNPCs instance;
-    /**
-     * The plugin's json handler
-     */
+
     @Getter
+    @Deprecated
     private static Gson gson;
 
-    /**
-     * This may contain NPCs that do not yet exist, as they are in the process of creation.
-     */
-    @Getter
-    private final Cache<UUID, InternalNpc> editingNPCs = CacheBuilder.newBuilder().expireAfterWrite(10,
-            TimeUnit.MINUTES).expireAfterAccess(10, TimeUnit.MINUTES).build();
-    /**
-     * Used to close the deletion menu if it was opened by the command. true = open the menu
-     */
-    @Getter
-    private final Cache<UUID, Boolean> deletionReason = CacheBuilder.newBuilder().expireAfterWrite(1,
-            TimeUnit.MINUTES).expireAfterAccess(1, TimeUnit.MINUTES).build();
     private final String[] COMPATIBLE_VERSIONS = {"1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6",
-            "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8", "1.21.9",
-            "1.21.10", "1.21.11", "26.1", "26.1.1", "26.1.2", "26.2"};
+        "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8", "1.21.9",
+        "1.21.10", "1.21.11", "26.1", "26.1.1", "26.1.2", "26.2", "26.3"};
     private final String NPC_CLASS = "dev.foxikle.customnpcs.versions.NPC_%s";
     /**
      * The map of what the plugin is waiting for the players to enter.
      */
-    public Map<UUID, WaitingType> waiting = new ConcurrentHashMap<>();
+    public Map<UUID, AwaitInput<?>> waiting = new ConcurrentHashMap<>();
     /**
      * The List of NPC holograms
      */
@@ -122,22 +105,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * The Map of NPCs keyed by their UUIDs
      */
     public Map<UUID, InternalNpc> npcs = new HashMap<>();
-    /**
-     * The Map of the action a player is editing
-     */
-    public Map<UUID, Action> editingActions = new HashMap<>();
-    /**
-     * The Map of the original actions a player is editing
-     */
-    public Map<UUID, Action> originalEditingActions = new HashMap<>();
-    /**
-     * The Map of the action a player is editing
-     */
-    public Map<UUID, Condition> editingConditionals = new HashMap<>();
-    /**
-     * The Map of the original actions a player is editing
-     */
-    public Map<UUID, Condition> originalEditingConditionals = new HashMap<>();
     /**
      * If the plugin should try to format messages with PlaceholderAPI
      */
@@ -154,8 +121,6 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
      * keeps track of the current server version
      */
     public String serverVersion;
-    @Getter
-    public MiniMessage miniMessage = MiniMessage.miniMessage();
     Listeners listeners;
     @Getter
     private StorageManager storageManager;
@@ -167,7 +132,7 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
     private UpdateChecker updater;
 
     @Getter
-    private Lotus lotus;
+    private studio.mevera.lotus.@NotNull Lotus<Component> lotus;
     @Getter
     private CommandDispatcher<org.bukkit.command.CommandSender> commandDispatcher;
 
@@ -194,9 +159,9 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             manager.registerEventHandler(LifecycleEvents.COMMANDS, event -> {
                 final Commands commands = event.registrar();
                 commands.register(
-                        NpcCommandRegistrar.buildNode(),
-                        "The command for anything NPC related.",
-                        List.of()
+                    NpcCommandRegistrar.buildNode(),
+                    "The command for anything NPC related.",
+                    List.of()
                 );
             });
             System.setProperty("CustomNPCs-Started", "true");
@@ -225,8 +190,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         new Translations().setup();
 
         gson = new GsonBuilder()
-                .registerTypeAdapter(Condition.class, new ConditionalTypeAdapter())
-                .create();
+            .registerTypeAdapter(Condition.class, new ConditionTypeAdapter())
+            .create();
         this.storageManager = new StorageManager(this);
         this.mu = new MenuUtils(this);
         this.updater = new UpdateChecker(this);
@@ -235,43 +200,29 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         getLogger().info("Loading action registry...");
         ACTION_REGISTRY.register(new ActionBar());
         ACTION_REGISTRY.register(new DisplayTitle());
-        ACTION_REGISTRY.register(new GiveEffect());
-        ACTION_REGISTRY.register(new GiveXP());
-        ACTION_REGISTRY.register(new PlaySound());
-        ACTION_REGISTRY.register(new RemoveEffect());
-        ACTION_REGISTRY.register(new RemoveXP());
         ACTION_REGISTRY.register(new RunCommand());
         ACTION_REGISTRY.register(new SendMessage());
         ACTION_REGISTRY.register(new SendServer());
-        ACTION_REGISTRY.register(new Teleport());
         ACTION_REGISTRY.register(new FollowPresetPath());
 
         if (!storageManager.setup()) {
             throw new RuntimeException("Failed to start storage manager");
         }
 
-        //generate skin menus for the supported locales
-        Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
-            this.getMenuUtils().getSkinCatalogue(Locale.ENGLISH);
-            this.getMenuUtils().getSkinCatalogue(Locale.GERMAN);
-            this.getMenuUtils().getSkinCatalogue(Locale.SIMPLIFIED_CHINESE);
-            this.getMenuUtils().getSkinCatalogue(new Locale("ru"));
-        }, 20);
-
         // setup bstats
         Metrics metrics = new Metrics(this, 18898);
 
         metrics.addCustomChart(new SimplePie("use_papi", () -> String.valueOf(papi)));
         metrics.addCustomChart(new SimplePie("look_interval",
-                () -> String.valueOf(getConfig().getInt("LookInterval"))));
+            () -> String.valueOf(getConfig().getInt("LookInterval"))));
         metrics.addCustomChart(new SimplePie("injection_interval", () -> String.valueOf(getConfig().getInt(
-                "InjectionInterval"))));
+            "InjectionInterval"))));
         metrics.addCustomChart(new SimplePie("injection_distance", () -> String.valueOf(getConfig().getInt(
-                "InjectionDistance"))));
+            "InjectionDistance"))));
         metrics.addCustomChart(new SimplePie("hologram_interval", () -> String.valueOf(getConfig().getInt(
-                "HologramUpdateInterval"))));
+            "HologramUpdateInterval"))));
         metrics.addCustomChart(new SimplePie("update_alerts", () -> String.valueOf(getConfig().getBoolean(
-                "AlertOnUpdate"))));
+            "AlertOnUpdate"))));
         metrics.addCustomChart(new SimplePie("npc_count", () -> String.valueOf(npcs.size())));
 
         // only supports default actions
@@ -280,12 +231,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             int actionbar = 0;
             int title = 0;
             int message = 0;
-            int give_effect = 0;
-            int remove_effect = 0;
-            int give_xp = 0;
-            int remove_xp = 0;
-            int play_sound = 0;
-            int teleport = 0;
+            int flow = 0;
+            int preset_path = 0;
             int send_server = 0;
             int run_command = 0;
 
@@ -294,29 +241,21 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
                     if (action instanceof ActionBar) actionbar++;
                     else if (action instanceof DisplayTitle) title++;
                     else if (action instanceof SendMessage) message++;
-                    else if (action instanceof GiveEffect) give_effect++;
-                    else if (action instanceof RemoveEffect) remove_effect++;
-                    else if (action instanceof GiveXP) give_xp++;
-                    else if (action instanceof RemoveXP) remove_xp++;
-                    else if (action instanceof PlaySound) play_sound++;
-                    else if (action instanceof Teleport) teleport++;
                     else if (action instanceof SendServer) send_server++;
                     else if (action instanceof RunCommand) run_command++;
+                    else if (action instanceof FollowPresetPath) preset_path++;
+                    else if (action instanceof Flow) flow++;
                 }
             }
 
             return Map.ofEntries(
-                    Map.entry("ActionBar", actionbar),
-                    Map.entry("DisplayTitle", title),
-                    Map.entry("SendMessage", message),
-                    Map.entry("GiveEffect", give_effect),
-                    Map.entry("RemoveEffect", remove_effect),
-                    Map.entry("GiveXP", give_xp),
-                    Map.entry("RemoveXP", remove_xp),
-                    Map.entry("PlaySound", play_sound),
-                    Map.entry("Teleport", teleport),
-                    Map.entry("SendServer", send_server),
-                    Map.entry("RunCommand", run_command)
+                Map.entry("ActionBar", actionbar),
+                Map.entry("DisplayTitle", title),
+                Map.entry("SendMessage", message),
+                Map.entry("FollowPresetPath", preset_path),
+                Map.entry("Flow", flow),
+                Map.entry("SendServer", send_server),
+                Map.entry("RunCommand", run_command)
             );
         }));
 
@@ -332,9 +271,8 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
 
         getLogger().info("Loading menus!");
 
-        lotus = Lotus.load(this);
+        lotus = PaperLotus.create(this);
         lotus.registerMenu(new ActionMenu());
-        lotus.registerMenu(new ActionCustomizerMenu());
         lotus.registerMenu(new MainNPCMenu());
         lotus.registerMenu(new ConditionCustomizerMenu());
         lotus.registerMenu(new ConditionMenu());
@@ -343,19 +281,34 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         lotus.registerMenu(new ExtraSettingsMenu());
         lotus.registerMenu(new NewActionMenu());
         lotus.registerMenu(new NewConditionMenu());
-        lotus.registerMenu(new SkinCatalog());
         lotus.registerMenu(new SkinMenu());
         lotus.registerMenu(new HologramMenu());
         lotus.registerMenu(new DeleteLineMenu());
         lotus.registerMenu(new PoseEditorMenu());
+        lotus.registerMenu(new DeleteActionMenu());
     }
 
-    /**
-     * <p> Checks if the plugin is compatible with the server version
-     * </p>
-     *
-     * @return If the plugin is compatible with the server
-     */
+    public void checkForPlaceholderViolations() {
+        if (papiPlayerExpansion && papi) return;
+        boolean placeholders = false;
+        boolean players = false;
+        for (InternalNpc npc : getNPCs()) {
+            for (Action action : npc.getActions()) {
+                if (placeholders && players) break;
+                if (action instanceof Flow flow) {
+                    for (Action a : flow.getActions()) {
+                        placeholders = placeholders || a.hasPlaceholders();
+                        players = players || a.hasPlayerPlaceholders();
+                    }
+                    continue;
+                }
+                placeholders = placeholders || action.hasPlaceholders();
+                players = players || action.hasPlayerPlaceholders();
+            }
+        }
+        if ((players || placeholders) && !papi) printMissingPlaceholders();
+        if (players && !papiPlayerExpansion) printMissingPlayerExpansion();
+    }
 
     public boolean checkForValidVersion() {
         serverVersion = Bukkit.getMinecraftVersion();
@@ -470,17 +423,17 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         try {
             Class<?> clazz = Class.forName(String.format(NPC_CLASS, translateVersion()));
             return (InternalNpc) clazz
-                    .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class,
-                            UUID.class, Player.class, List.class, List.class, Selector.class)
-                    .newInstance(this, world, location, equipment, settings, uuid, target, actions, conditions,
-                            injectionMode);
+                .getConstructor(this.getClass(), World.class, Location.class, Equipment.class, Settings.class,
+                    UUID.class, Player.class, List.class, List.class, Selector.class)
+                .newInstance(this, world, location, equipment, settings, uuid, target, actions, conditions,
+                    injectionMode);
         } catch (ReflectiveOperationException e) {
             getLogger().log(Level.SEVERE, ("An error occurred whilst creating the NPC '{name}! This is most likely a " +
-                    "configuration issue.").replace("{name}", settings.getRawHolograms().getFirst()), e);
+                "configuration issue.").replace("{name}", settings.getRawHolograms().getFirst()), e);
             throw new RuntimeException(e);
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "An error occurred whilst creating the NPC '{name}!".replace("{name}",
-                    settings.getRawHolograms().getFirst()), e);
+                settings.getRawHolograms().getFirst()), e);
             throw new RuntimeException(e);
         }
     }
@@ -497,19 +450,10 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
             case "1.21.11" -> "v1_21_R6";
             case "26.1", "26.1.1", "26.1.2" -> "v26_1_R1";
             case "26.2" -> "v26_2_R1";
+            case "26.3" -> "v26_3_R1";
             default -> "";
         };
     }
-
-    private Locale setupLocale(String lang) {
-        return switch (lang.toUpperCase()) {
-            case "GERMAN", "DE" -> Locale.GERMAN;
-            case "CHINESE", "ZH" -> Locale.CHINESE;
-            case "RUSSIAN", "RU" -> new Locale("ru");
-            default -> Locale.ENGLISH;
-        };
-    }
-
 
     private void printInvalidVersion() {
         Logger logger = getLogger();
@@ -520,22 +464,46 @@ public final class CustomNPCs extends JavaPlugin implements PluginMessageListene
         logger.severe("|             ** PLEASE USE ONE OF THE FOLLOWING SERVER VERSIONS **            |");
         logger.severe("|                          [1.20.5+, 1.21.x, 26.x]                             |");
         logger.severe("|                               DETECTED: '" + serverVersion + "'                             " +
-                "|");
+            "|");
         logger.severe("|           Please contact @foxikle on Discord for more information.           |");
         logger.severe("+------------------------------------------------------------------------------+");
         logger.severe("");
         logger.severe("");
     }
 
+    private void printMissingPlaceholders() {
+        Logger l = getLogger();
+        l.warning("+----------------------------------------------+");
+        l.warning("|                ** WARNING **                 |");
+        l.warning("|  One or more Action have placeholders, but   |");
+        l.warning("|   this server does not have PlaceholderAPI   |");
+        l.warning("+----------------------------------------------+");
+    }
+
+    private void printMissingPlayerExpansion() {
+        Logger l = getLogger();
+        l.warning("+----------------------------------------------+");
+        l.warning("|                ** WARNING **                 |");
+        l.warning("|        One or more Actions have player       |");
+        l.warning("|    placeholders, but this server does not    |");
+        l.warning("|  have the Player expansion. Install it via:  |");
+        l.warning("|          /papi ecloud download Player        |");
+        l.warning("+----------------------------------------------+");
+    }
+
     public boolean isWaiting(Player player, WaitingType type) {
-        return waiting.getOrDefault(player.getUniqueId(), null) == type;
+        return switch (waiting.get(player.getUniqueId())) {
+            case AwaitInput<?> input -> input.type() == type;
+            case null -> false;
+        };
     }
 
-    public void wait(Player player, WaitingType type) {
+    public boolean isWaiting(Player player) {
+        return waiting.containsKey(player.getUniqueId());
+    }
+
+    public void wait(Player player, AwaitInput<?> type) {
         waiting.put(player.getUniqueId(), type);
-    }
-
-    public Pagination getSkinCatalog(Player player) {
-        return getMenuUtils().getSkinCatalogue(player.locale());
+        new InputRunnable(player, this, type.type()).runTaskTimer(this, 1, 15);
     }
 }
