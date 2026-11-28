@@ -24,7 +24,6 @@ package dev.foxikle.customnpcs.internal.menu;
 
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNullByDefault;
 import studio.mevera.lotus.api.content.Content;
 import studio.mevera.lotus.api.menu.Menu;
@@ -53,13 +52,12 @@ public class SkinMenu implements Menu<Component> {
 
     @Override
     public Content content(MenuView<Component, ?> view) {
-        Player player = view.viewer();
         return Content.builder(view.capacity())
                 .fillAll(MenuItems.MENU_GLASS)
-                .set(Slot.of(18), MenuItems.toMain(player))
-                .set(Slot.of(11), MenuItems.importPlayer(player))
-                .set(Slot.of(13), MenuItems.useCatalog(player))
-                .set(Slot.of(15), MenuItems.importUrl(player))
+            .set(Slot.of(18), MenuItems.toMain(view))
+            .set(Slot.of(11), MenuItems.importPlayer(view))
+            .set(Slot.of(13), MenuItems.useCatalog(view))
+            .set(Slot.of(15), MenuItems.importUrl(view))
                 .build();
     }
 }

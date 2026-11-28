@@ -28,6 +28,7 @@ import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
 
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Getter
@@ -35,24 +36,28 @@ import java.util.regex.Pattern;
 public class TextCondition implements Condition {
 
     public static final StructCodec<TextCondition> CODEC = StructCodec.struct(
-            "comparator", Codec.Enum(Comparator.class), Condition::getComparator,
-            "value", Codec.Enum(Value.class), Condition::getValue,
-            "target", Codec.STRING, TextCondition::getTarget,
-            "inverted", Codec.BOOLEAN.optional(false), TextCondition::isInverted,
-            TextCondition::new
+        "comparator", Codec.Enum(Comparator.class), Condition::getComparator,
+        "value", Codec.Enum(Value.class), Condition::getValue,
+        "uuid", Codec.UUID_STRING.optional(), Condition::getUuid,
+        "target", Codec.STRING, TextCondition::getTarget,
+        "inverted", Codec.BOOLEAN.optional(false), TextCondition::isInverted,
+        TextCondition::new
     );
 
     private final Type type = Type.TEXT;
+    private final UUID uuid;
     private Comparator comparator;
     private Value value;
     private String target;
     private boolean inverted;
 
-    public TextCondition(Comparator comparator, Value value, String target, boolean inverted) {
+    public TextCondition(Comparator comparator, Value value, UUID uuid, String target, boolean inverted) {
         this.comparator = comparator;
         this.value = value;
         this.target = target;
         this.inverted = inverted;
+        if (uuid == null) uuid = UUID.randomUUID();
+        this.uuid = uuid;
     }
 
     @Override
@@ -80,7 +85,7 @@ public class TextCondition implements Condition {
 
     @Override
     public Condition clone() {
-        return new TextCondition(comparator, value, target, inverted);
+        return new TextCondition(comparator, value, uuid, target, inverted);
     }
 
 }

@@ -52,7 +52,7 @@ dependencies {
     implementation(project(":v1_20_R4", configuration = "default"))
 }
 
-var pluginVersion = "1.8.3-pre1"
+var pluginVersion = "1.9.0-pre1"
 
 allprojects {
     group = "dev.foxikle"

@@ -32,7 +32,6 @@ import dev.foxikle.customnpcs.internal.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
-import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
@@ -42,7 +41,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.lotus.api.button.Button;
 import studio.mevera.lotus.api.data.Key;
-import studio.mevera.lotus.api.menu.Menu;
 
 import java.lang.reflect.Method;
 import java.time.Instant;
@@ -133,11 +131,12 @@ public abstract class Action {
 
 
     public void addCondition(Condition condition) {
+        conditions.removeIf(c -> c.getUuid().equals(condition.getUuid()));
         conditions.add(condition);
     }
 
     public void removeCondition(Condition condition) {
-        conditions.remove(condition);
+        conditions.removeIf(c -> c.getUuid().equals(condition.getUuid()));
     }
 
     /**

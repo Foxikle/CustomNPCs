@@ -23,10 +23,8 @@
 package dev.foxikle.customnpcs.internal.menu;
 
 import dev.foxikle.customnpcs.actions.Action;
-import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNullByDefault;
 import studio.mevera.lotus.api.content.Content;
 import studio.mevera.lotus.api.menu.Menu;
@@ -54,13 +52,12 @@ public class ConditionMenu implements Menu<Component> {
 
     @Override
     public Content content(MenuView<Component, ?> view) {
-        Player player = view.viewer();
-        Action action = CustomNPCs.getInstance().editingActions.get(player.getUniqueId());
+        Action action = view.data().getOrNull(Action.KEY);
         return Content.builder(view.capacity())
                 .fillBorder(MenuItems.MENU_GLASS)
-                .apply(content -> MenuItems.conditions(action, player).forEach(content::add))
-                .set(Slot.of(31), MenuItems.toActionSaveConditions(player))
-                .set(Slot.of(35), MenuItems.toggleConditionMode(action, player))
+            .apply(content -> MenuItems.conditions(action, view).forEach(content::add))
+            .set(Slot.of(31), MenuItems.toActionSaveConditions(view))
+            .set(Slot.of(35), MenuItems.toggleConditionMode(view))
                 .build();
     }
 }

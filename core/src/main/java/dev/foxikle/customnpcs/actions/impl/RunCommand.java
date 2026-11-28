@@ -50,13 +50,10 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.lotus.api.button.Button;
 import studio.mevera.lotus.api.content.Content;
-import studio.mevera.lotus.api.data.DataRegistry;
-import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
 import studio.mevera.lotus.api.slot.Slot;
@@ -65,7 +62,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
 import static org.bukkit.Material.*;
 
@@ -171,7 +167,7 @@ public class RunCommand extends Action {
 
     @AllArgsConstructor
     @NotNullByDefault
-    public class RunCommandCustomizer implements ActionCustomizer {
+    public static class RunCommandCustomizer implements ActionCustomizer {
 
         @Override
         public String name() {
@@ -192,27 +188,28 @@ public class RunCommand extends Action {
         public Content content(MenuView<Component, ?> view) {
             RunCommand action = getAction(view);
             Player player = view.viewer();
-            return MenuUtils.actionBase(action, player)
+            return MenuUtils.actionBase(action, view)
                 .set(Slot.of(4), papiTip(player))
                 .set(player.hasPermission("customnpcs.run_command.enable_console") ? Slot.of(21) :
-                    Slot.of(22), setCommand(player))
-                .set(Slot.of(23), toggle(player))
+                    Slot.of(22), setCommand(player, action))
+                .set(Slot.of(23), toggle(player, action))
                 .build();
         }
 
-        private Button toggle(Player player) {
+        private Button toggle(Player player, RunCommand action) {
             if (!player.hasPermission("customnpcs.run_command.enable_console")) return MenuItems.MENU_GLASS;
             List<Component> lore = new ArrayList<>();
-            if (isAsConsole()) {
+            if (action.isAsConsole()) {
                 lore.addAll(Utils.list(Msg.lore(player.locale(), "menus.action.command.as_console.warning")));
             }
             lore.add(Msg.get(player, "items.click_to_change"));
-            return Button.clickable(ItemBuilder.of(isAsConsole() ? RED_CANDLE : GREEN_CANDLE)
+            return Button.clickable(ItemBuilder.of(action.isAsConsole() ? RED_CANDLE : GREEN_CANDLE)
                     .lore(lore.toArray(new Component[]{}))
-                    .displayName(isAsConsole() ? Msg.get(player, "menus.action.command.as_console.true") :
+                    .displayName(action.isAsConsole() ? Msg.get(player, "menus.action.command.as_console.true") :
                         Msg.get(player, "menus.action.command.as_console.false"))
                     .build(),
                 (menuView, event) -> {
+                    RunCommand axn = getAction(menuView);
                     event.setCancelled(true);
                     Utils.sound(menuView, Sound.UI_BUTTON_CLICK);
                     Player p = (Player) event.getWhoClicked();
@@ -221,14 +218,14 @@ public class RunCommand extends Action {
                         return;
                     }
 
-                    setAsConsole(!isAsConsole());
-                    menuView.content().set(Slot.of(23), toggle(p));
+                    axn.setAsConsole(!axn.isAsConsole());
+                    menuView.content().set(Slot.of(23), toggle(p, axn));
                 });
         }
 
-        private Button setCommand(Player player) {
+        private Button setCommand(Player player, RunCommand action) {
             return Button.clickable(ItemBuilder.of(ANVIL)
-                    .displayName(Component.text("/" + getCommand()))
+                    .displayName(Component.text("/" + action.getCommand()))
                     .lore(Msg.get(player, "items.click_to_change"))
                     .build(),
                 (v, event) -> {

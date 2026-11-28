@@ -215,7 +215,7 @@ public class DisplayTitle extends Action {
             Component[] decLore = Msg.lore(player.locale(), "menus.action_customizer.delay.decrement.description");
             Component displayLore = Msg.get(player, "menus.action.title.display.lore");
 
-            return MenuUtils.actionBase(action, player)
+            return MenuUtils.actionBase(action, view)
                 .set(Slot.of(10), Button.clickable(ItemBuilder.of(LIME_DYE)
                         .displayName(Msg.get(player, "menus.action.title.fade_in.increase"))
                         .lore(incLore).build(),
@@ -290,7 +290,7 @@ public class DisplayTitle extends Action {
                     }))
                 .set(Slot.of(16), Button.clickable(ItemBuilder.of(OAK_HANGING_SIGN)
                     .displayName(Msg.get(player, "menus.action.title.current.title"))
-                    .lore(Msg.format("<white><!i>%s", action.getTitle()), Component.empty(),
+                    .lore(Msg.format("<white><!i>" + action.getTitle()), Component.empty(),
                         Msg.get(player, "items.click_to_change"))
                     .build(), (v, event) -> {
                     Utils.sound(v, Sound.UI_BUTTON_CLICK);
@@ -310,7 +310,7 @@ public class DisplayTitle extends Action {
                 }))
                 .set(Slot.of(34), Button.clickable(ItemBuilder.of(DARK_OAK_HANGING_SIGN)
                         .displayName(Msg.get(player, "menus.action.title.current.subtitle"))
-                        .lore(Msg.format("<white><!i>%s", action.getSubTitle()), Component.empty(),
+                        .lore(Msg.format("<white><!i>" + action.getSubTitle()), Component.empty(),
                             Msg.get(player, "items.click_to_change"))
                         .build(),
                     (v, _) -> {

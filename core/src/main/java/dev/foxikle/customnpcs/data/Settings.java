@@ -35,12 +35,16 @@ import lombok.Setter;
 import lombok.ToString;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.codec.Codec;
+import net.minestom.server.codec.Result;
 import net.minestom.server.codec.StructCodec;
+import net.minestom.server.codec.Transcoder;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,11 +114,34 @@ public class Settings {
 
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
-    public static final Codec<Settings> CODEC = Codec.INT.unionType("v", integer ->
+    public static final Codec<Settings> CODEC = new Codec<>() {
+
+        private static final Codec<Settings> UNION = Codec.INT.unionType("$v", integer ->
             switch (integer) {
                 case 1 -> CODEC_V1;
                 default -> LEGACY_CODEC;
-            }, _ -> VERSION); // always serailize to latest versionsz
+            }, _ -> VERSION); // always serailize to latest versions
+
+        @Override
+        @NotNull
+        public <D> Result<Settings> decode(@NotNull Transcoder<D> coder, @NotNull D value) {
+            final Result<Transcoder.MapLike<D>> mapResult = coder.getMap(value);
+            if (!(mapResult instanceof Result.Ok<Transcoder.MapLike<D>>(Transcoder.MapLike<D> val))) {
+                return new Result.Error<>("Failed to decode map");
+            }
+            final Result<D> versionEntryResult = val.getValue("$v");
+            if (!(versionEntryResult instanceof Result.Ok<D>(D ver))) {
+                return LEGACY_CODEC.decode(coder, value);
+            }
+            return UNION.decode(coder, value);
+        }
+
+        @Override
+        @NotNull
+        public <D> Result<D> encode(@NotNull Transcoder<D> coder, @Nullable Settings value) {
+            return UNION.encode(coder, value);
+        }
+    };
 
 
     boolean interactable;

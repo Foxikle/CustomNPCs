@@ -27,7 +27,6 @@ import dev.foxikle.customnpcs.api.actions.ActionCustomizer;
 import dev.foxikle.customnpcs.api.callbacks.ActionCreationCallback;
 import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.Selector;
-import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.translations.Arg;
@@ -37,7 +36,6 @@ import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import dev.foxikle.customnpcs.internal.utils.await.Await;
 import dev.foxikle.customnpcs.internal.utils.await.Result;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -48,13 +46,10 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.lotus.api.button.Button;
 import studio.mevera.lotus.api.content.Content;
-import studio.mevera.lotus.api.data.DataRegistry;
-import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
 import studio.mevera.lotus.api.slot.Slot;
@@ -140,7 +135,7 @@ public class SendMessage extends Action {
     }
 
     @NotNullByDefault
-    public class SendMessageCustomizer implements ActionCustomizer {
+    public static class SendMessageCustomizer implements ActionCustomizer {
 
         @Override
         public String name() {
@@ -161,11 +156,11 @@ public class SendMessage extends Action {
         public Content content(MenuView<Component, ?> view) {
             SendMessage action = getAction(view);
             Player player = view.viewer();
-            return MenuUtils.actionBase(action, player).set(Slot.of(22),
+            return MenuUtils.actionBase(action, view).set(Slot.of(22),
                 Button.clickable(ItemBuilder.of(OAK_HANGING_SIGN)
-                        .displayName(Msg.format(getRawMessage().isEmpty() ? "<dark_gray><i>" +
+                        .displayName(Msg.format(action.getRawMessage().isEmpty() ? "<dark_gray><i>" +
                             Msg.translatedString(player.locale(), "messages.empty_string") :
-                            "<!i>" + getRawMessage())).lore(Msg.get(player, "items.click_to_change")).build(),
+                            "<!i>" + action.getRawMessage())).lore(Msg.get(player, "items.click_to_change")).build(),
                     (v, e) -> {
                         Player p = (Player) e.getWhoClicked();
                         Utils.sound(v, Sound.UI_BUTTON_CLICK);

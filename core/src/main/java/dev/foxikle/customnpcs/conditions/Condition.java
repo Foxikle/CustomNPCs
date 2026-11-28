@@ -30,10 +30,7 @@ import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
 import studio.mevera.lotus.api.data.Key;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The interface to represent a comparison
@@ -113,6 +110,12 @@ public interface Condition {
      * @return returns the target value
      */
     String getTarget();
+
+
+    /**
+     * Gets the Unique ID of this condition
+     */
+    UUID getUuid();
 
     /**
      * Clones this conditional object

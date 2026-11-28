@@ -22,15 +22,10 @@
 
 package dev.foxikle.customnpcs.internal.menu;
 
-import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNullByDefault;
 import studio.mevera.lotus.api.content.Content;
-import studio.mevera.lotus.api.data.DataRegistry;
 import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
@@ -55,19 +50,12 @@ public class ExtraSettingsMenu implements Menu<Component> {
 
     @Override
     public Content content(MenuView<Component, ?> view) {
-        Player player = view.viewer();
-        CustomNPCs plugin = CustomNPCs.getInstance();
-        InternalNpc npc = plugin.getEditingNPCs().getIfPresent(view.viewer().getUniqueId());
-        if (npc == null) {
-            return MenuUtils.invalidNpc(view);
-        }
-
         return Content.builder(view.capacity())
                 .fillAll(MenuItems.MENU_GLASS)
-                .set(Slot.of(11), MenuItems.interactableHologram(npc, player))
-                .set(Slot.of(13), MenuItems.interactableText(player))
-                .set(Slot.of(15), MenuItems.upsideDown(npc, player))
-                .set(Slot.of(18), MenuItems.toMain(player))
+            .set(Slot.of(11), MenuItems.interactableHologram(view))
+            .set(Slot.of(13), MenuItems.interactableText(view))
+            .set(Slot.of(15), MenuItems.upsideDown(view))
+            .set(Slot.of(18), MenuItems.toMain(view))
                 .build();
     }
 }

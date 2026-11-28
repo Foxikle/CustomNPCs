@@ -29,6 +29,7 @@ import dev.foxikle.customnpcs.conditions.Condition.Type;
 import dev.foxikle.customnpcs.conditions.Condition.Value;
 
 import java.io.IOException;
+import java.util.UUID;
 
 /**
  * The object allowing Gson to parse conditional objects
@@ -37,7 +38,7 @@ public class ConditionTypeAdapter extends TypeAdapter<Condition> {
 
     /**
      *
-     * @param out the data write out to
+     * @param out         the data write out to
      * @param conditional the Java object to write. May be null.
      * @throws IOException if an exception occurs
      */
@@ -81,14 +82,15 @@ public class ConditionTypeAdapter extends TypeAdapter<Condition> {
         Condition conditional = null;
 
         if (type != null && value != null && comparator != null && targetValue != null) {
-            if(type == Type.NUMERIC) {
-                conditional = new NumericCondition(comparator, value, Double.parseDouble(targetValue));
+            if (type == Type.NUMERIC) {
+                conditional = new NumericCondition(comparator, value, UUID.randomUUID(),
+                    Double.parseDouble(targetValue));
             } else if (type == Type.LOGICAL) {
                 // special case: gamemode is a text condition now!
                 if (value == Value.GAMEMODE) {
-                    conditional = new TextCondition(comparator, value, targetValue, false);
+                    conditional = new TextCondition(comparator, value, UUID.randomUUID(), targetValue, false);
                 } else {
-                    conditional = new BooleanCondition(comparator, value, targetValue);
+                    conditional = new BooleanCondition(comparator, value, UUID.randomUUID(), targetValue);
                 }
             }
         }

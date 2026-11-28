@@ -25,10 +25,8 @@ package dev.foxikle.customnpcs.internal.menu;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNullByDefault;
 import studio.mevera.lotus.api.content.Content;
-import studio.mevera.lotus.api.data.DataRegistry;
 import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
@@ -57,10 +55,10 @@ public class NewConditionMenu implements Menu<Component> {
         Player player = view.viewer();
         return Content.builder(view.capacity())
                 .fillAll(MenuItems.MENU_GLASS)
-                .set(Slot.of(18), MenuItems.toCondition(player))
-                .set(Slot.of(11), MenuItems.numeric(player))
-                .set(Slot.of(13), MenuItems.text(player))
-                .set(Slot.of(15), MenuItems.booleanCondition(player))
+            .set(Slot.of(18), MenuItems.toCondition(view))
+            .set(Slot.of(11), MenuItems.numeric(view))
+            .set(Slot.of(13), MenuItems.text(view))
+            .set(Slot.of(15), MenuItems.booleanCondition(view))
                 .build();
     }
 }

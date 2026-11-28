@@ -31,9 +31,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.jetbrains.annotations.NotNullByDefault;
 import studio.mevera.lotus.api.content.Content;
-import studio.mevera.lotus.api.data.Key;
 import studio.mevera.lotus.api.menu.InteractiveMenu;
-import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
 import studio.mevera.lotus.api.slot.Slot;
@@ -57,14 +55,13 @@ public class NewActionMenu implements InteractiveMenu<Component> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Content content(MenuView<Component, ?> view) {
-        GoBack gb = view.data().get(GoBack.KEY).or(() -> view.lotus().registeredMenu(MenuUtils.NPC_ACTIONS)).orElseThrow();
+        GoBack gb = view.data().get(GoBack.KEY).orElse(new GoBack(MenuUtils.NPC_ACTIONS, view.data()));
         return Content.builder(view.capacity())
-                .fillBorder(MenuItems.MENU_GLASS)
-                .apply(content -> CustomNPCs.ACTION_REGISTRY.getButtons(view.viewer()).forEach(content::add))
-                .set(Slot.of(27), MenuItems.goBack(view.viewer(), gb.menu(), gb.data()))
-                .build();
+            .fillBorder(MenuItems.MENU_GLASS)
+            .apply(content -> CustomNPCs.ACTION_REGISTRY.getButtons(view.viewer()).forEach(content::add))
+            .set(Slot.of(27), MenuItems.goBack(view, gb.menu(), gb.data()))
+            .build();
     }
 
     @Override

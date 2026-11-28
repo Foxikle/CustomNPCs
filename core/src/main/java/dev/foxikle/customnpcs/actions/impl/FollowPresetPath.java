@@ -36,6 +36,8 @@ import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
 import dev.foxikle.customnpcs.internal.utils.WaitingType;
+import dev.foxikle.customnpcs.internal.utils.await.Await;
+import dev.foxikle.customnpcs.internal.utils.await.Result;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -53,7 +55,6 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.lotus.api.button.Button;
 import studio.mevera.lotus.api.button.ClickAction;
 import studio.mevera.lotus.api.content.Content;
-import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
 import studio.mevera.lotus.api.slot.Slot;
@@ -69,28 +70,25 @@ import java.util.function.Supplier;
 public class FollowPresetPath extends Action {
 
     public static final StructCodec<FollowPresetPath> CODEC = StructCodec.struct(
-            "nodes", RecordedPathNode.CODEC.list(), FollowPresetPath::getPath,
-            "loop", Codec.BOOLEAN, FollowPresetPath::isLoop,
-            "delay", Codec.INT, Action::getDelay,
-            "selector", Codec.Enum(Selector.class), Action::getSelector,
-            "conditions", Condition.CODEC.list(), Action::getConditions,
-            "cooldown", Codec.INT, Action::getCooldown,
-            "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
-            FollowPresetPath::new
+        "nodes", RecordedPathNode.CODEC.list(), FollowPresetPath::getPath,
+        "loop", Codec.BOOLEAN, FollowPresetPath::isLoop,
+        "delay", Codec.INT, Action::getDelay,
+        "selector", Codec.Enum(Selector.class), Action::getSelector,
+        "conditions", Condition.CODEC.list(), Action::getConditions,
+        "cooldown", Codec.INT, Action::getCooldown,
+        "uuid", Codec.UUID_STRING.optional(), Action::getUuid,
+        FollowPresetPath::new
     );
-
-    @Getter
-    private final Supplier<FollowPresetPath> defaultValue = () -> new FollowPresetPath(new ArrayList<>(), false, 0,
-            Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
-
-    @Getter
-    private final ActionCustomizer menu = new FollowPathCustomizer();
-
     public static final Map<UUID, Location> lastRecordedPos = new ConcurrentHashMap<>();
     private static final Map<UUID, List<RecordedPathNode>> recordingPaths = new ConcurrentHashMap<>();
     private static final Map<UUID, BukkitTask> viewPaths = new ConcurrentHashMap<>();
     private static final Map<UUID, BukkitTask> recordingTasks = new ConcurrentHashMap<>();
     private static final Map<InternalNpc, BukkitTask> activePlaybacks = new ConcurrentHashMap<>();
+    @Getter
+    private final Supplier<FollowPresetPath> defaultValue = () -> new FollowPresetPath(new ArrayList<>(), false, 0,
+        Selector.ONE, new ArrayList<>(), 0, UUID.randomUUID());
+    @Getter
+    private final ActionCustomizer menu = new FollowPathCustomizer();
     @Getter
     @Setter
     private List<RecordedPathNode> path;
@@ -104,33 +102,6 @@ public class FollowPresetPath extends Action {
         super(delay, mode, conditions, cooldown, uuid);
         this.path = path;
         this.loop = loop;
-    }
-
-    public static void startRecording(final Player player) {
-        final UUID uuid = player.getUniqueId();
-        recordingPaths.put(uuid, new ArrayList<>());
-        lastRecordedPos.put(uuid, player.getLocation());
-        viewPaths.put(uuid, Bukkit.getScheduler().runTaskTimer(CustomNPCs.getInstance(), () -> {
-            Location loc = new Location(player.getWorld(), 0, 0, 0);
-            for (RecordedPathNode n : recordingPaths.get(uuid)) {
-                loc = loc.add(n.getDelta(loc.getWorld()));
-                player.spawnParticle(Particle.END_ROD, loc, 1, 0, 0, 0, 0);
-            }
-
-        }, 5, 5));
-        recordingTasks.put(uuid, Bukkit.getScheduler().runTaskTimer(CustomNPCs.getInstance(), () -> {
-            recordMovement(player);
-        }, 1, 1));
-
-        CustomNPCs.getInstance().wait(player, WaitingType.RECORDING);
-    }
-
-    public static List<RecordedPathNode> stopRecording(Player player) {
-        UUID uuid = player.getUniqueId();
-        viewPaths.remove(uuid).cancel();
-        recordingTasks.remove(uuid).cancel();
-        lastRecordedPos.remove(uuid);
-        return recordingPaths.remove(uuid);
     }
 
     // Better recordMovement
@@ -160,15 +131,15 @@ public class FollowPresetPath extends Action {
         }.getType());
         boolean loop = parseBoolean(pathData, "loop");
         return new FollowPresetPath(path, loop, result.delay(), result.mode(), result.conditions(),
-                result.cooldown(), UUID.randomUUID());
+            result.cooldown(), UUID.randomUUID());
     }
 
     public Button creationButton(Player player) {
         return Button.clickable(ItemBuilder.of(Material.RAIL)
-                        .displayName(Msg.get(player, "menus.action.follow_path.favicon"))
-                        .lore(Msg.get(player, "menus.action.follow_path.description"))
-                        .build(),
-                new ActionCreationCallback(this));
+                .displayName(Msg.get(player, "menus.action.follow_path.favicon"))
+                .lore(Msg.get(player, "menus.action.follow_path.description"))
+                .build(),
+            new ActionCreationCallback(this));
     }
 
     @Override
@@ -211,23 +182,23 @@ public class FollowPresetPath extends Action {
     @Override
     public ItemStack getFavicon(Player player) {
         return ItemBuilder.of(Material.RAIL)
-                .displayName(Msg.get(player, "menus.action.follow_path.favicon"))
-                .lore(
-                        Msg.get(player, "favicons.delay", Arg.arg(getDelay())),
-                        Msg.format(""),
-                        Msg.get(player, "menus.action.follow_path.nodes", Arg.arg(path.size())),
-                        Msg.get(player, "menus.action.follow_path.looped", Arg.arg(loop)),
-                        Msg.format(""),
-                        Msg.get(player, "favicons.edit"),
-                        Msg.get(player, "favicons.remove")
-                )
-                .build();
+            .displayName(Msg.get(player, "menus.action.follow_path.favicon"))
+            .lore(
+                Msg.get(player, "favicons.delay", Arg.arg(getDelay())),
+                Msg.format(""),
+                Msg.get(player, "menus.action.follow_path.nodes", Arg.arg(path.size())),
+                Msg.get(player, "menus.action.follow_path.looped", Arg.arg(loop)),
+                Msg.format(""),
+                Msg.get(player, "favicons.edit"),
+                Msg.get(player, "favicons.remove")
+            )
+            .build();
     }
 
     @Override
     public Action clone() {
         return new FollowPresetPath(new ArrayList<>(path), loop, getDelay(), getSelector(),
-                new ArrayList<>(getConditions()), getCooldown(), getUuid());
+            new ArrayList<>(getConditions()), getCooldown(), getUuid());
     }
 
     @Override
@@ -242,7 +213,7 @@ public class FollowPresetPath extends Action {
 
     @AllArgsConstructor
     @NotNullByDefault
-    private class FollowPathCustomizer implements ActionCustomizer {
+    private static class FollowPathCustomizer implements ActionCustomizer {
 
         @Override
         public String name() {
@@ -262,42 +233,82 @@ public class FollowPresetPath extends Action {
         @Override
         public Content content(MenuView<Component, ?> view) {
             FollowPresetPath action = getAction(view);
-            return MenuUtils.actionBase(action, view.viewer())
-                    .set(Slot.of(20), button(view.viewer(), action))
-                    .set(Slot.of(24), candle(view.viewer(), action))
-                    .build();
+            return MenuUtils.actionBase(action, view)
+                .set(Slot.of(20), button(view.viewer(), action))
+                .set(Slot.of(24), candle(view.viewer(), action))
+                .build();
         }
 
         private Button candle(Player player, FollowPresetPath action) {
             return Button.clickable(ItemBuilder.of(action.loop ? Material.GREEN_CANDLE : Material.RED_CANDLE)
-                            .displayName(Msg.get(player, "menus.action.follow_path.loop." + action.loop))
-                            .lore(Msg.lore(player.locale(), "menus.action.follow_path.loop." + action.loop + ".description"))
-                            .build(), (m, e) -> {
-                        e.setCancelled(true);
-                        Utils.sound(m, Sound.UI_BUTTON_CLICK);
-                        action.loop = !action.loop;
-                        m.content().set(Slot.of(24), candle(player, action));
-                        //todo: autostart
-                    }
+                    .displayName(Msg.get(player, "menus.action.follow_path.loop." + action.loop))
+                    .lore(Msg.lore(player.locale(), "menus.action.follow_path.loop." + action.loop +
+                        ".description"))
+                    .build(), (m, e) -> {
+                    e.setCancelled(true);
+                    Utils.sound(m, Sound.UI_BUTTON_CLICK);
+                    action.loop = !action.loop;
+                    m.content().set(Slot.of(24), candle(player, action));
+                    //todo: autostart
+                }
             );
         }
 
+        public void startRecording(final Player player, final MenuView<?, ?> view) {
+            final UUID uuid = player.getUniqueId();
+            recordingPaths.put(uuid, new ArrayList<>());
+            lastRecordedPos.put(uuid, player.getLocation());
+            viewPaths.put(uuid, Bukkit.getScheduler().runTaskTimer(CustomNPCs.getInstance(), () -> {
+                Location loc = new Location(player.getWorld(), 0, 0, 0);
+                for (RecordedPathNode n : recordingPaths.get(uuid)) {
+                    loc = loc.add(n.getDelta(loc.getWorld()));
+                    player.spawnParticle(Particle.END_ROD, loc, 1, 0, 0, 0, 0);
+                }
+
+            }, 5, 5));
+            recordingTasks.put(uuid, Bukkit.getScheduler().runTaskTimer(CustomNPCs.getInstance(),
+                () -> recordMovement(player), 1, 1));
+
+            Await.signal(player, WaitingType.RECORDING, view.data())
+                .thenAccept(result -> {
+                    switch (result) {
+                        case Result.Cancelled<?> _ -> MenuUtils.open(view);
+                        case Result.Failed<?> res -> MenuUtils.awaitFail(res, view);
+                        case Result.Ok<?> _ -> {
+                            FollowPresetPath action = getAction(view);
+                            List<RecordedPathNode> path = stopRecording(player);
+                            action.setPath(path);
+                            player.sendMessage(Msg.get(player, "action.set.recording", Arg.arg(path.size())));
+                            MenuUtils.open(view);
+                        }
+                    }
+                });
+        }
+
+        public List<RecordedPathNode> stopRecording(Player player) {
+            UUID uuid = player.getUniqueId();
+            viewPaths.remove(uuid).cancel();
+            recordingTasks.remove(uuid).cancel();
+            lastRecordedPos.remove(uuid);
+            return recordingPaths.remove(uuid);
+        }
+
         private Button button(Player player, FollowPresetPath action) {
-            ClickAction click = (_, _) -> {
+            ClickAction click = (v, _) -> {
                 player.closeInventory();
-                startRecording(player);
+                startRecording(player, v);
             };
             if (action.path == null || action.path.isEmpty()) {
                 return Button.clickable(ItemBuilder.of(Material.PLAYER_HEAD)
-                        .displayName(Msg.get(player, "menus.action.follow_path.record"))
-                        .lore(Msg.get(player, "menus.action.follow_path.record.lore"))
-                        .build(), click);
+                    .displayName(Msg.get(player, "menus.action.follow_path.record"))
+                    .lore(Msg.get(player, "menus.action.follow_path.record.lore"))
+                    .build(), click);
             }
 
             return Button.clickable(ItemBuilder.of(Material.PLAYER_HEAD)
-                    .displayName(Msg.get(player, "menus.action.follow_path.rerecord"))
-                    .lore(Msg.get(player, "menus.action.follow_path.rerecord.lore", Arg.arg(path.size())))
-                    .build(), click);
+                .displayName(Msg.get(player, "menus.action.follow_path.rerecord"))
+                .lore(Msg.get(player, "menus.action.follow_path.rerecord.lore", Arg.arg(action.path.size())))
+                .build(), click);
         }
     }
 }

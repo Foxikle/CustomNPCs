@@ -23,6 +23,7 @@
 package dev.foxikle.customnpcs.internal.utils;
 
 import dev.foxikle.customnpcs.internal.CustomNPCs;
+import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Sound;
@@ -44,10 +45,10 @@ public class OpenButtonAction implements ClickAction {
     private final Consumer<MenuView<?,?>> action;
 
 
-    public OpenButtonAction(String id) {
+    public OpenButtonAction(String id, DataRegistry data) {
         this.menu = CustomNPCs.getInstance().getLotus().registeredMenu(id).orElseThrow();
         this.action = v -> Utils.sound(v, Sound.UI_BUTTON_CLICK);
-        this.data = DataRegistry.empty();
+        this.data = data;
     }
 
     public OpenButtonAction(@NotNull Menu<Component> menu, DataRegistry data) {
@@ -62,6 +63,6 @@ public class OpenButtonAction implements ClickAction {
         if (action != null) {
             action.accept(view);
         }
-        view.lotus().openMenu(player, menu, data);
+        MenuUtils.open(player, menu, data);
     }
 }

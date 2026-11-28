@@ -25,6 +25,7 @@ package dev.foxikle.customnpcs.internal.menu;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import dev.foxikle.customnpcs.actions.Action;
+import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.translations.Arg;
@@ -41,10 +42,13 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import studio.mevera.lotus.Lotus;
 import studio.mevera.lotus.api.button.Button;
 import studio.mevera.lotus.api.button.ClickAction;
 import studio.mevera.lotus.api.content.Content;
 import studio.mevera.lotus.api.content.ContentBuilder;
+import studio.mevera.lotus.api.data.DataRegistry;
+import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
 import studio.mevera.lotus.api.slot.Slot;
@@ -79,7 +83,6 @@ public class MenuUtils {
      * The instance of the main class
      */
     private final CustomNPCs plugin;
-    private final Map<String, Pagination<SkinIcon>> catalog = new HashMap<>();
 
     /**
      * <p> The constructor for the MenuUtils class
@@ -91,121 +94,154 @@ public class MenuUtils {
         this.plugin = plugin;
     }
 
-    public static ContentBuilder actionBase(Action action, Player player) {
+    public static ContentBuilder actionBase(Action action, MenuView<?, ?> v) {
         return Content.builder(Capacity.ofRows(5))
-                .fillAll(MenuItems.MENU_GLASS)
-                .set(Slot.of(0), MenuItems.decrementDelay(action, player))
-                .set(Slot.of(1), MenuItems.delayDisplay(action, player))
-                .set(Slot.of(2), MenuItems.incrementDelay(action, player))
-                .set(Slot.of(6), MenuItems.decrementCooldown(action, player))
-                .set(Slot.of(7), MenuItems.cooldownDisplay(action, player))
-                .set(Slot.of(8), MenuItems.incrementCooldown(action, player))
-                .set(Slot.of(36), MenuItems.toAction(player))
-                .set(Slot.of(40), MenuItems.saveAction(action, player))
-                .set(Slot.of(44), MenuItems.editConditions(player));
+            .fillAll(MenuItems.MENU_GLASS)
+            .set(Slot.of(0), MenuItems.decrementDelay(action, v))
+            .set(Slot.of(1), MenuItems.delayDisplay(action, v))
+            .set(Slot.of(2), MenuItems.incrementDelay(action, v))
+            .set(Slot.of(6), MenuItems.decrementCooldown(action, v))
+            .set(Slot.of(7), MenuItems.cooldownDisplay(action, v))
+            .set(Slot.of(8), MenuItems.incrementCooldown(action, v))
+            .set(Slot.of(36), MenuItems.toAction(v))
+            .set(Slot.of(40), MenuItems.saveAction(action, v))
+            .set(Slot.of(44), MenuItems.editConditions(v));
     }
 
     public static Content invalidNpc(MenuView<Component, ?> view) {
         return Content.builder(view.capacity())
-                .set(Slot.of(22), Button.clickable(
-                        ItemBuilder.of(Material.RED_STAINED_GLASS_PANE)
-                                .displayName(Msg.get(view.viewer(), "menus.main.error.no_npc"))
-                                .lore(Msg.lore(view.viewer().locale(), "menus.main.error.no_npc.lore"))
-                                .build(),
-                        (v, _) -> v.viewer().closeInventory()
-                ))
-                .build();
+            .set(Slot.of(22), Button.clickable(
+                ItemBuilder.of(Material.RED_STAINED_GLASS_PANE)
+                    .displayName(Msg.get(view.viewer(), "menus.main.error.no_npc"))
+                    .lore(Msg.lore(view.viewer().locale(), "menus.main.error.no_npc.lore"))
+                    .build(),
+                (v, _) -> v.viewer().closeInventory()
+            ))
+            .build();
+    }
+
+    public static void open(Player player, Menu<Component> m, DataRegistry data) {
+        if (CustomNPCs.getInstance().isDebug()) {
+            player.sendMessage(String.format("""
+                    > OPEN MENU (ID BASED)
+                    Menu: %s
+                    Data:
+                    > npc: %s
+                    > action: %s
+                    > condition: %s
+                    --------------
+                    """, m.name(), data.getOrNull(InternalNpc.KEY),
+                data.getOrNull(Action.KEY), data.getOrNull(Condition.KEY)));
+        }
+        Lotus<Component> l = CustomNPCs.getInstance().getLotus();
+        if (Bukkit.isPrimaryThread()) {
+            l.openMenu(player, m, data);
+            return;
+        }
+        Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> l.openMenu(player, m, data));
+    }
+
+    public static void open(Player player, String menu, DataRegistry data) {
+        open(player, CustomNPCs.getInstance().getLotus().registeredMenu(menu).orElseThrow(), data);
     }
 
     public static void open(MenuView<?, ?> v) {
+        if (CustomNPCs.getInstance().isDebug()) {
+            v.viewer().sendMessage(String.format("""
+                    > OPEN MENU (VIEW)
+                    Menu: %s
+                    Data:
+                    > npc: %s
+                    > action: %s
+                    > condition: %s
+                    --------------
+                    """, v.menu().getClass().getSimpleName(), v.data().getOrNull(InternalNpc.KEY),
+                v.data().getOrNull(Action.KEY), v.data().getOrNull(Condition.KEY)));
+        }
+        Utils.sound(v, Sound.UI_BUTTON_CLICK);
         if (Bukkit.isPrimaryThread()) {
             v.lotus().openMenu(v.viewer(), v.menu(), v.data());
             return;
         }
-        Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> v.lotus().openMenu(v.viewer(), v.menu(), v.data()));
+        Bukkit.getScheduler().runTask(CustomNPCs.getInstance(), () -> v.lotus().openMenu(v.viewer(), v.menu(),
+            v.data()));
     }
 
-    public static void awaitFail(Result.Failed<?> res, MenuView<?,?> v) {
+    public static void awaitFail(Result.Failed<?> res, MenuView<?, ?> v) {
         open(v);
         v.viewer().sendMessage(Msg.get(v.viewer(), "await.error", Arg.arg(res.cause())));
+    }
+
+    public static Pagination<SkinIcon> getSkinCatalogue(Locale locale, InternalNpc npc) {
+        Capacity c = Capacity.ofRows(6);
+        PaperPageLayout<SkinIcon> layout = PaperPageLayout.<SkinIcon>builder(c)
+            .title(_ -> Msg.get(locale, "menus.skin_catalog.title"))
+            .nextButton(_ -> Button.of(ItemBuilder.of(ARROW).displayName(Msg.get(locale, "items.next_page")).build()))
+            .previousButton(_ -> Button.of(ItemBuilder.of(ARROW).displayName(Msg.get(locale, "items.prev_page")).build()))
+            .decorations(_ -> Content.builder(c)
+                .fillBorder(MenuItems.MENU_GLASS)
+                .set(Slot.of(49), MenuItems.toMain(locale, npc))
+                .build())
+            .fillMask(SlotMask.range(c, Slot.at(1, 1, c), Slot.at(4, 7, c))
+                .excluding(Slot.at(2, 0, c), Slot.at(3, 0, c), Slot.at(4, 0, c),
+                    Slot.at(1, 8, c), Slot.at(2, 8, c), Slot.at(3, 8, c)
+                ))
+            .build();
+
+        return Pagination.<SkinIcon>builder(NPC_SKIN_CATALOG)
+            .layout(layout)
+            .source(viewer -> makeIcons(viewer.locale(), npc))
+            .renderer((icon, context) -> Button.clickable(icon.toItem(), icon.onClick()))
+            .build();
+    }
+
+    private static List<SkinIcon> makeIcons(Locale locale, InternalNpc npc) {
+        final FileConfiguration config = CustomNPCs.getInstance().getConfig();
+        ConfigurationSection section = config.getConfigurationSection("Skins");
+        Set<String> names = section.getKeys(false);
+        List<SkinIcon> buttons = new ArrayList<>();
+        for (String str : names) {
+            String value = section.getString(str + ".value");
+            buttons.add(new SkinIcon(value, section.getString(str + ".signature"), str.replace("_", " "), npc,
+                CustomNPCs.getInstance(),
+                locale));
+        }
+        return buttons;
     }
 
     public String getValue(String name) {
         return plugin.getConfig().getConfigurationSection("Skins").getString(name + ".value");
     }
 
-    public Pagination<SkinIcon> getSkinCatalogue(Locale locale) {
-        String lang = locale.getLanguage();
-        if (catalog.containsKey(lang)) {
-            return catalog.get(lang);
-        }
-
-        Capacity capacity = Capacity.ofRows(6);
-
-        PaperPageLayout<SkinIcon> layout = PaperPageLayout.<SkinIcon>builder(capacity)
-                .title(_ -> Msg.get(locale, "menus.skin_catalog.title"))
-                .nextButton(_ -> Button.of(ItemBuilder.of(ARROW).displayName(Msg.get(locale, "items.next_page")).build()))
-                .previousButton(_ -> Button.of(ItemBuilder.of(ARROW).displayName(Msg.get(locale, "items.prev_page")).build()))
-                .decorations(_ -> Content.builder(capacity)
-                        .fillBorder(MenuItems.MENU_GLASS)
-                        .set(Slot.of(49), MenuItems.toMain(locale))
-                        .build())
-                .fillMask(SlotMask.range(capacity, Slot.at(2, 2, capacity), Slot.at(5, 8, capacity)))
-                .build();
-
-        Pagination<SkinIcon> pag = Pagination.<SkinIcon>builder(NPC_SKIN_CATALOG)
-                .layout(layout)
-                .source(viewer -> makeIcons(locale))
-                .renderer((icon, context) -> Button.clickable(icon.toItem(), icon.onClick()))
-                .build();
-
-        catalog.put(lang, pag);
-        return catalog.get(lang);
-    }
-
-    public Pagination<SkinIcon> refreshCatalog(Locale locale) {
-        catalog.remove(locale.getLanguage());
-        return getSkinCatalogue(locale);
-    }
-
-    private List<SkinIcon> makeIcons(Locale locale) {
-        final FileConfiguration config = plugin.getConfig();
-        ConfigurationSection section = config.getConfigurationSection("Skins");
-        Set<String> names = section.getKeys(false);
-        List<SkinIcon> buttons = new ArrayList<>();
-        for (String str : names) {
-            String value = section.getString(str + ".value");
-            buttons.add(new SkinIcon(value, section.getString(str + ".signature"), str.replace("_", " "), plugin, locale));
-        }
-        return buttons;
-    }
-
     public static class SkinIcon {
         private final String value;
         private final String signature;
         private final String name;
+        private final InternalNpc npc;
         private final CustomNPCs plugin;
         private final Locale locale;
 
-        public SkinIcon(String value, String signature, String name, CustomNPCs plugin, Locale player) {
+        public SkinIcon(String value, String signature, String name, InternalNpc npc, CustomNPCs plugin,
+                        Locale player) {
             this.value = value;
             this.signature = signature;
             this.name = name;
+            this.npc = npc;
             this.plugin = plugin;
             this.locale = player;
         }
 
         public ItemStack toItem() {
             return ItemBuilder.of(PLAYER_HEAD)
-                    .displayName(Msg.format("<yellow>" + name))
-                    .lore(
-                            Component.empty(),
-                            Msg.get(locale, "items.click_to_select")
-                    ).editMeta(SkullMeta.class, skullMeta -> {
-                        PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
-                        profile.setProperty(new ProfileProperty("textures", value));
-                        skullMeta.setPlayerProfile(profile);
-                    }).build();
+                .displayName(Msg.format("<yellow>" + name))
+                .lore(
+                    Component.empty(),
+                    Msg.get(locale, "items.click_to_select")
+                ).editMeta(SkullMeta.class, skullMeta -> {
+                    PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
+                    profile.setProperty(new ProfileProperty("textures", value));
+                    skullMeta.setPlayerProfile(profile);
+                }).build();
         }
 
 
@@ -213,17 +249,11 @@ public class MenuUtils {
             return (v, event) -> {
                 Player player = (Player) event.getWhoClicked();
                 Utils.sound(v, Sound.UI_BUTTON_CLICK);
-                InternalNpc npc = plugin.getEditingNPCs().getIfPresent(player.getUniqueId());
-                player.closeInventory();
-                if (npc == null) {
-                    player.sendMessage(Msg.get(player, "error.npc-menu-expired"));
-                    return;
-                }
 
                 event.setCancelled(true);
                 npc.getSettings().setSkinData(signature, value, name);
                 player.sendMessage(Msg.get(player, "skins.changed_with_catalog", Arg.arg(name)));
-                plugin.getLotus().openMenu(player, NPC_MAIN);
+                MenuUtils.open(player, NPC_MAIN, v.data().put(InternalNpc.KEY, this.npc));
             };
         }
     }

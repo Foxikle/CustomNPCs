@@ -22,24 +22,15 @@
 
 package dev.foxikle.customnpcs.internal.menu;
 
-import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNullByDefault;
 import studio.mevera.lotus.api.content.Content;
-import studio.mevera.lotus.api.data.DataRegistry;
 import studio.mevera.lotus.api.data.Key;
 import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
 import studio.mevera.lotus.api.slot.Slot;
-
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @NotNullByDefault
 public class HologramMenu implements Menu<Component> {
@@ -62,18 +53,10 @@ public class HologramMenu implements Menu<Component> {
 
     @Override
     public Content content(MenuView<Component, ?> view) {
-        CustomNPCs plugin = CustomNPCs.getInstance();
-        InternalNpc npc = plugin.getEditingNPCs().getIfPresent(view.viewer().getUniqueId());
-        if (npc == null) {
-            return MenuUtils.invalidNpc(view);
-        }
-
         return Content.builder(view.capacity())
                 .fillBorder(MenuItems.MENU_GLASS)
-                .apply(content -> {
-                    MenuItems.currentLines(npc, view.viewer()).forEach(content::add);
-                })
-                .set(Slot.of(45), MenuItems.toMain(view.viewer()))
+            .apply(content -> MenuItems.currentLines(view).forEach(content::add))
+            .set(Slot.of(45), MenuItems.toMain(view))
                 .build();
     }
 }

@@ -155,7 +155,7 @@ public class NPC_v26_3_R1 extends ServerPlayer implements InternalNpc {
     private static GameProfile createGameProfile(Settings s, UUID uuid) {
         return new GameProfile(uuid, Utils.getNpcName(s, uuid),
                 new PropertyMap(ImmutableMultimap.of(
-                        "textures", new Property("textures", s.getValue(), s.getSignature()))));
+                    "textures", new Property("textures", s.getSkin().value(), s.getSkin().signature()))));
     }
 
     @Override
@@ -268,8 +268,9 @@ public class NPC_v26_3_R1 extends ServerPlayer implements InternalNpc {
         return super.getBukkitEntity().getLocation();
     }
 
-    public void addAction(Action actionImpl) {
-        actions.add(actionImpl);
+    public void addAction(Action action) {
+        actions.removeIf(a -> a.getUuid().equals(action.getUuid()));
+        actions.add(action);
     }
 
     public boolean removeAction(Action actionImpl) {

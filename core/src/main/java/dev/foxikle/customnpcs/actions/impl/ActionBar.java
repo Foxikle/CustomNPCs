@@ -27,7 +27,6 @@ import dev.foxikle.customnpcs.api.actions.ActionCustomizer;
 import dev.foxikle.customnpcs.api.callbacks.ActionCreationCallback;
 import dev.foxikle.customnpcs.conditions.Condition;
 import dev.foxikle.customnpcs.conditions.Selector;
-import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.menu.MenuUtils;
 import dev.foxikle.customnpcs.internal.translations.Arg;
@@ -47,11 +46,9 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNullByDefault;
 import studio.mevera.lotus.api.button.Button;
 import studio.mevera.lotus.api.content.Content;
-import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
 import studio.mevera.lotus.api.slot.Slot;
@@ -163,7 +160,7 @@ public class ActionBar extends Action {
     }
 
     @NotNullByDefault
-    public class ActionbarCustomizer implements ActionCustomizer {
+    public static class ActionbarCustomizer implements ActionCustomizer {
 
         @Override
         public String name() {
@@ -184,9 +181,9 @@ public class ActionBar extends Action {
         public Content content(MenuView<Component, ?> view) {
             ActionBar action = getAction(view);
             Player player = view.viewer();
-            String raw = getRawMessage();
+            String raw = action.getRawMessage();
             if (raw.isEmpty()) raw = "<dark_gray><i><tr:messages.empty_string>";
-            return MenuUtils.actionBase(action, player)
+            return MenuUtils.actionBase(action, view)
                 .set(Slot.of(22), Button.clickable(ItemBuilder.of(PAPER)
                         .displayName(Msg.get(player, raw))
                         .lore(Msg.get(player, "items.click_to_change"))

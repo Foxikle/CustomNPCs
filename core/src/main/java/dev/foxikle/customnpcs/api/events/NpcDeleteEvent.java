@@ -26,6 +26,7 @@ import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.lotus.api.data.Key;
 
 /**
  * A class representing an event called on the deletion of an NPC.
@@ -69,6 +70,8 @@ public class NpcDeleteEvent extends NpcEvent {
         /**
          * If, somehow, the plugin isn't sure how this npc was deleted
          */
-        UNKNOWN
+        UNKNOWN;
+
+        public static final Key<DeletionSource> KEY = Key.of("delete_source", NpcDeleteEvent.DeletionSource.class);
     }
 }

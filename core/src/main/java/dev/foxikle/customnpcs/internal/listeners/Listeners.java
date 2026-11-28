@@ -264,11 +264,6 @@ public class Listeners implements Listener {
                     return;
                 }
                 as.complete();
-                //fixme: The following lines should be covered by the FollowPresetPath call to Await
-//            List<RecordedPathNode> path = FollowPresetPath.stopRecording(player);
-//            follow.setPath(path);
-//            player.sendMessage(Msg.get(player, "action.set.recording", Arg.arg(path.size())));
-//            SCHEDULER.runTask(plugin, () -> plugin.getLotus().openMenu(player, follow.getMenu()));
             }
             case FACING -> {
                 e.setCancelled(true);

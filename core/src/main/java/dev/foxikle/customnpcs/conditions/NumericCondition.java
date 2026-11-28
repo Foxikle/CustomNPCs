@@ -29,27 +29,37 @@ import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
 import org.bukkit.entity.Player;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 public class NumericCondition implements Condition {
 
     public static final StructCodec<NumericCondition> CODEC = StructCodec.struct(
-            "comparator", Codec.Enum(Comparator.class), Condition::getComparator,
-            "value", Codec.Enum(Value.class), Condition::getValue,
-            "target", Codec.DOUBLE, NumericCondition::getTypedTarget,
-            NumericCondition::new
+        "comparator", Codec.Enum(Comparator.class), Condition::getComparator,
+        "value", Codec.Enum(Value.class), Condition::getValue,
+        "uuid", Codec.UUID_STRING.optional(), Condition::getUuid,
+        "target", Codec.DOUBLE, NumericCondition::getTypedTarget,
+        NumericCondition::new
     );
 
     private final Type type = Type.NUMERIC;
+    private final UUID uuid;
     private Comparator comparator;
     private Value value;
     private double target;
 
 
-    public NumericCondition(Comparator comparator, Value value, double target) {
+    public NumericCondition(Comparator comparator, Value value, UUID uuid, double target) {
         this.comparator = comparator;
         this.value = value;
         this.target = target;
+        if (uuid == null) uuid = UUID.randomUUID();
+        this.uuid = uuid;
+    }
+
+    public static NumericCondition of(String data) {
+        return CustomNPCs.getGson().fromJson(data, NumericCondition.class);
     }
 
     @Override
@@ -73,20 +83,14 @@ public class NumericCondition implements Condition {
         };
     }
 
-    public static NumericCondition of(String data) {
-        return CustomNPCs.getGson().fromJson(data, NumericCondition.class);
+    @Override
+    public String getTarget() {
+        return String.valueOf(target);
     }
-
 
     @Override
     public void setTarget(String targetValue) {
         this.target = Double.parseDouble(targetValue);
-    }
-
-
-    @Override
-    public String getTarget() {
-        return String.valueOf(target);
     }
 
     private double getTypedTarget() {
@@ -95,6 +99,6 @@ public class NumericCondition implements Condition {
 
     @Override
     public Condition clone() {
-            return new NumericCondition(comparator, value, target);
+        return new NumericCondition(comparator, value, uuid, target);
     }
 }

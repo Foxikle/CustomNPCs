@@ -22,20 +22,15 @@
 
 package dev.foxikle.customnpcs.internal.menu;
 
-import dev.foxikle.customnpcs.internal.CustomNPCs;
-import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
-import studio.mevera.lotus.api.button.Button;
 import studio.mevera.lotus.api.content.Content;
 import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
 import studio.mevera.lotus.api.slot.Slot;
-import studio.mevera.lotus.paper.ItemBuilder;
 
 public class ActionMenu implements Menu<Component> {
     @Override
@@ -55,16 +50,10 @@ public class ActionMenu implements Menu<Component> {
 
     @Override
     public @NotNull Content content(@NotNull MenuView<Component, ?> view) {
-        CustomNPCs plugin = CustomNPCs.getInstance();
-        InternalNpc npc = plugin.getEditingNPCs().getIfPresent(view.viewer().getUniqueId());
-        if (npc == null) {
-            return MenuUtils.invalidNpc(view);
-        }
-
         return Content.builder(view.capacity())
                 .fillBorder(MenuItems.MENU_GLASS)
-                .apply(content -> MenuItems.currentActions(npc, view.viewer()).forEach(content::add))
-                .set(Slot.of(45), MenuItems.toMain(view.viewer()))
+            .apply(content -> MenuItems.currentActions(view).forEach(content::add))
+            .set(Slot.of(45), MenuItems.toMain(view))
                 .build();
     }
 }

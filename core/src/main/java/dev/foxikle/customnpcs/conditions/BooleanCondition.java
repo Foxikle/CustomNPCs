@@ -27,37 +27,42 @@ import lombok.Getter;
 import lombok.Setter;
 import net.minestom.server.codec.Codec;
 import net.minestom.server.codec.StructCodec;
-import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @Setter
 @Getter
 public class BooleanCondition implements Condition {
 
     public static final StructCodec<? extends Condition> CODEC = StructCodec.struct(
-            "comparator", Codec.Enum(Comparator.class), Condition::getComparator,
-            "value", Codec.Enum(Value.class), Condition::getValue,
-            "target", Codec.STRING, Condition::getTarget,
-            (comparator, value, s) -> {
-                if (value == Value.GAMEMODE) {
-                    return new TextCondition(comparator, value, s, false);
-                }
-                return new BooleanCondition(comparator, value, s);
+        "comparator", Codec.Enum(Comparator.class), Condition::getComparator,
+        "value", Codec.Enum(Value.class), Condition::getValue,
+        "uuid", Codec.UUID_STRING.optional(), Condition::getUuid,
+
+        "target", Codec.STRING, Condition::getTarget,
+        (comparator, value, uuid, s) -> {
+            if (uuid == null) uuid = UUID.randomUUID();
+            if (value == Value.GAMEMODE) {
+                return new TextCondition(comparator, value, uuid, s, false);
             }
+            return new BooleanCondition(comparator, value, uuid, s);
+        }
     );
 
     private final Type type = Type.LOGICAL;
+    private final UUID uuid;
     private Comparator comparator;
     private Value value;
     private String target;
 
-    public BooleanCondition(Comparator comparator, Value value, String target) {
+    public BooleanCondition(Comparator comparator, Value value, UUID uuid, String target) {
         this.comparator = comparator;
         this.value = value;
         this.target = target;
+        this.uuid = uuid;
     }
 
     public static BooleanCondition of(String data) {
@@ -70,7 +75,7 @@ public class BooleanCondition implements Condition {
         switch (this.value) {
             case HAS_PERMISSION -> value = player.hasPermission(target);
             case HAS_EFFECT ->
-                    value = player.hasPotionEffect(Objects.requireNonNull(PotionEffectType.getByName(target)));
+                value = player.hasPotionEffect(Objects.requireNonNull(PotionEffectType.getByName(target)));
             case IS_FLYING -> value = player.isFlying();
             case IS_SPRINTING -> value = player.isSprinting();
             case IS_SNEAKING -> value = player.isSneaking();
@@ -90,6 +95,6 @@ public class BooleanCondition implements Condition {
 
     @Override
     public Condition clone() {
-        return new BooleanCondition(comparator, value, target);
+        return new BooleanCondition(comparator, value, uuid, target);
     }
 }

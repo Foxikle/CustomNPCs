@@ -1,3 +1,25 @@
+/*
+ * Copyright (c) 2026. Foxikle
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package dev.foxikle.customnpcs.actions.impl;
 
 import dev.foxikle.customnpcs.actions.Action;
@@ -14,8 +36,6 @@ import dev.foxikle.customnpcs.internal.translations.Arg;
 import dev.foxikle.customnpcs.internal.utils.ItemBuilder;
 import dev.foxikle.customnpcs.internal.utils.Msg;
 import dev.foxikle.customnpcs.internal.utils.Utils;
-import dev.foxikle.customnpcs.internal.utils.await.Await;
-import dev.foxikle.customnpcs.internal.utils.await.AwaitAction;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
@@ -25,21 +45,19 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNullByDefault;
-import studio.mevera.lotus.Lotus;
 import studio.mevera.lotus.api.button.Button;
 import studio.mevera.lotus.api.content.Content;
 import studio.mevera.lotus.api.data.DataRegistry;
 import studio.mevera.lotus.api.data.Key;
-import studio.mevera.lotus.api.menu.InteractiveMenu;
-import studio.mevera.lotus.api.menu.Menu;
 import studio.mevera.lotus.api.menu.MenuView;
 import studio.mevera.lotus.api.slot.Capacity;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
@@ -90,7 +108,7 @@ public class Flow extends Action {
 
         actions.forEach(action -> {
             Component title = action.getFavicon(player).displayName();
-            lore.add(title.append(Msg.format(" <gray><i>%s", action.displayId())));
+            lore.add(title.append(Msg.format(" <gray><i>" + action.displayId())));
         });
 
         lore.add(Component.empty());
@@ -156,7 +174,7 @@ public class Flow extends Action {
         @Override
         public Content content(MenuView<Component, ?> view) {
             Flow flow = getAction(view);
-            return MenuUtils.actionBase(flow, view.viewer())
+            return MenuUtils.actionBase(flow, view)
                     .apply(content -> getButtons(view.viewer(), flow).forEach(content::add))
                     .build();
         }

@@ -22,18 +22,19 @@
 
 package dev.foxikle.customnpcs.internal.menu;
 
+import dev.foxikle.customnpcs.api.events.NpcDeleteEvent;
 import dev.foxikle.customnpcs.internal.CustomNPCs;
 import dev.foxikle.customnpcs.internal.interfaces.InternalNpc;
-import dev.foxikle.customnpcs.internal.translations.Arg;
-import dev.foxikle.customnpcs.internal.utils.*;
+import dev.foxikle.customnpcs.internal.utils.Msg;
+import dev.foxikle.customnpcs.internal.utils.OpenButtonAction;
+import dev.foxikle.customnpcs.internal.utils.Utils;
+import dev.foxikle.customnpcs.internal.utils.WaitingType;
 import dev.foxikle.customnpcs.internal.utils.await.Await;
 import dev.foxikle.customnpcs.internal.utils.await.Result;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNullByDefault;
 import studio.mevera.lotus.api.button.Button;
 import studio.mevera.lotus.api.content.Content;
@@ -69,53 +70,41 @@ public class MainNPCMenu implements Menu<Component> {
 
     @Override
     public Content content(MenuView<Component, ?> view) {
-        Player player = view.viewer();
         CustomNPCs plugin = CustomNPCs.getInstance();
-        InternalNpc npc = plugin.getEditingNPCs().getIfPresent(view.viewer().getUniqueId());
-        if (npc == null) {
-            return Content.builder(view.capacity())
-                .set(Slot.of(22), Button.clickable(
-                    ItemBuilder.of(Material.RED_STAINED_GLASS_PANE)
-                        .displayName(Msg.get(view.viewer(), "menus.main.error.no_npc"))
-                        .lore(Msg.lore(view.viewer().locale(), "menus.main.error.no_npc.lore"))
-                        .build(),
-                    (v, _) -> v.viewer().closeInventory()))
-                .build();
-        }
-
+        InternalNpc npc = view.data().require(InternalNpc.KEY);
 
         ContentBuilder builder = Content.builder(view.capacity());
         builder.fillAll(MenuItems.MENU_GLASS)
-            .set(Slot.of(10), Button.clickable(MenuItems.looking(view.viewer()), (v, e) -> {
+            .set(Slot.of(10), Button.clickable(MenuItems.looking(view), (v, e) -> {
                 Utils.sound(v, Sound.UI_BUTTON_CLICK);
                 Await.signal(v.viewer(), WaitingType.FACING, v.data())
                     .thenAccept(response -> {
                         switch (response) {
-                            case Result.Failed<Void> res -> {
-                                MenuUtils.open(v);
-                                player.sendMessage(Msg.get(v.viewer(), "await.error", Arg.arg(res.cause())));
-                            }
+                            case Result.Cancelled<Void> _ -> MenuUtils.open(v);
+                            case Result.Failed<Void> res -> MenuUtils.awaitFail(res, v);
                             case Result.Ok<Void> _ -> {
-                                npc.getSpawnLoc().setPitch(player.getLocation().getPitch());
-                                npc.getSpawnLoc().setYaw(player.getLocation().getYaw());
-                                player.sendMessage(Msg.get(player, "set.facing_direction"));
+                                npc.getSpawnLoc().setPitch(v.viewer().getLocation().getPitch());
+                                npc.getSpawnLoc().setYaw(v.viewer().getLocation().getYaw());
+                                v.viewer().sendMessage(Msg.get(v.viewer(), "set.facing_direction"));
                                 Utils.sound(v, Sound.BLOCK_AMETHYST_BLOCK_BREAK);
                                 MenuUtils.open(v);
                             }
-                            case Result.Cancelled<Void> _ -> MenuUtils.open(v);
                         }
                     });
             }))
-            .set(Slot.of(8), Button.clickable(MenuItems.extraSettings(player), new OpenButtonAction(MenuUtils.NPC_EXTRA_SETTINGS)))
-            .set(Slot.of(0), MenuItems.toPose(player))
-            .set(Slot.of(13), Button.clickable(MenuItems.skinSelection(npc, player), new OpenButtonAction(MenuUtils.NPC_SKIN)))
-            .set(Slot.of(16), MenuItems.changeLines(npc, player))
-            .set(Slot.of(19), Button.clickable(MenuItems.editEquipment(npc, player), new OpenButtonAction(MenuUtils.NPC_EQUIPMENT)))
-            .set(Slot.of(22), MenuItems.resilient(npc, player))
-            .set(Slot.of(25), MenuItems.interactable(npc, player))
-            .set(Slot.of(34), MenuItems.showActions(npc, player))
-            .set(Slot.of(28), MenuItems.tunnelVision(npc, player))
-            .set(Slot.of(31), Button.clickable(MenuItems.confirmCreation(player), (v, event) -> {
+            .set(Slot.of(8), Button.clickable(MenuItems.extraSettings(view),
+                new OpenButtonAction(MenuUtils.NPC_EXTRA_SETTINGS, view.data())))
+            .set(Slot.of(0), MenuItems.toPose(view))
+            .set(Slot.of(13), Button.clickable(MenuItems.skinSelection(view), new OpenButtonAction(MenuUtils.NPC_SKIN
+                , view.data())))
+            .set(Slot.of(16), MenuItems.changeLines(view))
+            .set(Slot.of(19), Button.clickable(MenuItems.editEquipment(view),
+                new OpenButtonAction(MenuUtils.NPC_EQUIPMENT, view.data())))
+            .set(Slot.of(22), MenuItems.resilient(view))
+            .set(Slot.of(25), MenuItems.interactable(view))
+            .set(Slot.of(34), MenuItems.showActions(view))
+            .set(Slot.of(28), MenuItems.tunnelVision(view))
+            .set(Slot.of(31), Button.clickable(MenuItems.confirmCreation(view), (v, event) -> {
                 event.setCancelled(true);
                 Player p = (Player) event.getWhoClicked();
 
@@ -125,26 +114,25 @@ public class MainNPCMenu implements Menu<Component> {
                 p.spawnParticle(npc.getSpawnParticle(), npc.getSpawnLoc().clone().add(0, 1, 0), 1);
 
                 if (npc.getSettings().isResilient())
-                    p.sendMessage(Msg.get(player, "menus.main.create.message.resilient"));
+                    p.sendMessage(Msg.get(v.viewer(), "menus.main.create.message.resilient"));
                 else
-                    p.sendMessage(Msg.get(player, "menus.main.create.message.temporary"));
+                    p.sendMessage(Msg.get(v.viewer(), "menus.main.create.message.temporary"));
 
                 npc.reloadSettings();
 
                 p.closeInventory();
             }))
-            .set(Slot.of(36), Button.clickable(MenuItems.cancelCreation(player), (_, event) -> {
+            .set(Slot.of(36), Button.clickable(MenuItems.cancelCreation(view), (v, event) -> {
                 event.setCancelled(true);
-                Player p = (Player) event.getWhoClicked();
-                p.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
-                p.sendMessage(Msg.get(player, "menus.main.cancel.message"));
-                p.closeInventory();
+                Utils.sound(v, Sound.BLOCK_GLASS_BREAK);
+                v.viewer().closeInventory();
+                v.viewer().sendMessage(Msg.get(v.viewer(), "menus.main.cancel.message"));
             }));
         if (plugin.getNPCByID(npc.getUniqueID()) != null)
-            builder.set(Slot.of(44), Button.clickable(MenuItems.deleteNpc(player), (_, event) -> {
+            builder.set(Slot.of(44), Button.clickable(MenuItems.deleteNpc(view), (_, event) -> {
                 Player p = (Player) event.getWhoClicked();
-                plugin.getDeletionReason().put(p.getUniqueId(), true);
-                plugin.getLotus().openMenu(p, MenuUtils.NPC_DELETE);
+                MenuUtils.open(p, MenuUtils.NPC_DELETE, view.data()
+                    .put(NpcDeleteEvent.DeletionSource.KEY, NpcDeleteEvent.DeletionSource.MENU));
                 p.playSound(p, Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
             }));
         return builder.build();
